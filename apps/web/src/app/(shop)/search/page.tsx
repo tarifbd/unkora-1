@@ -1,12 +1,13 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { searchApi } from '@/lib/api/products';
 import { ProductGrid } from '@/components/product/product-grid';
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') ?? '';
 
@@ -38,5 +39,13 @@ export default function SearchPage() {
 
       {query && <ProductGrid products={data?.hits ?? []} loading={isLoading} />}
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="container py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
+      <SearchContent />
+    </Suspense>
   );
 }

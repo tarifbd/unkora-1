@@ -1,8 +1,8 @@
 'use client';
 
+import { use, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
-import { useState } from 'react';
 import { ShoppingCart, Minus, Plus, Loader2, ArrowLeft, BookOpen, Package } from 'lucide-react';
 import Link from 'next/link';
 import { productsApi } from '@/lib/api/products';
@@ -12,10 +12,11 @@ import { useCartStore } from '@/store/cart.store';
 import { formatCurrency } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 
-export default function ProductDetailPage({ params }: { params: { slug: string } }) {
+export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const { data: product, isLoading } = useQuery({
-    queryKey: ['product', params.slug],
-    queryFn: () => productsApi.getBySlug(params.slug),
+    queryKey: ['product', slug],
+    queryFn: () => productsApi.getBySlug(slug),
   });
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);

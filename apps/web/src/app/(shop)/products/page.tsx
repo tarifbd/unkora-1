@@ -1,13 +1,14 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal, X, Loader2 } from 'lucide-react';
 import { productsApi } from '@/lib/api/products';
 import { ProductGrid } from '@/components/product/product-grid';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -57,7 +58,6 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Active filters */}
       {(minPrice || maxPrice || categorySlug) && (
         <div className="mb-4 flex flex-wrap gap-2">
           {categorySlug && <span className="flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-xs">{categorySlug} <button onClick={() => setParam('categorySlug', undefined)}><X className="h-3 w-3" /></button></span>}
@@ -67,7 +67,6 @@ export default function ProductsPage() {
 
       <ProductGrid products={data?.data ?? []} loading={isLoading} />
 
-      {/* Pagination */}
       {data && data.meta.totalPages > 1 && (
         <div className="mt-8 flex justify-center gap-2">
           {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1).map(p => (
@@ -79,5 +78,13 @@ export default function ProductsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="container py-20 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>}>
+      <ProductsContent />
+    </Suspense>
   );
 }

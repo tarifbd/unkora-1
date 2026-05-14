@@ -1,5 +1,6 @@
 'use client';
 
+import { use } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -16,17 +17,18 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED: 'bg-red-100 text-red-700',
 };
 
-export default function OrderDetailPage({ params }: { params: { id: string } }) {
+export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const queryClient = useQueryClient();
 
   const { data: order, isLoading } = useQuery({
-    queryKey: ['order', params.id],
-    queryFn: () => ordersApi.getById(params.id),
+    queryKey: ['order', id],
+    queryFn: () => ordersApi.getById(id),
   });
 
   const cancel = useMutation({
-    mutationFn: () => ordersApi.cancel(params.id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['order', params.id] }),
+    mutationFn: () => ordersApi.cancel(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['order', id] }),
   });
 
   if (isLoading) return (

@@ -1,24 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { productsApi, categoriesApi } from '@/lib/api/products';
 import { ProductGrid } from '@/components/product/product-grid';
 
-export default function CategoryPage({ params }: { params: { slug: string } }) {
+export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const [page, setPage] = useState(1);
 
   const { data: category } = useQuery({
-    queryKey: ['category', params.slug],
-    queryFn: () => categoriesApi.getBySlug(params.slug),
+    queryKey: ['category', slug],
+    queryFn: () => categoriesApi.getBySlug(slug),
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ['products', { categorySlug: params.slug, page }],
-    queryFn: () => productsApi.getAll({ categorySlug: params.slug, page, limit: 20 }),
+    queryKey: ['products', { categorySlug: slug, page }],
+    queryFn: () => productsApi.getAll({ categorySlug: slug, page, limit: 20 }),
   });
 
-  const title = category?.name ?? params.slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  const title = category?.name ?? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
   return (
     <div className="container py-8">
