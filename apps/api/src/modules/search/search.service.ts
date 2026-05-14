@@ -37,7 +37,7 @@ export class SearchService implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      const Typesense = await import('typesense').catch(() => null);
+      const Typesense = await import('typesense' as string).catch(() => null);
       if (!Typesense) return;
 
       this.client = new Typesense.Client({

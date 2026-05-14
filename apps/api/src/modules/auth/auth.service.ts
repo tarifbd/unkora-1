@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { TokenType } from '@unkora/database';
+import { TokenType } from '@prisma/client';
 import type { JwtPayload } from '@unkora/types';
 import * as argon2 from 'argon2';
 

@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { User } from '@unkora/database';
+import type { User } from '@prisma/client';
 import type { UserDto } from '@unkora/types';
 
 import { PrismaService } from '../../database/prisma.service';
