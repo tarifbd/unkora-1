@@ -6,10 +6,11 @@ import { z } from 'zod';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
 import { useState } from 'react';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Loader2 } from 'lucide-react';
 
 const profileSchema = z.object({
-  name: z.string().min(2, 'Name is required'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
   phone: z.string().optional(),
 });
 
@@ -22,7 +23,11 @@ export default function ProfilePage() {
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { name: user?.name ?? '', phone: user?.phone ?? '' },
+    defaultValues: {
+      firstName: user?.firstName ?? '',
+      lastName: user?.lastName ?? '',
+      phone: user?.phone ?? '',
+    },
   });
 
   const onSubmit = async (data: ProfileFormData) => {
@@ -46,15 +51,23 @@ export default function ProfilePage() {
 
       <div className="rounded-xl border bg-card p-6">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Full Name</label>
-            <input {...register('name')} className={inputCls(errors.name)} />
-            {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-sm font-medium">First Name</label>
+              <input {...register('firstName')} className={inputCls(errors.firstName)} />
+              {errors.firstName && <p className="mt-1 text-xs text-destructive">{errors.firstName.message}</p>}
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Last Name</label>
+              <input {...register('lastName')} className={inputCls(errors.lastName)} />
+              {errors.lastName && <p className="mt-1 text-xs text-destructive">{errors.lastName.message}</p>}
+            </div>
           </div>
 
           <div>
             <label className="mb-1 block text-sm font-medium">Email</label>
-            <input value={user?.email ?? ''} disabled className="w-full rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed" />
+            <input value={user?.email ?? ''} disabled
+              className="w-full rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed" />
             <p className="mt-1 text-xs text-muted-foreground">Email cannot be changed</p>
           </div>
 
@@ -72,8 +85,9 @@ export default function ProfilePage() {
           )}
 
           <button type="submit" disabled={isSubmitting}
-            className="rounded-md bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
-            {isSubmitting ? 'Saving...' : 'Save Changes'}
+            className="flex items-center gap-2 rounded-md bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
+            {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
+            Save Changes
           </button>
         </form>
       </div>

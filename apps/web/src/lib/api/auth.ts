@@ -1,36 +1,42 @@
 import api, { saveAuthTokens, clearAuthTokens } from '@/lib/api';
+import type { AuthUser } from '@/store/auth.store';
 
-export interface AuthUser {
-  id: string; email: string; name: string; role: string; phone?: string; avatar?: string;
+interface ApiUser {
+  id: string; email: string; firstName: string; lastName: string;
+  role: string; phone?: string; avatarUrl?: string;
 }
-export interface AuthResponse {
-  user: AuthUser;
+interface AuthResponse {
+  user: ApiUser;
   tokens: { accessToken: string; refreshToken: string; expiresIn: number };
+}
+
+function mapUser(u: ApiUser): AuthUser {
+  return { ...u, name: `${u.firstName} ${u.lastName}`.trim() };
 }
 
 export const authApi = {
   register: (data: { email: string; password: string; firstName: string; lastName: string; phone?: string }) =>
     api.post<{ data: AuthResponse }>('/auth/register', data).then(r => {
-      const { tokens } = r.data.data;
+      const { tokens, user } = r.data.data;
       saveAuthTokens(tokens.accessToken, tokens.refreshToken);
-      return r.data.data;
+      return { tokens, user: mapUser(user) };
     }),
 
   login: (email: string, password: string) =>
     api.post<{ data: AuthResponse }>('/auth/login', { email, password }).then(r => {
-      const { tokens } = r.data.data;
+      const { tokens, user } = r.data.data;
       saveAuthTokens(tokens.accessToken, tokens.refreshToken);
-      return r.data.data;
+      return { tokens, user: mapUser(user) };
     }),
 
   logout: () =>
     api.post('/auth/logout').finally(() => clearAuthTokens()),
 
   getMe: () =>
-    api.get<{ data: AuthUser }>('/users/me').then(r => r.data.data),
+    api.get<{ data: ApiUser }>('/users/me').then(r => mapUser(r.data.data)),
 
-  updateProfile: (data: { name?: string; phone?: string }) =>
-    api.patch<{ data: AuthUser }>('/users/me', data).then(r => r.data.data),
+  updateProfile: (data: { firstName?: string; lastName?: string; phone?: string }) =>
+    api.patch<{ data: ApiUser }>('/users/me', data).then(r => mapUser(r.data.data)),
 
   getAddresses: () =>
     api.get('/users/me/addresses').then(r => r.data.data),

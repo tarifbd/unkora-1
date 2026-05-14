@@ -14,7 +14,7 @@ export function useAuth() {
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       authApi.login(email, password),
     onSuccess: ({ user: u }) => {
-      setUser(u as Parameters<typeof setUser>[0]);
+      setUser(u);
       void qc.invalidateQueries({ queryKey: ['cart'] });
       router.push('/');
     },
@@ -24,7 +24,7 @@ export function useAuth() {
     mutationFn: (data: Parameters<typeof authApi.register>[0]) =>
       authApi.register(data),
     onSuccess: ({ user: u }) => {
-      setUser(u as Parameters<typeof setUser>[0]);
+      setUser(u);
       router.push('/');
     },
   });

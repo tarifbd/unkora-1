@@ -67,5 +67,8 @@ export const categoriesApi = {
 
 export const searchApi = {
   search: (q: string, params: Record<string, unknown> = {}) =>
-    api.get('/search', { params: { q, ...params } }).then(r => r.data.data as { hits: Product[]; total: number; facets?: Record<string, unknown> }),
+    api.get('/search', { params: { q, ...params } }).then(r => {
+      const d = r.data.data as { data: Product[]; meta: { total: number; page: number; limit: number } };
+      return { hits: d.data, total: d.meta.total };
+    }),
 };

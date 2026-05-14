@@ -65,7 +65,7 @@ export function CartDrawer() {
                       {item.product.name}
                     </Link>
                     <p className="text-sm font-semibold text-brand-600">
-                      {formatCurrency(item.price)}
+                      {formatCurrency(Number(item.price) * item.quantity)}
                     </p>
 
                     <div className="flex items-center gap-2">
