@@ -1,0 +1,10 @@
+{
+  "name": "@unkora/types",
+  "version": "0.0.1",
+  "private": true,
+  "main": "src/index.ts",
+  "devDependencies": {
+    "@unkora/tsconfig": "*",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,29 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build & push Docker images
+        run: echo "Docker build/push steps — configure in V1 deployment setup"
+
+      # TODO (V1): Add actual deployment steps
+      # - Build Docker images
+      # - Push to container registry (GHCR / Docker Hub)
+      # - SSH to server and pull new images
+      # - Run db:migrate:deploy
+      # - Restart containers
