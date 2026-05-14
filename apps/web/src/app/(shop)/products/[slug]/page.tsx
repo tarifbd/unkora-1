@@ -11,6 +11,8 @@ import { useAuthStore } from '@/store/auth.store';
 import { useCartStore } from '@/store/cart.store';
 import { formatCurrency } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { ProductReviews } from '@/components/product/product-reviews';
+import { WishlistButton } from '@/components/product/wishlist-button';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -122,7 +124,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
               : <span className="text-destructive font-medium">Out of Stock</span>}
           </div>
 
-          {/* Qty + Add to Cart */}
+          {/* Qty + Add to Cart + Wishlist */}
           {product.stockQuantity > 0 && (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 rounded-md border px-3 py-2">
@@ -135,6 +137,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 {addItem.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
                 Add to Cart
               </button>
+              <WishlistButton
+                productId={product.id}
+                className="h-10 w-10 rounded-md border hover:bg-accent transition-colors"
+              />
+            </div>
+          )}
+          {product.stockQuantity === 0 && (
+            <div className="flex items-center gap-3">
+              <WishlistButton
+                productId={product.id}
+                className="h-10 w-10 rounded-md border hover:bg-accent transition-colors"
+              />
             </div>
           )}
 
@@ -146,6 +160,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
           )}
         </div>
       </div>
+
+      <ProductReviews productId={product.id} />
     </div>
   );
 }

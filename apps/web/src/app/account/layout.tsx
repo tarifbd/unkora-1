@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { User, Package, MapPin, LogOut, ChevronRight } from 'lucide-react';
+import { User, Package, MapPin, Heart, LogOut, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
 import { useEffect } from 'react';
@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 const navItems = [
   { href: '/account', label: 'Dashboard', icon: User, exact: true },
   { href: '/account/orders', label: 'Orders', icon: Package },
+  { href: '/account/wishlist', label: 'Wishlist', icon: Heart },
   { href: '/account/profile', label: 'Profile', icon: User },
   { href: '/account/addresses', label: 'Addresses', icon: MapPin },
 ];

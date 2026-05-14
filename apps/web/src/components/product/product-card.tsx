@@ -9,6 +9,7 @@ import { useCart } from '@/lib/hooks/use-cart';
 import { useAuthStore } from '@/store/auth.store';
 import { useCartStore } from '@/store/cart.store';
 import { useRouter } from 'next/navigation';
+import { WishlistButton } from './wishlist-button';
 
 interface ProductCardProps {
   product: Product;
@@ -52,6 +53,10 @@ export function ProductCard({ product, className }: ProductCardProps) {
             -{discountPct}%
           </span>
         )}
+        <WishlistButton
+          productId={product.id}
+          className="absolute right-2 top-2 h-7 w-7 rounded-full bg-background/80 shadow backdrop-blur-sm hover:bg-background transition-colors"
+        />
         {product.stockQuantity === 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60 backdrop-blur-[2px]">
             <span className="rounded-full bg-background px-3 py-1 text-xs font-medium shadow">Out of Stock</span>

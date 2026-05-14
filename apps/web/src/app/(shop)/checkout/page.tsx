@@ -11,6 +11,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { ordersApi } from '@/lib/api/orders';
 import { formatCurrency } from '@/lib/utils';
 import Link from 'next/link';
+import { CouponInput } from '@/components/checkout/coupon-input';
 
 const checkoutSchema = z.object({
   fullName: z.string().min(2, 'Name is required'),
@@ -33,6 +34,7 @@ export default function CheckoutPage() {
   const { cart, isLoading } = useCart();
   const { isAuthenticated } = useAuthStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -71,7 +73,8 @@ export default function CheckoutPage() {
 
   const subtotal = cart.items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
   const shipping = subtotal >= 1000 ? 0 : 80;
-  const total = subtotal + shipping;
+  const couponDiscount = appliedCoupon?.discount ?? 0;
+  const total = subtotal + shipping - couponDiscount;
 
   const onSubmit = async (data: CheckoutFormData) => {
     setIsSubmitting(true);
@@ -193,6 +196,14 @@ export default function CheckoutPage() {
             ))}
           </div>
 
+          <div className="border-t pt-4">
+            <CouponInput
+              orderTotal={subtotal}
+              onApply={(discount, code) => setAppliedCoupon({ discount, code })}
+              onRemove={() => setAppliedCoupon(null)}
+            />
+          </div>
+
           <div className="border-t pt-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
@@ -202,11 +213,17 @@ export default function CheckoutPage() {
               <span className="text-muted-foreground">Shipping</span>
               <span>{shipping === 0 ? <span className="text-green-600">Free</span> : formatCurrency(shipping)}</span>
             </div>
+            {couponDiscount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Coupon ({appliedCoupon?.code})</span>
+                <span>-{formatCurrency(couponDiscount)}</span>
+              </div>
+            )}
           </div>
 
           <div className="border-t pt-4 flex justify-between font-semibold">
             <span>Total</span>
-            <span className="text-brand-600">{formatCurrency(total)}</span>
+            <span className="text-brand-600">{formatCurrency(Math.max(0, total))}</span>
           </div>
 
           <button type="submit" disabled={isSubmitting}
