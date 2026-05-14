@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
+'use client';
 
-export const metadata: Metadata = { title: 'Sign In' };
+import Link from 'next/link';
+import { LoginForm } from '@/components/auth/login-form';
 
 export default function LoginPage() {
   return (
@@ -12,11 +12,8 @@ export default function LoginPage() {
           <p className="text-sm text-muted-foreground">Sign in to your UNKORA account</p>
         </div>
 
-        {/* LoginForm component will be wired in V1 */}
         <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <p className="text-center text-sm text-muted-foreground">
-            Auth form — implemented in V1
-          </p>
+          <LoginForm />
         </div>
 
         <p className="text-center text-sm text-muted-foreground">

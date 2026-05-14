@@ -1,12 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-import type { UserDto } from '@unkora/types';
+export interface AuthUser {
+  id: string; email: string; name: string; role: string; phone?: string; avatar?: string;
+}
 
 interface AuthState {
-  user: UserDto | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
-  setUser: (user: UserDto | null) => void;
+  setUser: (user: AuthUser | null) => void;
   clearAuth: () => void;
 }
 

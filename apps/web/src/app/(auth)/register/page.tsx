@@ -1,7 +1,7 @@
-import type { Metadata } from 'next';
-import Link from 'next/link';
+'use client';
 
-export const metadata: Metadata = { title: 'Create Account' };
+import Link from 'next/link';
+import { RegisterForm } from '@/components/auth/register-form';
 
 export default function RegisterPage() {
   return (
@@ -12,11 +12,8 @@ export default function RegisterPage() {
           <p className="text-sm text-muted-foreground">Join UNKORA today</p>
         </div>
 
-        {/* RegisterForm component will be wired in V1 */}
         <div className="rounded-lg border bg-card p-6 shadow-sm">
-          <p className="text-center text-sm text-muted-foreground">
-            Registration form — implemented in V1
-          </p>
+          <RegisterForm />
         </div>
 
         <p className="text-center text-sm text-muted-foreground">
