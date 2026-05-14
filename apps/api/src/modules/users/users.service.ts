@@ -3,6 +3,7 @@ import type { User } from '@unkora/database';
 import type { UserDto } from '@unkora/types';
 
 import { PrismaService } from '../../database/prisma.service';
+import type { CreateAddressDto, UpdateAddressDto } from './dto/address.dto';
 
 @Injectable()
 export class UsersService {
@@ -25,10 +26,47 @@ export class UsersService {
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { profile: true, address: { where: { isDefault: true } } },
+      include: { profile: true, address: { orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }] } },
     });
     if (!user) throw new NotFoundException('User not found');
-    return user;
+    const { passwordHash: _, ...safe } = user;
+    return safe;
+  }
+
+  // ── Addresses ──────────────────────────────────────────────
+
+  async getAddresses(userId: string) {
+    return this.prisma.address.findMany({
+      where: { userId },
+      orderBy: [{ isDefault: 'desc' }, { createdAt: 'asc' }],
+    });
+  }
+
+  async addAddress(userId: string, dto: CreateAddressDto) {
+    if (dto.isDefault) {
+      await this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
+    }
+    const count = await this.prisma.address.count({ where: { userId } });
+    return this.prisma.address.create({
+      data: { ...dto, userId, isDefault: dto.isDefault ?? count === 0 },
+    });
+  }
+
+  async updateAddress(userId: string, id: string, dto: UpdateAddressDto) {
+    const address = await this.prisma.address.findFirst({ where: { id, userId } });
+    if (!address) throw new NotFoundException('Address not found');
+
+    if (dto.isDefault) {
+      await this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
+    }
+
+    return this.prisma.address.update({ where: { id }, data: dto });
+  }
+
+  async removeAddress(userId: string, id: string) {
+    const address = await this.prisma.address.findFirst({ where: { id, userId } });
+    if (!address) throw new NotFoundException('Address not found');
+    return this.prisma.address.delete({ where: { id } });
   }
 
   toDto(user: User): UserDto {
