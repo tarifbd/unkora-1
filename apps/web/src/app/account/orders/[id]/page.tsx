@@ -4,9 +4,115 @@ import { use } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Package, MapPin, CreditCard, Loader2 } from 'lucide-react';
+import { ArrowLeft, Package, MapPin, CreditCard, Loader2, Truck, ExternalLink } from 'lucide-react';
 import { ordersApi } from '@/lib/api/orders';
+import { shipmentsApi, type Shipment } from '@/lib/api/shipments';
 import { formatCurrency } from '@/lib/utils';
+
+const SHIPMENT_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  PENDING:          { label: 'Pending',          color: 'bg-yellow-100 text-yellow-700' },
+  PICKED_UP:        { label: 'Picked Up',        color: 'bg-blue-100 text-blue-700' },
+  IN_TRANSIT:       { label: 'In Transit',       color: 'bg-purple-100 text-purple-700' },
+  OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: 'bg-orange-100 text-orange-700' },
+  DELIVERED:        { label: 'Delivered',        color: 'bg-green-100 text-green-700' },
+  FAILED:           { label: 'Failed',           color: 'bg-red-100 text-red-700' },
+  RETURNED:         { label: 'Returned',         color: 'bg-muted text-muted-foreground' },
+};
+
+const SHIPMENT_STATUS_FLOW = ['PENDING', 'PICKED_UP', 'IN_TRANSIT', 'OUT_FOR_DELIVERY', 'DELIVERED'];
+
+function ShipmentTracker({ orderId }: { orderId: string }) {
+  const { data: shipment, isLoading } = useQuery<Shipment | null>({
+    queryKey: ['shipment', orderId],
+    queryFn: () => shipmentsApi.getMyShipment(orderId).catch(() => null),
+    retry: false,
+  });
+
+  if (isLoading) return null;
+  if (!shipment) return null;
+
+  const currentIndex = SHIPMENT_STATUS_FLOW.indexOf(shipment.status);
+  const statusInfo = SHIPMENT_STATUS_LABELS[shipment.status] ?? { label: shipment.status, color: 'bg-muted text-muted-foreground' };
+
+  return (
+    <div className="rounded-xl border bg-card overflow-hidden">
+      <div className="flex items-center gap-2 p-4 border-b font-semibold text-sm">
+        <Truck className="h-4 w-4" /> Shipment Tracking
+      </div>
+      <div className="p-4 space-y-4">
+        {/* Courier + tracking */}
+        <div className="flex flex-wrap items-center gap-3 text-sm">
+          <span className="font-medium">{shipment.courier}</span>
+          {shipment.trackingNumber && (
+            <span className="flex items-center gap-1 font-mono text-xs text-muted-foreground">
+              {shipment.trackingNumber}
+              {shipment.trackingUrl && (
+                <a
+                  href={shipment.trackingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-0.5 text-muted-foreground hover:text-foreground"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+            </span>
+          )}
+          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusInfo.color}`}>
+            {statusInfo.label}
+          </span>
+        </div>
+
+        {/* Status timeline */}
+        {!['FAILED', 'RETURNED'].includes(shipment.status) && (
+          <div className="flex items-center gap-0">
+            {SHIPMENT_STATUS_FLOW.map((step, i) => {
+              const done = i <= currentIndex;
+              const isLast = i === SHIPMENT_STATUS_FLOW.length - 1;
+              return (
+                <div key={step} className="flex flex-1 items-center">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`h-2.5 w-2.5 rounded-full border-2 ${
+                        done ? 'border-primary bg-primary' : 'border-muted-foreground/30 bg-background'
+                      }`}
+                    />
+                    <span className="mt-1 hidden text-[10px] text-muted-foreground sm:block">
+                      {SHIPMENT_STATUS_LABELS[step]?.label ?? step}
+                    </span>
+                  </div>
+                  {!isLast && (
+                    <div
+                      className={`h-0.5 flex-1 ${i < currentIndex ? 'bg-primary' : 'bg-muted-foreground/20'}`}
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Estimated delivery */}
+        {shipment.estimatedAt && !shipment.deliveredAt && (
+          <p className="text-xs text-muted-foreground">
+            Estimated delivery:{' '}
+            <span className="font-medium text-foreground">
+              {new Date(shipment.estimatedAt).toLocaleDateString('en-BD', { dateStyle: 'medium' })}
+            </span>
+          </p>
+        )}
+        {shipment.deliveredAt && (
+          <p className="text-xs text-muted-foreground">
+            Delivered on:{' '}
+            <span className="font-medium text-green-600">
+              {new Date(shipment.deliveredAt).toLocaleDateString('en-BD', { dateStyle: 'medium' })}
+            </span>
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -92,6 +198,8 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
           </div>
         </div>
       </div>
+
+      <ShipmentTracker orderId={id} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         {/* Shipping Address */}
