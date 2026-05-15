@@ -83,6 +83,20 @@ export class EmailService {
     await this.send(to, `Order Confirmed #${order.orderNumber} — UNKORA`, html);
   }
 
+  async sendLowStockAlert(productName: string, currentStock: number): Promise<void> {
+    const adminEmail = this.config.get('ADMIN_EMAIL') ?? 'admin@unkora.com';
+    await this.send(
+      adminEmail,
+      `Low Stock Alert: ${productName}`,
+      `<div style="font-family:sans-serif;padding:20px">
+        <h2 style="color:#dc2626">⚠️ Low Stock Alert</h2>
+        <p>Product <strong>${productName}</strong> is running low.</p>
+        <p>Current stock: <strong style="color:#dc2626">${currentStock} units</strong></p>
+        <p>Please restock soon to avoid stockouts.</p>
+      </div>`,
+    );
+  }
+
   async sendOrderStatusUpdate(to: string, orderNumber: string, status: string, note?: string) {
     const statusLabel: Record<string, string> = {
       CONFIRMED: '✅ Confirmed', PROCESSING: '🔄 Processing', SHIPPED: '🚚 Shipped',

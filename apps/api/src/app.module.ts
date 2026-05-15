@@ -23,6 +23,8 @@ import { SearchModule } from './modules/search/search.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { UsersModule } from './modules/users/users.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { ShipmentsModule } from './modules/shipments/shipments.module';
 
 @Module({
   imports: [
@@ -54,6 +56,8 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     WishlistModule,
     CouponsModule,
     UploadModule,
+    InventoryModule,
+    ShipmentsModule,
   ],
 })
 export class AppModule {}

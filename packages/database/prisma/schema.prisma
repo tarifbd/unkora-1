@@ -192,14 +192,15 @@ model Product {
   metaDesc      String?
   tags          String[]
 
-  category   Category       @relation(fields: [categoryId], references: [id])
-  images     ProductImage[]
-  variants   ProductVariant[]
-  bookDetail BookDetail?
-  orderItems OrderItem[]
-  cartItems  CartItem[]
-  reviews    Review[]
-  wishlists  Wishlist[]
+  category       Category        @relation(fields: [categoryId], references: [id])
+  images         ProductImage[]
+  variants       ProductVariant[]
+  bookDetail     BookDetail?
+  orderItems     OrderItem[]
+  cartItems      CartItem[]
+  reviews        Review[]
+  wishlists      Wishlist[]
+  stockMovements StockMovement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -321,11 +322,12 @@ model Order {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  user     User        @relation(fields: [userId], references: [id])
-  address  Address?    @relation(fields: [addressId], references: [id])
+  user     User           @relation(fields: [userId], references: [id])
+  address  Address?       @relation(fields: [addressId], references: [id])
   items    OrderItem[]
   payment  Payment?
   timeline OrderTimeline[]
+  shipment Shipment?
 
   @@index([userId])
   @@index([orderNumber])
@@ -435,6 +437,23 @@ enum DiscountType {
   FIXED
 }
 
+enum StockMovementType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  RETURN
+}
+
+enum ShipmentStatus {
+  PENDING
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+  RETURNED
+}
+
 model Coupon {
   id            String       @id @default(cuid())
   code          String       @unique
@@ -453,4 +472,39 @@ model Coupon {
 
   @@index([code])
   @@map("coupons")
+}
+
+// ─────────────────────────────────────────────────────────────
+// INVENTORY & SHIPMENTS
+// ─────────────────────────────────────────────────────────────
+
+model StockMovement {
+  id        String            @id @default(cuid())
+  productId String
+  type      StockMovementType
+  quantity  Int
+  note      String?
+  createdBy String?
+  createdAt DateTime          @default(now())
+  product   Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("stock_movements")
+}
+
+model Shipment {
+  id             String         @id @default(cuid())
+  orderId        String         @unique
+  courier        String
+  trackingNumber String?
+  trackingUrl    String?
+  status         ShipmentStatus @default(PENDING)
+  estimatedAt    DateTime?
+  deliveredAt    DateTime?
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  order          Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("shipments")
 }

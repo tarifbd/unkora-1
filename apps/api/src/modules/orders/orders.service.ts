@@ -83,11 +83,19 @@ export class OrdersService {
         include: { items: true, payment: true },
       });
 
-      // Deduct stock
+      // Deduct stock and create stock movement records
       for (const item of cart.items) {
         await tx.product.update({
           where: { id: item.productId },
           data: { stockQuantity: { decrement: item.quantity } },
+        });
+        await tx.stockMovement.create({
+          data: {
+            productId: item.productId,
+            type: 'SALE',
+            quantity: -item.quantity,
+            note: `Order ${newOrder.id}`,
+          },
         });
       }
 
