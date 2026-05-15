@@ -12,24 +12,52 @@ import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 import { useCartStore } from '@/store/cart.store';
 import { useAuth } from '@/lib/hooks/use-auth';
+import { useLanguage } from '@/lib/i18n/language-context';
 import type { LucideIcon } from 'lucide-react';
 
 interface NavCategory {
-  name: string;
+  nameKey: keyof typeof import('@/lib/i18n/translations').translations.bn.nav;
+  displayName: string;
   icon: LucideIcon;
   slug: string;
   subnav: string[];
 }
 
 const NAV_CATEGORIES: NavCategory[] = [
-  { name: 'Books',            icon: Book,        slug: '/books',                       subnav: ['Authors', 'Subjects', 'Publishers', 'Boi Mela 2026', 'Academic Books', 'E-Books', 'Islamic Books'] },
-  { name: 'Baby Products',    icon: Baby,        slug: '/categories/baby-products',    subnav: ['Diapering & Care', 'Feeding & Nursing', 'Baby Gear', 'Toys & Games', 'Baby Clothing'] },
-  { name: 'Leather Products', icon: Briefcase,   slug: '/categories/leather-products', subnav: ['Wallets & Cards', 'Bags & Backpacks', 'Belts & Accessories', "Men's Footwear", "Women's Footwear"] },
-  { name: 'Organic Foods',    icon: Leaf,        slug: '/categories/organic-foods',    subnav: ['Nuts & Seeds', 'Honey & Sweeteners', 'Spices & Herbs', 'Healthy Snacks', 'Tea & Beverages'] },
-  { name: 'Handicrafts',      icon: Palette,     slug: '/categories/handicrafts',      subnav: ['Wall Art', 'Showpieces', 'Lamps & Lighting', 'Rugs & Carpets', 'Traditional Crafts'] },
-  { name: 'Electronics',      icon: Zap,         slug: '/categories/electronics',      subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances', 'Gadgets'] },
-  { name: 'Daily Needs',      icon: ShoppingBag, slug: '/categories/daily-needs',      subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery', 'Pet Care'] },
+  { nameKey: 'books',           displayName: 'Books',            icon: Book,        slug: '/books',                       subnav: ['Authors', 'Subjects', 'Publishers', 'Boi Mela 2026', 'Academic Books', 'E-Books', 'Islamic Books'] },
+  { nameKey: 'babyProducts',    displayName: 'Baby Products',    icon: Baby,        slug: '/categories/baby-products',    subnav: ['Diapering & Care', 'Feeding & Nursing', 'Baby Gear', 'Toys & Games', 'Baby Clothing'] },
+  { nameKey: 'leatherProducts', displayName: 'Leather Products', icon: Briefcase,   slug: '/categories/leather-products', subnav: ['Wallets & Cards', 'Bags & Backpacks', 'Belts & Accessories', "Men's Footwear", "Women's Footwear"] },
+  { nameKey: 'organicFoods',    displayName: 'Organic Foods',    icon: Leaf,        slug: '/categories/organic-foods',    subnav: ['Nuts & Seeds', 'Honey & Sweeteners', 'Spices & Herbs', 'Healthy Snacks', 'Tea & Beverages'] },
+  { nameKey: 'handicrafts',     displayName: 'Handicrafts',      icon: Palette,     slug: '/categories/handicrafts',      subnav: ['Wall Art', 'Showpieces', 'Lamps & Lighting', 'Rugs & Carpets', 'Traditional Crafts'] },
+  { nameKey: 'electronics',     displayName: 'Electronics',      icon: Zap,         slug: '/categories/electronics',      subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances', 'Gadgets'] },
+  { nameKey: 'dailyNeeds',      displayName: 'Daily Needs',      icon: ShoppingBag, slug: '/categories/daily-needs',      subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery', 'Pet Care'] },
 ];
+
+/* Map Books subnav items to proper filter URLs */
+function getSubnavHref(catSlug: string, sub: string): string {
+  if (catSlug === '/books') {
+    const map: Record<string, string> = {
+      'Authors':       '/books?sortBy=bookDetail.author&sortOrder=asc',
+      'Subjects':      '/books',
+      'Publishers':    '/books',
+      'Boi Mela 2026': '/books?tag=boi-mela',
+      'Academic Books':'/books?genre=Academic',
+      'E-Books':       '/books?language=English',
+      'Islamic Books': '/books?genre=Islamic',
+    };
+    return map[sub] ?? `/books?tag=${encodeURIComponent(sub)}`;
+  }
+  return `${catSlug}?tag=${encodeURIComponent(sub)}`;
+}
+
+const BN_SUBNAV: Record<string, Record<string, string>> = {
+  '/categories/baby-products':    { 'Diapering & Care': 'ডায়াপার ও যত্ন', 'Feeding & Nursing': 'ফিডিং', 'Baby Gear': 'বেবি গিয়ার', 'Toys & Games': 'খেলনা', 'Baby Clothing': 'শিশু পোশাক' },
+  '/categories/leather-products': { 'Wallets & Cards': 'পার্স ও কার্ড', 'Bags & Backpacks': 'ব্যাগ', 'Belts & Accessories': 'বেল্ট', "Men's Footwear": 'পুরুষ জুতা', "Women's Footwear": 'নারী জুতা' },
+  '/categories/organic-foods':    { 'Nuts & Seeds': 'বাদাম ও বীজ', 'Honey & Sweeteners': 'মধু', 'Spices & Herbs': 'মশলা', 'Healthy Snacks': 'স্বাস্থ্যকর স্ন্যাকস', 'Tea & Beverages': 'চা ও পানীয়' },
+  '/categories/handicrafts':      { 'Wall Art': 'দেওয়াল শিল্প', 'Showpieces': 'শোপিস', 'Lamps & Lighting': 'প্রদীপ', 'Rugs & Carpets': 'কার্পেট', 'Traditional Crafts': 'ঐতিহ্যবাহী শিল্প' },
+  '/categories/electronics':      { 'Mobiles': 'মোবাইল', 'Laptops': 'ল্যাপটপ', 'Accessories': 'আনুষাঙ্গিক', 'Home Appliances': 'হোম অ্যাপ্লায়েন্স', 'Gadgets': 'গ্যাজেট' },
+  '/categories/daily-needs':      { 'Grocery': 'মুদি', 'Personal Care': 'ব্যক্তিগত যত্ন', 'Household': 'গৃহস্থালি', 'Stationery': 'স্টেশনারি', 'Pet Care': 'পোষা প্রাণীর যত্ন' },
+};
 
 export function Header() {
   const pathname = usePathname();
@@ -37,6 +65,7 @@ export function Header() {
   const { isAuthenticated, user } = useAuthStore();
   const { cart, toggleCart } = useCartStore();
   const { logout } = useAuth();
+  const { lang, setLang, t } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
@@ -50,7 +79,20 @@ export function Header() {
     }
   };
 
-  const activeCategory = NAV_CATEGORIES[activeCategoryIndex];
+  const activeCategory = NAV_CATEGORIES[activeCategoryIndex] ?? NAV_CATEGORIES[0];
+
+  const getCatName = (cat: NavCategory) =>
+    lang === 'bn' ? t.nav[cat.nameKey] : cat.displayName;
+
+  const getSubLabel = (sub: string) => {
+    if (lang === 'bn') {
+      if (activeCategory!.slug === '/books') {
+        return (t.booksSubnav as Record<string, string>)[sub] ?? sub;
+      }
+      return BN_SUBNAV[activeCategory!.slug]?.[sub] ?? sub;
+    }
+    return sub;
+  };
 
   return (
     <>
@@ -59,33 +101,44 @@ export function Header() {
         {/* ── Tier 1: Utility bar ── */}
         <div className="bg-[#1a1a1a] py-1.5 hidden md:block">
           <div className="max-w-7xl mx-auto px-4 flex justify-between items-center text-[11px] text-gray-300 font-medium">
-            {/* Left */}
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors">
                 <MapPin className="w-3 h-3 text-primary" />
-                Deliver to <span className="font-bold text-white ml-0.5">Select your address</span>
+                {t.header.deliverTo} <span className="font-bold text-white ml-0.5">{t.header.selectAddress}</span>
               </span>
               <div className="h-3 w-px bg-gray-600" />
               <div className="flex items-center gap-1">
                 <Phone className="w-3 h-3 text-primary" />
-                <span>16297 (9 AM - 8 PM)</span>
+                <span>{t.header.callHours}</span>
               </div>
               <div className="h-3 w-px bg-gray-600" />
+              {/* Language toggle */}
               <div className="flex items-center bg-gray-800 rounded-full px-1 py-0.5 border border-gray-700">
-                <button className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary text-white shadow-sm">ENG</button>
-                <button className="px-2 py-0.5 rounded-full text-[10px] font-bold text-gray-400 hover:text-white transition-colors">বাংলা</button>
+                <button
+                  onClick={() => setLang('en')}
+                  className={cn('px-2 py-0.5 rounded-full text-[10px] font-bold transition-colors',
+                    lang === 'en' ? 'bg-primary text-white shadow-sm' : 'text-gray-400 hover:text-white')}
+                >
+                  ENG
+                </button>
+                <button
+                  onClick={() => setLang('bn')}
+                  className={cn('px-2 py-0.5 rounded-full text-[10px] font-bold transition-colors',
+                    lang === 'bn' ? 'bg-primary text-white shadow-sm' : 'text-gray-400 hover:text-white')}
+                >
+                  বাংলা
+                </button>
               </div>
             </div>
-            {/* Right */}
             <div className="flex items-center gap-5 uppercase tracking-wide">
               <a href="#" className="hover:text-primary transition-colors flex items-center gap-1">
-                <Download className="w-3 h-3" /> App
+                <Download className="w-3 h-3" /> {t.header.downloadApp}
               </a>
               <a href="#" className="hover:text-primary transition-colors flex items-center gap-1">
-                <HelpCircle className="w-3 h-3" /> Support
+                <HelpCircle className="w-3 h-3" /> {t.header.support}
               </a>
-              <a href="#" className="hover:text-primary transition-colors">Track Order</a>
-              <a href="#" className="hover:text-primary transition-colors font-bold text-white">Sell on Unkora</a>
+              <a href="#" className="hover:text-primary transition-colors">{t.header.trackOrder}</a>
+              <a href="#" className="hover:text-primary transition-colors font-bold text-white">{t.header.sellOnUnkora}</a>
             </div>
           </div>
         </div>
@@ -110,22 +163,19 @@ export function Header() {
             </div>
 
             {/* Desktop Search */}
-            <form
-              onSubmit={handleSearch}
-              className="hidden md:flex flex-grow max-w-3xl relative"
-            >
+            <form onSubmit={handleSearch} className="hidden md:flex flex-grow max-w-3xl relative">
               <div className="flex w-full rounded-lg overflow-hidden border-2 border-gray-200 focus-within:border-primary focus-within:shadow-md transition-all duration-300">
                 <select className="bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-600 border-r border-gray-200 cursor-pointer hover:bg-gray-200 focus:outline-none">
-                  <option value="">All</option>
+                  <option value="">{lang === 'bn' ? 'সব' : 'All'}</option>
                   {NAV_CATEGORIES.map(c => (
-                    <option key={c.slug} value={c.slug}>{c.name}</option>
+                    <option key={c.slug} value={c.slug}>{getCatName(c)}</option>
                   ))}
                 </select>
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search 1M+ products..."
+                  placeholder={t.header.searchPlaceholder}
                   className="w-full px-4 py-2.5 outline-none text-[15px] placeholder:text-gray-400 text-black border-none"
                 />
                 <button
@@ -146,15 +196,15 @@ export function Header() {
                 </div>
                 <div className="hidden lg:block text-left">
                   <p className="text-[10px] text-gray-500 font-bold uppercase leading-tight">
-                    {isAuthenticated ? `Hello, ${user?.firstName ?? user?.name ?? ''}` : 'Hello, Sign In'}
+                    {isAuthenticated ? `${lang === 'bn' ? 'হ্যালো,' : 'Hello,'} ${user?.firstName ?? user?.name ?? ''}` : t.header.helloSignIn}
                   </p>
                   {isAuthenticated ? (
                     <Link href="/account" className="text-sm font-bold leading-tight flex items-center hover:text-secondary transition-colors">
-                      Account &amp; Orders <ChevronDown className="w-3 h-3 ml-0.5" />
+                      {t.header.accountOrders} <ChevronDown className="w-3 h-3 ml-0.5" />
                     </Link>
                   ) : (
                     <Link href="/login" className="text-sm font-bold leading-tight flex items-center hover:text-secondary transition-colors">
-                      Accounts &amp; Lists <ChevronDown className="w-3 h-3 ml-0.5" />
+                      {t.header.accountsLists} <ChevronDown className="w-3 h-3 ml-0.5" />
                     </Link>
                   )}
                 </div>
@@ -163,7 +213,7 @@ export function Header() {
               {/* Admin link */}
               {isAuthenticated && user?.role !== 'CUSTOMER' && (
                 <Link href="/admin" className="hidden lg:inline text-xs font-bold text-primary border border-primary/30 rounded px-2 py-1 hover:bg-primary hover:text-white transition-colors">
-                  Admin
+                  {t.header.admin}
                 </Link>
               )}
 
@@ -180,7 +230,7 @@ export function Header() {
                   </span>
                 </div>
                 <div className="hidden xl:block text-left pt-2">
-                  <p className="text-sm font-bold leading-tight">Cart</p>
+                  <p className="text-sm font-bold leading-tight">{t.header.cart}</p>
                 </div>
               </button>
             </div>
@@ -193,7 +243,7 @@ export function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
+                placeholder={t.header.searchPlaceholderMobile}
                 className="w-full px-4 py-2.5 outline-none text-sm placeholder:text-gray-400 text-black"
               />
               <button type="submit" className="bg-primary text-white px-5 hover:bg-primary/80 transition-colors flex items-center justify-center">
@@ -206,12 +256,10 @@ export function Header() {
         {/* ── Tier 3: Category nav (desktop) ── */}
         <div className="bg-white hidden lg:block border-b border-gray-200">
           <div className="max-w-7xl mx-auto pl-4 flex items-center relative">
-            {/* All Departments */}
             <button className="bg-gray-900 text-white flex items-center gap-2 px-5 py-3 font-bold text-sm cursor-pointer hover:bg-gray-800 transition-colors mr-6 shrink-0">
-              <Menu className="w-[18px] h-[18px]" /> All Departments
+              <Menu className="w-[18px] h-[18px]" /> {t.header.allDepartments}
             </button>
 
-            {/* Nav items */}
             <nav className="flex items-center justify-start h-[48px] text-[14px] font-bold text-gray-700 flex-1 overflow-x-auto hide-scrollbar">
               {NAV_CATEGORIES.map((cat, idx) => (
                 <Link
@@ -224,7 +272,7 @@ export function Header() {
                   )}
                 >
                   <cat.icon className={cn('w-4 h-4 hidden xl:block', activeCategoryIndex === idx ? 'text-primary' : 'opacity-70')} />
-                  {cat.name}
+                  {getCatName(cat)}
                   {activeCategoryIndex === idx && (
                     <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
                   )}
@@ -233,7 +281,7 @@ export function Header() {
             </nav>
 
             <Link href="#" className="shrink-0 px-4 h-[48px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors ml-auto">
-              Deal of the Day <span className="text-red-600 text-lg ml-1">🔥</span>
+              {t.header.dealOfDay} <span className="text-red-600 text-lg ml-1">🔥</span>
             </Link>
           </div>
         </div>
@@ -242,13 +290,13 @@ export function Header() {
         <div className="bg-gray-50 hidden lg:block border-b border-gray-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4">
             <nav className="flex items-center gap-6 h-[44px] overflow-x-auto hide-scrollbar">
-              {activeCategory.subnav.map(sub => (
+              {activeCategory!.subnav.map(sub => (
                 <Link
                   key={sub}
-                  href={`${activeCategory.slug}?tag=${encodeURIComponent(sub)}`}
+                  href={getSubnavHref(activeCategory!.slug, sub)}
                   className="text-[13px] font-bold text-gray-800 hover:text-secondary flex items-center gap-1 whitespace-nowrap transition-colors"
                 >
-                  {sub} <ChevronDown className="w-3.5 h-3.5 text-gray-600" />
+                  {getSubLabel(sub)} <ChevronDown className="w-3.5 h-3.5 text-gray-600" />
                 </Link>
               ))}
             </nav>
@@ -292,16 +340,29 @@ export function Header() {
             <User className="w-6 h-6" />
           </div>
           <div>
-            <p className="font-bold text-lg">{isAuthenticated ? (user?.firstName ?? user?.name) : 'Hello, Sign in'}</p>
+            <p className="font-bold text-lg">{isAuthenticated ? (user?.firstName ?? user?.name) : t.header.helloSignIn}</p>
             <Link href={isAuthenticated ? '/account' : '/login'} onClick={() => setSidebarOpen(false)} className="text-[13px] font-medium opacity-80 underline decoration-white/60">
-              {isAuthenticated ? 'View Account' : 'Your Account'}
+              {isAuthenticated ? t.header.viewAccount : t.header.yourAccount}
             </Link>
           </div>
         </div>
 
+        {/* Language toggle (mobile) */}
+        <div className="px-5 py-3 border-b border-gray-100 flex items-center gap-2">
+          <span className="text-sm text-gray-500 font-medium">{lang === 'bn' ? 'ভাষা:' : 'Language:'}</span>
+          <button
+            onClick={() => setLang('bn')}
+            className={cn('px-3 py-1 rounded-full text-xs font-bold transition-colors', lang === 'bn' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600')}
+          >বাংলা</button>
+          <button
+            onClick={() => setLang('en')}
+            className={cn('px-3 py-1 rounded-full text-xs font-bold transition-colors', lang === 'en' ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600')}
+          >English</button>
+        </div>
+
         {/* Category list */}
         <div className="flex flex-col py-4">
-          <p className="px-5 pt-2 pb-3 text-lg font-black text-gray-900 tracking-tight">Our Departments</p>
+          <p className="px-5 pt-2 pb-3 text-lg font-black text-gray-900 tracking-tight">{t.header.ourDepartments}</p>
           {NAV_CATEGORIES.map(cat => (
             <Link
               key={cat.slug}
@@ -313,30 +374,30 @@ export function Header() {
               )}
             >
               <span className="text-primary"><cat.icon className="w-4 h-4" /></span>
-              {cat.name}
+              {getCatName(cat)}
             </Link>
           ))}
           <Link href="#" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-orange-50 font-bold text-secondary flex items-center justify-between mt-2">
-            <span>Deal of the Day 🔥</span>
+            <span>{t.header.dealOfDay} 🔥</span>
           </Link>
         </div>
 
         {/* Help */}
         <div className="border-t">
-          <p className="px-5 pt-4 pb-2 text-lg font-black text-gray-900 tracking-tight">Help &amp; Settings</p>
-          <Link href="/account/orders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary block">Your Orders</Link>
+          <p className="px-5 pt-4 pb-2 text-lg font-black text-gray-900 tracking-tight">{t.header.helpSettings}</p>
+          <Link href="/account/orders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary block">{t.header.yourOrders}</Link>
           <Link href="#" className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
-            <MapPin className="w-4 h-4" /> Deliver to
+            <MapPin className="w-4 h-4" /> {t.header.deliverTo}
           </Link>
           <Link href="#" className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
-            <HelpCircle className="w-4 h-4" /> Customer Service
+            <HelpCircle className="w-4 h-4" /> {t.header.customerService}
           </Link>
           {isAuthenticated && (
             <button
               onClick={() => { void logout.mutate(); setSidebarOpen(false); }}
               className="py-2.5 px-5 text-[15px] font-medium text-red-500 hover:text-red-700 flex items-center gap-2 w-full text-left"
             >
-              <X className="w-4 h-4" /> Sign Out
+              <X className="w-4 h-4" /> {t.header.signOut}
             </button>
           )}
         </div>

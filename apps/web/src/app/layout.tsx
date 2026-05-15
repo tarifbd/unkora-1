@@ -19,9 +19,9 @@ const lora = Lora({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
-  title: { default: 'UNKORA — Premium Shopping in Bangladesh', template: '%s | UNKORA' },
-  description: 'Shop premium products, books, and more at UNKORA. Fast delivery across Bangladesh.',
-  keywords: ['shopping', 'bangladesh', 'books', 'ecommerce', 'unkora', 'online shopping'],
+  title: { default: 'UNKORA — বাংলাদেশের প্রিমিয়াম শপিং', template: '%s | UNKORA' },
+  description: 'UNKORA-তে বই, ইলেকট্রনিক্স, শিশু পণ্যসহ লাখো পণ্য কিনুন। সারা বাংলাদেশে দ্রুত ডেলিভারি।',
+  keywords: ['অনলাইন শপিং', 'বাংলাদেশ', 'বই', 'ইকমার্স', 'আনকোরা', 'shopping', 'bangladesh', 'books'],
   authors: [{ name: 'UNKORA' }],
   creator: 'UNKORA',
   openGraph: {
@@ -41,7 +41,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="bn" suppressHydrationWarning>
       <body className={`${inter.variable} ${lora.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
       </body>

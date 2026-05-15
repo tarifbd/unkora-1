@@ -8,6 +8,7 @@ import type { Product } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useAuthStore } from '@/store/auth.store';
 import { useCartStore } from '@/store/cart.store';
+import { useLanguage } from '@/lib/i18n/language-context';
 import { useRouter } from 'next/navigation';
 import { WishlistButton } from './wishlist-button';
 
@@ -21,6 +22,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const { isAuthenticated } = useAuthStore();
   const { openCart } = useCartStore();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const image = product.images?.[0]?.url;
   const hasDiscount = product.salePrice && Number(product.salePrice) < Number(product.basePrice);
@@ -52,7 +54,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
       {/* Discount badge */}
       {hasDiscount && (
         <div className="absolute top-2 left-2 bg-secondary text-white text-[10px] font-bold px-2 py-1 rounded-full z-10">
-          {discountPct}% OFF
+          {discountPct}{t.product.off}
         </div>
       )}
 
@@ -73,7 +75,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         {/* Out of stock */}
         {product.stockQuantity === 0 && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[2px] z-10">
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-medium shadow text-gray-600">Out of Stock</span>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-medium shadow text-gray-600">{t.product.outOfStock}</span>
           </div>
         )}
 
@@ -125,7 +127,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
           className="w-full flex items-center justify-center gap-2 py-2 bg-gray-50 border border-gray-200 rounded text-sm font-bold text-gray-700 hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 group/btn disabled:opacity-50"
         >
           <ShoppingCart className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-          <span>Add to Cart</span>
+          <span>{t.product.addToCart}</span>
         </button>
       )}
     </Link>
