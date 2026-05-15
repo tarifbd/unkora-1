@@ -88,4 +88,122 @@ export class AdminService {
 
     return Object.entries(chart).map(([date, revenue]) => ({ date, revenue }));
   }
+
+  async getUsers(params: { page?: number; limit?: number; search?: string; role?: string; status?: string }) {
+    const page = params.page ?? 1;
+    const limit = params.limit ?? 20;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (params.role) where.role = params.role;
+    if (params.status) where.status = params.status;
+    if (params.search) {
+      where.OR = [
+        { email: { contains: params.search, mode: 'insensitive' } },
+        { firstName: { contains: params.search, mode: 'insensitive' } },
+        { lastName: { contains: params.search, mode: 'insensitive' } },
+        { phone: { contains: params.search } },
+      ];
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true, email: true, firstName: true, lastName: true,
+          phone: true, role: true, status: true, createdAt: true,
+          _count: { select: { orders: true, addresses: true } },
+        },
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
+  }
+
+  async getUserById(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      include: {
+        addresses: true,
+        _count: { select: { orders: true, reviews: true, wishlist: true } },
+      },
+    });
+  }
+
+  async updateUser(id: string, dto: { role?: string; status?: string }) {
+    return this.prisma.user.update({
+      where: { id },
+      data: dto as any,
+      select: { id: true, email: true, role: true, status: true },
+    });
+  }
+
+  async deleteUser(id: string) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { status: 'SUSPENDED' },
+      select: { id: true },
+    });
+  }
+
+  async getOrdersByStatus() {
+    const statuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED'];
+    const counts = await Promise.all(
+      statuses.map(status =>
+        this.prisma.order.count({ where: { status: status as any } }).then(count => ({ status, count })),
+      ),
+    );
+    return counts;
+  }
+
+  async getCategorySales() {
+    const result = await this.prisma.orderItem.groupBy({
+      by: ['productId'],
+      _sum: { totalPrice: true },
+      orderBy: { _sum: { totalPrice: 'desc' } },
+      take: 50,
+    });
+
+    const productIds = result.map(r => r.productId);
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, category: { select: { name: true } } },
+    });
+    const catMap = new Map(products.map(p => [p.id, p.category?.name ?? 'Unknown']));
+    const catSales: Record<string, number> = {};
+    result.forEach(r => {
+      const cat = catMap.get(r.productId) ?? 'Unknown';
+      catSales[cat] = (catSales[cat] ?? 0) + Number(r._sum.totalPrice ?? 0);
+    });
+    return Object.entries(catSales)
+      .map(([category, revenue]) => ({ category, revenue }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 8);
+  }
+
+  async getTopCustomers() {
+    const result = await this.prisma.order.groupBy({
+      by: ['userId'],
+      where: { paymentStatus: 'PAID' },
+      _sum: { total: true },
+      _count: { id: true },
+      orderBy: { _sum: { total: 'desc' } },
+      take: 5,
+    });
+    const userIds = result.map(r => r.userId);
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, firstName: true, lastName: true, email: true },
+    });
+    const userMap = new Map(users.map(u => [u.id, u]));
+    return result.map(r => ({
+      user: userMap.get(r.userId),
+      totalSpent: Number(r._sum.total ?? 0),
+      orderCount: r._count.id,
+    }));
+  }
 }

@@ -31,4 +31,16 @@ export const adminApi = {
     api.get(`/admin/revenue-chart?days=${days}`).then(r => r.data.data),
   getUsers: (params?: Record<string, unknown>) =>
     api.get('/admin/users', { params }).then(r => r.data.data),
+  getUserDetail: (id: string) =>
+    api.get(`/admin/users/${id}`).then(r => r.data.data),
+  updateUser: (id: string, data: { role?: string; status?: string }) =>
+    api.patch(`/admin/users/${id}`, data).then(r => r.data.data),
+  deleteUser: (id: string) =>
+    api.delete(`/admin/users/${id}`).then(r => r.data.data),
+  getOrdersByStatus: () =>
+    api.get('/admin/analytics/orders-by-status').then(r => r.data.data as { status: string; count: number }[]),
+  getCategorySales: () =>
+    api.get('/admin/analytics/category-sales').then(r => r.data.data as { category: string; revenue: number }[]),
+  getTopCustomers: () =>
+    api.get('/admin/analytics/top-customers').then(r => r.data.data as { user: { id: string; firstName: string; lastName: string; email: string } | undefined; totalSpent: number; orderCount: number }[]),
 };
