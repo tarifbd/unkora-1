@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   BookOpen, Package, Briefcase, Leaf, Layers, Zap,
   ChevronLeft, ChevronRight, Truck, RotateCcw, ShieldCheck, Headphones,
+  Flame, Star, Tag,
 } from 'lucide-react';
 import { productsApi } from '@/lib/api/products';
 import { ProductCard } from '@/components/product/product-card';
@@ -77,6 +78,75 @@ const RANK_DATA = {
   Hadith:      [{ title: 'রিয়াদুস সালেহীন',        titleEn: 'Riyadhus Saliheen',     author: 'ইমাম নববী',              rating: 5.0, reviews: 2100, image: 'https://images.unsplash.com/photo-1585036156171-3839efc229b7?q=80&w=100&auto=format&fit=crop', href: '/products/riyadus-salehin' }],
 } as Record<string, { title: string; titleEn: string; author: string; rating: number; reviews: number; image: string; href: string }[]>;
 
+const FLASH_DEALS = [
+  { id: 'fd1', title: 'প্যারাডক্সিক্যাল সাজিদ', titleEn: 'Paradoxical Sajid', price: 180, originalPrice: 350, sold: 182, total: 200, image: 'https://images.unsplash.com/photo-1544948191-c83610230351?q=80&w=300&auto=format&fit=crop', href: '/products/paradoxical-sajid' },
+  { id: 'fd2', title: 'Atomic Habits',            titleEn: 'Atomic Habits',        price: 420, originalPrice: 600, sold: 95,  total: 120, image: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=300&auto=format&fit=crop', href: '/products/atomic-habits' },
+  { id: 'fd3', title: 'হিমুর দ্বিতীয় প্রহর',  titleEn: 'Himur Dwitiy Prohor',  price: 160, originalPrice: 250, sold: 140, total: 150, image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=300&auto=format&fit=crop', href: '/products/himur-dwitiy-prohor' },
+  { id: 'fd4', title: 'বেলা ফুরাবার আগে',       titleEn: 'Bela Furabar Age',     price: 200, originalPrice: 320, sold: 77,  total: 100, image: 'https://images.unsplash.com/photo-1585036156171-3839efc229b7?q=80&w=300&auto=format&fit=crop', href: '/products/bela-furabar-age' },
+  { id: 'fd5', title: 'অর্গানিক মধু ৫০০গ্রাম',  titleEn: 'Organic Honey 500g',   price: 380, originalPrice: 550, sold: 63,  total: 80,  image: 'https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?q=80&w=300&auto=format&fit=crop', href: '/categories/organic-foods' },
+  { id: 'fd6', title: 'লেদার বাইফোল্ড মানিব্যাগ', titleEn: 'Leather Bifold Wallet', price: 650, originalPrice: 1200, sold: 44, total: 60, image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=300&auto=format&fit=crop', href: '/categories/leather-products' },
+];
+
+const PROMO_BANNERS = [
+  { id: 'pb1', title: 'বই উৎসব',       titleEn: 'Book Festival',    sub: 'সকল বইয়ে ২০% ছাড়',         subEn: '20% off all books',       gradient: 'from-blue-600 to-blue-800',   emoji: '📚', href: '/books' },
+  { id: 'pb2', title: 'অর্গানিক স্টোর', titleEn: 'Organic Store',   sub: 'প্রাকৃতিক পণ্য সংগ্রহ',       subEn: 'Natural products collection', gradient: 'from-green-600 to-green-800', emoji: '🌿', href: '/categories/organic-foods' },
+  { id: 'pb3', title: 'ফ্রি শিপিং',    titleEn: 'Free Shipping',   sub: '৫০০ টাকার উপরে অর্ডারে',     subEn: 'Orders above ৳500',           gradient: 'from-orange-500 to-red-600',  emoji: '🚚', href: '/shipping-policy' },
+];
+
+const BEST_SELLER_TABS = [
+  { key: 'all',        labelBn: 'সব',          labelEn: 'All',       category: undefined },
+  { key: 'books',      labelBn: 'বই',          labelEn: 'Books',     category: 'books' },
+  { key: 'organic',   labelBn: 'অর্গানিক',    labelEn: 'Organic',   category: 'organic-foods' },
+  { key: 'leather',   labelBn: 'লেদার',       labelEn: 'Leather',   category: 'leather-products' },
+  { key: 'handicraft', labelBn: 'হস্তশিল্প',  labelEn: 'Handicraft', category: 'handicrafts' },
+];
+
+function useCountdown(targetDate: Date) {
+  const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
+  useEffect(() => {
+    const tick = () => {
+      const diff = Math.max(0, Math.floor((targetDate.getTime() - Date.now()) / 1000));
+      setTimeLeft({ h: Math.floor(diff / 3600), m: Math.floor((diff % 3600) / 60), s: diff % 60 });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [targetDate]);
+  return timeLeft;
+}
+
+function pad(n: number) { return String(n).padStart(2, '0'); }
+
+function FlashDealCard({ deal, lang }: { deal: typeof FLASH_DEALS[number]; lang: string }) {
+  const pct = Math.round((deal.sold / deal.total) * 100);
+  const discount = Math.round((1 - deal.price / deal.originalPrice) * 100);
+  return (
+    <Link href={deal.href} className="min-w-[200px] w-[200px] flex-shrink-0 bg-white rounded-xl overflow-hidden group hover:shadow-lg transition-all border border-gray-100">
+      <div className="relative h-44 bg-gray-50 overflow-hidden">
+        <Image src={deal.image} alt={deal.titleEn} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized={deal.image.includes('unsplash')} sizes="200px" />
+        <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded">
+          -{discount}%
+        </div>
+      </div>
+      <div className="p-3">
+        <p className="text-xs font-bold text-gray-800 line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+          {lang === 'bn' ? deal.title : deal.titleEn}
+        </p>
+        <div className="flex items-baseline gap-2 mb-2">
+          <span className="text-base font-black text-red-500">৳{deal.price}</span>
+          <span className="text-xs text-gray-400 line-through">৳{deal.originalPrice}</span>
+        </div>
+        <div className="mb-1">
+          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <div className="h-full bg-red-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+        <p className="text-[10px] text-gray-500">{lang === 'bn' ? `বিক্রি হয়েছে ${deal.sold}টি` : `${deal.sold} sold`}</p>
+      </div>
+    </Link>
+  );
+}
+
 const RANK_SECTIONS = [
   { id: 'rank-1', title: 'কল্পকাহিনী',   titleEn: 'Fiction',     tabs: ['Fiction', 'Thriller'],              tabsBn: ['কল্পকাহিনী', 'থ্রিলার'],   default: 'Fiction' },
   { id: 'rank-2', title: 'নন-ফিকশন',     titleEn: 'Non-Fiction', tabs: ['Non-Fiction', 'Productivity'],      tabsBn: ['নন-ফিকশন', 'প্রোডাক্টিভিটি'], default: 'Non-Fiction' },
@@ -117,7 +187,7 @@ function RankSection({ section }: { section: typeof RANK_SECTIONS[number] }) {
               {index + 1}
             </div>
             <div className="w-16 h-20 bg-gray-50 rounded overflow-hidden shrink-0">
-              <Image src={item.image} alt={item.titleEn} width={64} height={80} className="w-full h-full object-cover" />
+              <Image src={item.image} alt={item.titleEn} width={64} height={80} unoptimized className="w-full h-full object-cover" />
             </div>
             <div className="flex-grow">
               <h4 className="text-sm font-bold text-gray-800 line-clamp-1 mb-0.5 group-hover:text-primary transition-colors">
@@ -142,9 +212,15 @@ export default function HomePage() {
   const { lang, t } = useLanguage();
   const h = t.home;
   const [slideIndex, setSlideIndex] = useState(0);
-  const quickDealsRef = useRef<HTMLDivElement>(null);
-  const recentRef     = useRef<HTMLDivElement>(null);
-  const authorsRef    = useRef<HTMLDivElement>(null);
+  const [bestTab, setBestTab] = useState('all');
+  const quickDealsRef  = useRef<HTMLDivElement>(null);
+  const recentRef      = useRef<HTMLDivElement>(null);
+  const authorsRef     = useRef<HTMLDivElement>(null);
+  const flashRef       = useRef<HTMLDivElement>(null);
+  const newArrivalRef  = useRef<HTMLDivElement>(null);
+
+  const flashEnd = useRef(new Date(Date.now() + 8 * 3600 * 1000)).current;
+  const countdown = useCountdown(flashEnd);
 
   useEffect(() => {
     const timer = setInterval(() => setSlideIndex(i => (i + 1) % 3), 5000);
@@ -167,6 +243,18 @@ export default function HomePage() {
   });
   const recentProducts = recentData?.data ?? [];
 
+  const { data: newArrivalData } = useQuery({
+    queryKey: ['products', 'new-arrivals'],
+    queryFn: () => productsApi.getAll({ limit: 10, sortBy: 'createdAt', sortOrder: 'desc' } as Parameters<typeof productsApi.getAll>[0]),
+  });
+  const newArrivals = newArrivalData?.data ?? [];
+
+  const { data: bestData } = useQuery({
+    queryKey: ['products', 'bestsellers', bestTab],
+    queryFn: () => productsApi.getAll({ limit: 8, ...(bestTab !== 'all' ? { category: BEST_SELLER_TABS.find(t => t.key === bestTab)?.category } : {}) } as Parameters<typeof productsApi.getAll>[0]),
+  });
+  const bestProducts = bestData?.data ?? [];
+
   return (
     <div className="flex flex-col" style={{ backgroundColor: '#f8fafc' }}>
 
@@ -179,6 +267,7 @@ export default function HomePage() {
               src={HERO_IMGS[slideIndex] ?? HERO_IMGS[0]!}
               alt={h.heroSlides[slideIndex]?.title ?? ''}
               fill
+              unoptimized
               className="object-cover mix-blend-overlay opacity-50 md:opacity-60 transition-opacity duration-500"
               sizes="(max-width: 1024px) 100vw, 75vw"
               priority
@@ -265,6 +354,68 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── 2b: Flash Deals ── */}
+      <section className="py-8 md:py-10" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-500/20 rounded-lg">
+                <Flame className="w-6 h-6 text-red-400" />
+              </div>
+              <div>
+                <h2 className="text-xl md:text-2xl font-black text-white">{lang === 'bn' ? 'ফ্ল্যাশ ডিল' : 'Flash Deals'}</h2>
+                <p className="text-xs text-gray-400">{lang === 'bn' ? 'সীমিত সময়ের অফার' : 'Limited time offers'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex gap-2 items-center">
+                {[
+                  { val: pad(countdown.h), label: lang === 'bn' ? 'ঘন্টা' : 'HRS' },
+                  { val: pad(countdown.m), label: lang === 'bn' ? 'মিনিট' : 'MIN' },
+                  { val: pad(countdown.s), label: lang === 'bn' ? 'সেকেন্ড' : 'SEC' },
+                ].map(({ val, label }, i) => (
+                  <div key={label} className="flex items-center gap-1.5">
+                    <div className="bg-red-500 text-white rounded-md px-2.5 py-1.5 text-center min-w-[48px]">
+                      <div className="text-xl font-black leading-none">{val}</div>
+                      <div className="text-[9px] font-bold opacity-80 mt-0.5">{label}</div>
+                    </div>
+                    {i < 2 && <span className="text-red-400 font-black text-xl">:</span>}
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-1.5">
+                <button onClick={() => scroll(flashRef, 'left')} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button onClick={() => scroll(flashRef, 'right')} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div ref={flashRef} className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+            {FLASH_DEALS.map(deal => <FlashDealCard key={deal.id} deal={deal} lang={lang} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 2c: Promo Banners ── */}
+      <section className="py-6 bg-white">
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {PROMO_BANNERS.map(b => (
+            <Link key={b.id} href={b.href}
+              className={`bg-gradient-to-r ${b.gradient} rounded-xl p-5 flex items-center gap-4 group hover:scale-[1.02] transition-transform`}>
+              <div className="text-4xl">{b.emoji}</div>
+              <div>
+                <h3 className="text-white font-black text-base mb-0.5">{lang === 'bn' ? b.title : b.titleEn}</h3>
+                <p className="text-white/80 text-xs">{lang === 'bn' ? b.sub : b.subEn}</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-white/60 ml-auto group-hover:translate-x-1 transition-transform" />
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* ── 3: Popular Categories ── */}
       <section className="py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4">
@@ -274,7 +425,7 @@ export default function HomePage() {
               <Link key={title} href={CAT_HREFS[idx] ?? '#'} className="group cursor-pointer hover:-translate-y-2 transition-transform duration-300">
                 <div className="bg-accent/30 rounded-2xl p-6 h-full flex flex-col items-center text-center transition-all group-hover:bg-primary/5 group-hover:shadow-xl border border-transparent group-hover:border-primary/20">
                   <div className="w-24 h-24 rounded-full overflow-hidden mb-6 shadow-md border-4 border-white group-hover:border-primary transition-all">
-                    <Image src={CAT_IMGS[idx] ?? CAT_IMGS[0]!} alt={title} width={96} height={96} className="w-full h-full object-cover" />
+                    <Image src={CAT_IMGS[idx] ?? CAT_IMGS[0]!} alt={title} width={96} height={96} unoptimized className="w-full h-full object-cover" />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
                   <div className="flex flex-wrap justify-center gap-2 mb-6">
@@ -326,6 +477,87 @@ export default function HomePage() {
       <section className="py-8 md:py-12 bg-white">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {RANK_SECTIONS.map(sec => <RankSection key={sec.id} section={sec} />)}
+        </div>
+      </section>
+
+      {/* ── 5b: New Arrivals ── */}
+      <section className="py-10 md:py-12 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex items-center gap-3">
+              <Star className="w-6 h-6 text-primary" />
+              <div>
+                <h2 className="text-xl md:text-2xl font-black text-gray-900">{lang === 'bn' ? 'নতুন আগমন' : 'New Arrivals'}</h2>
+                <p className="text-xs text-gray-400">{lang === 'bn' ? 'সর্বশেষ যোগ হওয়া পণ্য' : 'Latest additions to our store'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link href="/products?sortBy=createdAt&sortOrder=desc" className="text-primary text-sm font-bold hover:underline hidden sm:block">
+                {t.common.viewAll}
+              </Link>
+              <div className="flex gap-2">
+                <button onClick={() => scroll(newArrivalRef, 'left')} className="p-2 rounded-lg bg-gray-50 border border-gray-100 hover:shadow-md transition-all">
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button onClick={() => scroll(newArrivalRef, 'right')} className="p-2 rounded-lg bg-gray-50 border border-gray-100 hover:shadow-md transition-all">
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+          <div ref={newArrivalRef} className="flex gap-5 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+            {newArrivals.length > 0 ? (
+              newArrivals.map(product => (
+                <div key={product.id} className="min-w-[220px] w-[220px] flex-shrink-0">
+                  <ProductCard product={product} />
+                </div>
+              ))
+            ) : (
+              Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="min-w-[220px] w-[220px] flex-shrink-0 bg-gray-50 rounded-xl border border-gray-100 h-80 animate-pulse" />
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5c: Best Sellers ── */}
+      <section className="py-10 md:py-12 bg-accent/20">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+            <div className="flex items-center gap-3">
+              <Tag className="w-6 h-6 text-secondary" />
+              <div>
+                <h2 className="text-xl md:text-2xl font-black text-gray-900">{lang === 'bn' ? 'বেস্ট সেলার' : 'Best Sellers'}</h2>
+                <p className="text-xs text-gray-400">{lang === 'bn' ? 'সর্বাধিক বিক্রিত পণ্য' : 'Our most popular products'}</p>
+              </div>
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              {BEST_SELLER_TABS.map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setBestTab(tab.key)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all ${bestTab === tab.key ? 'bg-primary text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100 hover:border-primary hover:text-primary'}`}
+                >
+                  {lang === 'bn' ? tab.labelBn : tab.labelEn}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {bestProducts.length > 0 ? (
+              bestProducts.map(product => <ProductCard key={product.id} product={product} />)
+            ) : (
+              Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="bg-white rounded-xl border border-gray-100 h-72 animate-pulse" />
+              ))
+            )}
+          </div>
+          <div className="flex justify-center mt-8">
+            <Link href="/products" className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-md hover:shadow-lg">
+              {lang === 'bn' ? 'সকল পণ্য দেখুন' : 'View All Products'}
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -390,6 +622,7 @@ export default function HomePage() {
                     alt={author.nameEn}
                     width={96}
                     height={96}
+                    unoptimized
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>

@@ -89,6 +89,152 @@ const SUBNAV_DROPDOWNS: Record<string, { label: string; labelBn: string; href: s
     { label: 'Biography',      labelBn: 'জীবনী',            href: '/books?genre=Islamic&tag=biography' },
     { label: 'All Islamic →',  labelBn: 'সব ইসলামিক →',     href: '/books?genre=Islamic' },
   ],
+  'Diapering & Care': [
+    { label: 'Diapers',          labelBn: 'ডায়াপার',          href: '/categories/baby-products?tag=diapers' },
+    { label: 'Baby Wipes',       labelBn: 'বেবি ওয়াইপস',      href: '/categories/baby-products?tag=wipes' },
+    { label: 'Rash Creams',      labelBn: 'র‍্যাশ ক্রিম',       href: '/categories/baby-products?tag=rash-cream' },
+    { label: 'Baby Wash',        labelBn: 'বেবি ওয়াশ',         href: '/categories/baby-products?tag=baby-wash' },
+  ],
+  'Feeding & Nursing': [
+    { label: 'Baby Bottles',     labelBn: 'ফিডিং বোতল',       href: '/categories/baby-products?tag=bottles' },
+    { label: 'Breast Pumps',     labelBn: 'ব্রেস্ট পাম্প',      href: '/categories/baby-products?tag=breast-pump' },
+    { label: 'Baby Food',        labelBn: 'বেবি ফুড',          href: '/categories/baby-products?tag=baby-food' },
+    { label: 'High Chairs',      labelBn: 'হাই চেয়ার',          href: '/categories/baby-products?tag=high-chair' },
+  ],
+  'Baby Gear': [
+    { label: 'Strollers',        labelBn: 'স্ট্রোলার',          href: '/categories/baby-products?tag=stroller' },
+    { label: 'Car Seats',        labelBn: 'কার সিট',           href: '/categories/baby-products?tag=car-seat' },
+    { label: 'Baby Carriers',    labelBn: 'বেবি ক্যারিয়ার',    href: '/categories/baby-products?tag=carrier' },
+    { label: 'All Baby Gear →', labelBn: 'সব বেবি গিয়ার →',  href: '/categories/baby-products' },
+  ],
+  'Toys & Games': [
+    { label: 'Educational Toys', labelBn: 'শিক্ষামূলক খেলনা',  href: '/categories/baby-products?tag=educational' },
+    { label: 'Soft Toys',        labelBn: 'নরম খেলনা',          href: '/categories/baby-products?tag=soft-toys' },
+    { label: 'Board Games',      labelBn: 'বোর্ড গেমস',         href: '/categories/baby-products?tag=board-games' },
+  ],
+  'Baby Clothing': [
+    { label: 'Newborn (0-3m)',   labelBn: 'নবজাতক (০-৩ মাস)', href: '/categories/baby-products?tag=newborn' },
+    { label: 'Infant (3-12m)',   labelBn: 'শিশু (৩-১২ মাস)',  href: '/categories/baby-products?tag=infant' },
+    { label: 'Toddler (1-3y)',   labelBn: 'ছোটো শিশু (১-৩ বছর)',href: '/categories/baby-products?tag=toddler' },
+  ],
+  'Wallets & Cards': [
+    { label: 'Bifold Wallets',   labelBn: 'বাইফোল্ড মানিব্যাগ', href: '/categories/leather-products?tag=bifold' },
+    { label: 'Card Holders',     labelBn: 'কার্ড হোল্ডার',       href: '/categories/leather-products?tag=card-holder' },
+    { label: 'Coin Purses',      labelBn: 'কয়েন পার্স',          href: '/categories/leather-products?tag=coin-purse' },
+  ],
+  'Bags & Backpacks': [
+    { label: 'Office Bags',      labelBn: 'অফিস ব্যাগ',         href: '/categories/leather-products?tag=office-bag' },
+    { label: 'Backpacks',        labelBn: 'ব্যাকপ্যাক',          href: '/categories/leather-products?tag=backpack' },
+    { label: 'Ladies Bags',      labelBn: 'লেডিস ব্যাগ',         href: '/categories/leather-products?tag=ladies-bag' },
+    { label: 'Clutches',         labelBn: 'ক্লাচ ব্যাগ',         href: '/categories/leather-products?tag=clutch' },
+  ],
+  'Belts & Accessories': [
+    { label: 'Formal Belts',     labelBn: 'ফর্মাল বেল্ট',        href: '/categories/leather-products?tag=formal-belt' },
+    { label: 'Casual Belts',     labelBn: 'ক্যাজুয়াল বেল্ট',     href: '/categories/leather-products?tag=casual-belt' },
+    { label: 'Keychains',        labelBn: 'কী চেইন',             href: '/categories/leather-products?tag=keychain' },
+  ],
+  "Men's Footwear": [
+    { label: 'Formal Shoes',     labelBn: 'ফর্মাল জুতা',         href: '/categories/leather-products?tag=mens-formal' },
+    { label: 'Loafers',          labelBn: 'লোফার',               href: '/categories/leather-products?tag=loafers' },
+    { label: 'Sandals',          labelBn: 'স্যান্ডেল',            href: '/categories/leather-products?tag=sandals' },
+  ],
+  "Women's Footwear": [
+    { label: 'Heels',            labelBn: 'হিলস',                href: '/categories/leather-products?tag=heels' },
+    { label: 'Flats',            labelBn: 'ফ্ল্যাটস',             href: '/categories/leather-products?tag=flats' },
+    { label: 'Wedges',           labelBn: 'ওয়েজেস',              href: '/categories/leather-products?tag=wedges' },
+  ],
+  'Nuts & Seeds': [
+    { label: 'Almonds',          labelBn: 'কাঠবাদাম',            href: '/categories/organic-foods?tag=almonds' },
+    { label: 'Cashews',          labelBn: 'কাজুবাদাম',           href: '/categories/organic-foods?tag=cashews' },
+    { label: 'Pumpkin Seeds',    labelBn: 'কুমড়ার বীজ',          href: '/categories/organic-foods?tag=pumpkin-seeds' },
+    { label: 'Mixed Nuts',       labelBn: 'মিক্সড নাটস',          href: '/categories/organic-foods?tag=mixed-nuts' },
+  ],
+  'Honey & Sweeteners': [
+    { label: 'Wild Honey',       labelBn: 'বন মধু',              href: '/categories/organic-foods?tag=wild-honey' },
+    { label: 'Mustard Honey',    labelBn: 'সরিষার মধু',           href: '/categories/organic-foods?tag=mustard-honey' },
+    { label: 'Date Molasses',    labelBn: 'খেজুরের গুড়',          href: '/categories/organic-foods?tag=date-molasses' },
+  ],
+  'Spices & Herbs': [
+    { label: 'Turmeric',         labelBn: 'হলুদ',                href: '/categories/organic-foods?tag=turmeric' },
+    { label: 'Black Seed',       labelBn: 'কালিজিরা',            href: '/categories/organic-foods?tag=black-seed' },
+    { label: 'Cinnamon',         labelBn: 'দারচিনি',             href: '/categories/organic-foods?tag=cinnamon' },
+  ],
+  'Healthy Snacks': [
+    { label: 'Granola Bars',     labelBn: 'গ্রানোলা বার',         href: '/categories/organic-foods?tag=granola' },
+    { label: 'Dried Fruits',     labelBn: 'শুকনো ফল',            href: '/categories/organic-foods?tag=dried-fruits' },
+    { label: 'Trail Mix',        labelBn: 'ট্রেইল মিক্স',         href: '/categories/organic-foods?tag=trail-mix' },
+  ],
+  'Tea & Beverages': [
+    { label: 'Green Tea',        labelBn: 'গ্রিন টি',            href: '/categories/organic-foods?tag=green-tea' },
+    { label: 'Herbal Tea',       labelBn: 'হার্বাল টি',           href: '/categories/organic-foods?tag=herbal-tea' },
+    { label: 'Black Tea',        labelBn: 'ব্লাক টি',            href: '/categories/organic-foods?tag=black-tea' },
+  ],
+  'Wall Art': [
+    { label: 'Canvas Prints',    labelBn: 'ক্যানভাস প্রিন্ট',    href: '/categories/handicrafts?tag=canvas' },
+    { label: 'Calligraphy',      labelBn: 'ক্যালিগ্রাফি',         href: '/categories/handicrafts?tag=calligraphy' },
+    { label: 'Paintings',        labelBn: 'চিত্রকর্ম',            href: '/categories/handicrafts?tag=paintings' },
+  ],
+  'Showpieces': [
+    { label: 'Clay Items',       labelBn: 'মাটির জিনিস',          href: '/categories/handicrafts?tag=clay' },
+    { label: 'Wooden Crafts',    labelBn: 'কাঠের শিল্প',          href: '/categories/handicrafts?tag=wooden' },
+    { label: 'Jute Products',    labelBn: 'পাটের পণ্য',           href: '/categories/handicrafts?tag=jute' },
+  ],
+  'Traditional Crafts': [
+    { label: 'Nakshi Kantha',    labelBn: 'নকশি কাঁথা',           href: '/categories/handicrafts?tag=nakshi-kantha' },
+    { label: 'Muslin',           labelBn: 'মসলিন',               href: '/categories/handicrafts?tag=muslin' },
+    { label: 'Jamdani',          labelBn: 'জামদানি',              href: '/categories/handicrafts?tag=jamdani' },
+  ],
+  'Mobiles': [
+    { label: 'Samsung',          labelBn: 'স্যামসাং',             href: '/categories/electronics?tag=samsung' },
+    { label: 'iPhone',           labelBn: 'আইফোন',               href: '/categories/electronics?tag=iphone' },
+    { label: 'Xiaomi',           labelBn: 'শাওমি',               href: '/categories/electronics?tag=xiaomi' },
+    { label: 'Realme',           labelBn: 'রিয়েলমি',             href: '/categories/electronics?tag=realme' },
+  ],
+  'Laptops': [
+    { label: 'Gaming Laptops',   labelBn: 'গেমিং ল্যাপটপ',        href: '/categories/electronics?tag=gaming-laptop' },
+    { label: 'Office Laptops',   labelBn: 'অফিস ল্যাপটপ',         href: '/categories/electronics?tag=office-laptop' },
+    { label: 'MacBook',          labelBn: 'ম্যাকবুক',             href: '/categories/electronics?tag=macbook' },
+  ],
+  'Accessories': [
+    { label: 'Earbuds & TWS',    labelBn: 'ইয়ারবাডস',            href: '/categories/electronics?tag=earbuds' },
+    { label: 'Smartwatches',     labelBn: 'স্মার্টওয়াচ',          href: '/categories/electronics?tag=smartwatch' },
+    { label: 'Power Banks',      labelBn: 'পাওয়ার ব্যাংক',         href: '/categories/electronics?tag=power-bank' },
+    { label: 'Chargers & Cables',labelBn: 'চার্জার ও ক্যাবল',     href: '/categories/electronics?tag=charger' },
+  ],
+  'Home Appliances': [
+    { label: 'Air Purifiers',    labelBn: 'এয়ার পিউরিফায়ার',      href: '/categories/electronics?tag=air-purifier' },
+    { label: 'Rice Cookers',     labelBn: 'রাইস কুকার',           href: '/categories/electronics?tag=rice-cooker' },
+    { label: 'Fans',             labelBn: 'ফ্যান',                href: '/categories/electronics?tag=fan' },
+  ],
+  'Gadgets': [
+    { label: 'Smart Cameras',    labelBn: 'স্মার্ট ক্যামেরা',      href: '/categories/electronics?tag=camera' },
+    { label: 'Drones',           labelBn: 'ড্রোন',               href: '/categories/electronics?tag=drone' },
+    { label: 'Gaming Controllers',labelBn:'গেমিং কন্ট্রোলার',    href: '/categories/electronics?tag=gaming' },
+  ],
+  'Grocery': [
+    { label: 'Rice & Flour',     labelBn: 'চাল ও আটা',            href: '/categories/daily-needs?tag=rice' },
+    { label: 'Cooking Oil',      labelBn: 'রান্নার তেল',           href: '/categories/daily-needs?tag=oil' },
+    { label: 'Pulses & Lentils', labelBn: 'ডাল',                  href: '/categories/daily-needs?tag=lentils' },
+  ],
+  'Personal Care': [
+    { label: 'Skin Care',        labelBn: 'স্কিন কেয়ার',          href: '/categories/daily-needs?tag=skincare' },
+    { label: 'Hair Care',        labelBn: 'হেয়ার কেয়ার',           href: '/categories/daily-needs?tag=haircare' },
+    { label: 'Oral Care',        labelBn: 'ওরাল কেয়ার',           href: '/categories/daily-needs?tag=oral' },
+  ],
+  'Household': [
+    { label: 'Cleaning Products',labelBn: 'ক্লিনিং প্রোডাক্ট',   href: '/categories/daily-needs?tag=cleaning' },
+    { label: 'Kitchen Tools',    labelBn: 'কিচেন টুলস',           href: '/categories/daily-needs?tag=kitchen' },
+    { label: 'Storage & Org.',   labelBn: 'স্টোরেজ',              href: '/categories/daily-needs?tag=storage' },
+  ],
+  'Stationery': [
+    { label: 'Notebooks & Pads', labelBn: 'নোটবুক',              href: '/categories/daily-needs?tag=notebooks' },
+    { label: 'Pens & Markers',   labelBn: 'কলম',                 href: '/categories/daily-needs?tag=pens' },
+    { label: 'Art Supplies',     labelBn: 'আর্ট সাপ্লাইজ',        href: '/categories/daily-needs?tag=art' },
+  ],
+  'Pet Care': [
+    { label: 'Pet Food',         labelBn: 'পোষা প্রাণীর খাবার',   href: '/categories/daily-needs?tag=pet-food' },
+    { label: 'Pet Accessories',  labelBn: 'পোষা প্রাণীর সামগ্রী', href: '/categories/daily-needs?tag=pet-accessories' },
+  ],
 };
 
 const BN_SUBNAV: Record<string, Record<string, string>> = {
