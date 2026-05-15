@@ -1,46 +1,44 @@
-'use client';
+import { Metadata } from 'next';
+import CategoryDetailClient from './category-detail-client';
 
-import { use, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { productsApi, categoriesApi } from '@/lib/api/products';
-import { ProductGrid } from '@/components/product/product-grid';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1/v1';
 
-export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
-  const [page, setPage] = useState(1);
+async function getCategory(slug: string) {
+  try {
+    const res = await fetch(`${API_URL}/categories/${slug}`, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    const json = await res.json();
+    return json.data;
+  } catch { return null; }
+}
 
-  const { data: category } = useQuery({
-    queryKey: ['category', slug],
-    queryFn: () => categoriesApi.getBySlug(slug),
-  });
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const category = await getCategory(slug);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['products', { categorySlug: slug, page }],
-    queryFn: () => productsApi.getAll({ categorySlug: slug, page, limit: 20 }),
-  });
+  const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+  const name = category?.name ?? slug.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+  const description = category?.description ?? `Shop ${name} products at UNKORA — fast delivery across Bangladesh.`;
 
-  const title = category?.name ?? slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  return {
+    title: `${name} | UNKORA`,
+    description,
+    openGraph: {
+      title: `${name} | UNKORA`,
+      description,
+      url: `${BASE_URL}/categories/${slug}`,
+      siteName: 'UNKORA',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${name} | UNKORA`,
+      description,
+    },
+  };
+}
 
-  return (
-    <div className="container py-8">
-      <div className="mb-6">
-        <h1 className="font-serif text-2xl font-bold">{title}</h1>
-        {data && <p className="mt-1 text-sm text-muted-foreground">{data.meta.total} products</p>}
-        {category?.description && <p className="mt-2 text-muted-foreground">{category.description}</p>}
-      </div>
-
-      <ProductGrid products={data?.data ?? []} loading={isLoading} />
-
-      {data && data.meta.totalPages > 1 && (
-        <div className="mt-8 flex justify-center gap-2">
-          {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1).map(p => (
-            <button key={p} onClick={() => setPage(p)}
-              className={`h-9 w-9 rounded-md text-sm transition-colors ${p === page ? 'bg-primary text-primary-foreground' : 'border hover:bg-accent'}`}>
-              {p}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  return <CategoryDetailClient slug={slug} />;
 }

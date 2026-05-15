@@ -5,6 +5,26 @@ import { Package, ShoppingBag, Users, TrendingUp, Loader2 } from 'lucide-react';
 import { adminApi } from '@/lib/api/admin';
 import { formatCurrency } from '@/lib/utils';
 
+function BarChart({ data }: { data: { label: string; value: number }[] }) {
+  const max = Math.max(...data.map(d => d.value), 1);
+  return (
+    <div className="flex items-end gap-1 h-40">
+      {data.map(d => (
+        <div
+          key={d.label}
+          className="flex flex-1 flex-col items-center gap-1"
+          title={`${d.label}: ${formatCurrency(d.value)}`}
+        >
+          <div
+            className="w-full rounded-t bg-brand-600/80 transition-all hover:bg-brand-600"
+            style={{ height: `${(d.value / max) * 100}%` }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['admin-stats'],
@@ -24,11 +44,41 @@ export default function AdminDashboard() {
   );
 
   const statCards = [
-    { label: 'Total Revenue', value: formatCurrency(stats?.totalRevenue ?? 0), sub: `This month: ${formatCurrency(stats?.monthRevenue ?? 0)}`, icon: TrendingUp, color: 'text-green-600 bg-green-50' },
-    { label: 'Total Orders', value: stats?.totalOrders ?? 0, sub: `Today: ${stats?.todayOrders ?? 0}`, icon: ShoppingBag, color: 'text-blue-600 bg-blue-50' },
-    { label: 'Products', value: stats?.totalProducts ?? 0, sub: 'Active listings', icon: Package, color: 'text-purple-600 bg-purple-50' },
-    { label: 'Customers', value: stats?.totalCustomers ?? 0, sub: 'Registered users', icon: Users, color: 'text-amber-600 bg-amber-50' },
+    {
+      label: 'Total Revenue',
+      value: formatCurrency(stats?.revenue.total ?? 0),
+      sub: `This month: ${formatCurrency(stats?.revenue.thisMonth ?? 0)}`,
+      icon: TrendingUp,
+      color: 'text-green-600 bg-green-50',
+    },
+    {
+      label: 'Total Orders',
+      value: stats?.orders.total ?? 0,
+      sub: `Pending: ${stats?.orders.pending ?? 0}`,
+      icon: ShoppingBag,
+      color: 'text-blue-600 bg-blue-50',
+    },
+    {
+      label: 'Active Products',
+      value: stats?.products.total ?? 0,
+      sub: `Low stock: ${stats?.products.lowStock ?? 0}`,
+      icon: Package,
+      color: 'text-purple-600 bg-purple-50',
+    },
+    {
+      label: 'Total Customers',
+      value: stats?.customers.total ?? 0,
+      sub: `New this month: ${stats?.customers.newThisMonth ?? 0}`,
+      icon: Users,
+      color: 'text-amber-600 bg-amber-50',
+    },
   ];
+
+  const chartData =
+    chart?.map(point => ({
+      label: point.date.slice(5), // "MM-DD"
+      value: point.revenue,
+    })) ?? [];
 
   return (
     <div className="space-y-6">
@@ -60,18 +110,26 @@ export default function AdminDashboard() {
         <div className="rounded-xl border bg-card">
           <div className="border-b p-4 font-semibold">Recent Orders</div>
           <div className="divide-y">
-            {stats?.recentOrders?.slice(0, 5).map((order: { id: string; orderNumber: string; status: string; total: string; customer?: { name?: string } }) => (
+            {stats?.recentOrders?.slice(0, 5).map(order => (
               <div key={order.id} className="flex items-center justify-between p-3 text-sm">
                 <div>
                   <p className="font-medium">#{order.orderNumber}</p>
-                  <p className="text-xs text-muted-foreground">{order.customer?.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {order.user.firstName} {order.user.lastName}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`rounded-full px-2 py-0.5 text-xs ${
-                    order.status === 'DELIVERED' ? 'bg-green-100 text-green-700' :
-                    order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-blue-100 text-blue-700'
-                  }`}>{order.status}</span>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs ${
+                      order.status === 'DELIVERED'
+                        ? 'bg-green-100 text-green-700'
+                        : order.status === 'PENDING'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-blue-100 text-blue-700'
+                    }`}
+                  >
+                    {order.status}
+                  </span>
                   <span className="font-medium">{formatCurrency(Number(order.total))}</span>
                 </div>
               </div>
@@ -81,16 +139,21 @@ export default function AdminDashboard() {
 
         {/* Top Products */}
         <div className="rounded-xl border bg-card">
-          <div className="border-b p-4 font-semibold">Top Products</div>
+          <div className="border-b p-4 font-semibold">Top Products by Revenue</div>
           <div className="divide-y">
-            {stats?.topProducts?.slice(0, 5).map((p: { id: string; name: string; totalSold?: number; revenue?: string }, i: number) => (
-              <div key={p.id} className="flex items-center justify-between p-3 text-sm">
+            {stats?.topProducts?.slice(0, 5).map((p, i) => (
+              <div key={p.productId} className="flex items-center justify-between p-3 text-sm">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-bold">{i + 1}</span>
-                  <span className="font-medium line-clamp-1">{p.name}</span>
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-bold">
+                    {i + 1}
+                  </span>
+                  <span className="font-medium line-clamp-1">{p.productName}</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <span>{p.totalSold} sold</span>
+                  <span>{p._sum.quantity ?? 0} sold</span>
+                  <span className="font-medium text-foreground">
+                    {formatCurrency(Number(p._sum.totalPrice ?? 0))}
+                  </span>
                 </div>
               </div>
             ))}
@@ -98,21 +161,12 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Revenue Chart — simple bar visualization */}
-      {chart && chart.length > 0 && (
+      {/* Revenue Chart */}
+      {chartData.length > 0 && (
         <div className="rounded-xl border bg-card p-5">
           <h2 className="mb-4 font-semibold">Revenue (Last 30 Days)</h2>
-          <div className="flex items-end gap-1 h-40">
-            {chart.map((point: { date: string; revenue: number }) => {
-              const max = Math.max(...chart.map((p: { revenue: number }) => p.revenue), 1);
-              const height = (point.revenue / max) * 100;
-              return (
-                <div key={point.date} className="flex flex-1 flex-col items-center gap-1" title={`${point.date}: ${formatCurrency(point.revenue)}`}>
-                  <div className="w-full rounded-t bg-brand-600/80 transition-all hover:bg-brand-600" style={{ height: `${height}%` }} />
-                </div>
-              );
-            })}
-          </div>
+          <BarChart data={chartData} />
+          <p className="mt-2 text-center text-xs text-muted-foreground">Daily revenue in BDT ৳</p>
         </div>
       )}
     </div>

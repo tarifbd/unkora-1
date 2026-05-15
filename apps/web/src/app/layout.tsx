@@ -18,16 +18,12 @@ const lora = Lora({
 });
 
 export const metadata: Metadata = {
-  title: {
-    default: 'UNKORA — Premium Books & Lifestyle',
-    template: '%s | UNKORA',
-  },
-  description:
-    'UNKORA — Your destination for premium books, leather goods, organic products, baby essentials & home decor. Crafted with care, delivered with love.',
-  keywords: ['books', 'leather', 'organic', 'baby products', 'home decor', 'Bangladesh', 'online shop'],
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+  title: { default: 'UNKORA — Premium Shopping in Bangladesh', template: '%s | UNKORA' },
+  description: 'Shop premium products, books, and more at UNKORA. Fast delivery across Bangladesh.',
+  keywords: ['shopping', 'bangladesh', 'books', 'ecommerce', 'unkora', 'online shopping'],
   authors: [{ name: 'UNKORA' }],
   creator: 'UNKORA',
-  metadataBase: new URL(process.env['NEXT_PUBLIC_SITE_URL'] ?? 'https://unkora.com'),
   openGraph: {
     type: 'website',
     locale: 'en_BD',
