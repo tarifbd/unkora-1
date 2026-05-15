@@ -19,6 +19,7 @@
     "clean": "turbo clean && find . -name 'node_modules' -type d -prune -exec rm -rf '{}' +"
   },
   "devDependencies": {
+    "@nestjs/cli": "^11.0.0",
     "prettier": "^3.3.3",
     "turbo": "^2.3.3",
     "typescript": "^5.7.2"
