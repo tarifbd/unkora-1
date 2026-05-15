@@ -115,7 +115,7 @@ export class AdminService {
         select: {
           id: true, email: true, firstName: true, lastName: true,
           phone: true, role: true, status: true, createdAt: true,
-          _count: { select: { orders: true, addresses: true } },
+          _count: { select: { orders: true, address: true } },
         },
       }),
       this.prisma.user.count({ where }),
@@ -128,8 +128,8 @@ export class AdminService {
     return this.prisma.user.findUnique({
       where: { id },
       include: {
-        addresses: true,
-        _count: { select: { orders: true, reviews: true, wishlist: true } },
+        address: true,
+        _count: { select: { orders: true, reviews: true, wishlists: true } },
       },
     });
   }
