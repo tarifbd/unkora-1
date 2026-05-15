@@ -1,77 +1,79 @@
 'use client';
 
 import Link from 'next/link';
-import { Facebook, Twitter, Instagram, Youtube, MapPin, Phone, Mail } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Youtube, MapPin, Phone, Mail, MessageSquare } from 'lucide-react';
 
-const quickLinks = ['Home', 'Books', 'Order Tracking', 'Wishlist', 'My Account', 'Help Center'];
-const policyLinks = ['Terms of Use', 'Privacy Policy', 'Refund Policy', 'Shipping Policy', 'Cancellations'];
+const quickLinks = [
+  { label: 'Home',           href: '/' },
+  { label: 'Books',          href: '/books' },
+  { label: 'Order Tracking', href: '/account/orders' },
+  { label: 'Wishlist',       href: '/account/wishlist' },
+  { label: 'My Account',     href: '/account' },
+  { label: 'Help Center',    href: '#' },
+];
 
-const quickLinkHrefs: Record<string, string> = {
-  'Home': '/',
-  'Books': '/books',
-  'Order Tracking': '/account/orders',
-  'Wishlist': '/account/wishlist',
-  'My Account': '/account',
-  'Help Center': '#',
-};
+const policyLinks = [
+  'Terms of Use', 'Privacy Policy', 'Refund Policy', 'Shipping Policy', 'Cancellations',
+];
 
 export function Footer() {
   return (
-    <footer className="bg-gray-900 text-gray-300">
-      {/* Newsletter */}
-      <div className="bg-primary">
-        <div className="container py-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-            <div>
-              <h3 className="text-white font-bold text-xl">Stay Updated!</h3>
-              <p className="text-white/80 text-sm mt-1">
-                Subscribe to get the latest deals, new arrivals and exclusive offers.
-              </p>
-            </div>
-            <form className="flex gap-2" onSubmit={e => e.preventDefault()}>
+    <footer className="bg-white border-t border-gray-200 pt-16 pb-8">
+      <div className="max-w-7xl mx-auto px-4">
+
+        {/* Newsletter */}
+        <div className="bg-primary rounded-2xl p-8 lg:p-12 flex flex-col lg:flex-row items-center justify-between gap-8 mb-16 text-white overflow-hidden relative">
+          <div className="relative z-10">
+            <h3 className="text-3xl font-black mb-2">Subscribe to our newsletter</h3>
+            <p className="opacity-80">Get all the latest news, books and offers on your email.</p>
+          </div>
+          <div className="w-full lg:w-auto relative z-10">
+            <form
+              className="flex bg-white rounded-lg p-1.5 overflow-hidden w-full lg:min-w-[400px]"
+              onSubmit={e => e.preventDefault()}
+            >
               <input
                 type="email"
-                placeholder="Your email address"
-                className="flex-1 h-10 px-4 rounded text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-white/50"
+                placeholder="Enter your email address"
+                className="flex-grow px-4 outline-none text-gray-900 text-sm"
               />
               <button
                 type="submit"
-                className="h-10 px-5 bg-secondary hover:bg-amber-400 text-gray-900 text-sm font-semibold rounded transition-colors shrink-0"
+                className="bg-secondary text-white px-8 py-3 rounded-md font-bold hover:bg-orange-600 transition-colors shadow-lg"
               >
                 Subscribe
               </button>
             </form>
           </div>
+          {/* Decorative shapes */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/4 pointer-events-none" />
         </div>
-      </div>
 
-      {/* Main footer grid */}
-      <div className="container py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Main Footer Content */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
           <div>
-            <Link href="/" className="flex items-center mb-4">
-              <span className="font-bold text-2xl text-white tracking-tight">UNKORA</span>
-              <span className="font-bold text-2xl text-secondary tracking-tight">.SHOP</span>
+            <Link href="/" className="text-2xl font-black tracking-tighter flex items-center mb-6">
+              <span className="text-primary">UNKORA</span><span className="text-secondary">.SHOP</span>
             </Link>
-            <p className="text-sm text-gray-400 leading-relaxed">
-              Premium books, leather goods, organic products & more. Crafted with care, delivered with love across Bangladesh.
+            <p className="text-gray-500 text-sm leading-relaxed mb-6">
+              unkora.shop is a premier online library &amp; marketplace in Bangladesh. Home of million products across books, electronics, stationaries and gifts.
             </p>
-            {/* Social icons */}
-            <div className="flex items-center gap-3 mt-5">
+            <div className="flex gap-4">
               {[
-                { Icon: Facebook,  href: '#', label: 'Facebook' },
-                { Icon: Twitter,   href: '#', label: 'Twitter' },
-                { Icon: Instagram, href: '#', label: 'Instagram' },
-                { Icon: Youtube,   href: '#', label: 'YouTube' },
-              ].map(({ Icon, href, label }) => (
+                { Icon: Facebook,  label: 'Facebook' },
+                { Icon: Twitter,   label: 'Twitter' },
+                { Icon: Instagram, label: 'Instagram' },
+                { Icon: Youtube,   label: 'YouTube' },
+              ].map(({ Icon, label }) => (
                 <a
                   key={label}
-                  href={href}
+                  href="#"
                   aria-label={label}
-                  className="h-8 w-8 rounded-full bg-gray-700 hover:bg-primary flex items-center justify-center transition-colors"
+                  className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all"
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="w-[18px] h-[18px]" />
                 </a>
               ))}
             </div>
@@ -79,29 +81,28 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-semibold text-sm mb-4 uppercase tracking-wide">Quick Links</h3>
-            <ul className="space-y-2">
-              {quickLinks.map(link => (
-                <li key={link}>
-                  <Link
-                    href={quickLinkHrefs[link] ?? '#'}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
-                  >
-                    {link}
+            <h4 className="text-gray-900 font-bold mb-6">Quick Links</h4>
+            <ul className="space-y-3">
+              {quickLinks.map(({ label, href }) => (
+                <li key={label}>
+                  <Link href={href} className="text-gray-500 text-sm hover:text-primary transition-all flex items-center gap-2 group">
+                    <div className="w-1.5 h-1.5 bg-gray-300 rounded-full group-hover:bg-primary transition-all" />
+                    {label}
                   </Link>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Policy */}
+          {/* Policies */}
           <div>
-            <h3 className="text-white font-semibold text-sm mb-4 uppercase tracking-wide">Policies</h3>
-            <ul className="space-y-2">
-              {policyLinks.map(link => (
-                <li key={link}>
-                  <Link href="#" className="text-sm text-gray-400 hover:text-white transition-colors">
-                    {link}
+            <h4 className="text-gray-900 font-bold mb-6">Policy</h4>
+            <ul className="space-y-3">
+              {policyLinks.map(label => (
+                <li key={label}>
+                  <Link href="#" className="text-gray-500 text-sm hover:text-primary transition-all flex items-center gap-2 group">
+                    <div className="w-1.5 h-1.5 bg-gray-300 rounded-full group-hover:bg-primary transition-all" />
+                    {label}
                   </Link>
                 </li>
               ))}
@@ -110,46 +111,39 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="text-white font-semibold text-sm mb-4 uppercase tracking-wide">Contact Us</h3>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-2 text-sm text-gray-400">
-                <MapPin className="h-4 w-4 text-secondary shrink-0 mt-0.5" />
-                <span>House 12, Road 5, Dhanmondi, Dhaka-1205, Bangladesh</span>
-              </li>
-              <li className="flex items-center gap-2 text-sm text-gray-400">
-                <Phone className="h-4 w-4 text-secondary shrink-0" />
-                <span>16297 (9 AM – 8 PM)</span>
-              </li>
-              <li className="flex items-center gap-2 text-sm text-gray-400">
-                <Mail className="h-4 w-4 text-secondary shrink-0" />
-                <a href="mailto:support@unkora.com" className="hover:text-white transition-colors">
-                  support@unkora.com
-                </a>
-              </li>
-            </ul>
+            <h4 className="text-gray-900 font-bold mb-6">Contact Us</h4>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <Phone className="w-[18px] h-[18px] text-primary mt-1 shrink-0" />
+                <span className="text-gray-500 text-sm leading-tight">+880 1708-166233</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <Mail className="w-[18px] h-[18px] text-primary mt-1 shrink-0" />
+                <span className="text-gray-500 text-sm leading-tight">support@unkora.shop</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <MapPin className="w-[18px] h-[18px] text-primary mt-1 shrink-0" />
+                <span className="text-gray-500 text-sm leading-tight">2/1, RK Mission Road, Motijheel, Dhaka-1203</span>
+              </div>
+              <div className="flex items-start gap-3">
+                <MessageSquare className="w-[18px] h-[18px] text-primary mt-1 shrink-0" />
+                <span className="text-gray-500 text-sm leading-tight">Live Chat</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Bottom bar */}
-      <div className="border-t border-gray-800">
-        <div className="container py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-gray-500">
-            © {new Date().getFullYear()} UNKORA. All rights reserved. Made with ❤️ in Bangladesh.
-          </p>
-          {/* Payment methods */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-600 mr-1">We accept:</span>
-            {['bKash', 'Nagad', 'Rocket', 'VISA', 'MC'].map(method => (
-              <span
-                key={method}
-                className="text-[9px] font-bold bg-gray-700 text-gray-300 px-1.5 py-0.5 rounded"
-              >
-                {method}
-              </span>
-            ))}
+        {/* Bottom Bar */}
+        <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500 font-medium">
+          <p>© 2012-2026 unkora.shop. All Rights Reserved.</p>
+          <div className="flex items-center gap-6">
+            <div className="flex gap-4">
+              <span>Payment Methods:</span>
+              <span className="text-gray-400">bKash, Visa, Mastercard, Cash on Delivery</span>
+            </div>
           </div>
         </div>
+
       </div>
     </footer>
   );
