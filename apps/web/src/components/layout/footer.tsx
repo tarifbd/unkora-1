@@ -1,12 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { Facebook, Twitter, Instagram, Youtube, MapPin, Phone, Mail, MessageSquare } from 'lucide-react';
+import { useState } from 'react';
+import { Facebook, Instagram, Youtube, MapPin, Phone, Mail, MessageSquare, CheckCircle, Send } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
+
+const SOCIAL_LINKS = [
+  { Icon: Facebook,  label: 'Facebook',  href: 'https://facebook.com/unkora.shop' },
+  { Icon: Instagram, label: 'Instagram', href: 'https://instagram.com/unkora.shop' },
+  { Icon: Youtube,   label: 'YouTube',   href: 'https://youtube.com/@unkorashop' },
+];
 
 export function Footer() {
   const { t } = useLanguage();
   const f = t.footer;
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
 
   const quickLinks = [
     { label: f.home,          href: '/' },
@@ -14,12 +23,23 @@ export function Footer() {
     { label: f.orderTracking, href: '/account/orders' },
     { label: f.wishlist,      href: '/account/wishlist' },
     { label: f.myAccount,     href: '/account' },
-    { label: f.helpCenter,    href: '#' },
+    { label: f.helpCenter,    href: '/help' },
   ];
 
   const policyLinks = [
-    f.termsOfUse, f.privacyPolicy, f.refundPolicy, f.shippingPolicy, f.cancellations,
+    { label: f.termsOfUse,    href: '/terms' },
+    { label: f.privacyPolicy, href: '/privacy' },
+    { label: f.refundPolicy,  href: '/refund-policy' },
+    { label: f.shippingPolicy,href: '/shipping-policy' },
+    { label: f.cancellations, href: '/cancellations' },
   ];
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setSubscribed(true);
+    setEmail('');
+  };
 
   return (
     <footer className="bg-white border-t border-gray-200 pt-16 pb-8">
@@ -32,28 +52,41 @@ export function Footer() {
             <p className="opacity-80">{f.newsletterSub}</p>
           </div>
           <div className="w-full lg:w-auto relative z-10">
-            <form
-              className="flex bg-white rounded-lg p-1.5 overflow-hidden w-full lg:min-w-[400px]"
-              onSubmit={e => e.preventDefault()}
-            >
-              <input
-                type="email"
-                placeholder={f.emailPlaceholder}
-                className="flex-grow px-4 outline-none text-gray-900 text-sm"
-              />
-              <button
-                type="submit"
-                className="bg-secondary text-white px-8 py-3 rounded-md font-bold hover:bg-orange-600 transition-colors shadow-lg"
+            {subscribed ? (
+              <div className="flex items-center gap-3 bg-white/20 rounded-xl px-6 py-4 border border-white/30">
+                <CheckCircle className="w-6 h-6 text-white shrink-0" />
+                <p className="font-bold text-white">
+                  {(f as Record<string, string>).subscribeSuccess ?? 'সাবস্ক্রাইব সফল! ধন্যবাদ।'}
+                </p>
+              </div>
+            ) : (
+              <form
+                className="flex bg-white rounded-lg p-1.5 overflow-hidden w-full lg:min-w-[420px]"
+                onSubmit={handleSubscribe}
               >
-                {f.subscribe}
-              </button>
-            </form>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder={f.emailPlaceholder}
+                  required
+                  className="flex-grow px-4 outline-none text-gray-900 text-sm min-w-0"
+                />
+                <button
+                  type="submit"
+                  className="bg-secondary text-white px-6 py-3 rounded-md font-bold hover:bg-orange-600 transition-colors shadow-lg flex items-center gap-2 shrink-0"
+                >
+                  <Send className="w-4 h-4" />
+                  {f.subscribe}
+                </button>
+              </form>
+            )}
           </div>
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/4 pointer-events-none" />
         </div>
 
-        {/* Main Footer Content */}
+        {/* Main Footer */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           {/* Brand */}
           <div>
@@ -61,19 +94,10 @@ export function Footer() {
               <span className="text-primary">UNKORA</span><span className="text-secondary">.SHOP</span>
             </Link>
             <p className="text-gray-500 text-sm leading-relaxed mb-6">{f.tagline}</p>
-            <div className="flex gap-4">
-              {[
-                { Icon: Facebook,  label: 'Facebook' },
-                { Icon: Twitter,   label: 'Twitter' },
-                { Icon: Instagram, label: 'Instagram' },
-                { Icon: Youtube,   label: 'YouTube' },
-              ].map(({ Icon, label }) => (
-                <a
-                  key={label}
-                  href="#"
-                  aria-label={label}
-                  className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all"
-                >
+            <div className="flex gap-3">
+              {SOCIAL_LINKS.map(({ Icon, label, href }) => (
+                <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
+                  className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white hover:border-primary transition-all">
                   <Icon className="w-[18px] h-[18px]" />
                 </a>
               ))}
@@ -99,9 +123,9 @@ export function Footer() {
           <div>
             <h4 className="text-gray-900 font-bold mb-6">{f.policy}</h4>
             <ul className="space-y-3">
-              {policyLinks.map(label => (
-                <li key={label}>
-                  <Link href="#" className="text-gray-500 text-sm hover:text-primary transition-all flex items-center gap-2 group">
+              {policyLinks.map(({ label, href }) => (
+                <li key={href}>
+                  <Link href={href} className="text-gray-500 text-sm hover:text-primary transition-all flex items-center gap-2 group">
                     <div className="w-1.5 h-1.5 bg-gray-300 rounded-full group-hover:bg-primary transition-all" />
                     {label}
                   </Link>
@@ -114,34 +138,34 @@ export function Footer() {
           <div>
             <h4 className="text-gray-900 font-bold mb-6">{f.contactUs}</h4>
             <div className="space-y-4">
-              <div className="flex items-start gap-3">
+              <a href="tel:+8801708166233" className="flex items-start gap-3 group">
                 <Phone className="w-[18px] h-[18px] text-primary mt-1 shrink-0" />
-                <span className="text-gray-500 text-sm leading-tight">+880 1708-166233</span>
-              </div>
-              <div className="flex items-start gap-3">
+                <span className="text-gray-500 text-sm group-hover:text-primary transition-colors">+880 1708-166233</span>
+              </a>
+              <a href="mailto:support@unkora.shop" className="flex items-start gap-3 group">
                 <Mail className="w-[18px] h-[18px] text-primary mt-1 shrink-0" />
-                <span className="text-gray-500 text-sm leading-tight">support@unkora.shop</span>
-              </div>
+                <span className="text-gray-500 text-sm group-hover:text-primary transition-colors">support@unkora.shop</span>
+              </a>
               <div className="flex items-start gap-3">
                 <MapPin className="w-[18px] h-[18px] text-primary mt-1 shrink-0" />
-                <span className="text-gray-500 text-sm leading-tight">2/1, RK Mission Road, Motijheel, Dhaka-1203</span>
+                <span className="text-gray-500 text-sm">2/1, RK Mission Road, Motijheel, Dhaka-1203</span>
               </div>
-              <div className="flex items-start gap-3">
+              <a href="https://wa.me/8801708166233" target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 group">
                 <MessageSquare className="w-[18px] h-[18px] text-primary mt-1 shrink-0" />
-                <span className="text-gray-500 text-sm leading-tight">{f.liveChat}</span>
-              </div>
+                <span className="text-gray-500 text-sm group-hover:text-primary transition-colors">{f.liveChat}</span>
+              </a>
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-gray-500 font-medium">
-          <p>{f.rights}</p>
-          <div className="flex items-center gap-6">
-            <div className="flex gap-4">
-              <span>{f.paymentMethods}</span>
-              <span className="text-gray-400">bKash, Nagad, Visa, Mastercard, Cash on Delivery</span>
-            </div>
+        {/* Bottom */}
+        <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-gray-500 font-medium">{f.rights}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400 font-medium">{f.paymentMethods}</span>
+            {['bKash', 'Nagad', 'Visa', 'MC', 'COD'].map(m => (
+              <span key={m} className="inline-flex items-center justify-center px-2.5 py-1 bg-gray-50 border border-gray-200 rounded text-[11px] font-bold text-gray-600">{m}</span>
+            ))}
           </div>
         </div>
 

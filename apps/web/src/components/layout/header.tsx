@@ -24,7 +24,7 @@ interface NavCategory {
 }
 
 const NAV_CATEGORIES: NavCategory[] = [
-  { nameKey: 'books',           displayName: 'Books',            icon: Book,        slug: '/books',                       subnav: ['Authors', 'Subjects', 'Publishers', 'Boi Mela 2026', 'Academic Books', 'E-Books', 'Islamic Books'] },
+  { nameKey: 'books',           displayName: 'Books',            icon: Book,        slug: '/books',                       subnav: ['Authors', 'Subjects', 'Publishers', 'Academic Books', 'E-Books', 'Islamic Books'] },
   { nameKey: 'babyProducts',    displayName: 'Baby Products',    icon: Baby,        slug: '/categories/baby-products',    subnav: ['Diapering & Care', 'Feeding & Nursing', 'Baby Gear', 'Toys & Games', 'Baby Clothing'] },
   { nameKey: 'leatherProducts', displayName: 'Leather Products', icon: Briefcase,   slug: '/categories/leather-products', subnav: ['Wallets & Cards', 'Bags & Backpacks', 'Belts & Accessories', "Men's Footwear", "Women's Footwear"] },
   { nameKey: 'organicFoods',    displayName: 'Organic Foods',    icon: Leaf,        slug: '/categories/organic-foods',    subnav: ['Nuts & Seeds', 'Honey & Sweeteners', 'Spices & Herbs', 'Healthy Snacks', 'Tea & Beverages'] },
@@ -37,18 +37,59 @@ const NAV_CATEGORIES: NavCategory[] = [
 function getSubnavHref(catSlug: string, sub: string): string {
   if (catSlug === '/books') {
     const map: Record<string, string> = {
-      'Authors':       '/books?sortBy=bookDetail.author&sortOrder=asc',
-      'Subjects':      '/books',
-      'Publishers':    '/books',
-      'Boi Mela 2026': '/books?tag=boi-mela',
-      'Academic Books':'/books?genre=Academic',
-      'E-Books':       '/books?language=English',
-      'Islamic Books': '/books?genre=Islamic',
+      'Authors':        '/books?sortBy=bookDetail.author&sortOrder=asc',
+      'Subjects':       '/books',
+      'Publishers':     '/books',
+      'Academic Books': '/books?genre=Academic',
+      'E-Books':        '/books?language=English',
+      'Islamic Books':  '/books?genre=Islamic',
     };
     return map[sub] ?? `/books?tag=${encodeURIComponent(sub)}`;
   }
   return `${catSlug}?tag=${encodeURIComponent(sub)}`;
 }
+
+const SUBNAV_DROPDOWNS: Record<string, { label: string; labelBn: string; href: string }[]> = {
+  'Authors': [
+    { label: 'Humayun Ahmed',       labelBn: 'হুমায়ূন আহমেদ',          href: '/books?author=হুমায়ূন আহমেদ' },
+    { label: 'Manik Bandyopadhyay', labelBn: 'মানিক বন্দ্যোপাধ্যায়',   href: '/books?author=মানিক বন্দ্যোপাধ্যায়' },
+    { label: 'Sarat Chandra',       labelBn: 'শরৎচন্দ্র চট্টোপাধ্যায়', href: '/books?author=শরৎচন্দ্র চট্টোপাধ্যায়' },
+    { label: 'Rabindranath Tagore', labelBn: 'রবীন্দ্রনাথ ঠাকুর',       href: '/books?author=Rabindranath Tagore' },
+    { label: 'Samaresh Majumdar',   labelBn: 'সমরেশ মজুমদার',           href: '/books?author=সমরেশ মজুমদার' },
+    { label: 'James Clear',         labelBn: 'James Clear',              href: '/books?author=James Clear' },
+    { label: 'All Authors →',      labelBn: 'সব লেখক →',               href: '/books?sortBy=bookDetail.author&sortOrder=asc' },
+  ],
+  'Subjects': [
+    { label: 'Fiction',      labelBn: 'উপন্যাস',       href: '/books?genre=Fiction' },
+    { label: 'Non-Fiction',  labelBn: 'নন-ফিকশন',      href: '/books?genre=Non-Fiction' },
+    { label: 'Islamic',      labelBn: 'ইসলামিক',        href: '/books?genre=Islamic' },
+    { label: 'Academic',     labelBn: 'একাডেমিক',       href: '/books?genre=Academic' },
+    { label: 'Self-Help',    labelBn: 'আত্মোন্নয়ন',    href: '/books?genre=Self-Help' },
+    { label: "Children's",   labelBn: 'শিশুদের বই',     href: "/books?genre=Children's" },
+    { label: 'Productivity', labelBn: 'প্রোডাক্টিভিটি', href: '/books?genre=Productivity' },
+  ],
+  'Publishers': [
+    { label: 'Anyaprokash',           labelBn: 'অন্যপ্রকাশ',          href: '/books?publisher=Anyaprokash' },
+    { label: 'Prothoma',              labelBn: 'প্রথমা',               href: '/books?publisher=Prothoma' },
+    { label: 'Islamic Foundation',    labelBn: 'ইসলামিক ফাউন্ডেশন',   href: '/books?publisher=Islamic Foundation' },
+    { label: 'Panjeree Publications', labelBn: 'পাঞ্জেরি পাবলিকেশন্স', href: '/books?publisher=Panjeree Publications' },
+    { label: 'Bangla Academy',        labelBn: 'বাংলা একাডেমি',        href: '/books?publisher=Bangla Academy' },
+    { label: 'All Publishers →',     labelBn: 'সব প্রকাশক →',         href: '/books' },
+  ],
+  'Academic Books': [
+    { label: 'SSC',            labelBn: 'এসএসসি',          href: '/books?genre=Academic&tag=ssc' },
+    { label: 'HSC',            labelBn: 'এইচএসসি',         href: '/books?genre=Academic&tag=hsc' },
+    { label: 'BCS Prep',       labelBn: 'বিসিএস প্রস্তুতি', href: '/books?genre=Academic&tag=bcs' },
+    { label: 'University',     labelBn: 'বিশ্ববিদ্যালয়',   href: '/books?genre=Academic&tag=university' },
+    { label: 'All Academic →', labelBn: 'সব একাডেমিক →',   href: '/books?genre=Academic' },
+  ],
+  'Islamic Books': [
+    { label: 'Quran & Tafsir', labelBn: 'কুরআন ও তাফসির', href: '/books?genre=Islamic&tag=quran' },
+    { label: 'Hadith',         labelBn: 'হাদিস',            href: '/books?genre=Islamic&tag=hadith' },
+    { label: 'Biography',      labelBn: 'জীবনী',            href: '/books?genre=Islamic&tag=biography' },
+    { label: 'All Islamic →',  labelBn: 'সব ইসলামিক →',     href: '/books?genre=Islamic' },
+  ],
+};
 
 const BN_SUBNAV: Record<string, Record<string, string>> = {
   '/categories/baby-products':    { 'Diapering & Care': 'ডায়াপার ও যত্ন', 'Feeding & Nursing': 'ফিডিং', 'Baby Gear': 'বেবি গিয়ার', 'Toys & Games': 'খেলনা', 'Baby Clothing': 'শিশু পোশাক' },
@@ -69,6 +110,7 @@ export function Header() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeSubnav, setActiveSubnav] = useState<string | null>(null);
 
   const itemCount = cart?.itemCount ?? 0;
 
@@ -290,15 +332,40 @@ export function Header() {
         <div className="bg-gray-50 hidden lg:block border-b border-gray-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4">
             <nav className="flex items-center gap-6 h-[44px] overflow-x-auto hide-scrollbar">
-              {activeCategory!.subnav.map(sub => (
-                <Link
-                  key={sub}
-                  href={getSubnavHref(activeCategory!.slug, sub)}
-                  className="text-[13px] font-bold text-gray-800 hover:text-secondary flex items-center gap-1 whitespace-nowrap transition-colors"
-                >
-                  {getSubLabel(sub)} <ChevronDown className="w-3.5 h-3.5 text-gray-600" />
-                </Link>
-              ))}
+              {activeCategory!.subnav.map(sub => {
+                const dropdown = SUBNAV_DROPDOWNS[sub];
+                const isOpen = activeSubnav === sub;
+                return (
+                  <div
+                    key={sub}
+                    className="relative h-full flex items-center"
+                    onMouseEnter={() => setActiveSubnav(sub)}
+                    onMouseLeave={() => setActiveSubnav(null)}
+                  >
+                    <Link
+                      href={getSubnavHref(activeCategory!.slug, sub)}
+                      className={`text-[13px] font-bold flex items-center gap-1 whitespace-nowrap transition-colors ${isOpen ? 'text-secondary' : 'text-gray-800 hover:text-secondary'}`}
+                    >
+                      {getSubLabel(sub)}
+                      {dropdown && <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isOpen ? 'rotate-180 text-secondary' : 'text-gray-600'}`} />}
+                    </Link>
+                    {dropdown && isOpen && (
+                      <div className="absolute top-full left-0 bg-white shadow-xl rounded-lg py-2 min-w-[200px] z-50 border border-gray-100">
+                        <div className="absolute -top-1.5 left-4 w-3 h-3 bg-white border-l border-t border-gray-100 rotate-45" />
+                        {dropdown.map(item => (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className="block px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-green-50 hover:text-primary transition-colors"
+                          >
+                            {lang === 'bn' ? item.labelBn : item.label}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </nav>
           </div>
         </div>
