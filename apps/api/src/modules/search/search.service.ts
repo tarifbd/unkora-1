@@ -106,22 +106,26 @@ export class SearchService implements OnModuleInit {
 
   private async fallbackSearch(q: string, options: { page?: number; limit?: number } = {}) {
     const { page = 1, limit = 20 } = options;
+    const where = {
+      isActive: true,
+      OR: [
+        { name: { contains: q, mode: 'insensitive' as const } },
+        { description: { contains: q, mode: 'insensitive' as const } },
+        { shortDesc: { contains: q, mode: 'insensitive' as const } },
+        { tags: { hasSome: [q] } },
+        { bookDetail: { author: { contains: q, mode: 'insensitive' as const } } },
+        { bookDetail: { publisher: { contains: q, mode: 'insensitive' as const } } },
+      ],
+    };
     const [data, total] = await Promise.all([
       this.prisma.product.findMany({
-        where: {
-          isActive: true,
-          OR: [
-            { name: { contains: q, mode: 'insensitive' } },
-            { description: { contains: q, mode: 'insensitive' } },
-            { bookDetail: { author: { contains: q, mode: 'insensitive' } } },
-            { tags: { has: q } },
-          ],
-        },
+        where,
         include: { images: { where: { isPrimary: true }, take: 1 }, category: true, bookDetail: { select: { author: true } } },
         skip: (page - 1) * limit,
         take: limit,
+        orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.product.count({ where: { isActive: true, OR: [{ name: { contains: q, mode: 'insensitive' } }] } }),
+      this.prisma.product.count({ where }),
     ]);
     return { data, meta: { total, page, limit } };
   }

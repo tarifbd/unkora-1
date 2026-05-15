@@ -1,12 +1,18 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
+import { EmailService } from '../email/email.service';
 import type { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(OrdersService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   private generateOrderNumber(): string {
     const date = new Date();
@@ -91,6 +97,25 @@ export class OrdersService {
       return newOrder;
     });
 
+    // Send order confirmation email (non-blocking)
+    try {
+      const user = await this.prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+      if (user?.email) {
+        await this.emailService.sendOrderConfirmation(user.email, {
+          orderNumber: order.orderNumber,
+          total: String(order.total),
+          items: order.items.map((item) => ({
+            productName: item.productName,
+            quantity: item.quantity,
+            price: String(item.unitPrice),
+          })),
+          shippingAddress: order.shippingAddress as Record<string, string>,
+        });
+      }
+    } catch (err) {
+      this.logger.error('Failed to send order confirmation email', err);
+    }
+
     return order;
   }
 
@@ -171,13 +196,25 @@ export class OrdersService {
 
   async updateStatus(id: string, status: OrderStatus, note?: string) {
     const order = await this.findById(id);
-    return this.prisma.$transaction(async (tx) => {
-      const updated = await tx.order.update({
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const result = await tx.order.update({
         where: { id: order.id },
         data: { status, deliveredAt: status === OrderStatus.DELIVERED ? new Date() : undefined },
       });
       await tx.orderTimeline.create({ data: { orderId: id, status, note } });
-      return updated;
+      return result;
     });
+
+    // Send order status update email (non-blocking)
+    try {
+      const user = await this.prisma.user.findUnique({ where: { id: order.userId }, select: { email: true } });
+      if (user?.email) {
+        await this.emailService.sendOrderStatusUpdate(user.email, order.orderNumber, status, note);
+      }
+    } catch (err) {
+      this.logger.error('Failed to send order status update email', err);
+    }
+
+    return updated;
   }
 }

@@ -1,5 +1,7 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Prisma } from '@prisma/client';
+import type { Cache } from 'cache-manager';
 
 import { PrismaService } from '../../database/prisma.service';
 import type { CreateProductDto } from './dto/create-product.dto';
@@ -8,7 +10,10 @@ import type { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+  ) {}
 
   async findAll(query: ProductQueryDto) {
     const {
@@ -16,6 +21,16 @@ export class ProductsService {
       minPrice, maxPrice, isFeatured, inStock, sortBy = 'createdAt',
       sortOrder = 'desc', tags,
     } = query;
+
+    // Cache first-page, default-sort, filter-free requests for 60 seconds
+    const isFirstPage = page === 1 && limit === 20 && !search && !categoryId && !categorySlug &&
+      minPrice === undefined && maxPrice === undefined && isFeatured === undefined &&
+      !inStock && sortBy === 'createdAt' && sortOrder === 'desc' && !tags;
+    const cacheKey = 'products:all:p1';
+    if (isFirstPage) {
+      const cached = await this.cacheManager.get(cacheKey);
+      if (cached) return cached;
+    }
 
     const where: Prisma.ProductWhereInput = { isActive: true };
 
@@ -64,7 +79,7 @@ export class ProductsService {
       this.prisma.product.count({ where }),
     ]);
 
-    return {
+    const result = {
       data,
       meta: {
         total,
@@ -75,6 +90,12 @@ export class ProductsService {
         hasPrevPage: page > 1,
       },
     };
+
+    if (isFirstPage) {
+      await this.cacheManager.set(cacheKey, result, 60 * 1000);
+    }
+
+    return result;
   }
 
   async findBySlug(slug: string) {
@@ -107,7 +128,11 @@ export class ProductsService {
   }
 
   async findFeatured(limit = 8) {
-    return this.prisma.product.findMany({
+    const cacheKey = 'products:featured';
+    const cached = await this.cacheManager.get(cacheKey);
+    if (cached) return cached;
+
+    const products = await this.prisma.product.findMany({
       where: { isActive: true, isFeatured: true, stockQuantity: { gt: 0 } },
       include: {
         images: { where: { isPrimary: true }, take: 1 },
@@ -117,6 +142,9 @@ export class ProductsService {
       take: limit,
       orderBy: { createdAt: 'desc' },
     });
+
+    await this.cacheManager.set(cacheKey, products, 300 * 1000);
+    return products;
   }
 
   async create(dto: CreateProductDto) {
@@ -128,7 +156,7 @@ export class ProductsService {
 
     const { bookDetail, ...productData } = dto;
 
-    return this.prisma.product.create({
+    const product = await this.prisma.product.create({
       data: {
         ...productData,
         basePrice: productData.basePrice,
@@ -137,6 +165,13 @@ export class ProductsService {
       },
       include: { bookDetail: true, category: true },
     });
+
+    await Promise.all([
+      this.cacheManager.del('products:featured'),
+      this.cacheManager.del('products:all:p1'),
+    ]);
+
+    return product;
   }
 
   async update(id: string, dto: UpdateProductDto) {
@@ -149,7 +184,7 @@ export class ProductsService {
 
     const { bookDetail, ...productData } = dto;
 
-    return this.prisma.product.update({
+    const product = await this.prisma.product.update({
       where: { id },
       data: {
         ...productData,
@@ -159,14 +194,28 @@ export class ProductsService {
       },
       include: { bookDetail: true, images: true },
     });
+
+    await Promise.all([
+      this.cacheManager.del('products:featured'),
+      this.cacheManager.del('products:all:p1'),
+    ]);
+
+    return product;
   }
 
   async remove(id: string) {
     await this.findById(id);
-    return this.prisma.product.update({
+    const product = await this.prisma.product.update({
       where: { id },
       data: { isActive: false },
     });
+
+    await Promise.all([
+      this.cacheManager.del('products:featured'),
+      this.cacheManager.del('products:all:p1'),
+    ]);
+
+    return product;
   }
 
   async addImage(productId: string, url: string, alt?: string, isPrimary = false) {

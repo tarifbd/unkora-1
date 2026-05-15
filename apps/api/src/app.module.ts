@@ -9,9 +9,11 @@ import { DatabaseModule } from './database/database.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BooksModule } from './modules/books/books.module';
+import { AppCacheModule } from './modules/cache/cache.module';
 import { CartModule } from './modules/cart/cart.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { CouponsModule } from './modules/coupons/coupons.module';
+import { EmailModule } from './modules/email/email.module';
 import { HealthModule } from './modules/health/health.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
@@ -35,6 +37,8 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
       { name: 'long', ttl: 60000, limit: 200 },
     ]),
     DatabaseModule,
+    EmailModule,
+    AppCacheModule,
     AuthModule,
     UsersModule,
     CategoriesModule,
