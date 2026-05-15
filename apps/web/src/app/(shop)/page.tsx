@@ -101,6 +101,34 @@ const BEST_SELLER_TABS = [
   { key: 'handicraft', labelBn: 'হস্তশিল্প',  labelEn: 'Handicraft', category: 'handicrafts' },
 ];
 
+function NewsletterForm({ lang }: { lang: string }) {
+  const [email, setEmail] = useState('');
+  const [done, setDone] = useState(false);
+  return done ? (
+    <div className="flex items-center justify-center gap-2 text-green-300 font-bold text-lg py-4">
+      <span>✓</span>
+      <span>{lang === 'bn' ? 'সাবস্ক্রাইব সফল হয়েছে! ধন্যবাদ।' : 'Subscribed successfully! Thank you.'}</span>
+    </div>
+  ) : (
+    <form
+      onSubmit={e => { e.preventDefault(); if (email) setDone(true); }}
+      className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+    >
+      <input
+        type="email"
+        required
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        placeholder={lang === 'bn' ? 'আপনার ইমেইল লিখুন' : 'Enter your email'}
+        className="flex-1 px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm"
+      />
+      <button type="submit" className="px-7 py-3 bg-primary text-white font-black rounded-xl hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/30 whitespace-nowrap">
+        {lang === 'bn' ? 'সাবস্ক্রাইব' : 'Subscribe'}
+      </button>
+    </form>
+  );
+}
+
 function useCountdown(targetDate: Date) {
   const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
   useEffect(() => {
@@ -685,7 +713,97 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 10: Service Features ── */}
+      {/* ── 10: Shop by Genre (Book Tags) ── */}
+      <section className="py-10 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl md:text-2xl font-black text-gray-900">{lang === 'bn' ? 'বিষয় অনুযায়ী বই' : 'Browse by Genre'}</h2>
+            <Link href="/books" className="text-primary text-sm font-bold hover:underline flex items-center gap-1">
+              {lang === 'bn' ? 'সব বই' : 'All Books'} <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            {[
+              { label: 'উপন্যাস',        labelEn: 'Fiction',       href: '/books?genre=Fiction',       color: 'bg-blue-50   text-blue-700   border-blue-200   hover:bg-blue-600'  },
+              { label: 'ইসলামিক',        labelEn: 'Islamic',       href: '/books?genre=Islamic',       color: 'bg-green-50  text-green-700  border-green-200  hover:bg-green-600' },
+              { label: 'আত্মউন্নয়ন',   labelEn: 'Self-Help',     href: '/books?genre=Self-Help',     color: 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500'},
+              { label: 'নন-ফিকশন',      labelEn: 'Non-Fiction',   href: '/books?genre=Non-Fiction',   color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-600'},
+              { label: 'থ্রিলার',        labelEn: 'Thriller',      href: '/books?genre=Thriller',      color: 'bg-red-50    text-red-700    border-red-200    hover:bg-red-600'   },
+              { label: 'শিশু-কিশোর',    labelEn: "Children's",    href: "/books?genre=Children's",    color: 'bg-pink-50   text-pink-700   border-pink-200   hover:bg-pink-500'  },
+              { label: 'বিজ্ঞান',        labelEn: 'Science',       href: '/books?genre=Science',       color: 'bg-cyan-50   text-cyan-700   border-cyan-200   hover:bg-cyan-600'  },
+              { label: 'ইতিহাস',         labelEn: 'History',       href: '/books?genre=History',       color: 'bg-amber-50  text-amber-700  border-amber-200  hover:bg-amber-500' },
+              { label: 'একাডেমিক',      labelEn: 'Academic',      href: '/books?genre=Academic',      color: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-600'},
+              { label: 'কবিতা',          labelEn: 'Poetry',        href: '/books?genre=Poetry',        color: 'bg-rose-50   text-rose-700   border-rose-200   hover:bg-rose-500'  },
+              { label: 'মুক্তিযুদ্ধ',   labelEn: 'Liberation War',href: '/books?genre=Liberation+War',color: 'bg-lime-50   text-lime-700   border-lime-200   hover:bg-lime-600'  },
+              { label: 'রান্না ও রেসিপি', labelEn: 'Cooking',    href: '/books?genre=Cooking',       color: 'bg-teal-50   text-teal-700   border-teal-200   hover:bg-teal-600'  },
+            ].map(g => (
+              <Link key={g.href} href={g.href}
+                className={`px-5 py-2.5 rounded-full border text-sm font-bold transition-all hover:text-white hover:border-transparent hover:shadow-md ${g.color}`}>
+                {lang === 'bn' ? g.label : g.labelEn}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 11: Customer Reviews / Testimonials ── */}
+      <section className="py-12 md:py-16" style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' }}>
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-10">
+            <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">{lang === 'bn' ? 'ক্রেতাদের মতামত' : 'What Our Customers Say'}</h2>
+            <p className="text-gray-500 text-sm">{lang === 'bn' ? '১০,০০০+ সন্তুষ্ট ক্রেতা' : '10,000+ happy customers'}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { name: 'রাকিব হাসান',   nameEn: 'Rakib Hasan',   loc: 'ঢাকা',     locEn: 'Dhaka',     rating: 5, text: 'অসাধারণ সার্ভিস! অর্ডার করার ২৪ ঘন্টার মধ্যে বই পেয়ে গেছি। প্যাকেজিং খুবই ভালো ছিল।', textEn: 'Amazing service! Got my book within 24 hours. Packaging was excellent.', avatar: '👨' },
+              { name: 'তানিয়া আক্তার', nameEn: 'Tania Akter',  loc: 'চট্টগ্রাম', locEn: 'Chittagong',rating: 5, text: 'দাম অনেক কম, বই একদম অরিজিনাল। Unkora থেকেই এখন সব বই কিনি। রিটার্ন পলিসিও ভালো।', textEn: 'Great prices, genuine books. I buy all my books from Unkora now. Return policy is also great.', avatar: '👩' },
+              { name: 'আরিফ রহমান',    nameEn: 'Arif Rahman',   loc: 'রাজশাহী',   locEn: 'Rajshahi',  rating: 5, text: 'অর্গানিক পণ্যগুলো সত্যিই ভালো মানের। মধু আর বাদাম নিয়েছিলাম, দুটোই খাঁটি পেয়েছি।', textEn: 'The organic products are genuinely high quality. The honey and nuts I ordered were pure.', avatar: '👨' },
+            ].map(review => (
+              <div key={review.name} className="bg-white rounded-2xl p-6 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
+                <div className="flex gap-1 mb-4">
+                  {Array.from({ length: review.rating }).map((_, i) => (
+                    <svg key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-gray-700 text-sm leading-relaxed mb-5 italic">
+                  &ldquo;{lang === 'bn' ? review.text : review.textEn}&rdquo;
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xl">{review.avatar}</div>
+                  <div>
+                    <p className="font-bold text-gray-900 text-sm">{lang === 'bn' ? review.name : review.nameEn}</p>
+                    <p className="text-xs text-gray-400">{lang === 'bn' ? review.loc : review.locEn}</p>
+                  </div>
+                  <div className="ml-auto">
+                    <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✓ {lang === 'bn' ? 'যাচাইকৃত' : 'Verified'}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 12: Newsletter ── */}
+      <section className="py-16" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #0f2340 100%)' }}>
+        <div className="max-w-2xl mx-auto px-4 text-center">
+          <div className="text-5xl mb-4">📬</div>
+          <h2 className="text-2xl md:text-3xl font-black text-white mb-2">
+            {lang === 'bn' ? 'অফার মিস করতে চান না?' : 'Never Miss a Deal?'}
+          </h2>
+          <p className="text-blue-200 text-sm mb-8">
+            {lang === 'bn' ? 'সাবস্ক্রাইব করুন এবং প্রতিদিনের সেরা অফার সবার আগে পান' : 'Subscribe and get the best daily deals before anyone else'}
+          </p>
+          <NewsletterForm lang={lang} />
+          <p className="text-blue-300/60 text-xs mt-4">
+            {lang === 'bn' ? 'স্প্যাম নেই। যেকোনো সময় আনসাবস্ক্রাইব করা যাবে।' : 'No spam. Unsubscribe anytime.'}
+          </p>
+        </div>
+      </section>
+
+      {/* ── 14: Service Features ── */}
       <section className="max-w-7xl mx-auto px-4 py-12 border-t border-gray-100">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {([
