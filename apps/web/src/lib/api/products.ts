@@ -38,6 +38,14 @@ export const productsApi = {
 
   delete: (id: string) =>
     api.delete(`/products/${id}`),
+
+  uploadImage: async (file: File): Promise<{ url: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/upload/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }).then(r => r.data as { url: string });
+  },
 };
 
 export const booksApi = {

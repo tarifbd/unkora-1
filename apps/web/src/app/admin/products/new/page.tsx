@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Loader2, ChevronDown, ChevronUp, Upload, X, ImageIcon, Link as LinkIcon } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 import { productsApi, categoriesApi } from '@/lib/api/products';
+import api from '@/lib/api';
 
 const productSchema = z.object({
   name: z.string().min(2, 'Name required'),
@@ -33,6 +35,8 @@ const productSchema = z.object({
   edition: z.string().optional(),
   genres: z.string().optional(),
   binding: z.string().optional(),
+  translator: z.string().optional(),
+  series: z.string().optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -46,6 +50,17 @@ function isBookCategory(name: string) {
 export default function NewProductPage() {
   const router = useRouter();
   const [bookSectionOpen, setBookSectionOpen] = useState(false);
+
+  // Image state
+  const [primaryImageUrl, setPrimaryImageUrl] = useState('');
+  const [additionalImages, setAdditionalImages] = useState<string[]>([]);
+  const [urlInput, setUrlInput] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const [showUrlInput, setShowUrlInput] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: categories } = useQuery({
     queryKey: ['categories-all'],
@@ -64,6 +79,76 @@ export default function NewProductPage() {
   const selectedCategory = categories?.find((c: { id: string; name: string }) => c.id === selectedCategoryId);
   const showBookSection = selectedCategory ? isBookCategory(selectedCategory.name) : bookSectionOpen;
 
+  const uploadFile = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setUploadError('Please select an image file.');
+      return;
+    }
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post('/upload/image', formData);
+      const url: string = response.data.url;
+      if (!primaryImageUrl) {
+        setPrimaryImageUrl(url);
+      } else {
+        setAdditionalImages(prev => [...prev, url]);
+      }
+    } catch {
+      setUploadError('Upload failed. Try using a URL instead.');
+    } finally {
+      setUploading(false);
+    }
+  }, [primaryImageUrl]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadFile(file);
+    e.target.value = '';
+  };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (file) uploadFile(file);
+  }, [uploadFile]);
+
+  const handleUrlAdd = () => {
+    const url = urlInput.trim();
+    if (!url) return;
+    if (!primaryImageUrl) {
+      setPrimaryImageUrl(url);
+    } else {
+      setAdditionalImages(prev => [...prev, url]);
+    }
+    setUrlInput('');
+    setShowUrlInput(false);
+  };
+
+  const removePrimary = () => {
+    if (additionalImages.length > 0) {
+      setPrimaryImageUrl(additionalImages[0]);
+      setAdditionalImages(prev => prev.slice(1));
+    } else {
+      setPrimaryImageUrl('');
+    }
+  };
+
+  const removeAdditional = (idx: number) => {
+    setAdditionalImages(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const makePrimary = (idx: number) => {
+    const newPrimary = additionalImages[idx];
+    const newAdditional = additionalImages.filter((_, i) => i !== idx);
+    if (primaryImageUrl) newAdditional.unshift(primaryImageUrl);
+    setPrimaryImageUrl(newPrimary);
+    setAdditionalImages(newAdditional);
+  };
+
   const onSubmit = async (data: ProductFormData) => {
     const payload: Record<string, unknown> = {
       name: data.name,
@@ -80,9 +165,10 @@ export default function NewProductPage() {
     if (data.lowStockAlert) payload.lowStockAlert = data.lowStockAlert;
     if (data.shortDesc) payload.shortDesc = data.shortDesc;
     if (data.description) payload.description = data.description;
+    if (primaryImageUrl) payload.imageUrl = primaryImageUrl;
 
     // Book details
-    if (data.author || data.publisher || data.isbn || data.language || data.pageCount || data.edition || data.genres || data.binding) {
+    if (data.author || data.publisher || data.isbn || data.language || data.pageCount || data.edition || data.genres || data.binding || data.translator || data.series) {
       payload.bookDetail = {
         ...(data.author && { author: data.author }),
         ...(data.publisher && { publisher: data.publisher }),
@@ -92,6 +178,8 @@ export default function NewProductPage() {
         ...(data.edition && { edition: data.edition }),
         ...(data.genres && { genres: data.genres.split(',').map(g => g.trim()).filter(Boolean) }),
         ...(data.binding && { binding: data.binding }),
+        ...(data.translator && { translator: data.translator }),
+        ...(data.series && { series: data.series }),
       };
     }
 
@@ -103,6 +191,8 @@ export default function NewProductPage() {
     `w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${err ? 'border-destructive' : ''}`;
   const labelCls = 'mb-1 block text-sm font-medium';
 
+  const allImages = primaryImageUrl ? [primaryImageUrl, ...additionalImages] : additionalImages;
+
   return (
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center gap-3">
@@ -113,8 +203,129 @@ export default function NewProductPage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* Image Upload */}
+        <div className="rounded-xl border bg-card p-5 space-y-4">
+          <h2 className="font-semibold flex items-center gap-2">
+            <ImageIcon className="h-4 w-4 text-muted-foreground" /> Product Images
+          </h2>
+
+          {/* Drop zone (shown when no primary image yet) */}
+          {!primaryImageUrl && (
+            <div
+              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${dragOver ? 'border-primary bg-primary/5' : 'border-muted-foreground/30 hover:border-primary'}`}
+            >
+              {uploading ? (
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <p className="text-sm">Uploading...</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                  <Upload className="h-8 w-8" />
+                  <p className="text-sm font-medium">Drag & drop an image here, or click to select</p>
+                  <p className="text-xs">PNG, JPG, WEBP up to 10MB</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Image previews */}
+          {allImages.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex flex-wrap gap-3">
+                {primaryImageUrl && (
+                  <div className="relative group">
+                    <div className="relative h-28 w-24 overflow-hidden rounded-lg border-2 border-primary bg-muted">
+                      <Image src={primaryImageUrl} alt="Primary" fill className="object-cover" />
+                    </div>
+                    <span className="absolute bottom-1 left-1 rounded text-[10px] bg-primary text-primary-foreground px-1 py-0.5 font-medium">Primary</span>
+                    <button
+                      type="button"
+                      onClick={removePrimary}
+                      className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                )}
+                {additionalImages.map((url, idx) => (
+                  <div key={idx} className="relative group">
+                    <div
+                      className="relative h-28 w-24 overflow-hidden rounded-lg border bg-muted cursor-pointer hover:border-primary transition-colors"
+                      onClick={() => makePrimary(idx)}
+                      title="Click to make primary"
+                    >
+                      <Image src={url} alt={`Image ${idx + 2}`} fill className="object-cover" />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeAdditional(idx)}
+                      className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-destructive text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+
+                {/* Add more button */}
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="h-28 w-24 rounded-lg border-2 border-dashed border-muted-foreground/30 hover:border-primary transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary"
+                  >
+                    {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
+                    <span className="text-[10px]">Add more</span>
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">Click a non-primary image to make it the primary. Hover to remove.</p>
+            </div>
+          )}
+
+          {uploadError && <p className="text-xs text-destructive">{uploadError}</p>}
+
+          {/* URL fallback */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowUrlInput(v => !v)}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <LinkIcon className="h-3 w-3" />
+              {showUrlInput ? 'Hide URL input' : 'Or add image by URL'}
+            </button>
+            {showUrlInput && (
+              <div className="mt-2 flex gap-2">
+                <input
+                  type="url"
+                  value={urlInput}
+                  onChange={e => setUrlInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleUrlAdd())}
+                  placeholder="https://example.com/image.jpg"
+                  className={inputCls()}
+                />
+                <button
+                  type="button"
+                  onClick={handleUrlAdd}
+                  className="rounded-md bg-secondary px-3 py-2 text-sm font-medium hover:bg-secondary/80 transition-colors whitespace-nowrap"
+                >
+                  Add
+                </button>
+              </div>
+            )}
+          </div>
+
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+        </div>
+
         {/* Basic Info */}
-        <div className="rounded-xl border bg-card p-6 space-y-4">
+        <div className="rounded-xl border bg-card p-5 space-y-4">
           <h2 className="font-semibold">Basic Info</h2>
 
           <div>
@@ -170,7 +381,7 @@ export default function NewProductPage() {
         </div>
 
         {/* Pricing & Stock */}
-        <div className="rounded-xl border bg-card p-6 space-y-4">
+        <div className="rounded-xl border bg-card p-5 space-y-4">
           <h2 className="font-semibold">Pricing & Stock</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -210,7 +421,7 @@ export default function NewProductPage() {
           <button
             type="button"
             onClick={() => setBookSectionOpen(o => !o)}
-            className="flex w-full items-center justify-between px-6 py-4 text-left hover:bg-muted/20 transition-colors"
+            className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-muted/20 transition-colors"
           >
             <div>
               <h2 className="font-semibold">Book Details</h2>
@@ -222,7 +433,7 @@ export default function NewProductPage() {
           </button>
 
           {(bookSectionOpen || showBookSection) && (
-            <div className="border-t px-6 pb-6 pt-4 space-y-4">
+            <div className="border-t px-5 pb-5 pt-4 space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className={labelCls}>Author</label>
@@ -247,6 +458,14 @@ export default function NewProductPage() {
                 <div>
                   <label className={labelCls}>Edition</label>
                   <input {...register('edition')} className={inputCls()} placeholder="e.g. 3rd" />
+                </div>
+                <div>
+                  <label className={labelCls}>Translator</label>
+                  <input {...register('translator')} className={inputCls()} placeholder="e.g. Kabir Chowdhury" />
+                </div>
+                <div>
+                  <label className={labelCls}>Series</label>
+                  <input {...register('series')} className={inputCls()} placeholder="e.g. Harry Potter" />
                 </div>
                 <div className="sm:col-span-2">
                   <label className={labelCls}>Genres (comma-separated)</label>

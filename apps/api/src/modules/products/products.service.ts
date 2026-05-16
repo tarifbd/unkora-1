@@ -151,20 +151,35 @@ export class ProductsService {
     const existing = await this.prisma.product.findUnique({ where: { slug: dto.slug } });
     if (existing) throw new ConflictException('Product slug already exists');
 
-    const skuExists = await this.prisma.product.findUnique({ where: { sku: dto.sku } });
-    if (skuExists) throw new ConflictException('SKU already exists');
+    const sku = dto.sku || `SKU-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    // Only check duplicate if sku was provided
+    if (dto.sku) {
+      const skuExists = await this.prisma.product.findUnique({ where: { sku: dto.sku } });
+      if (skuExists) throw new ConflictException('SKU already exists');
+    }
 
-    const { bookDetail, ...productData } = dto;
+    const { bookDetail, imageUrl, ...productData } = dto;
 
     const product = await this.prisma.product.create({
       data: {
         ...productData,
+        sku,
         basePrice: productData.basePrice,
         salePrice: productData.salePrice ?? null,
         bookDetail: bookDetail ? { create: bookDetail } : undefined,
       },
-      include: { bookDetail: true, category: true },
+      include: { bookDetail: true, category: true, images: true },
     });
+
+    if (imageUrl) {
+      await this.prisma.productImage.create({
+        data: {
+          productId: product.id,
+          url: imageUrl,
+          isPrimary: true,
+        },
+      });
+    }
 
     await Promise.all([
       this.cacheManager.del('products:featured'),
@@ -182,7 +197,7 @@ export class ProductsService {
       if (existing && existing.id !== id) throw new ConflictException('Slug already exists');
     }
 
-    const { bookDetail, ...productData } = dto;
+    const { bookDetail, imageUrl, ...productData } = dto;
 
     const product = await this.prisma.product.update({
       where: { id },
@@ -194,6 +209,28 @@ export class ProductsService {
       },
       include: { bookDetail: true, images: true },
     });
+
+    if (imageUrl) {
+      // Set all existing images to non-primary, then upsert primary
+      await this.prisma.productImage.updateMany({
+        where: { productId: id },
+        data: { isPrimary: false },
+      });
+      // Check if image with this URL already exists
+      const existingImage = await this.prisma.productImage.findFirst({
+        where: { productId: id, url: imageUrl },
+      });
+      if (existingImage) {
+        await this.prisma.productImage.update({
+          where: { id: existingImage.id },
+          data: { isPrimary: true },
+        });
+      } else {
+        await this.prisma.productImage.create({
+          data: { productId: id, url: imageUrl, isPrimary: true },
+        });
+      }
+    }
 
     await Promise.all([
       this.cacheManager.del('products:featured'),

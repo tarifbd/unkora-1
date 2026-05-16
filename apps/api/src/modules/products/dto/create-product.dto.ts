@@ -87,9 +87,10 @@ export class CreateProductDto {
   @IsString()
   categoryId: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
-  sku: string;
+  sku?: string;
 
   @ApiProperty()
   @IsNumber()
@@ -139,4 +140,9 @@ export class CreateProductDto {
   @ValidateNested()
   @Type(() => CreateBookDetailDto)
   bookDetail?: CreateBookDetailDto;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  imageUrl?: string;
 }
