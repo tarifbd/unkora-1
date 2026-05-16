@@ -19,6 +19,9 @@ import {
   ExternalLink,
   Bell,
   Settings,
+  Target,
+  Globe,
+  TrendingUp,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -53,6 +56,16 @@ const navGroups = [
     items: [
       { href: '/admin/users', label: 'Users', icon: Users },
       { href: '/admin/reviews', label: 'Reviews', icon: MessageSquare },
+    ],
+  },
+  {
+    label: 'MARKETING',
+    items: [
+      { href: '/admin/analytics', label: 'Analytics Hub', icon: TrendingUp },
+      { href: '/admin/analytics/meta-pixel', label: 'Meta Pixel', icon: Target },
+      { href: '/admin/analytics/google-analytics', label: 'Google Analytics', icon: BarChart3 },
+      { href: '/admin/analytics/google-tag-manager', label: 'Tag Manager', icon: Tag },
+      { href: '/admin/analytics/google-search-console', label: 'Search Console', icon: Globe },
     ],
   },
 ];
@@ -127,6 +140,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     '/admin/users': 'Users',
     '/admin/reviews': 'Reviews',
     '/admin/settings': 'Settings',
+    '/admin/analytics': 'Marketing Analytics',
+    '/admin/analytics/meta-pixel': 'Meta Pixel & CAPI',
+    '/admin/analytics/google-analytics': 'Google Analytics 4',
+    '/admin/analytics/google-tag-manager': 'Google Tag Manager',
+    '/admin/analytics/google-search-console': 'Search Console',
   };
 
   const pageTitle =

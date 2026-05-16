@@ -646,7 +646,7 @@ export function Header() {
         </div>
 
         {/* ── Tier 4: Subnav ── */}
-        <div className="bg-gray-50 hidden lg:block border-b border-gray-200 shadow-sm">
+        <div className="hidden">
           <div className="max-w-7xl mx-auto px-4">
             <nav className="flex items-center gap-6 h-[44px] overflow-x-auto hide-scrollbar">
               {activeCategory!.subnav.map(sub => {
