@@ -1,15 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2, MapPin, CreditCard, CheckCircle } from 'lucide-react';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useAuthStore } from '@/store/auth.store';
+import { useGuestCart } from '@/store/guest-cart.store';
 import { ordersApi } from '@/lib/api/orders';
 import { formatCurrency } from '@/lib/utils';
+import api from '@/lib/api';
 import Link from 'next/link';
 import { CouponInput } from '@/components/checkout/coupon-input';
 
@@ -22,19 +24,55 @@ const checkoutSchema = z.object({
   division: z.string().min(2, 'Division is required'),
   postalCode: z.string().optional(),
   paymentMethod: z.enum(['COD', 'BKASH', 'NAGAD']),
+  guestEmail: z.string().email('Invalid email').optional().or(z.literal('')),
   notes: z.string().optional(),
 });
 
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
+interface QuickBuyItem {
+  productId: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 const DIVISIONS = ['Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi', 'Khulna', 'Barisal', 'Rangpur', 'Mymensingh'];
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { cart, isLoading } = useCart();
   const { isAuthenticated } = useAuthStore();
+  const guestCart = useGuestCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [quickBuyItem, setQuickBuyItem] = useState<QuickBuyItem | null>(null);
+  const [quickBuyLoading, setQuickBuyLoading] = useState(false);
+
+  const productId = searchParams.get('productId');
+  const qty = searchParams.get('qty');
+
+  useEffect(() => {
+    if (!productId) return;
+    setQuickBuyLoading(true);
+    api
+      .get(`/products/${productId}`)
+      .then(r => {
+        const product = r.data.data;
+        const price = Number(product.salePrice ?? product.basePrice);
+        setQuickBuyItem({
+          productId: product.id,
+          name: product.name,
+          price,
+          quantity: qty ? Math.max(1, parseInt(qty, 10)) : 1,
+        });
+      })
+      .catch(() => {
+        // If product fetch fails, fall through to normal cart flow
+      })
+      .finally(() => setQuickBuyLoading(false));
+  }, [productId, qty]);
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<CheckoutFormData>({
     resolver: zodResolver(checkoutSchema),
@@ -43,24 +81,24 @@ export default function CheckoutPage() {
 
   const paymentMethod = watch('paymentMethod');
 
-  if (!isAuthenticated) {
+  // Determine the items to display and submit
+  const displayItems: { id: string; name: string; price: number; quantity: number }[] = quickBuyItem
+    ? [{ id: quickBuyItem.productId, name: quickBuyItem.name, price: quickBuyItem.price, quantity: quickBuyItem.quantity }]
+    : isAuthenticated && cart
+    ? cart.items.map(i => ({ id: i.id, name: i.product.name, price: Number(i.price), quantity: i.quantity }))
+    : guestCart.items.map(i => ({ id: i.productId, name: i.name, price: i.price, quantity: i.quantity }));
+
+  const isPageLoading = isLoading || quickBuyLoading;
+
+  if (isPageLoading) {
     return (
-      <div className="container py-20 text-center">
-        <p className="mb-4 text-muted-foreground">Please sign in to checkout</p>
-        <Link href="/login" className="rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
-          Sign In
-        </Link>
+      <div className="container py-20 flex justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
-  if (isLoading) return (
-    <div className="container py-20 flex justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-    </div>
-  );
-
-  if (!cart || cart.items.length === 0) {
+  if (displayItems.length === 0) {
     return (
       <div className="container py-20 text-center">
         <p className="mb-4 text-muted-foreground">Your cart is empty</p>
@@ -71,7 +109,7 @@ export default function CheckoutPage() {
     );
   }
 
-  const subtotal = cart.items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
+  const subtotal = displayItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = subtotal >= 1000 ? 0 : 80;
   const couponDiscount = appliedCoupon?.discount ?? 0;
   const total = subtotal + shipping - couponDiscount;
@@ -79,7 +117,15 @@ export default function CheckoutPage() {
   const onSubmit = async (data: CheckoutFormData) => {
     setIsSubmitting(true);
     try {
-      const order = await ordersApi.create({
+      // Build items array for guest endpoint
+      const items = quickBuyItem
+        ? [{ productId: quickBuyItem.productId, quantity: quickBuyItem.quantity }]
+        : isAuthenticated && cart
+        ? cart.items.map(i => ({ productId: i.productId, quantity: i.quantity }))
+        : guestCart.items.map(i => ({ productId: i.productId, quantity: i.quantity }));
+
+      const order = await ordersApi.createGuest({
+        items,
         shippingAddress: {
           fullName: data.fullName,
           phone: data.phone,
@@ -87,12 +133,20 @@ export default function CheckoutPage() {
           city: data.city,
           district: data.district,
           division: data.division,
-          postalCode: data.postalCode,
+          postalCode: data.postalCode ?? '',
           country: 'Bangladesh',
         },
         paymentMethod: data.paymentMethod,
+        guestName: data.fullName,
+        guestPhone: data.phone,
+        guestEmail: data.guestEmail || undefined,
         notes: data.notes,
       });
+
+      if (!isAuthenticated) {
+        guestCart.clearCart();
+      }
+
       router.push(`/checkout/success?orderId=${order.id}`);
     } catch {
       setIsSubmitting(false);
@@ -105,6 +159,12 @@ export default function CheckoutPage() {
   return (
     <div className="container py-8">
       <h1 className="mb-6 font-serif text-2xl font-bold">Checkout</h1>
+
+      {!isAuthenticated && (
+        <div className="mb-4 flex items-center justify-between rounded-lg border border-muted bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
+          <span>Checking out as guest. <Link href="/login" className="text-primary underline underline-offset-2 hover:no-underline">Sign in</Link> for a faster experience.</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
@@ -151,6 +211,13 @@ export default function CheckoutPage() {
                 </select>
                 {errors.division && <p className="mt-1 text-xs text-destructive">{errors.division.message}</p>}
               </div>
+              {!isAuthenticated && (
+                <div className="sm:col-span-2">
+                  <label className="mb-1 block text-sm font-medium">Email <span className="text-muted-foreground font-normal">(Optional – for order updates)</span></label>
+                  <input {...register('guestEmail')} type="email" className={inputCls(errors.guestEmail)} placeholder="you@example.com" />
+                  {errors.guestEmail && <p className="mt-1 text-xs text-destructive">{errors.guestEmail.message}</p>}
+                </div>
+              )}
             </div>
           </div>
 
@@ -188,10 +255,10 @@ export default function CheckoutPage() {
           <h2 className="font-semibold text-lg">Order Summary</h2>
 
           <div className="space-y-3 max-h-60 overflow-y-auto">
-            {cart.items.map(item => (
+            {displayItems.map(item => (
               <div key={item.id} className="flex justify-between gap-2 text-sm">
-                <span className="text-muted-foreground line-clamp-2">{item.product.name} × {item.quantity}</span>
-                <span className="flex-shrink-0 font-medium">{formatCurrency(Number(item.price) * item.quantity)}</span>
+                <span className="text-muted-foreground line-clamp-2">{item.name} × {item.quantity}</span>
+                <span className="flex-shrink-0 font-medium">{formatCurrency(item.price * item.quantity)}</span>
               </div>
             ))}
           </div>
@@ -234,5 +301,17 @@ export default function CheckoutPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="container py-20 flex justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   );
 }

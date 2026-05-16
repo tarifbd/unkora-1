@@ -4,6 +4,7 @@ import { OrderStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { EmailService } from '../email/email.service';
 import type { CreateOrderDto } from './dto/create-order.dto';
+import type { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -123,6 +124,96 @@ export class OrdersService {
     } catch (err) {
       this.logger.error('Failed to send order confirmation email', err);
     }
+
+    return order;
+  }
+
+  async createGuestOrder(dto: CreateGuestOrderDto) {
+    // Look up all products
+    const productIds = dto.items.map(i => i.productId);
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: productIds } },
+      include: { images: { where: { isPrimary: true }, take: 1 } },
+    });
+
+    if (products.length !== productIds.length) {
+      throw new BadRequestException('One or more products not found');
+    }
+
+    // Validate stock
+    for (const orderItem of dto.items) {
+      const product = products.find(p => p.id === orderItem.productId);
+      if (!product || product.stockQuantity < orderItem.quantity) {
+        throw new BadRequestException(`Insufficient stock for "${product?.name ?? orderItem.productId}"`);
+      }
+    }
+
+    // Find or create a guest user by phone
+    let user = await this.prisma.user.findFirst({
+      where: { phone: dto.guestPhone },
+    });
+
+    if (!user) {
+      const crypto = await import('crypto');
+      user = await this.prisma.user.create({
+        data: {
+          email: dto.guestEmail ?? `guest_${dto.guestPhone}@unkora.guest`,
+          firstName: dto.guestName.split(' ')[0] ?? dto.guestName,
+          lastName: dto.guestName.split(' ').slice(1).join(' ') || 'Guest',
+          phone: dto.guestPhone,
+          passwordHash: crypto.randomBytes(32).toString('hex'),
+          status: 'PENDING_VERIFICATION',
+        },
+      });
+    }
+
+    const subtotal = dto.items.reduce((sum, orderItem) => {
+      const product = products.find(p => p.id === orderItem.productId)!;
+      return sum + Number(product.salePrice ?? product.basePrice) * orderItem.quantity;
+    }, 0);
+    const shippingCost = subtotal >= 1000 ? 0 : 80;
+    const total = subtotal + shippingCost;
+
+    const order = await this.prisma.$transaction(async (tx) => {
+      const newOrder = await tx.order.create({
+        data: {
+          orderNumber: this.generateOrderNumber(),
+          userId: user!.id,
+          paymentMethod: dto.paymentMethod,
+          subtotal,
+          shippingCost,
+          total,
+          notes: dto.notes,
+          shippingAddress: { ...dto.shippingAddress },
+          items: {
+            create: dto.items.map((orderItem) => {
+              const product = products.find(p => p.id === orderItem.productId)!;
+              const unitPrice = Number(product.salePrice ?? product.basePrice);
+              return {
+                productId: orderItem.productId,
+                quantity: orderItem.quantity,
+                unitPrice,
+                totalPrice: unitPrice * orderItem.quantity,
+                productName: product.name,
+                productSku: product.sku,
+                productImage: product.images[0]?.url ?? null,
+              };
+            }),
+          },
+          timeline: { create: { status: OrderStatus.PENDING } },
+        },
+        include: { items: true },
+      });
+
+      for (const orderItem of dto.items) {
+        await tx.product.update({
+          where: { id: orderItem.productId },
+          data: { stockQuantity: { decrement: orderItem.quantity } },
+        });
+      }
+
+      return newOrder;
+    });
 
     return order;
   }

@@ -26,6 +26,16 @@ export const ordersApi = {
   create: (data: { shippingAddress: Record<string, unknown>; paymentMethod: PaymentMethod; notes?: string }) =>
     api.post('/orders', data).then(r => r.data.data as Order),
 
+  createGuest: (data: {
+    items: { productId: string; quantity: number }[];
+    shippingAddress: Record<string, unknown>;
+    paymentMethod: string;
+    guestName: string;
+    guestPhone: string;
+    guestEmail?: string;
+    notes?: string;
+  }) => api.post('/orders/guest', data).then(r => r.data.data as Order),
+
   getMyOrders: (params: { page?: number; limit?: number } = {}) =>
     api.get('/orders/my', { params }).then(r => r.data.data as PaginatedOrders),
 
