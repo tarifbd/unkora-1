@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import multipart from '@fastify/multipart';
 
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
@@ -18,6 +19,9 @@ async function bootstrap() {
   const port = config.get<number>('app.port') ?? 4000;
   const apiPrefix = config.get<string>('app.apiPrefix') ?? 'api';
   const corsOrigins = config.get<string>('app.corsOrigins') ?? 'http://localhost:3000';
+
+  // Register multipart for file uploads
+  await app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } });
 
   // Global prefix + versioning
   app.setGlobalPrefix(apiPrefix);

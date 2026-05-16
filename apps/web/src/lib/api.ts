@@ -4,9 +4,10 @@ const BASE_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4000/ap
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
-  headers: { 'Content-Type': 'application/json' },
   withCredentials: false,
 });
+
+apiClient.defaults.headers.common['Content-Type'] = 'application/json';
 
 // Request interceptor — attach access token from localStorage
 apiClient.interceptors.request.use((config) => {

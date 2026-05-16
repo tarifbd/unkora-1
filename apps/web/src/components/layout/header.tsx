@@ -25,29 +25,17 @@ interface NavCategory {
 }
 
 const NAV_CATEGORIES: NavCategory[] = [
-  { nameKey: 'books',           displayName: 'Books',            icon: Book,        slug: '/books',                       subnav: ['Authors', 'Subjects', 'Publishers', 'Academic Books', 'E-Books', 'Islamic Books'] },
-  { nameKey: 'babyProducts',    displayName: 'Baby Products',    icon: Baby,        slug: '/categories/baby-products',    subnav: ['Diapering & Care', 'Feeding & Nursing', 'Baby Gear', 'Toys & Games', 'Baby Clothing'] },
-  { nameKey: 'leatherProducts', displayName: 'Leather Products', icon: Briefcase,   slug: '/categories/leather-products', subnav: ['Wallets & Cards', 'Bags & Backpacks', 'Belts & Accessories', "Men's Footwear", "Women's Footwear"] },
-  { nameKey: 'organicFoods',    displayName: 'Organic Foods',    icon: Leaf,        slug: '/categories/organic-foods',    subnav: ['Nuts & Seeds', 'Honey & Sweeteners', 'Spices & Herbs', 'Healthy Snacks', 'Tea & Beverages'] },
-  { nameKey: 'handicrafts',     displayName: 'Handicrafts',      icon: Palette,     slug: '/categories/handicrafts',      subnav: ['Wall Art', 'Showpieces', 'Lamps & Lighting', 'Rugs & Carpets', 'Traditional Crafts'] },
-  { nameKey: 'electronics',     displayName: 'Electronics',      icon: Zap,         slug: '/categories/electronics',      subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances', 'Gadgets'] },
-  { nameKey: 'dailyNeeds',      displayName: 'Daily Needs',      icon: ShoppingBag, slug: '/categories/daily-needs',      subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery', 'Pet Care'] },
+  { nameKey: 'books',           displayName: 'Books',            icon: Book,        slug: 'books',            subnav: ['Authors', 'Subjects', 'Publishers', 'Academic Books', 'E-Books', 'Islamic Books'] },
+  { nameKey: 'babyProducts',    displayName: 'Baby Products',    icon: Baby,        slug: 'baby-products',    subnav: ['Diapering & Care', 'Feeding & Nursing', 'Baby Gear', 'Toys & Games', 'Baby Clothing'] },
+  { nameKey: 'leatherProducts', displayName: 'Leather Products', icon: Briefcase,   slug: 'leather-products', subnav: ['Wallets & Cards', 'Bags & Backpacks', 'Belts & Accessories', "Men's Footwear", "Women's Footwear"] },
+  { nameKey: 'organicFoods',    displayName: 'Organic Foods',    icon: Leaf,        slug: 'organic-foods',    subnav: ['Nuts & Seeds', 'Honey & Sweeteners', 'Spices & Herbs', 'Healthy Snacks', 'Tea & Beverages'] },
+  { nameKey: 'handicrafts',     displayName: 'Handicrafts',      icon: Palette,     slug: 'handicrafts',      subnav: ['Wall Art', 'Showpieces', 'Lamps & Lighting', 'Rugs & Carpets', 'Traditional Crafts'] },
+  { nameKey: 'electronics',     displayName: 'Electronics',      icon: Zap,         slug: 'electronics',      subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances', 'Gadgets'] },
+  { nameKey: 'dailyNeeds',      displayName: 'Daily Needs',      icon: ShoppingBag, slug: 'daily-needs',      subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery', 'Pet Care'] },
 ];
 
-/* Map Books subnav items to proper filter URLs */
 function getSubnavHref(catSlug: string, sub: string): string {
-  if (catSlug === '/books') {
-    const map: Record<string, string> = {
-      'Authors':        '/books?sortBy=bookDetail.author&sortOrder=asc',
-      'Subjects':       '/books',
-      'Publishers':     '/books',
-      'Academic Books': '/books?genre=Academic',
-      'E-Books':        '/books?language=English',
-      'Islamic Books':  '/books?genre=Islamic',
-    };
-    return map[sub] ?? `/books?tag=${encodeURIComponent(sub)}`;
-  }
-  return `${catSlug}?tag=${encodeURIComponent(sub)}`;
+  return `/products?categorySlug=${encodeURIComponent(catSlug)}`;
 }
 
 const SUBNAV_DROPDOWNS: Record<string, { label: string; labelBn: string; href: string }[]> = {
@@ -239,12 +227,12 @@ const SUBNAV_DROPDOWNS: Record<string, { label: string; labelBn: string; href: s
 };
 
 const BN_SUBNAV: Record<string, Record<string, string>> = {
-  '/categories/baby-products':    { 'Diapering & Care': 'ডায়াপার ও যত্ন', 'Feeding & Nursing': 'ফিডিং', 'Baby Gear': 'বেবি গিয়ার', 'Toys & Games': 'খেলনা', 'Baby Clothing': 'শিশু পোশাক' },
-  '/categories/leather-products': { 'Wallets & Cards': 'পার্স ও কার্ড', 'Bags & Backpacks': 'ব্যাগ', 'Belts & Accessories': 'বেল্ট', "Men's Footwear": 'পুরুষ জুতা', "Women's Footwear": 'নারী জুতা' },
-  '/categories/organic-foods':    { 'Nuts & Seeds': 'বাদাম ও বীজ', 'Honey & Sweeteners': 'মধু', 'Spices & Herbs': 'মশলা', 'Healthy Snacks': 'স্বাস্থ্যকর স্ন্যাকস', 'Tea & Beverages': 'চা ও পানীয়' },
-  '/categories/handicrafts':      { 'Wall Art': 'দেওয়াল শিল্প', 'Showpieces': 'শোপিস', 'Lamps & Lighting': 'প্রদীপ', 'Rugs & Carpets': 'কার্পেট', 'Traditional Crafts': 'ঐতিহ্যবাহী শিল্প' },
-  '/categories/electronics':      { 'Mobiles': 'মোবাইল', 'Laptops': 'ল্যাপটপ', 'Accessories': 'আনুষাঙ্গিক', 'Home Appliances': 'হোম অ্যাপ্লায়েন্স', 'Gadgets': 'গ্যাজেট' },
-  '/categories/daily-needs':      { 'Grocery': 'মুদি', 'Personal Care': 'ব্যক্তিগত যত্ন', 'Household': 'গৃহস্থালি', 'Stationery': 'স্টেশনারি', 'Pet Care': 'পোষা প্রাণীর যত্ন' },
+  'baby-products':    { 'Diapering & Care': 'ডায়াপার ও যত্ন', 'Feeding & Nursing': 'ফিডিং', 'Baby Gear': 'বেবি গিয়ার', 'Toys & Games': 'খেলনা', 'Baby Clothing': 'শিশু পোশাক' },
+  'leather-products': { 'Wallets & Cards': 'পার্স ও কার্ড', 'Bags & Backpacks': 'ব্যাগ', 'Belts & Accessories': 'বেল্ট', "Men's Footwear": 'পুরুষ জুতা', "Women's Footwear": 'নারী জুতা' },
+  'organic-foods':    { 'Nuts & Seeds': 'বাদাম ও বীজ', 'Honey & Sweeteners': 'মধু', 'Spices & Herbs': 'মশলা', 'Healthy Snacks': 'স্বাস্থ্যকর স্ন্যাকস', 'Tea & Beverages': 'চা ও পানীয়' },
+  'handicrafts':      { 'Wall Art': 'দেওয়াল শিল্প', 'Showpieces': 'শোপিস', 'Lamps & Lighting': 'প্রদীপ', 'Rugs & Carpets': 'কার্পেট', 'Traditional Crafts': 'ঐতিহ্যবাহী শিল্প' },
+  'electronics':      { 'Mobiles': 'মোবাইল', 'Laptops': 'ল্যাপটপ', 'Accessories': 'আনুষাঙ্গিক', 'Home Appliances': 'হোম অ্যাপ্লায়েন্স', 'Gadgets': 'গ্যাজেট' },
+  'daily-needs':      { 'Grocery': 'মুদি', 'Personal Care': 'ব্যক্তিগত যত্ন', 'Household': 'গৃহস্থালি', 'Stationery': 'স্টেশনারি', 'Pet Care': 'পোষা প্রাণীর যত্ন' },
 };
 
 const MEGA_CATEGORIES = [
@@ -252,92 +240,91 @@ const MEGA_CATEGORIES = [
     emoji: '📚',
     name: 'Books',
     nameBn: 'বই',
-    href: '/books',
+    href: '/products?categorySlug=books',
     subs: [
-      { label: 'উপন্যাস',  href: '/books?genre=Fiction' },
-      { label: 'ইসলামিক', href: '/books?genre=Islamic' },
-      { label: 'Self-Help', href: '/books?genre=Self-Help' },
-      { label: 'Academic',  href: '/books?genre=Academic' },
-      { label: 'Thriller',  href: '/books?genre=Thriller' },
-      { label: 'Poetry',    href: '/books?genre=Poetry' },
+      { label: 'উপন্যাস',   href: '/products?categorySlug=books' },
+      { label: 'ইসলামিক',  href: '/products?categorySlug=books' },
+      { label: 'Self-Help',  href: '/products?categorySlug=books' },
+      { label: 'Academic',   href: '/products?categorySlug=books' },
+      { label: 'All Books →', href: '/products?categorySlug=books' },
     ],
   },
   {
     emoji: '👶',
     name: 'Baby Products',
     nameBn: 'শিশু পণ্য',
-    href: '/categories/baby-products',
+    href: '/products?categorySlug=baby-products',
     subs: [
-      { label: 'Diapers',   href: '/categories/baby-products?tag=diapers' },
-      { label: 'Baby Food', href: '/categories/baby-products?tag=baby-food' },
-      { label: 'Toys',      href: '/categories/baby-products?tag=soft-toys' },
-      { label: 'Clothing',  href: '/categories/baby-products?tag=toddler' },
-      { label: 'Strollers', href: '/categories/baby-products?tag=stroller' },
+      { label: 'Diapers',       href: '/products?categorySlug=baby-products' },
+      { label: 'Baby Food',     href: '/products?categorySlug=baby-products' },
+      { label: 'Toys',          href: '/products?categorySlug=baby-products' },
+      { label: 'Clothing',      href: '/products?categorySlug=baby-products' },
+      { label: 'All Baby →',    href: '/products?categorySlug=baby-products' },
     ],
   },
   {
     emoji: '👜',
     name: 'Leather',
     nameBn: 'লেদার',
-    href: '/categories/leather-products',
+    href: '/products?categorySlug=leather-products',
     subs: [
-      { label: 'Wallets',       href: '/categories/leather-products?tag=bifold' },
-      { label: 'Bags',          href: '/categories/leather-products?tag=backpack' },
-      { label: 'Belts',         href: '/categories/leather-products?tag=formal-belt' },
-      { label: "Men's Shoes",   href: '/categories/leather-products?tag=mens-formal' },
-      { label: "Women's Shoes", href: '/categories/leather-products?tag=heels' },
+      { label: 'Wallets',         href: '/products?categorySlug=leather-products' },
+      { label: 'Bags',            href: '/products?categorySlug=leather-products' },
+      { label: 'Belts',           href: '/products?categorySlug=leather-products' },
+      { label: "Shoes",           href: '/products?categorySlug=leather-products' },
+      { label: 'All Leather →',   href: '/products?categorySlug=leather-products' },
     ],
   },
   {
     emoji: '🌿',
     name: 'Organic',
     nameBn: 'অর্গানিক',
-    href: '/categories/organic-foods',
+    href: '/products?categorySlug=organic-foods',
     subs: [
-      { label: 'Honey',         href: '/categories/organic-foods?tag=wild-honey' },
-      { label: 'Nuts',          href: '/categories/organic-foods?tag=mixed-nuts' },
-      { label: 'Spices',        href: '/categories/organic-foods?tag=turmeric' },
-      { label: 'Healthy Snacks',href: '/categories/organic-foods?tag=granola' },
-      { label: 'Tea',           href: '/categories/organic-foods?tag=green-tea' },
+      { label: 'Honey',           href: '/products?categorySlug=organic-foods' },
+      { label: 'Nuts',            href: '/products?categorySlug=organic-foods' },
+      { label: 'Spices',          href: '/products?categorySlug=organic-foods' },
+      { label: 'Tea',             href: '/products?categorySlug=organic-foods' },
+      { label: 'All Organic →',   href: '/products?categorySlug=organic-foods' },
     ],
   },
   {
     emoji: '🎨',
     name: 'Handicrafts',
     nameBn: 'হস্তশিল্প',
-    href: '/categories/handicrafts',
+    href: '/products?categorySlug=handicrafts',
     subs: [
-      { label: 'Wall Art',    href: '/categories/handicrafts?tag=canvas' },
-      { label: 'Showpieces',  href: '/categories/handicrafts?tag=clay' },
-      { label: 'Traditional', href: '/categories/handicrafts?tag=nakshi-kantha' },
-      { label: 'Jewelry',     href: '/categories/handicrafts?tag=jewelry' },
-      { label: 'Pottery',     href: '/categories/handicrafts?tag=pottery' },
+      { label: 'Wall Art',        href: '/products?categorySlug=handicrafts' },
+      { label: 'Showpieces',      href: '/products?categorySlug=handicrafts' },
+      { label: 'Traditional',     href: '/products?categorySlug=handicrafts' },
+      { label: 'Pottery',         href: '/products?categorySlug=handicrafts' },
+      { label: 'All Crafts →',    href: '/products?categorySlug=handicrafts' },
     ],
   },
   {
     emoji: '⚡',
     name: 'Electronics',
     nameBn: 'ইলেকট্রনিক্স',
-    href: '/categories/electronics',
+    href: '/products?categorySlug=electronics',
     subs: [
-      { label: 'Mobiles',     href: '/categories/electronics?tag=samsung' },
-      { label: 'Laptops',     href: '/categories/electronics?tag=gaming-laptop' },
-      { label: 'Accessories', href: '/categories/electronics?tag=earbuds' },
-      { label: 'Gadgets',     href: '/categories/electronics?tag=camera' },
-      { label: 'Audio',       href: '/categories/electronics?tag=earbuds' },
+      { label: 'Mobiles',         href: '/products?categorySlug=electronics' },
+      { label: 'Laptops',         href: '/products?categorySlug=electronics' },
+      { label: 'Accessories',     href: '/products?categorySlug=electronics' },
+      { label: 'Gadgets',         href: '/products?categorySlug=electronics' },
+      { label: 'All Electronics →', href: '/products?categorySlug=electronics' },
     ],
   },
   {
     emoji: '🛒',
     name: 'Daily Needs',
     nameBn: 'দৈনন্দিন',
-    href: '/categories/daily-needs',
+    href: '/products?categorySlug=daily-needs',
     subs: [
-      { label: 'Grocery',      href: '/categories/daily-needs?tag=rice' },
-      { label: 'Personal Care',href: '/categories/daily-needs?tag=skincare' },
-      { label: 'Household',    href: '/categories/daily-needs?tag=cleaning' },
-      { label: 'Stationery',   href: '/categories/daily-needs?tag=notebooks' },
-      { label: 'Pet Care',     href: '/categories/daily-needs?tag=pet-food' },
+      { label: 'Grocery',         href: '/products?categorySlug=daily-needs' },
+      { label: 'Personal Care',   href: '/products?categorySlug=daily-needs' },
+      { label: 'Household',       href: '/products?categorySlug=daily-needs' },
+      { label: 'Stationery',      href: '/products?categorySlug=daily-needs' },
+      { label: 'All Daily →',     href: '/products?categorySlug=daily-needs' },
     ],
   },
 ];
@@ -623,7 +610,7 @@ export function Header() {
               {NAV_CATEGORIES.map((cat, idx) => (
                 <Link
                   key={cat.slug}
-                  href={cat.slug}
+                  href={`/products?categorySlug=${cat.slug}`}
                   onMouseEnter={() => setActiveCategoryIndex(idx)}
                   className={cn(
                     'px-5 h-full flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap relative',
@@ -750,11 +737,11 @@ export function Header() {
           {NAV_CATEGORIES.map(cat => (
             <Link
               key={cat.slug}
-              href={cat.slug}
+              href={`/products?categorySlug=${cat.slug}`}
               onClick={() => setSidebarOpen(false)}
               className={cn(
                 'py-3.5 px-5 hover:bg-orange-50 font-semibold text-gray-700 flex items-center gap-3 border-b border-gray-100 transition-colors',
-                pathname.startsWith(cat.slug) ? 'text-primary bg-accent' : '',
+                pathname === '/products' && new URLSearchParams(window.location.search).get('categorySlug') === cat.slug ? 'text-primary bg-accent' : '',
               )}
             >
               <span className="text-primary"><cat.icon className="w-4 h-4" /></span>
