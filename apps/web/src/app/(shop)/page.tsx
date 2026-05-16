@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   BookOpen, Package, Briefcase, Leaf, Layers, Zap,
@@ -20,6 +20,36 @@ const HERO_IMGS = [
   'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1200&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=1200&auto=format&fit=crop',
   'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=1200&auto=format&fit=crop',
+];
+
+const HERO_SLIDES = [
+  {
+    bg: '#0f172a',
+    headline: 'বাংলাদেশের সেরা বইয়ের দোকান',
+    subtext: '১ লাখেরও বেশি বই • সেরা দামে',
+    cta: 'বই দেখুন →',
+    ctaHref: '/books',
+  },
+  {
+    bg: '#14532d',
+    headline: 'খাঁটি অর্গানিক পণ্য',
+    subtext: 'প্রকৃতির কাছ থেকে সরাসরি আপনার কাছে',
+    cta: 'অর্গানিক দেখুন →',
+    ctaHref: '/categories/organic-foods',
+  },
+  {
+    bg: '#1e1b4b',
+    headline: 'মেগা সেল চলছে!',
+    subtext: '৭০% পর্যন্ত ছাড় • সীমিত সময়',
+    cta: 'অফার দেখুন →',
+    ctaHref: '/products',
+  },
+] as const;
+
+const HERO_BOOKS = [
+  { title: 'Atomic Habits',          price: '৳420', img: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=200' },
+  { title: 'প্যারাডক্সিক্যাল সাজিদ', price: '৳180', img: 'https://images.unsplash.com/photo-1544948191-c83610230351?q=80&w=200' },
+  { title: 'Sapiens',                price: '৳520', img: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=200' },
 ];
 
 const CAT_IMGS = [
@@ -250,10 +280,17 @@ export default function HomePage() {
   const flashEnd = useRef(new Date(Date.now() + 8 * 3600 * 1000)).current;
   const countdown = useCountdown(flashEnd);
 
+  const [slideKey, setSlideKey] = useState(0);
+
+  const goToSlide = useCallback((idx: number | ((i: number) => number)) => {
+    setSlideIndex(idx);
+    setSlideKey(k => k + 1);
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => setSlideIndex(i => (i + 1) % 3), 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slideKey]);
 
   const scroll = (ref: React.RefObject<HTMLDivElement | null>, dir: 'left' | 'right') => {
     if (!ref.current) return;
@@ -287,77 +324,137 @@ export default function HomePage() {
     <div className="flex flex-col" style={{ backgroundColor: '#f8fafc' }}>
 
       {/* ── 1: Hero ── */}
-      <section className="bg-white py-4 md:py-6">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6">
-          {/* Main Slider */}
-          <div className={`lg:col-span-9 relative h-[220px] sm:h-[300px] md:h-[400px] rounded-xl lg:rounded-2xl overflow-hidden shadow-lg group ${HERO_BG[slideIndex]} transition-colors duration-500`}>
-            <Image
-              src={HERO_IMGS[slideIndex] ?? HERO_IMGS[0]!}
-              alt={h.heroSlides[slideIndex]?.title ?? ''}
-              fill
-              unoptimized
-              className="object-cover mix-blend-overlay opacity-50 md:opacity-60 transition-opacity duration-500"
-              sizes="(max-width: 1024px) 100vw, 75vw"
-              priority
-            />
-            <div className="absolute inset-0 flex flex-col justify-center p-6 sm:p-8 md:p-12 text-white">
-              <h2 className="text-2xl sm:text-4xl md:text-5xl font-black mb-3 md:mb-5 leading-tight max-w-[80%] md:max-w-lg">
-                {h.heroSlides[slideIndex]?.title ?? ''}
-              </h2>
-              <Link
-                href="/books"
-                className="w-fit px-5 py-2 md:px-8 md:py-3 bg-white text-gray-900 font-bold text-sm md:text-base rounded-md md:rounded-lg hover:bg-secondary hover:text-white transition-all shadow-xl"
-              >
-                {t.common.shopNow}
-              </Link>
-            </div>
-            <button
-              onClick={() => setSlideIndex(i => (i - 1 + 3) % 3)}
-              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-1.5 md:p-2 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all z-10"
+      <section className="w-full h-[520px] md:h-[600px] relative overflow-hidden">
+        <style>{`
+          @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+          }
+          @keyframes floatBook {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-10px); }
+          }
+        `}</style>
+
+        {/* Background image */}
+        <Image
+          key={slideIndex}
+          src={HERO_IMGS[slideIndex] ?? HERO_IMGS[0]!}
+          alt={HERO_SLIDES[slideIndex]?.headline ?? ''}
+          fill
+          unoptimized
+          priority
+          className="object-cover"
+          sizes="100vw"
+        />
+
+        {/* Colour overlay */}
+        <div
+          className="absolute inset-0 transition-colors duration-700"
+          style={{ backgroundColor: HERO_SLIDES[slideIndex]?.bg, opacity: 0.85 }}
+        />
+
+        {/* Gradient overlay (left-to-right) */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+
+        {/* Content row */}
+        <div className="relative z-10 h-full max-w-7xl mx-auto px-6 md:px-10 flex items-center justify-between gap-8">
+
+          {/* Left: text (40% on desktop) */}
+          <div className="w-full md:w-[45%] flex flex-col gap-5">
+            <h1
+              key={`headline-${slideIndex}`}
+              className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight"
+              style={{ animation: 'slideUp 0.7s ease forwards' }}
             >
-              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-            </button>
-            <button
-              onClick={() => setSlideIndex(i => (i + 1) % 3)}
-              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-1.5 md:p-2 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-md opacity-0 group-hover:opacity-100 transition-all z-10"
+              {HERO_SLIDES[slideIndex]?.headline}
+            </h1>
+            <p
+              key={`sub-${slideIndex}`}
+              className="text-white/80 text-base md:text-lg font-medium"
+              style={{ animation: 'slideUp 0.7s ease 0.2s forwards', opacity: 0 }}
             >
-              <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
-            </button>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 md:gap-2 z-10">
+              {HERO_SLIDES[slideIndex]?.subtext}
+            </p>
+            <Link
+              key={`cta-${slideIndex}`}
+              href={HERO_SLIDES[slideIndex]?.ctaHref ?? '/'}
+              className="w-fit px-7 py-3 bg-primary text-white font-black text-sm md:text-base rounded-xl hover:bg-primary/90 transition-all shadow-xl hover:shadow-primary/40 hover:scale-105"
+              style={{ animation: 'slideUp 0.7s ease 0.4s forwards', opacity: 0 }}
+            >
+              {HERO_SLIDES[slideIndex]?.cta}
+            </Link>
+
+            {/* Dot navigation */}
+            <div className="flex gap-2 mt-2">
               {[0, 1, 2].map(i => (
                 <button
                   key={i}
-                  onClick={() => setSlideIndex(i)}
-                  className={`h-1 md:h-1.5 rounded-full transition-all duration-300 ${i === slideIndex ? 'w-6 md:w-8 bg-white' : 'w-1.5 md:w-2 bg-white/50'}`}
+                  onClick={() => goToSlide(i)}
+                  aria-label={`Slide ${i + 1}`}
+                  className={`h-2 rounded-full transition-all duration-300 ${i === slideIndex ? 'w-8 bg-white' : 'w-2 bg-white/50 hover:bg-white/70'}`}
                 />
               ))}
             </div>
           </div>
 
-          {/* Sidebar Promo */}
-          <div className="lg:col-span-3 grid grid-cols-2 lg:grid-cols-1 lg:flex flex-col gap-4 md:gap-6">
-            <div className="flex-1 rounded-xl bg-secondary p-5 md:p-8 flex flex-col justify-center items-center text-center text-white relative overflow-hidden group">
-              <div className="relative z-10">
-                <p className="text-[10px] md:text-xs uppercase font-black mb-1 opacity-80">{lang === 'bn' ? 'সাপ্তাহিক অফার' : 'Weekend Sale'}</p>
-                <h3 className="text-xl md:text-2xl font-black mb-3 md:mb-4">{lang === 'bn' ? '৬০% পর্যন্ত ছাড়' : 'Up to 60% OFF'}</h3>
-                <Link href="/products" className="px-3 py-1.5 md:px-4 md:py-2 bg-white text-secondary font-bold text-[10px] md:text-xs rounded hover:shadow-lg transition-all inline-block">
-                  {lang === 'bn' ? 'গ্যাজেট দেখুন' : 'Shop Gadgets'}
-                </Link>
+          {/* Right: floating book showcase cards (desktop only) */}
+          <div className="hidden md:flex flex-col gap-4 w-[280px] shrink-0 relative">
+            {HERO_BOOKS.map((book, idx) => (
+              <div
+                key={book.title}
+                className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-2xl"
+                style={{
+                  animation: `floatBook ${2.5 + idx * 0.6}s ease-in-out infinite`,
+                  animationDelay: `${idx * 0.4}s`,
+                  transform: idx === 1 ? 'translateX(24px)' : 'translateX(0)',
+                }}
+              >
+                <div className="w-14 h-20 rounded-lg overflow-hidden shrink-0 border-2 border-white/30 shadow-md">
+                  <Image
+                    src={book.img}
+                    alt={book.title}
+                    width={56}
+                    height={80}
+                    unoptimized
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <p className="text-white font-bold text-xs leading-snug line-clamp-2 mb-1">{book.title}</p>
+                  <p className="text-primary font-black text-sm">{book.price}</p>
+                  <div className="flex gap-0.5 mt-1">
+                    {[1,2,3,4,5].map(s => (
+                      <svg key={s} className="w-2.5 h-2.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="absolute -right-4 -bottom-4 md:-right-8 md:-bottom-8 w-24 h-24 md:w-32 md:h-32 bg-white/20 rounded-full animate-pulse" />
-            </div>
-            <div className="flex-1 rounded-xl p-5 md:p-8 flex flex-col justify-center items-center text-center text-white relative overflow-hidden group" style={{ backgroundColor: '#002f34' }}>
-              <div className="relative z-10">
-                <p className="text-[10px] md:text-xs uppercase font-black mb-1 opacity-80">{lang === 'bn' ? 'ইসলামিক বই' : 'Islamic Books'}</p>
-                <h3 className="text-xl md:text-2xl font-black mb-3 md:mb-4">{lang === 'bn' ? 'বিশেষ রমজান অফার' : 'Special Ramadan'}</h3>
-                <Link href="/books?genre=Islamic" className="px-3 py-1.5 md:px-4 md:py-2 font-bold text-[10px] md:text-xs rounded hover:shadow-lg transition-all inline-block" style={{ backgroundColor: '#ffcc00', color: '#002f34' }}>
-                  {lang === 'bn' ? 'এখনই দেখুন' : 'Explore Now'}
-                </Link>
-              </div>
-              <div className="absolute -left-6 -top-6 md:-left-10 md:-top-10 w-24 h-24 md:w-32 md:h-32 bg-white/10 rounded-full" />
-            </div>
+            ))}
           </div>
         </div>
+
+        {/* Arrow buttons (always visible) */}
+        <button
+          onClick={() => setSlideIndex(i => (i - 1 + 3) % 3)}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-md transition-all border border-white/30"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+        </button>
+        <button
+          onClick={() => setSlideIndex(i => (i + 1) % 3)}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-md transition-all border border-white/30"
+          aria-label="Next slide"
+        >
+          <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+        </button>
       </section>
 
       {/* ── 2: Quick Categories ── */}

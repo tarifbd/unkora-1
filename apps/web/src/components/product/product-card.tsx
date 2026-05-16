@@ -6,10 +6,8 @@ import { ShoppingCart, Heart, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
-import { useAuthStore } from '@/store/auth.store';
 import { useCartStore } from '@/store/cart.store';
 import { useLanguage } from '@/lib/i18n/language-context';
-import { useRouter } from 'next/navigation';
 import { WishlistButton } from './wishlist-button';
 
 interface ProductCardProps {
@@ -19,9 +17,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, className }: ProductCardProps) {
   const { addItem } = useCart();
-  const { isAuthenticated } = useAuthStore();
   const { openCart } = useCartStore();
-  const router = useRouter();
   const { lang, t } = useLanguage();
 
   const image = product.images?.[0]?.url;
@@ -35,8 +31,16 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!isAuthenticated) { router.push('/login'); return; }
-    addItem.mutate({ productId: product.id, quantity: 1 });
+    addItem.mutate({
+      productId: product.id,
+      quantity: 1,
+      guestData: {
+        name: product.name,
+        price: price,
+        image: image,
+        slug: product.slug,
+      },
+    });
     openCart();
   };
 
@@ -157,6 +161,15 @@ export function ProductCard({ product, className }: ProductCardProps) {
           <button disabled className="w-full py-2.5 bg-gray-100 rounded-lg text-sm font-medium text-gray-400 cursor-not-allowed">
             {t.product.outOfStock}
           </button>
+        )}
+        {product.stockQuantity > 0 && (
+          <Link
+            href={`/checkout?productId=${product.id}&qty=1`}
+            onClick={e => e.stopPropagation()}
+            className="w-full flex items-center justify-center gap-2 py-2 bg-secondary text-white rounded-lg text-xs font-bold hover:bg-secondary/90 transition-all mt-1.5"
+          >
+            ⚡ {lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}
+          </Link>
         )}
       </div>
     </Link>

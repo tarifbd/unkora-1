@@ -11,6 +11,7 @@ import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 import { useCartStore } from '@/store/cart.store';
+import { useGuestCart } from '@/store/guest-cart.store';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { LucideIcon } from 'lucide-react';
@@ -346,6 +347,7 @@ export function Header() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
   const { cart, toggleCart } = useCartStore();
+  const guestCart = useGuestCart();
   const { logout } = useAuth();
   const { lang, setLang, t } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -367,7 +369,9 @@ export function Header() {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [megaOpen]);
 
-  const itemCount = cart?.itemCount ?? 0;
+  const itemCount = isAuthenticated
+    ? (cart?.itemCount ?? 0)
+    : guestCart.items.reduce((sum, i) => sum + i.quantity, 0);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -553,68 +557,67 @@ export function Header() {
         {/* ── Tier 3: Category nav (desktop) ── */}
         <div className="bg-white hidden lg:block border-b border-gray-200 relative z-40" ref={megaRef}>
           <div className="max-w-7xl mx-auto pl-4 flex items-center relative">
-            <button
-              onClick={() => setMegaOpen(o => !o)}
-              className={cn(
-                'flex items-center gap-2 px-5 py-3 font-bold text-sm cursor-pointer transition-colors mr-6 shrink-0',
-                megaOpen ? 'bg-primary text-white' : 'bg-gray-900 text-white hover:bg-gray-800',
+
+            {/* All Departments button */}
+            <div className="relative h-[48px] flex items-center mr-6 shrink-0">
+              <button
+                onClick={() => setMegaOpen(o => !o)}
+                className={cn(
+                  'h-full flex items-center gap-2 px-5 font-bold text-sm cursor-pointer transition-colors',
+                  megaOpen ? 'bg-primary text-white' : 'bg-gray-900 text-white hover:bg-gray-800',
+                )}
+              >
+                <Menu className="w-[18px] h-[18px]" /> {t.header.allDepartments}
+                <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', megaOpen && 'rotate-180')} />
+              </button>
+
+              {/* ── Mega Menu Dropdown ── */}
+              {megaOpen && (
+                <div className="absolute top-full left-0 bg-white shadow-2xl rounded-b-2xl border-t-2 border-primary z-50 p-6" style={{ width: '800px' }}>
+                  <div className="grid grid-cols-7 gap-4">
+                    {MEGA_CATEGORIES.map(cat => (
+                      <div key={cat.href} className="flex flex-col">
+                        <Link
+                          href={cat.href}
+                          onClick={() => setMegaOpen(false)}
+                          className="flex items-center gap-1.5 mb-3 pb-2 border-b border-gray-100 group"
+                        >
+                          <span className="text-lg leading-none">{cat.emoji}</span>
+                          <span className="text-[12px] font-black text-primary group-hover:text-primary/80 transition-colors leading-tight">
+                            {lang === 'bn' ? cat.nameBn : cat.name}
+                          </span>
+                        </Link>
+                        <ul className="flex flex-col gap-1.5">
+                          {cat.subs.map(sub => (
+                            <li key={sub.href}>
+                              <Link
+                                href={sub.href}
+                                onClick={() => setMegaOpen(false)}
+                                className="text-xs text-gray-600 hover:text-primary transition-colors leading-snug block py-0.5"
+                              >
+                                {sub.label}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                    <p className="text-[11px] text-gray-400 font-medium">
+                      {lang === 'bn' ? '৭টি বিভাগে হাজারো পণ্য' : '1000s of products across 7 departments'}
+                    </p>
+                    <Link
+                      href="/products"
+                      onClick={() => setMegaOpen(false)}
+                      className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                    >
+                      {lang === 'bn' ? 'সব পণ্য দেখুন →' : 'Browse all products →'}
+                    </Link>
+                  </div>
+                </div>
               )}
-            >
-              <Menu className="w-[18px] h-[18px]" /> {t.header.allDepartments}
-              <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', megaOpen && 'rotate-180')} />
-            </button>
-
-            {/* ── Mega Menu Dropdown ── */}
-            {megaOpen && (
-              <div className="absolute top-full left-0 w-full min-w-[900px] bg-white shadow-2xl rounded-b-2xl border-t-2 border-primary z-50 p-6">
-                <div className="grid grid-cols-7 gap-4">
-                  {MEGA_CATEGORIES.map(cat => (
-                    <div key={cat.href} className="flex flex-col">
-                      <Link
-                        href={cat.href}
-                        onClick={() => setMegaOpen(false)}
-                        className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100 group"
-                      >
-                        <span className="text-xl leading-none">{cat.emoji}</span>
-                        <span className="text-[13px] font-black text-primary group-hover:text-primary/80 transition-colors leading-tight">
-                          {lang === 'bn' ? cat.nameBn : cat.name}
-                        </span>
-                      </Link>
-                      <ul className="flex flex-col gap-1.5">
-                        {cat.subs.map(sub => (
-                          <li key={sub.href}>
-                            <Link
-                              href={sub.href}
-                              onClick={() => setMegaOpen(false)}
-                              className="text-xs text-gray-600 hover:text-primary transition-colors leading-snug block py-0.5"
-                            >
-                              {sub.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
-                  <p className="text-[11px] text-gray-400 font-medium">
-                    {lang === 'bn' ? '৭টি বিভাগে হাজারো পণ্য' : '1000s of products across 7 departments'}
-                  </p>
-                  <Link
-                    href="/products"
-                    onClick={() => setMegaOpen(false)}
-                    className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
-                  >
-                    {lang === 'bn' ? 'সব পণ্য দেখুন →' : 'Browse all products →'}
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="max-w-7xl mx-auto pl-4 flex items-center">
-            {/* invisible spacer matching the button width so nav starts at same point */}
-            <div className="w-[220px] shrink-0" />
+            </div>
 
             <nav className="flex items-center justify-start h-[48px] text-[14px] font-bold text-gray-700 flex-1 overflow-x-auto hide-scrollbar">
               {NAV_CATEGORIES.map((cat, idx) => (
