@@ -66,7 +66,7 @@ export default function AdminOrdersPage() {
           </thead>
           <tbody className="divide-y">
             {data?.data?.map((order: { id: string; orderNumber: string; status: string; total: string; createdAt: string; customer?: { name?: string; email?: string } }) => (
-              <tr key={order.id} className="hover:bg-muted/20 transition-colors">
+              <tr key={order.id} className="hover:bg-muted/20 transition-colors cursor-pointer" onClick={e => { if ((e.target as HTMLElement).closest('select')) return; window.location.href = `/admin/orders/${order.id}`; }}>
                 <td className="px-4 py-3 font-medium">#{order.orderNumber}</td>
                 <td className="hidden px-4 py-3 sm:table-cell">
                   <p>{order.customer?.name}</p>
@@ -82,7 +82,7 @@ export default function AdminOrdersPage() {
                 <td className="hidden px-4 py-3 text-right font-semibold md:table-cell">{formatCurrency(Number(order.total))}</td>
                 <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">{new Date(order.createdAt).toLocaleDateString()}</td>
                 <td className="px-4 py-3">
-                  <Link href={`/account/orders/${order.id}`} className="text-muted-foreground hover:text-foreground transition-colors">
+                  <Link href={`/admin/orders/${order.id}`} className="text-muted-foreground hover:text-foreground transition-colors">
                     <ChevronRight className="h-4 w-4" />
                   </Link>
                 </td>
