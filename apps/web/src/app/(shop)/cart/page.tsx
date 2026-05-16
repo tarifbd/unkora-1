@@ -7,11 +7,13 @@ import { useCart } from '@/lib/hooks/use-cart';
 import { useAuthStore } from '@/store/auth.store';
 import { useGuestCart } from '@/store/guest-cart.store';
 import { formatCurrency } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 export default function CartPage() {
   const { cart, isLoading, updateItem, removeItem } = useCart();
   const { isAuthenticated } = useAuthStore();
   const guestCart = useGuestCart();
+  const { t } = useLanguage();
 
   // Guest cart view
   if (!isAuthenticated) {
@@ -21,10 +23,10 @@ export default function CartPage() {
       return (
         <div className="container py-20 text-center">
           <ShoppingCart className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-          <h2 className="mb-2 font-serif text-2xl font-bold">Your cart is empty</h2>
-          <p className="mb-6 text-muted-foreground">Start shopping to add items to your cart</p>
+          <h2 className="mb-2 font-serif text-2xl font-bold">{t.cart.emptyCart}</h2>
+          <p className="mb-6 text-muted-foreground">{t.cart.startShopping}</p>
           <Link href="/products" className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
-            Browse Products <ArrowRight className="h-4 w-4" />
+            {t.cart.browseProducts} <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       );
@@ -36,7 +38,7 @@ export default function CartPage() {
 
     return (
       <div className="container py-8">
-        <h1 className="mb-6 font-serif text-2xl font-bold">Shopping Cart ({items.length} items)</h1>
+        <h1 className="mb-6 font-serif text-2xl font-bold">{t.cart.title} ({items.length} {t.cart.items})</h1>
 
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Items */}
@@ -87,34 +89,34 @@ export default function CartPage() {
 
           {/* Order Summary */}
           <div className="h-fit rounded-xl border bg-card p-6 space-y-4">
-            <h2 className="font-semibold text-lg">Order Summary</h2>
+            <h2 className="font-semibold text-lg">{t.cart.orderSummary}</h2>
 
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-muted-foreground">{t.cart.subtotal}</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Shipping</span>
-                <span>{shipping === 0 ? <span className="text-green-600">Free</span> : formatCurrency(shipping)}</span>
+                <span className="text-muted-foreground">{t.cart.shipping}</span>
+                <span>{shipping === 0 ? <span className="text-green-600">{t.cart.free}</span> : formatCurrency(shipping)}</span>
               </div>
               {shipping > 0 && (
-                <p className="text-xs text-muted-foreground">Add {formatCurrency(1000 - subtotal)} more for free shipping</p>
+                <p className="text-xs text-muted-foreground">{t.cart.freeShippingMsg} {formatCurrency(1000 - subtotal)} {t.cart.freeShippingMsg2}</p>
               )}
             </div>
 
             <div className="border-t pt-4 flex justify-between font-semibold">
-              <span>Total</span>
+              <span>{t.cart.total}</span>
               <span className="text-brand-600">{formatCurrency(total)}</span>
             </div>
 
             <Link href="/checkout"
               className="flex w-full items-center justify-center gap-2 rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
-              Proceed to Checkout <ArrowRight className="h-4 w-4" />
+              {t.cart.proceedCheckout} <ArrowRight className="h-4 w-4" />
             </Link>
 
             <Link href="/products" className="flex w-full items-center justify-center gap-2 rounded-md border py-2.5 text-sm hover:bg-accent transition-colors">
-              Continue Shopping
+              {t.cart.continueShopping}
             </Link>
           </div>
         </div>
@@ -135,10 +137,10 @@ export default function CartPage() {
     return (
       <div className="container py-20 text-center">
         <ShoppingCart className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-        <h2 className="mb-2 font-serif text-2xl font-bold">Your cart is empty</h2>
-        <p className="mb-6 text-muted-foreground">Start shopping to add items to your cart</p>
+        <h2 className="mb-2 font-serif text-2xl font-bold">{t.cart.emptyCart}</h2>
+        <p className="mb-6 text-muted-foreground">{t.cart.startShopping}</p>
         <Link href="/products" className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
-          Browse Products <ArrowRight className="h-4 w-4" />
+          {t.cart.browseProducts} <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
     );
@@ -150,7 +152,7 @@ export default function CartPage() {
 
   return (
     <div className="container py-8">
-      <h1 className="mb-6 font-serif text-2xl font-bold">Shopping Cart ({cart.items.length} items)</h1>
+      <h1 className="mb-6 font-serif text-2xl font-bold">{t.cart.title} ({cart.items.length} {t.cart.items})</h1>
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Items */}
@@ -201,34 +203,34 @@ export default function CartPage() {
 
         {/* Order Summary */}
         <div className="h-fit rounded-xl border bg-card p-6 space-y-4">
-          <h2 className="font-semibold text-lg">Order Summary</h2>
+          <h2 className="font-semibold text-lg">{t.cart.orderSummary}</h2>
 
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Subtotal</span>
+              <span className="text-muted-foreground">{t.cart.subtotal}</span>
               <span>{formatCurrency(subtotal)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Shipping</span>
-              <span>{shipping === 0 ? <span className="text-green-600">Free</span> : formatCurrency(shipping)}</span>
+              <span className="text-muted-foreground">{t.cart.shipping}</span>
+              <span>{shipping === 0 ? <span className="text-green-600">{t.cart.free}</span> : formatCurrency(shipping)}</span>
             </div>
             {shipping > 0 && (
-              <p className="text-xs text-muted-foreground">Add {formatCurrency(1000 - subtotal)} more for free shipping</p>
+              <p className="text-xs text-muted-foreground">{t.cart.freeShippingMsg} {formatCurrency(1000 - subtotal)} {t.cart.freeShippingMsg2}</p>
             )}
           </div>
 
           <div className="border-t pt-4 flex justify-between font-semibold">
-            <span>Total</span>
+            <span>{t.cart.total}</span>
             <span className="text-brand-600">{formatCurrency(total)}</span>
           </div>
 
           <Link href="/checkout"
             className="flex w-full items-center justify-center gap-2 rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors">
-            Proceed to Checkout <ArrowRight className="h-4 w-4" />
+            {t.cart.proceedCheckout} <ArrowRight className="h-4 w-4" />
           </Link>
 
           <Link href="/products" className="flex w-full items-center justify-center gap-2 rounded-md border py-2.5 text-sm hover:bg-accent transition-colors">
-            Continue Shopping
+            {t.cart.continueShopping}
           </Link>
         </div>
       </div>

@@ -12,6 +12,7 @@ import { formatCurrency } from '@/lib/utils';
 import { ProductReviews } from '@/components/product/product-reviews';
 import { WishlistButton } from '@/components/product/wishlist-button';
 import { trackViewProduct, trackAddToCart } from '@/lib/analytics';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 export default function ProductDetailClient({ slug }: { slug: string }) {
   const { data: product, isLoading } = useQuery({
@@ -22,6 +23,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const [activeImg, setActiveImg] = useState(0);
   const { addItem } = useCart();
   const { openCart } = useCartStore();
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (!product) return;
@@ -39,7 +41,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
     </div>
   );
 
-  if (!product) return <div className="container py-12 text-center text-muted-foreground">Product not found</div>;
+  if (!product) return <div className="container py-12 text-center text-muted-foreground">{t.productDetail.notFound}</div>;
 
   const price = Number(product.salePrice ?? product.basePrice);
   const hasDiscount = product.salePrice && Number(product.salePrice) < Number(product.basePrice);
@@ -62,7 +64,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   return (
     <div className="container py-8">
       <Link href="/products" className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
-        <ArrowLeft className="h-4 w-4" /> Back to products
+        <ArrowLeft className="h-4 w-4" /> {t.productDetail.backToProducts}
       </Link>
 
       <div className="grid gap-8 lg:grid-cols-2">
@@ -107,16 +109,16 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           {/* Book Details */}
           {product.bookDetail && (
             <div className="rounded-lg border bg-muted/30 p-4">
-              <div className="flex items-center gap-2 mb-3 text-sm font-semibold"><BookOpen className="h-4 w-4" /> Book Details</div>
+              <div className="flex items-center gap-2 mb-3 text-sm font-semibold"><BookOpen className="h-4 w-4" /> {t.productDetail.bookDetails}</div>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                 {[
-                  ['Author', product.bookDetail.author],
-                  ['Publisher', product.bookDetail.publisher],
-                  ['Language', product.bookDetail.language],
-                  ['Pages', product.bookDetail.pageCount],
-                  ['Edition', product.bookDetail.edition],
-                  ['ISBN', product.bookDetail.isbn],
-                  ['Binding', product.bookDetail.binding],
+                  [t.productDetail.author, product.bookDetail.author],
+                  [t.productDetail.publisher, product.bookDetail.publisher],
+                  [t.productDetail.language, product.bookDetail.language],
+                  [t.productDetail.pages, product.bookDetail.pageCount],
+                  [t.productDetail.edition, product.bookDetail.edition],
+                  [t.productDetail.isbn, product.bookDetail.isbn],
+                  [t.productDetail.binding, product.bookDetail.binding],
                 ].filter(([, v]) => v).map(([k, v]) => (
                   <div key={k as string}><dt className="text-muted-foreground">{k}</dt><dd className="font-medium">{v}</dd></div>
                 ))}
@@ -135,8 +137,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           <div className="flex items-center gap-2 text-sm">
             <Package className="h-4 w-4 text-muted-foreground" />
             {product.stockQuantity > 0
-              ? <span className="text-green-600 font-medium">In Stock ({product.stockQuantity} available)</span>
-              : <span className="text-destructive font-medium">Out of Stock</span>}
+              ? <span className="text-green-600 font-medium">{t.productDetail.inStock} ({product.stockQuantity} available)</span>
+              : <span className="text-destructive font-medium">{t.productDetail.outOfStock}</span>}
           </div>
 
           {/* Qty + Add to Cart + Wishlist */}
@@ -151,7 +153,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 <button onClick={handleAddToCart} disabled={addItem.isPending}
                   className="flex flex-1 items-center justify-center gap-2 rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
                   {addItem.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
-                  Add to Cart
+                  {t.productDetail.addToCart}
                 </button>
                 <WishlistButton
                   productId={product.id}
@@ -162,7 +164,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 href={`/checkout?productId=${product.id}&qty=${qty}`}
                 className="flex items-center justify-center gap-2 w-full py-3 bg-secondary text-white rounded-xl font-bold text-sm hover:bg-secondary/90 transition-all"
               >
-                ⚡ Buy Now
+                ⚡ {t.product.buyNow}
               </Link>
             </div>
           )}
@@ -177,7 +179,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 
           {product.description && (
             <div className="border-t pt-4">
-              <h3 className="mb-2 font-semibold">Description</h3>
+              <h3 className="mb-2 font-semibold">{t.productDetail.description}</h3>
               <p className="text-sm leading-relaxed text-muted-foreground">{product.description}</p>
             </div>
           )}

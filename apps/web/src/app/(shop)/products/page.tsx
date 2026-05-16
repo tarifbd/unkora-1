@@ -6,8 +6,11 @@ import { Loader2, X, LayoutGrid, Grid3X3, Grid2X2, List, SlidersHorizontal, Chev
 import { productsApi, categoriesApi } from '@/lib/api/products';
 import { ProductCard } from '@/components/product/product-card';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 type GridCols = 2 | 3 | 4 | 'list';
+
+type TranslationType = ReturnType<typeof useLanguage>['t'];
 
 function FilterPanel({
   categories,
@@ -24,6 +27,7 @@ function FilterPanel({
   setParam,
   clearAllFilters,
   totalProducts,
+  t,
 }: {
   categories: { id: string; slug: string; name: string; _count?: { products: number } }[] | undefined;
   categorySlug: string | undefined;
@@ -39,13 +43,14 @@ function FilterPanel({
   setParam: (k: string, v: string | undefined) => void;
   clearAllFilters: () => void;
   totalProducts: number | undefined;
+  t: TranslationType;
 }) {
   return (
     <div className="space-y-4">
       {/* Categories */}
       <div className="rounded-xl border bg-card overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/30">
-          <span className="text-sm font-bold">Categories</span>
+          <span className="text-sm font-bold">{t.products.filterCategories}</span>
           {categorySlug && (
             <button onClick={() => setCategory(undefined)} className="text-muted-foreground hover:text-foreground">
               <X className="h-3.5 w-3.5" />
@@ -59,7 +64,7 @@ function FilterPanel({
               !categorySlug ? 'bg-primary text-primary-foreground font-semibold' : 'hover:bg-accent'
             }`}
           >
-            <span>All Categories</span>
+            <span>{t.products.allCategories}</span>
             {totalProducts && !categorySlug && <span className="text-xs opacity-70">{totalProducts}</span>}
           </button>
           {categories?.map(cat => (
@@ -80,12 +85,12 @@ function FilterPanel({
       {/* Price Range */}
       <div className="rounded-xl border bg-card overflow-hidden">
         <div className="px-4 py-3 border-b bg-muted/30">
-          <span className="text-sm font-bold">Price Range (৳)</span>
+          <span className="text-sm font-bold">{t.products.priceRange}</span>
         </div>
         <div className="p-4 space-y-3">
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className="mb-1 block text-xs text-muted-foreground">Min</label>
+              <label className="mb-1 block text-xs text-muted-foreground">{t.products.priceMin}</label>
               <input
                 type="number"
                 placeholder="0"
@@ -96,7 +101,7 @@ function FilterPanel({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs text-muted-foreground">Max</label>
+              <label className="mb-1 block text-xs text-muted-foreground">{t.products.priceMax}</label>
               <input
                 type="number"
                 placeholder="∞"
@@ -114,7 +119,7 @@ function FilterPanel({
             }}
             className="w-full rounded-md bg-primary py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
           >
-            Apply
+            {t.products.applyFilter}
           </button>
           {(minPrice || maxPrice) && (
             <button
@@ -126,7 +131,7 @@ function FilterPanel({
               }}
               className="w-full text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
             >
-              Clear
+              {t.products.clearFilter}
             </button>
           )}
         </div>
@@ -135,7 +140,7 @@ function FilterPanel({
       {/* Availability */}
       <div className="rounded-xl border bg-card overflow-hidden">
         <div className="px-4 py-3 border-b bg-muted/30">
-          <span className="text-sm font-bold">Availability</span>
+          <span className="text-sm font-bold">{t.products.availability}</span>
         </div>
         <div className="p-4">
           <label className="flex cursor-pointer items-center gap-2.5">
@@ -145,7 +150,7 @@ function FilterPanel({
               onChange={e => setParam('inStock', e.target.checked ? 'true' : undefined)}
               className="h-4 w-4 rounded border accent-primary"
             />
-            <span className="text-sm">In Stock Only</span>
+            <span className="text-sm">{t.products.inStockOnly}</span>
           </label>
         </div>
       </div>
@@ -155,7 +160,7 @@ function FilterPanel({
           onClick={clearAllFilters}
           className="w-full rounded-xl border border-destructive/30 py-2 text-xs font-medium text-destructive hover:bg-destructive/5 transition-colors"
         >
-          Clear All Filters
+          {t.products.clearAllFilters}
         </button>
       )}
     </div>
@@ -166,6 +171,7 @@ function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   const [minPriceInput, setMinPriceInput] = useState('');
   const [maxPriceInput, setMaxPriceInput] = useState('');
@@ -241,6 +247,7 @@ function ProductsContent() {
     setParam,
     clearAllFilters,
     totalProducts: data?.meta.total,
+    t,
   };
 
   const gridClass =
@@ -259,7 +266,7 @@ function ProductsContent() {
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
           <aside className="absolute left-0 top-0 h-full w-72 bg-background shadow-xl overflow-y-auto">
             <div className="flex items-center justify-between border-b px-4 py-3 sticky top-0 bg-background z-10">
-              <span className="font-semibold">Filters</span>
+              <span className="font-semibold">{t.products.filters}</span>
               <button onClick={() => setDrawerOpen(false)} className="rounded-md p-1 hover:bg-accent">
                 <X className="h-5 w-5" />
               </button>
@@ -275,11 +282,11 @@ function ProductsContent() {
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h1 className="font-serif text-xl sm:text-2xl font-bold">
-            {categorySlug ? activeCategoryName : search ? `Results for "${search}"` : 'All Products'}
+            {categorySlug ? activeCategoryName : search ? `${t.products.resultsFor} "${search}"` : t.products.allProducts}
           </h1>
           {data && (
             <p className="mt-0.5 text-xs sm:text-sm text-muted-foreground">
-              {data.meta.total} products found
+              {data.meta.total} {t.products.productsFound}
             </p>
           )}
         </div>
@@ -290,7 +297,7 @@ function ProductsContent() {
           className="lg:hidden flex items-center gap-1.5 rounded-lg border bg-card px-3 py-2 text-sm font-medium hover:bg-accent transition-colors flex-shrink-0"
         >
           <SlidersHorizontal className="h-4 w-4" />
-          Filters
+          {t.products.filters}
           {hasActiveFilters && (
             <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
               {[categorySlug, minPrice || maxPrice, inStock].filter(Boolean).length}
@@ -311,7 +318,7 @@ function ProductsContent() {
           {/* Sort + grid switcher bar */}
           <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border bg-card px-3 py-2 sm:px-4 sm:py-2.5">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="hidden sm:block text-sm text-muted-foreground whitespace-nowrap">Sort:</span>
+              <span className="hidden sm:block text-sm text-muted-foreground whitespace-nowrap">{t.products.sort}</span>
               <div className="relative">
                 <select
                   value={`${sortBy}:${sortOrder}`}
@@ -322,11 +329,11 @@ function ProductsContent() {
                   }}
                   className="appearance-none rounded-md border bg-background pl-2.5 pr-7 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                 >
-                  <option value="createdAt:desc">Newest</option>
-                  <option value="createdAt:asc">Oldest</option>
-                  <option value="basePrice:asc">Price ↑</option>
-                  <option value="basePrice:desc">Price ↓</option>
-                  <option value="name:asc">A – Z</option>
+                  <option value="createdAt:desc">{t.products.sortNewest}</option>
+                  <option value="createdAt:asc">{t.products.sortOldest}</option>
+                  <option value="basePrice:asc">{t.products.sortPriceAsc}</option>
+                  <option value="basePrice:desc">{t.products.sortPriceDesc}</option>
+                  <option value="name:asc">{t.products.sortAlphabetical}</option>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               </div>
@@ -338,7 +345,7 @@ function ProductsContent() {
                 <button
                   key={v}
                   onClick={() => setGridCols(v)}
-                  title={v === 'list' ? 'List view' : `${v} columns`}
+                  title={v === 'list' ? t.products.listView : `${v} columns`}
                   className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-md border transition-colors ${
                     gridCols === v ? 'border-gray-800 bg-gray-800 text-white' : 'hover:bg-accent'
                   }`}
@@ -371,14 +378,14 @@ function ProductsContent() {
               )}
               {inStock && (
                 <span className="flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                  In Stock <button onClick={() => setParam('inStock', undefined)}><X className="h-3 w-3" /></button>
+                  {t.products.inStock} <button onClick={() => setParam('inStock', undefined)}><X className="h-3 w-3" /></button>
                 </span>
               )}
               <button
                 onClick={clearAllFilters}
                 className="rounded-full border border-destructive/40 px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/5 transition-colors"
               >
-                Clear all
+                {t.products.clearAll}
               </button>
             </div>
           )}
@@ -392,8 +399,8 @@ function ProductsContent() {
             </div>
           ) : (data?.data ?? []).length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-              <p className="text-lg font-medium">No products found</p>
-              <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
+              <p className="text-lg font-medium">{t.products.noProductsFound}</p>
+              <p className="text-sm text-muted-foreground">{t.products.tryAdjustingFilters}</p>
             </div>
           ) : gridCols === 'list' ? (
             <div className="space-y-2.5">
