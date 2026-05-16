@@ -13,9 +13,10 @@ import { trackAddToCart } from '@/lib/analytics';
 interface ProductCardProps {
   product: Product;
   className?: string;
+  listView?: boolean;
 }
 
-export function ProductCard({ product, className }: ProductCardProps) {
+export function ProductCard({ product, className, listView }: ProductCardProps) {
   const { addItem } = useCart();
   const { lang, t } = useLanguage();
 
@@ -45,6 +46,68 @@ export function ProductCard({ product, className }: ProductCardProps) {
 
   const reviewCount = product._count?.reviews ?? 0;
   const fullStars = reviewCount > 0 ? 4 : 0; // Only show stars when reviews exist
+
+  if (listView) {
+    return (
+      <Link
+        href={`/products/${product.slug}`}
+        className={cn(
+          'bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-300 group flex gap-4 p-3',
+          className,
+        )}
+      >
+        {/* Thumbnail */}
+        <div className="relative w-24 h-32 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50">
+          {image ? (
+            <Image src={image} alt={product.name} fill unoptimized={isUnsplash} className="object-cover" sizes="96px" />
+          ) : (
+            <div className="flex h-full items-center justify-center text-3xl text-gray-200">📚</div>
+          )}
+          {hasDiscount && (
+            <span className="absolute top-1 left-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+              -{discountPct}%
+            </span>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="flex flex-1 flex-col justify-between min-w-0 py-1">
+          <div>
+            {product.category && (
+              <span className="text-[10px] font-bold text-primary/70 uppercase tracking-wider">{product.category.name}</span>
+            )}
+            <h3 className="text-sm font-bold text-gray-800 line-clamp-2 group-hover:text-primary transition-colors leading-5 mt-0.5">
+              {product.name}
+            </h3>
+            {product.bookDetail?.author && (
+              <p className="text-xs text-gray-400 mt-0.5 truncate">{product.bookDetail.author}</p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-between mt-2 gap-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-base font-black text-primary">৳{price.toLocaleString('en-BD')}</span>
+              {hasDiscount && (
+                <span className="text-xs text-gray-400 line-through">৳{Number(product.basePrice).toLocaleString('en-BD')}</span>
+              )}
+            </div>
+            {product.stockQuantity > 0 ? (
+              <button
+                onClick={handleAddToCart}
+                disabled={addItem.isPending}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-lg text-xs font-bold text-primary hover:bg-primary hover:text-white hover:border-primary transition-all disabled:opacity-50 flex-shrink-0"
+              >
+                <ShoppingCart className="w-3.5 h-3.5" />
+                {t.product.addToCart}
+              </button>
+            ) : (
+              <span className="text-xs text-gray-400 font-medium">{t.product.outOfStock}</span>
+            )}
+          </div>
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <Link

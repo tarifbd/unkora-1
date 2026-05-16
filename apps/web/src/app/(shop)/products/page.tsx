@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, X, LayoutGrid, Grid3X3, Grid2X2 } from 'lucide-react';
+import { Loader2, X, LayoutGrid, Grid3X3, Grid2X2, List } from 'lucide-react';
 import { productsApi, categoriesApi } from '@/lib/api/products';
 import { ProductCard } from '@/components/product/product-card';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
@@ -14,7 +14,7 @@ function ProductsContent() {
 
   const [minPriceInput, setMinPriceInput] = useState('');
   const [maxPriceInput, setMaxPriceInput] = useState('');
-  const [gridCols, setGridCols] = useState<2 | 3 | 4>(3);
+  const [gridCols, setGridCols] = useState<2 | 3 | 4 | 'list'>(3);
 
   const page = parseInt(searchParams.get('page') ?? '1', 10);
   const categorySlug = searchParams.get('categorySlug') ?? undefined;
@@ -247,20 +247,21 @@ function ProductsContent() {
 
             {/* Grid view switcher */}
             <div className="flex items-center gap-1">
-              {([2, 3, 4] as const).map(cols => (
+              {([2, 3, 4, 'list'] as const).map(v => (
                 <button
-                  key={cols}
-                  onClick={() => setGridCols(cols)}
-                  title={`${cols} columns`}
+                  key={v}
+                  onClick={() => setGridCols(v)}
+                  title={v === 'list' ? 'List view' : `${v} columns`}
                   className={`flex h-8 w-8 items-center justify-center rounded-md border transition-colors ${
-                    gridCols === cols
+                    gridCols === v
                       ? 'border-gray-800 bg-gray-800 text-white'
                       : 'hover:bg-accent'
                   }`}
                 >
-                  {cols === 2 && <Grid2X2 className="h-4 w-4" />}
-                  {cols === 3 && <LayoutGrid className="h-4 w-4" />}
-                  {cols === 4 && <Grid3X3 className="h-4 w-4" />}
+                  {v === 2 && <Grid2X2 className="h-4 w-4" />}
+                  {v === 3 && <LayoutGrid className="h-4 w-4" />}
+                  {v === 4 && <Grid3X3 className="h-4 w-4" />}
+                  {v === 'list' && <List className="h-4 w-4" />}
                 </button>
               ))}
             </div>
@@ -311,7 +312,9 @@ function ProductsContent() {
                   ? 'grid-cols-2'
                   : gridCols === 3
                     ? 'grid-cols-2 sm:grid-cols-3'
-                    : 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+                    : gridCols === 4
+                      ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+                      : 'grid-cols-1'
               }`}
             >
               {Array.from({ length: 8 }).map((_, i) => (
@@ -322,6 +325,12 @@ function ProductsContent() {
             <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
               <p className="text-lg font-medium">No products found</p>
               <p className="text-sm text-muted-foreground">Try adjusting your filters</p>
+            </div>
+          ) : gridCols === 'list' ? (
+            <div className="space-y-3">
+              {(data?.data ?? []).map(product => (
+                <ProductCard key={product.id} product={product} listView />
+              ))}
             </div>
           ) : (
             <div
