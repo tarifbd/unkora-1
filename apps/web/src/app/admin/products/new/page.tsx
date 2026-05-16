@@ -130,7 +130,7 @@ export default function NewProductPage() {
 
   const removePrimary = () => {
     if (additionalImages.length > 0) {
-      setPrimaryImageUrl(additionalImages[0]);
+      setPrimaryImageUrl(additionalImages[0] ?? '');
       setAdditionalImages(prev => prev.slice(1));
     } else {
       setPrimaryImageUrl('');
@@ -142,7 +142,7 @@ export default function NewProductPage() {
   };
 
   const makePrimary = (idx: number) => {
-    const newPrimary = additionalImages[idx];
+    const newPrimary = additionalImages[idx] ?? '';
     const newAdditional = additionalImages.filter((_, i) => i !== idx);
     if (primaryImageUrl) newAdditional.unshift(primaryImageUrl);
     setPrimaryImageUrl(newPrimary);
