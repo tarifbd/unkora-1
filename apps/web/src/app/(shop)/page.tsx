@@ -7,9 +7,9 @@ import { useQuery } from '@tanstack/react-query';
 import {
   BookOpen, Package, Briefcase, Leaf, Layers, Zap,
   ChevronLeft, ChevronRight, Truck, RotateCcw, ShieldCheck, Headphones,
-  Flame, Star, Tag,
+  Flame, Star, Tag, ArrowRight,
 } from 'lucide-react';
-import { productsApi } from '@/lib/api/products';
+import { productsApi, categoriesApi } from '@/lib/api/products';
 import { ProductCard } from '@/components/product/product-card';
 import { useLanguage } from '@/lib/i18n/language-context';
 
@@ -62,13 +62,19 @@ const CAT_IMGS = [
 const CAT_HREFS = ['/books?genre=Academic', '/books?genre=Islamic', '/books', '/books?genre=Self-Help'];
 
 const QUICK_CATS = [
-  { icon: BookOpen,  slug: '/books' },
-  { icon: Package,   slug: '/categories/baby-products' },
-  { icon: Briefcase, slug: '/categories/leather-products' },
-  { icon: Leaf,      slug: '/categories/organic-foods' },
-  { icon: Layers,    slug: '/categories/handicrafts' },
-  { icon: Zap,       slug: '/categories/electronics' },
+  { icon: BookOpen,  slug: '/products?categorySlug=books' },
+  { icon: Package,   slug: '/products?categorySlug=baby-products' },
+  { icon: Briefcase, slug: '/products?categorySlug=leather-products' },
+  { icon: Leaf,      slug: '/products?categorySlug=organic-foods' },
+  { icon: Layers,    slug: '/products?categorySlug=handicrafts' },
+  { icon: Zap,       slug: '/products?categorySlug=electronics' },
 ];
+
+const CAT_EMOJI: Record<string, string> = {
+  books: '📚', 'baby-products': '👶', 'leather-products': '👜',
+  'organic-foods': '🌿', handicrafts: '🎨', electronics: '⚡',
+  'daily-needs': '🛒', default: '🏷️',
+};
 
 const GRID_EMOJIS = [
   ['🌬️','🌂','❄️','🦟'],
@@ -302,6 +308,11 @@ export default function HomePage() {
     queryFn: () => productsApi.getFeatured(12),
   });
 
+  const { data: allCategories = [] } = useQuery({
+    queryKey: ['categories-all'],
+    queryFn: () => categoriesApi.getAll(),
+  });
+
   const { data: recentData } = useQuery({
     queryKey: ['products', 'recent'],
     queryFn: () => productsApi.getAll({ limit: 8 }),
@@ -323,138 +334,173 @@ export default function HomePage() {
   return (
     <div className="flex flex-col" style={{ backgroundColor: '#f8fafc' }}>
 
-      {/* ── 1: Hero ── */}
-      <section className="w-full h-[520px] md:h-[600px] relative overflow-hidden">
-        <style>{`
-          @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to   { opacity: 1; transform: translateY(0); }
-          }
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to   { opacity: 1; }
-          }
-          @keyframes floatBook {
-            0%, 100% { transform: translateY(0px); }
-            50%       { transform: translateY(-10px); }
-          }
-        `}</style>
+      {/* ── 1: Hero + Flash Sale + Hot Categories ── */}
+      <section className="w-full bg-gray-100 py-3 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-3">
 
-        {/* Background image */}
-        <Image
-          key={slideIndex}
-          src={HERO_IMGS[slideIndex] ?? HERO_IMGS[0]!}
-          alt={HERO_SLIDES[slideIndex]?.headline ?? ''}
-          fill
-          unoptimized
-          priority
-          className="object-cover"
-          sizes="100vw"
-        />
-
-        {/* Colour overlay */}
-        <div
-          className="absolute inset-0 transition-colors duration-700"
-          style={{ backgroundColor: HERO_SLIDES[slideIndex]?.bg, opacity: 0.85 }}
-        />
-
-        {/* Gradient overlay (left-to-right) */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-
-        {/* Content row */}
-        <div className="relative z-10 h-full max-w-7xl mx-auto px-6 md:px-10 flex items-center justify-between gap-8">
-
-          {/* Left: text (40% on desktop) */}
-          <div className="w-full md:w-[45%] flex flex-col gap-5">
-            <h1
-              key={`headline-${slideIndex}`}
-              className="text-3xl sm:text-4xl md:text-5xl font-black text-white leading-tight"
-              style={{ animation: 'slideUp 0.7s ease forwards' }}
-            >
-              {HERO_SLIDES[slideIndex]?.headline}
-            </h1>
-            <p
-              key={`sub-${slideIndex}`}
-              className="text-white/80 text-base md:text-lg font-medium"
-              style={{ animation: 'slideUp 0.7s ease 0.2s forwards', opacity: 0 }}
-            >
-              {HERO_SLIDES[slideIndex]?.subtext}
-            </p>
-            <Link
-              key={`cta-${slideIndex}`}
-              href={HERO_SLIDES[slideIndex]?.ctaHref ?? '/'}
-              className="w-fit px-7 py-3 bg-primary text-white font-black text-sm md:text-base rounded-xl hover:bg-primary/90 transition-all shadow-xl hover:shadow-primary/40 hover:scale-105"
-              style={{ animation: 'slideUp 0.7s ease 0.4s forwards', opacity: 0 }}
-            >
-              {HERO_SLIDES[slideIndex]?.cta}
-            </Link>
-
-            {/* Dot navigation */}
-            <div className="flex gap-2 mt-2">
-              {[0, 1, 2].map(i => (
-                <button
-                  key={i}
-                  onClick={() => goToSlide(i)}
-                  aria-label={`Slide ${i + 1}`}
-                  className={`h-2 rounded-full transition-all duration-300 ${i === slideIndex ? 'w-8 bg-white' : 'w-2 bg-white/50 hover:bg-white/70'}`}
-                />
-              ))}
+          {/* LEFT: Static Hero Banner */}
+          <Link href="/products" className="relative rounded-2xl overflow-hidden bg-gray-800 group min-h-[340px] md:min-h-[420px] flex items-end">
+            <Image
+              src="https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=900&auto=format&fit=crop"
+              alt="Shop Now"
+              fill
+              unoptimized
+              priority
+              className="object-cover group-hover:scale-105 transition-transform duration-700"
+              sizes="(max-width:1024px) 100vw, 40vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <div className="relative z-10 p-6 md:p-8">
+              <p className="text-white/70 text-sm font-semibold uppercase tracking-widest mb-2">
+                {lang === 'bn' ? 'স্বাগতম UNKORA-তে' : 'Welcome to UNKORA'}
+              </p>
+              <h1 className="text-3xl md:text-4xl font-black text-white leading-tight mb-4">
+                {lang === 'bn' ? <>বাংলাদেশের সেরা<br />অনলাইন মার্কেটপ্লেস</> : <>Bangladesh&apos;s Best<br />Online Marketplace</>}
+              </h1>
+              <span className="inline-flex items-center gap-2 bg-white text-gray-900 font-black text-sm px-5 py-2.5 rounded-xl group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                {lang === 'bn' ? 'কেনাকাটা করুন' : 'Explore Now'}
+                <ArrowRight className="w-4 h-4" />
+              </span>
             </div>
-          </div>
+          </Link>
 
-          {/* Right: floating book showcase cards (desktop only) */}
-          <div className="hidden md:flex flex-col gap-4 w-[280px] shrink-0 relative">
-            {HERO_BOOKS.map((book, idx) => (
-              <div
-                key={book.title}
-                className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-3 flex items-center gap-3 shadow-2xl"
-                style={{
-                  animation: `floatBook ${2.5 + idx * 0.6}s ease-in-out infinite`,
-                  animationDelay: `${idx * 0.4}s`,
-                  transform: idx === 1 ? 'translateX(24px)' : 'translateX(0)',
-                }}
-              >
-                <div className="w-14 h-20 rounded-lg overflow-hidden shrink-0 border-2 border-white/30 shadow-md">
-                  <Image
-                    src={book.img}
-                    alt={book.title}
-                    width={56}
-                    height={80}
-                    unoptimized
-                    className="w-full h-full object-cover"
-                  />
+          {/* RIGHT: Flash Sale + Hot Categories */}
+          <div className="flex flex-col gap-3">
+
+            {/* Top row: Flash sale + Hot categories */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
+              {/* Flash Sale Banner */}
+              <div className="relative rounded-2xl overflow-hidden bg-blue-600 min-h-[200px] flex flex-col justify-between p-5">
+                <Image
+                  src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop"
+                  alt="Flash Sale"
+                  fill
+                  unoptimized
+                  className="object-cover opacity-20"
+                  sizes="300px"
+                />
+                <div className="relative z-10">
+                  <span className="text-xs font-bold text-blue-200 uppercase tracking-widest">
+                    {lang === 'bn' ? 'সীমিত সময়' : 'Limited Time'}
+                  </span>
+                  <h3 className="text-2xl font-black text-white mt-1 leading-tight">
+                    {lang === 'bn' ? 'সিজন শেষ সেল' : 'End of Season'}
+                  </h3>
+                  <p className="text-blue-200 text-xs mt-1">
+                    {lang === 'bn' ? 'ফ্ল্যাশ সেলে সীমিত অফার' : 'For limited time in Flash Sale'}
+                  </p>
                 </div>
-                <div>
-                  <p className="text-white font-bold text-xs leading-snug line-clamp-2 mb-1">{book.title}</p>
-                  <p className="text-primary font-black text-sm">{book.price}</p>
-                  <div className="flex gap-0.5 mt-1">
-                    {[1,2,3,4,5].map(s => (
-                      <svg key={s} className="w-2.5 h-2.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                    ))}
-                  </div>
+                {/* Countdown */}
+                <div className="relative z-10 flex gap-2 mt-3">
+                  {[
+                    { val: String(Math.floor(countdown.h / 24)).padStart(2, '0'), label: lang === 'bn' ? 'দিন' : 'DAY' },
+                    { val: pad(countdown.h % 24), label: lang === 'bn' ? 'ঘন্টা' : 'HRS' },
+                    { val: pad(countdown.m), label: lang === 'bn' ? 'মিনিট' : 'MIN' },
+                    { val: pad(countdown.s), label: lang === 'bn' ? 'সেকেন্ড' : 'SEC' },
+                  ].map(({ val, label }) => (
+                    <div key={label} className="flex flex-col items-center bg-white/20 backdrop-blur-sm rounded-xl px-2.5 py-2 min-w-[46px] border border-white/30">
+                      <span className="text-xl font-black text-white leading-none">{val}</span>
+                      <span className="text-[9px] font-bold text-blue-200 mt-0.5">{label}</span>
+                    </div>
+                  ))}
+                </div>
+                <Link href="/products" className="relative z-10 mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-white bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors w-fit">
+                  {lang === 'bn' ? 'অফার দেখুন' : 'Shop Deals'} <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+
+              {/* Hot Categories */}
+              <div className="bg-white rounded-2xl p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-lg">🔥</span>
+                  <h3 className="font-black text-gray-900 text-sm">
+                    {lang === 'bn' ? 'জনপ্রিয় বিভাগ' : 'Hot Categories'}
+                  </h3>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {(allCategories.length > 0 ? allCategories.slice(0, 8) : [
+                    { id: '1', slug: 'books',            name: lang === 'bn' ? 'বই' : 'Books' },
+                    { id: '2', slug: 'baby-products',    name: lang === 'bn' ? 'শিশু পণ্য' : 'Baby' },
+                    { id: '3', slug: 'leather-products', name: lang === 'bn' ? 'চামড়া পণ্য' : 'Leather' },
+                    { id: '4', slug: 'organic-foods',    name: lang === 'bn' ? 'অর্গানিক' : 'Organic' },
+                    { id: '5', slug: 'handicrafts',      name: lang === 'bn' ? 'হস্তশিল্প' : 'Crafts' },
+                    { id: '6', slug: 'electronics',      name: lang === 'bn' ? 'ইলেকট্রনিক্স' : 'Electronics' },
+                    { id: '7', slug: 'daily-needs',      name: lang === 'bn' ? 'দৈনন্দিন' : 'Daily' },
+                    { id: '8', slug: 'default',          name: lang === 'bn' ? 'আরো' : 'More' },
+                  ] as { id: string; slug: string; name: string }[]).map(cat => (
+                    <Link
+                      key={cat.id}
+                      href={`/products?categorySlug=${cat.slug}`}
+                      className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition-colors group"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-gray-100 group-hover:bg-primary/10 flex items-center justify-center text-2xl transition-colors overflow-hidden">
+                        {CAT_EMOJI[cat.slug] ?? CAT_EMOJI.default}
+                      </div>
+                      <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight line-clamp-2">
+                        {cat.name}
+                      </span>
+                    </Link>
+                  ))}
                 </div>
               </div>
-            ))}
+            </div>
+
+            {/* Bottom: Featured Products scroll */}
+            <div className="bg-white rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-black text-gray-900 text-sm flex items-center gap-1.5">
+                  <Star className="w-4 h-4 text-primary" />
+                  {lang === 'bn' ? 'ফিচার্ড পণ্য' : 'Featured Products'}
+                </h3>
+                <Link href="/products?isFeatured=true" className="text-xs font-bold text-primary flex items-center gap-0.5 hover:underline">
+                  {lang === 'bn' ? 'সব দেখুন' : 'View all'} <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+              <div ref={quickDealsRef} className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+                {featuredProducts.length > 0 ? (
+                  featuredProducts.slice(0, 8).map(product => (
+                    <Link
+                      key={product.id}
+                      href={`/products/${product.slug}`}
+                      className="flex-shrink-0 w-[130px] group"
+                    >
+                      <div className="relative w-full h-[100px] rounded-lg overflow-hidden bg-gray-50 mb-1.5">
+                        {product.images?.[0]?.url ? (
+                          <Image
+                            src={product.images[0].url}
+                            alt={product.name}
+                            fill
+                            unoptimized={product.images[0].url.includes('unsplash')}
+                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                            sizes="130px"
+                          />
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-3xl text-gray-200">📦</div>
+                        )}
+                      </div>
+                      <p className="text-[11px] font-semibold text-gray-700 line-clamp-2 leading-tight mb-0.5 group-hover:text-primary transition-colors">{product.name}</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-xs font-black text-primary">৳{Number(product.salePrice ?? product.basePrice).toLocaleString('en-BD')}</span>
+                        {product.salePrice && Number(product.salePrice) < Number(product.basePrice) && (
+                          <span className="text-[10px] text-gray-400 line-through">৳{Number(product.basePrice).toLocaleString('en-BD')}</span>
+                        )}
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex-shrink-0 w-[130px] animate-pulse">
+                      <div className="w-full h-[100px] rounded-lg bg-gray-100 mb-1.5" />
+                      <div className="h-3 bg-gray-100 rounded mb-1" />
+                      <div className="h-3 bg-gray-100 rounded w-2/3" />
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Arrow buttons (always visible) */}
-        <button
-          onClick={() => goToSlide(i => (i - 1 + 3) % 3)}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-md transition-all border border-white/30"
-          aria-label="Previous slide"
-        >
-          <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
-        </button>
-        <button
-          onClick={() => goToSlide(i => (i + 1) % 3)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-md transition-all border border-white/30"
-          aria-label="Next slide"
-        >
-          <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
-        </button>
       </section>
 
       {/* ── 2: Quick Categories ── */}
