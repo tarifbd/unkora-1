@@ -6,6 +6,7 @@ import {
   Book, Baby, Briefcase, Leaf, Palette, Zap, ShoppingBag,
   Menu, X, Search, User, ShoppingCart, ChevronDown,
   MapPin, Phone, Download, HelpCircle,
+  Package, Heart, CreditCard, Settings, LogOut, Gift, Truck,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
@@ -328,7 +329,9 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSubnav, setActiveSubnav] = useState<string | null>(null);
   const [megaOpen, setMegaOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const megaRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -341,6 +344,18 @@ export function Header() {
     }
     return () => document.removeEventListener('mousedown', handleClick);
   }, [megaOpen]);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+    if (accountOpen) {
+      document.addEventListener('mousedown', handleClick);
+    }
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [accountOpen]);
 
   const itemCount = isAuthenticated
     ? (cart?.itemCount ?? 0)
@@ -464,24 +479,128 @@ export function Header() {
             {/* Icons */}
             <div className="flex items-center gap-5 md:gap-6 lg:gap-8 flex-shrink-0 text-gray-800">
               {/* Account */}
-              <div className="flex items-center gap-2 cursor-pointer group hover:text-secondary transition-colors">
-                <div className="p-2">
+              <div
+                ref={accountRef}
+                className="relative flex items-center gap-2 cursor-pointer group transition-colors"
+                onMouseEnter={() => setAccountOpen(true)}
+                onMouseLeave={() => setAccountOpen(false)}
+              >
+                <div className={`p-2 transition-colors ${accountOpen ? 'text-secondary' : 'hover:text-secondary'}`}>
                   <User className="w-[26px] h-[26px]" />
                 </div>
                 <div className="hidden lg:block text-left">
                   <p className="text-[10px] text-gray-500 font-bold uppercase leading-tight">
                     {isAuthenticated ? `${lang === 'bn' ? 'হ্যালো,' : 'Hello,'} ${user?.firstName ?? user?.name ?? ''}` : t.header.helloSignIn}
                   </p>
-                  {isAuthenticated ? (
-                    <Link href="/account" className="text-sm font-bold leading-tight flex items-center hover:text-secondary transition-colors">
-                      {t.header.accountOrders} <ChevronDown className="w-3 h-3 ml-0.5" />
-                    </Link>
-                  ) : (
-                    <Link href="/login" className="text-sm font-bold leading-tight flex items-center hover:text-secondary transition-colors">
-                      {t.header.accountsLists} <ChevronDown className="w-3 h-3 ml-0.5" />
-                    </Link>
-                  )}
+                  <span className={`text-sm font-bold leading-tight flex items-center transition-colors ${accountOpen ? 'text-secondary' : 'text-gray-800'}`}>
+                    {isAuthenticated ? t.header.accountOrders : t.header.accountsLists}
+                    <ChevronDown className={`w-3 h-3 ml-0.5 transition-transform ${accountOpen ? 'rotate-180 text-secondary' : ''}`} />
+                  </span>
                 </div>
+
+                {/* Account Dropdown */}
+                {accountOpen && (
+                  <div className="absolute top-full right-0 z-50 bg-white shadow-2xl rounded-xl border border-gray-100 overflow-hidden" style={{ width: '240px', marginTop: '0px' }}>
+                    {/* Top accent */}
+                    <div className="h-0.5 w-full bg-gradient-to-r from-primary to-secondary" />
+
+                    {/* Guest: Sign in / Register */}
+                    {!isAuthenticated && (
+                      <div className="px-4 pt-4 pb-3">
+                        <Link
+                          href="/login"
+                          onClick={() => setAccountOpen(false)}
+                          className="block w-full text-center bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 rounded-full text-sm transition-colors"
+                        >
+                          {lang === 'bn' ? 'সাইন ইন' : 'Sign in'}
+                        </Link>
+                        <div className="text-center mt-2">
+                          <span className="text-xs text-gray-500">{lang === 'bn' ? 'নতুন? ' : 'New? '}</span>
+                          <Link
+                            href="/register"
+                            onClick={() => setAccountOpen(false)}
+                            className="text-xs text-primary font-bold hover:underline"
+                          >
+                            {lang === 'bn' ? 'রেজিস্টার করুন' : 'Register'}
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Authenticated: greeting */}
+                    {isAuthenticated && (
+                      <div className="px-4 pt-3 pb-2 flex items-center gap-3 bg-gray-50">
+                        <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
+                          <User className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900 leading-tight">{user?.firstName ?? user?.name ?? 'User'}</p>
+                          <Link href="/account" onClick={() => setAccountOpen(false)} className="text-[11px] text-primary hover:underline font-medium">
+                            {lang === 'bn' ? 'প্রোফাইল দেখুন' : 'View profile'}
+                          </Link>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="h-px bg-gray-100 mx-3 my-1" />
+
+                    {/* Primary menu items */}
+                    <div className="py-1">
+                      {[
+                        { icon: Package,     label: 'My Orders',          labelBn: 'আমার অর্ডার',        href: '/account/orders' },
+                        { icon: Heart,       label: 'My Wishlist',         labelBn: 'উইশলিস্ট',           href: '/account/wishlist' },
+                        { icon: Truck,       label: 'Track Order',         labelBn: 'অর্ডার ট্র্যাক',     href: '/account/orders' },
+                        { icon: CreditCard,  label: 'Payment',             labelBn: 'পেমেন্ট',             href: '/account' },
+                        { icon: Gift,        label: 'My Coupons',          labelBn: 'কুপন',                href: '/account' },
+                      ].map(item => (
+                        <Link
+                          key={item.href + item.label}
+                          href={item.href}
+                          onClick={() => setAccountOpen(false)}
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
+                        >
+                          <item.icon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          {lang === 'bn' ? item.labelBn : item.label}
+                        </Link>
+                      ))}
+                    </div>
+
+                    <div className="h-px bg-gray-100 mx-3 my-1" />
+
+                    {/* Secondary links */}
+                    <div className="py-1 pb-2">
+                      {[
+                        { label: 'Settings',              labelBn: 'সেটিংস',             href: '/account', authOnly: true },
+                        { label: 'Seller Login',          labelBn: 'সেলার লগইন',          href: '/admin', adminOnly: true },
+                        { label: 'Return & Refund Policy',labelBn: 'রিটার্ন ও রিফান্ড',   href: '#' },
+                        { label: 'Help Center',           labelBn: 'সাহায্য কেন্দ্র',     href: '#' },
+                        { label: 'Contact Us',            labelBn: 'যোগাযোগ করুন',        href: '#' },
+                      ].filter(item => {
+                        if ('authOnly' in item && item.authOnly && !isAuthenticated) return false;
+                        if ('adminOnly' in item && item.adminOnly && user?.role === 'CUSTOMER') return false;
+                        return true;
+                      }).map(item => (
+                        <Link
+                          key={item.label}
+                          href={item.href}
+                          onClick={() => setAccountOpen(false)}
+                          className="block px-4 py-2 text-xs text-gray-500 hover:text-primary hover:bg-gray-50 transition-colors"
+                        >
+                          {lang === 'bn' ? item.labelBn : item.label}
+                        </Link>
+                      ))}
+                      {isAuthenticated && (
+                        <button
+                          onClick={() => { void logout.mutate(); setAccountOpen(false); }}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          {lang === 'bn' ? 'সাইন আউট' : 'Sign out'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Admin link */}
