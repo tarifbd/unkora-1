@@ -7,7 +7,7 @@ import {
   Menu, X, Search, User, ShoppingCart, ChevronDown,
   MapPin, Phone, Download, HelpCircle,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 import { useCartStore } from '@/store/cart.store';
@@ -246,6 +246,101 @@ const BN_SUBNAV: Record<string, Record<string, string>> = {
   '/categories/daily-needs':      { 'Grocery': 'মুদি', 'Personal Care': 'ব্যক্তিগত যত্ন', 'Household': 'গৃহস্থালি', 'Stationery': 'স্টেশনারি', 'Pet Care': 'পোষা প্রাণীর যত্ন' },
 };
 
+const MEGA_CATEGORIES = [
+  {
+    emoji: '📚',
+    name: 'Books',
+    nameBn: 'বই',
+    href: '/books',
+    subs: [
+      { label: 'উপন্যাস',  href: '/books?genre=Fiction' },
+      { label: 'ইসলামিক', href: '/books?genre=Islamic' },
+      { label: 'Self-Help', href: '/books?genre=Self-Help' },
+      { label: 'Academic',  href: '/books?genre=Academic' },
+      { label: 'Thriller',  href: '/books?genre=Thriller' },
+      { label: 'Poetry',    href: '/books?genre=Poetry' },
+    ],
+  },
+  {
+    emoji: '👶',
+    name: 'Baby Products',
+    nameBn: 'শিশু পণ্য',
+    href: '/categories/baby-products',
+    subs: [
+      { label: 'Diapers',   href: '/categories/baby-products?tag=diapers' },
+      { label: 'Baby Food', href: '/categories/baby-products?tag=baby-food' },
+      { label: 'Toys',      href: '/categories/baby-products?tag=soft-toys' },
+      { label: 'Clothing',  href: '/categories/baby-products?tag=toddler' },
+      { label: 'Strollers', href: '/categories/baby-products?tag=stroller' },
+    ],
+  },
+  {
+    emoji: '👜',
+    name: 'Leather',
+    nameBn: 'লেদার',
+    href: '/categories/leather-products',
+    subs: [
+      { label: 'Wallets',       href: '/categories/leather-products?tag=bifold' },
+      { label: 'Bags',          href: '/categories/leather-products?tag=backpack' },
+      { label: 'Belts',         href: '/categories/leather-products?tag=formal-belt' },
+      { label: "Men's Shoes",   href: '/categories/leather-products?tag=mens-formal' },
+      { label: "Women's Shoes", href: '/categories/leather-products?tag=heels' },
+    ],
+  },
+  {
+    emoji: '🌿',
+    name: 'Organic',
+    nameBn: 'অর্গানিক',
+    href: '/categories/organic-foods',
+    subs: [
+      { label: 'Honey',         href: '/categories/organic-foods?tag=wild-honey' },
+      { label: 'Nuts',          href: '/categories/organic-foods?tag=mixed-nuts' },
+      { label: 'Spices',        href: '/categories/organic-foods?tag=turmeric' },
+      { label: 'Healthy Snacks',href: '/categories/organic-foods?tag=granola' },
+      { label: 'Tea',           href: '/categories/organic-foods?tag=green-tea' },
+    ],
+  },
+  {
+    emoji: '🎨',
+    name: 'Handicrafts',
+    nameBn: 'হস্তশিল্প',
+    href: '/categories/handicrafts',
+    subs: [
+      { label: 'Wall Art',    href: '/categories/handicrafts?tag=canvas' },
+      { label: 'Showpieces',  href: '/categories/handicrafts?tag=clay' },
+      { label: 'Traditional', href: '/categories/handicrafts?tag=nakshi-kantha' },
+      { label: 'Jewelry',     href: '/categories/handicrafts?tag=jewelry' },
+      { label: 'Pottery',     href: '/categories/handicrafts?tag=pottery' },
+    ],
+  },
+  {
+    emoji: '⚡',
+    name: 'Electronics',
+    nameBn: 'ইলেকট্রনিক্স',
+    href: '/categories/electronics',
+    subs: [
+      { label: 'Mobiles',     href: '/categories/electronics?tag=samsung' },
+      { label: 'Laptops',     href: '/categories/electronics?tag=gaming-laptop' },
+      { label: 'Accessories', href: '/categories/electronics?tag=earbuds' },
+      { label: 'Gadgets',     href: '/categories/electronics?tag=camera' },
+      { label: 'Audio',       href: '/categories/electronics?tag=earbuds' },
+    ],
+  },
+  {
+    emoji: '🛒',
+    name: 'Daily Needs',
+    nameBn: 'দৈনন্দিন',
+    href: '/categories/daily-needs',
+    subs: [
+      { label: 'Grocery',      href: '/categories/daily-needs?tag=rice' },
+      { label: 'Personal Care',href: '/categories/daily-needs?tag=skincare' },
+      { label: 'Household',    href: '/categories/daily-needs?tag=cleaning' },
+      { label: 'Stationery',   href: '/categories/daily-needs?tag=notebooks' },
+      { label: 'Pet Care',     href: '/categories/daily-needs?tag=pet-food' },
+    ],
+  },
+];
+
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
@@ -257,6 +352,20 @@ export function Header() {
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSubnav, setActiveSubnav] = useState<string | null>(null);
+  const [megaOpen, setMegaOpen] = useState(false);
+  const megaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (megaRef.current && !megaRef.current.contains(e.target as Node)) {
+        setMegaOpen(false);
+      }
+    };
+    if (megaOpen) {
+      document.addEventListener('mousedown', handleClick);
+    }
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [megaOpen]);
 
   const itemCount = cart?.itemCount ?? 0;
 
@@ -442,11 +551,70 @@ export function Header() {
         </div>
 
         {/* ── Tier 3: Category nav (desktop) ── */}
-        <div className="bg-white hidden lg:block border-b border-gray-200">
+        <div className="bg-white hidden lg:block border-b border-gray-200 relative z-40" ref={megaRef}>
           <div className="max-w-7xl mx-auto pl-4 flex items-center relative">
-            <button className="bg-gray-900 text-white flex items-center gap-2 px-5 py-3 font-bold text-sm cursor-pointer hover:bg-gray-800 transition-colors mr-6 shrink-0">
+            <button
+              onClick={() => setMegaOpen(o => !o)}
+              className={cn(
+                'flex items-center gap-2 px-5 py-3 font-bold text-sm cursor-pointer transition-colors mr-6 shrink-0',
+                megaOpen ? 'bg-primary text-white' : 'bg-gray-900 text-white hover:bg-gray-800',
+              )}
+            >
               <Menu className="w-[18px] h-[18px]" /> {t.header.allDepartments}
+              <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', megaOpen && 'rotate-180')} />
             </button>
+
+            {/* ── Mega Menu Dropdown ── */}
+            {megaOpen && (
+              <div className="absolute top-full left-0 w-full min-w-[900px] bg-white shadow-2xl rounded-b-2xl border-t-2 border-primary z-50 p-6">
+                <div className="grid grid-cols-7 gap-4">
+                  {MEGA_CATEGORIES.map(cat => (
+                    <div key={cat.href} className="flex flex-col">
+                      <Link
+                        href={cat.href}
+                        onClick={() => setMegaOpen(false)}
+                        className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-100 group"
+                      >
+                        <span className="text-xl leading-none">{cat.emoji}</span>
+                        <span className="text-[13px] font-black text-primary group-hover:text-primary/80 transition-colors leading-tight">
+                          {lang === 'bn' ? cat.nameBn : cat.name}
+                        </span>
+                      </Link>
+                      <ul className="flex flex-col gap-1.5">
+                        {cat.subs.map(sub => (
+                          <li key={sub.href}>
+                            <Link
+                              href={sub.href}
+                              onClick={() => setMegaOpen(false)}
+                              className="text-xs text-gray-600 hover:text-primary transition-colors leading-snug block py-0.5"
+                            >
+                              {sub.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                  <p className="text-[11px] text-gray-400 font-medium">
+                    {lang === 'bn' ? '৭টি বিভাগে হাজারো পণ্য' : '1000s of products across 7 departments'}
+                  </p>
+                  <Link
+                    href="/products"
+                    onClick={() => setMegaOpen(false)}
+                    className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                  >
+                    {lang === 'bn' ? 'সব পণ্য দেখুন →' : 'Browse all products →'}
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="max-w-7xl mx-auto pl-4 flex items-center">
+            {/* invisible spacer matching the button width so nav starts at same point */}
+            <div className="w-[220px] shrink-0" />
 
             <nav className="flex items-center justify-start h-[48px] text-[14px] font-bold text-gray-700 flex-1 overflow-x-auto hide-scrollbar">
               {NAV_CATEGORIES.map((cat, idx) => (
