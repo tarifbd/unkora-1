@@ -7,10 +7,8 @@ import { ShoppingCart, Minus, Plus, Loader2, ArrowLeft, BookOpen, Package } from
 import Link from 'next/link';
 import { productsApi } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
-import { useAuthStore } from '@/store/auth.store';
 import { useCartStore } from '@/store/cart.store';
 import { formatCurrency } from '@/lib/utils';
-import { useRouter } from 'next/navigation';
 import { ProductReviews } from '@/components/product/product-reviews';
 import { WishlistButton } from '@/components/product/wishlist-button';
 
@@ -22,9 +20,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
   const { addItem } = useCart();
-  const { isAuthenticated } = useAuthStore();
   const { openCart } = useCartStore();
-  const router = useRouter();
 
   if (isLoading) return (
     <div className="container py-12 flex justify-center">
@@ -38,8 +34,16 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const hasDiscount = product.salePrice && Number(product.salePrice) < Number(product.basePrice);
 
   const handleAddToCart = () => {
-    if (!isAuthenticated) { router.push('/login'); return; }
-    addItem.mutate({ productId: product.id, quantity: qty });
+    addItem.mutate({
+      productId: product.id,
+      quantity: qty,
+      guestData: {
+        name: product.name,
+        price: Number(product.salePrice ?? product.basePrice),
+        image: product.images[0]?.url,
+        slug: product.slug,
+      },
+    });
     openCart();
   };
 
@@ -54,7 +58,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
         <div className="flex flex-col gap-3">
           <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
             {product.images[activeImg] ? (
-              <Image src={product.images[activeImg]!.url} alt={product.name} fill className="object-cover" />
+              <Image src={product.images[activeImg]?.url ?? ''} alt={product.name} fill className="object-cover" />
             ) : (
               <div className="flex h-full items-center justify-center text-6xl">📦</div>
             )}
@@ -125,21 +129,29 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 
           {/* Qty + Add to Cart + Wishlist */}
           {product.stockQuantity > 0 && (
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 rounded-md border px-3 py-2">
-                <button onClick={() => setQty(Math.max(1, qty - 1))} className="hover:text-brand-600 transition-colors"><Minus className="h-4 w-4" /></button>
-                <span className="min-w-[24px] text-center font-medium">{qty}</span>
-                <button onClick={() => setQty(Math.min(product.stockQuantity, qty + 1))} className="hover:text-brand-600 transition-colors"><Plus className="h-4 w-4" /></button>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 rounded-md border px-3 py-2">
+                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="hover:text-brand-600 transition-colors"><Minus className="h-4 w-4" /></button>
+                  <span className="min-w-[24px] text-center font-medium">{qty}</span>
+                  <button onClick={() => setQty(Math.min(product.stockQuantity, qty + 1))} className="hover:text-brand-600 transition-colors"><Plus className="h-4 w-4" /></button>
+                </div>
+                <button onClick={handleAddToCart} disabled={addItem.isPending}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                  {addItem.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
+                  Add to Cart
+                </button>
+                <WishlistButton
+                  productId={product.id}
+                  className="h-10 w-10 rounded-md border hover:bg-accent transition-colors"
+                />
               </div>
-              <button onClick={handleAddToCart} disabled={addItem.isPending}
-                className="flex flex-1 items-center justify-center gap-2 rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
-                {addItem.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
-                Add to Cart
-              </button>
-              <WishlistButton
-                productId={product.id}
-                className="h-10 w-10 rounded-md border hover:bg-accent transition-colors"
-              />
+              <Link
+                href={`/checkout?productId=${product.id}&qty=${qty}`}
+                className="flex items-center justify-center gap-2 w-full py-3 bg-secondary text-white rounded-xl font-bold text-sm hover:bg-secondary/90 transition-all"
+              >
+                ⚡ Buy Now
+              </Link>
             </div>
           )}
           {product.stockQuantity === 0 && (

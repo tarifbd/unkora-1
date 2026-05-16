@@ -4,10 +4,12 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, Package, ArrowRight, Loader2 } from 'lucide-react';
+import { useAuthStore } from '@/store/auth.store';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
+  const { isAuthenticated } = useAuthStore();
 
   return (
     <div className="mx-auto max-w-md text-center">
@@ -36,7 +38,7 @@ function SuccessContent() {
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-        {orderId && (
+        {isAuthenticated && orderId && (
           <Link href={`/account/orders/${orderId}`}
             className="inline-flex items-center justify-center gap-2 rounded-md border px-6 py-2.5 text-sm font-medium hover:bg-accent transition-colors">
             Track Order

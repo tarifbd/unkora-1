@@ -46,6 +46,7 @@ function CheckoutContent() {
   const { isAuthenticated } = useAuthStore();
   const guestCart = useGuestCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
   const [quickBuyItem, setQuickBuyItem] = useState<QuickBuyItem | null>(null);
   const [quickBuyLoading, setQuickBuyLoading] = useState(false);
@@ -116,6 +117,7 @@ function CheckoutContent() {
 
   const onSubmit = async (data: CheckoutFormData) => {
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       // Build items array for guest endpoint
       const items = quickBuyItem
@@ -148,8 +150,10 @@ function CheckoutContent() {
       }
 
       router.push(`/checkout/success?orderId=${order.id}`);
-    } catch {
+    } catch (err: unknown) {
       setIsSubmitting(false);
+      const msg = err instanceof Error ? err.message : 'Failed to place order. Please try again.';
+      setSubmitError(msg);
     }
   };
 
@@ -292,6 +296,12 @@ function CheckoutContent() {
             <span>Total</span>
             <span className="text-brand-600">{formatCurrency(Math.max(0, total))}</span>
           </div>
+
+          {submitError && (
+            <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+              {submitError}
+            </div>
+          )}
 
           <button type="submit" disabled={isSubmitting}
             className="flex w-full items-center justify-center gap-2 rounded-md bg-primary py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
