@@ -8,6 +8,7 @@ import type { Product } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { WishlistButton } from './wishlist-button';
+import { trackAddToCart } from '@/lib/analytics';
 
 interface ProductCardProps {
   product: Product;
@@ -39,6 +40,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
         slug: product.slug,
       },
     });
+    trackAddToCart({ productId: product.id, name: product.name, price });
   };
 
   const reviewCount = product._count?.reviews ?? 0;

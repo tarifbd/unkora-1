@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import { ShoppingCart, Minus, Plus, Loader2, ArrowLeft, BookOpen, Package } from 'lucide-react';
@@ -11,6 +11,7 @@ import { useCartStore } from '@/store/cart.store';
 import { formatCurrency } from '@/lib/utils';
 import { ProductReviews } from '@/components/product/product-reviews';
 import { WishlistButton } from '@/components/product/wishlist-button';
+import { trackViewProduct, trackAddToCart } from '@/lib/analytics';
 
 export default function ProductDetailClient({ slug }: { slug: string }) {
   const { data: product, isLoading } = useQuery({
@@ -21,6 +22,16 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const [activeImg, setActiveImg] = useState(0);
   const { addItem } = useCart();
   const { openCart } = useCartStore();
+
+  useEffect(() => {
+    if (!product) return;
+    trackViewProduct({
+      productId: product.id,
+      name: product.name,
+      price: Number(product.salePrice ?? product.basePrice),
+      category: product.category?.name,
+    });
+  }, [product]);
 
   if (isLoading) return (
     <div className="container py-12 flex justify-center">
@@ -44,6 +55,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
         slug: product.slug,
       },
     });
+    trackAddToCart({ productId: product.id, name: product.name, price });
     openCart();
   };
 

@@ -25,6 +25,7 @@ import { UsersModule } from './modules/users/users.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { ShipmentsModule } from './modules/shipments/shipments.module';
+import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { ShipmentsModule } from './modules/shipments/shipments.module';
     UploadModule,
     InventoryModule,
     ShipmentsModule,
+    SettingsModule,
   ],
 })
 export class AppModule {}

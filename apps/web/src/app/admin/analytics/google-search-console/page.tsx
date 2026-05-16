@@ -1,17 +1,38 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Globe, CheckCircle2, ExternalLink, ArrowLeft, Copy } from 'lucide-react';
 import Link from 'next/link';
+import api from '@/lib/api';
 
 export default function GoogleSearchConsolePage() {
   const [verificationTag, setVerificationTag] = useState('');
   const [sitemapUrl, setSitemapUrl] = useState('/sitemap.xml');
   const [saved, setSaved] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  useEffect(() => {
+    api.get('/settings/analytics')
+      .then(r => {
+        const s = r.data.data as Record<string, string>;
+        setVerificationTag(s['analytics.gsc.verificationTag'] ?? '');
+        setSitemapUrl(s['analytics.gsc.sitemapUrl'] ?? '/sitemap.xml');
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      await api.post('/settings/analytics', {
+        'analytics.gsc.verificationTag': verificationTag,
+        'analytics.gsc.sitemapUrl': sitemapUrl,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch {
+      // show error
+    }
   };
 
   const copyTag = () => {
@@ -23,6 +44,8 @@ export default function GoogleSearchConsolePage() {
   };
 
   const inputCls = 'w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50';
+
+  if (loading) return <div className="max-w-3xl py-12 text-center text-sm text-muted-foreground">Loading settings…</div>;
 
   return (
     <div className="max-w-3xl space-y-6">

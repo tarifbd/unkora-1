@@ -4,6 +4,7 @@ import { Inter, Lora } from 'next/font/google';
 import '@/styles/globals.css';
 
 import { Providers } from './providers';
+import { AnalyticsScripts } from '@/components/analytics/analytics-scripts';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="bn" suppressHydrationWarning>
       <body className={`${inter.variable} ${lora.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
+        <AnalyticsScripts />
       </body>
     </html>
   );

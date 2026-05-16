@@ -3,6 +3,7 @@ import { OrderStatus } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
 import { EmailService } from '../email/email.service';
+import { FacebookCAPIService } from '../settings/facebook-capi.service';
 import type { CreateOrderDto } from './dto/create-order.dto';
 import type { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 
@@ -13,6 +14,7 @@ export class OrdersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
+    private readonly facebookCAPIService: FacebookCAPIService,
   ) {}
 
   private generateOrderNumber(): string {
@@ -214,6 +216,21 @@ export class OrdersService {
 
       return newOrder;
     });
+
+    // Fire Facebook CAPI Purchase event (non-blocking)
+    this.facebookCAPIService.sendPurchase({
+      email: dto.guestEmail,
+      phone: dto.guestPhone,
+      firstName: dto.guestName.split(' ')[0],
+      lastName: dto.guestName.split(' ').slice(1).join(' ') || undefined,
+      orderId: order.orderNumber,
+      value: total,
+      currency: 'BDT',
+      items: dto.items.map(item => {
+        const product = products.find(p => p.id === item.productId)!;
+        return { id: item.productId, quantity: item.quantity, price: Number(product.salePrice ?? product.basePrice) };
+      }),
+    }).catch(err => this.logger.error('CAPI purchase failed', err));
 
     return order;
   }

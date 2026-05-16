@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Target, CheckCircle2, AlertCircle, ExternalLink, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import api from '@/lib/api';
 
 export default function MetaPixelPage() {
   const [pixelEnabled, setPixelEnabled] = useState(false);
@@ -10,13 +11,40 @@ export default function MetaPixelPage() {
   const [accessToken, setAccessToken] = useState('');
   const [showToken, setShowToken] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  useEffect(() => {
+    api.get('/settings/analytics')
+      .then(r => {
+        const s = r.data.data as Record<string, string>;
+        setPixelEnabled(s['analytics.pixel.enabled'] === 'true');
+        setCapiEnabled(s['analytics.capi.enabled'] === 'true');
+        setPixelId(s['analytics.pixel.pixelId'] ?? '');
+        setAccessToken(s['analytics.capi.accessToken'] ?? '');
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      await api.post('/settings/analytics', {
+        'analytics.pixel.enabled': pixelEnabled ? 'true' : 'false',
+        'analytics.pixel.pixelId': pixelId,
+        'analytics.capi.enabled': capiEnabled ? 'true' : 'false',
+        'analytics.capi.pixelId': pixelId,
+        ...(accessToken && { 'analytics.capi.accessToken': accessToken }),
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch {
+      // show error
+    }
   };
 
   const inputCls = 'w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50';
+
+  if (loading) return <div className="max-w-3xl py-12 text-center text-sm text-muted-foreground">Loading settings…</div>;
 
   const Toggle = ({ value, onChange }: { value: boolean; onChange: () => void }) => (
     <button

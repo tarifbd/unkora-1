@@ -1,7 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tag, CheckCircle2, ExternalLink, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import api from '@/lib/api';
 
 export default function GoogleTagManagerPage() {
   const [enabled, setEnabled] = useState(false);
@@ -9,13 +10,35 @@ export default function GoogleTagManagerPage() {
   const [dataLayerPageView, setDataLayerPageView] = useState(true);
   const [dataLayerEcom, setDataLayerEcom] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  useEffect(() => {
+    api.get('/settings/analytics')
+      .then(r => {
+        const s = r.data.data as Record<string, string>;
+        setEnabled(s['analytics.gtm.enabled'] === 'true');
+        setContainerId(s['analytics.gtm.containerId'] ?? '');
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      await api.post('/settings/analytics', {
+        'analytics.gtm.enabled': enabled ? 'true' : 'false',
+        'analytics.gtm.containerId': containerId,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch {
+      // show error
+    }
   };
 
   const inputCls = 'w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50';
+
+  if (loading) return <div className="max-w-3xl py-12 text-center text-sm text-muted-foreground">Loading settings…</div>;
 
   const Toggle = ({ value, onChange }: { value: boolean; onChange: () => void }) => (
     <button type="button" onClick={onChange}

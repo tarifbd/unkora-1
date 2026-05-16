@@ -24,6 +24,11 @@ export interface RevenueChartPoint {
   revenue: number;
 }
 
+export const settingsApi = {
+  getAnalytics: () => api.get('/settings/analytics').then(r => r.data.data as Record<string, string>),
+  saveAnalytics: (data: Record<string, string>) => api.post('/settings/analytics', data).then(r => r.data.data),
+};
+
 export const adminApi = {
   getDashboardStats: (): Promise<DashboardStats> =>
     api.get('/admin/dashboard').then(r => r.data.data),
