@@ -237,94 +237,80 @@ const BN_SUBNAV: Record<string, Record<string, string>> = {
 
 const MEGA_CATEGORIES = [
   {
-    emoji: '📚',
-    name: 'Books',
-    nameBn: 'বই',
+    emoji: '📚', name: 'Books', nameBn: 'বই',
     href: '/products?categorySlug=books',
     subs: [
-      { label: 'উপন্যাস',   href: '/products?categorySlug=books' },
-      { label: 'ইসলামিক',  href: '/products?categorySlug=books' },
-      { label: 'Self-Help',  href: '/products?categorySlug=books' },
-      { label: 'Academic',   href: '/products?categorySlug=books' },
-      { label: 'All Books →', href: '/products?categorySlug=books' },
+      { label: 'Novel / Fiction', labelBn: 'উপন্যাস',      href: '/products?categorySlug=books' },
+      { label: 'Islamic Books',   labelBn: 'ইসলামিক বই',   href: '/products?categorySlug=books' },
+      { label: 'Self-Help',       labelBn: 'আত্মউন্নয়ন',   href: '/products?categorySlug=books' },
+      { label: 'Academic',        labelBn: 'একাডেমিক',      href: '/products?categorySlug=books' },
+      { label: 'All Books →',     labelBn: 'সব বই →',      href: '/products?categorySlug=books' },
     ],
   },
   {
-    emoji: '👶',
-    name: 'Baby Products',
-    nameBn: 'শিশু পণ্য',
+    emoji: '👶', name: 'Baby Products', nameBn: 'শিশু পণ্য',
     href: '/products?categorySlug=baby-products',
     subs: [
-      { label: 'Diapers',       href: '/products?categorySlug=baby-products' },
-      { label: 'Baby Food',     href: '/products?categorySlug=baby-products' },
-      { label: 'Toys',          href: '/products?categorySlug=baby-products' },
-      { label: 'Clothing',      href: '/products?categorySlug=baby-products' },
-      { label: 'All Baby →',    href: '/products?categorySlug=baby-products' },
+      { label: 'Diapers',      labelBn: 'ডায়াপার',        href: '/products?categorySlug=baby-products' },
+      { label: 'Baby Food',    labelBn: 'শিশু খাদ্য',      href: '/products?categorySlug=baby-products' },
+      { label: 'Toys',         labelBn: 'খেলনা',           href: '/products?categorySlug=baby-products' },
+      { label: 'Clothing',     labelBn: 'শিশু পোশাক',      href: '/products?categorySlug=baby-products' },
+      { label: 'All Baby →',   labelBn: 'সব শিশু পণ্য →', href: '/products?categorySlug=baby-products' },
     ],
   },
   {
-    emoji: '👜',
-    name: 'Leather',
-    nameBn: 'লেদার',
+    emoji: '👜', name: 'Leather', nameBn: 'চামড়া পণ্য',
     href: '/products?categorySlug=leather-products',
     subs: [
-      { label: 'Wallets',         href: '/products?categorySlug=leather-products' },
-      { label: 'Bags',            href: '/products?categorySlug=leather-products' },
-      { label: 'Belts',           href: '/products?categorySlug=leather-products' },
-      { label: "Shoes",           href: '/products?categorySlug=leather-products' },
-      { label: 'All Leather →',   href: '/products?categorySlug=leather-products' },
+      { label: 'Wallets',        labelBn: 'মানিব্যাগ',    href: '/products?categorySlug=leather-products' },
+      { label: 'Bags',           labelBn: 'ব্যাগ',         href: '/products?categorySlug=leather-products' },
+      { label: 'Belts',          labelBn: 'বেল্ট',         href: '/products?categorySlug=leather-products' },
+      { label: 'Shoes',          labelBn: 'জুতা',          href: '/products?categorySlug=leather-products' },
+      { label: 'All Leather →',  labelBn: 'সব চামড়া →',  href: '/products?categorySlug=leather-products' },
     ],
   },
   {
-    emoji: '🌿',
-    name: 'Organic',
-    nameBn: 'অর্গানিক',
+    emoji: '🌿', name: 'Organic', nameBn: 'অর্গানিক',
     href: '/products?categorySlug=organic-foods',
     subs: [
-      { label: 'Honey',           href: '/products?categorySlug=organic-foods' },
-      { label: 'Nuts',            href: '/products?categorySlug=organic-foods' },
-      { label: 'Spices',          href: '/products?categorySlug=organic-foods' },
-      { label: 'Tea',             href: '/products?categorySlug=organic-foods' },
-      { label: 'All Organic →',   href: '/products?categorySlug=organic-foods' },
+      { label: 'Honey',          labelBn: 'মধু',            href: '/products?categorySlug=organic-foods' },
+      { label: 'Nuts & Seeds',   labelBn: 'বাদাম ও বীজ',   href: '/products?categorySlug=organic-foods' },
+      { label: 'Spices',         labelBn: 'মশলা',           href: '/products?categorySlug=organic-foods' },
+      { label: 'Tea',            labelBn: 'চা',             href: '/products?categorySlug=organic-foods' },
+      { label: 'All Organic →',  labelBn: 'সব অর্গানিক →', href: '/products?categorySlug=organic-foods' },
     ],
   },
   {
-    emoji: '🎨',
-    name: 'Handicrafts',
-    nameBn: 'হস্তশিল্প',
+    emoji: '🎨', name: 'Handicrafts', nameBn: 'হস্তশিল্প',
     href: '/products?categorySlug=handicrafts',
     subs: [
-      { label: 'Wall Art',        href: '/products?categorySlug=handicrafts' },
-      { label: 'Showpieces',      href: '/products?categorySlug=handicrafts' },
-      { label: 'Traditional',     href: '/products?categorySlug=handicrafts' },
-      { label: 'Pottery',         href: '/products?categorySlug=handicrafts' },
-      { label: 'All Crafts →',    href: '/products?categorySlug=handicrafts' },
+      { label: 'Wall Art',       labelBn: 'দেওয়াল শিল্প',  href: '/products?categorySlug=handicrafts' },
+      { label: 'Showpieces',     labelBn: 'শোপিস',          href: '/products?categorySlug=handicrafts' },
+      { label: 'Traditional',    labelBn: 'ঐতিহ্যবাহী',    href: '/products?categorySlug=handicrafts' },
+      { label: 'Pottery',        labelBn: 'মাটির পণ্য',     href: '/products?categorySlug=handicrafts' },
+      { label: 'All Crafts →',   labelBn: 'সব হস্তশিল্প →', href: '/products?categorySlug=handicrafts' },
     ],
   },
   {
-    emoji: '⚡',
-    name: 'Electronics',
-    nameBn: 'ইলেকট্রনিক্স',
+    emoji: '⚡', name: 'Electronics', nameBn: 'ইলেকট্রনিক্স',
     href: '/products?categorySlug=electronics',
     subs: [
-      { label: 'Mobiles',         href: '/products?categorySlug=electronics' },
-      { label: 'Laptops',         href: '/products?categorySlug=electronics' },
-      { label: 'Accessories',     href: '/products?categorySlug=electronics' },
-      { label: 'Gadgets',         href: '/products?categorySlug=electronics' },
-      { label: 'All Electronics →', href: '/products?categorySlug=electronics' },
+      { label: 'Mobiles',         labelBn: 'মোবাইল',            href: '/products?categorySlug=electronics' },
+      { label: 'Laptops',         labelBn: 'ল্যাপটপ',           href: '/products?categorySlug=electronics' },
+      { label: 'Accessories',     labelBn: 'আনুষাঙ্গিক',        href: '/products?categorySlug=electronics' },
+      { label: 'Gadgets',         labelBn: 'গ্যাজেট',           href: '/products?categorySlug=electronics' },
+      { label: 'All Electronics →', labelBn: 'সব ইলেকট্রনিক্স →', href: '/products?categorySlug=electronics' },
     ],
   },
   {
-    emoji: '🛒',
-    name: 'Daily Needs',
-    nameBn: 'দৈনন্দিন',
+    emoji: '🛒', name: 'Daily Needs', nameBn: 'দৈনন্দিন',
     href: '/products?categorySlug=daily-needs',
     subs: [
-      { label: 'Grocery',         href: '/products?categorySlug=daily-needs' },
-      { label: 'Personal Care',   href: '/products?categorySlug=daily-needs' },
-      { label: 'Household',       href: '/products?categorySlug=daily-needs' },
-      { label: 'Stationery',      href: '/products?categorySlug=daily-needs' },
-      { label: 'All Daily →',     href: '/products?categorySlug=daily-needs' },
+      { label: 'Grocery',        labelBn: 'মুদি পণ্য',          href: '/products?categorySlug=daily-needs' },
+      { label: 'Personal Care',  labelBn: 'ব্যক্তিগত যত্ন',     href: '/products?categorySlug=daily-needs' },
+      { label: 'Household',      labelBn: 'গৃহস্থালি',           href: '/products?categorySlug=daily-needs' },
+      { label: 'Stationery',     labelBn: 'স্টেশনারি',           href: '/products?categorySlug=daily-needs' },
+      { label: 'All Daily →',    labelBn: 'সব দৈনন্দিন →',      href: '/products?categorySlug=daily-needs' },
     ],
   },
 ];
@@ -560,47 +546,65 @@ export function Header() {
 
               {/* ── Mega Menu Dropdown ── */}
               {megaOpen && (
-                <div className="absolute top-full left-0 bg-white shadow-2xl rounded-b-2xl border-t-2 border-primary z-50 p-6" style={{ width: '800px' }}>
-                  <div className="grid grid-cols-7 gap-4">
-                    {MEGA_CATEGORIES.map(cat => (
-                      <div key={cat.href} className="flex flex-col">
-                        <Link
-                          href={cat.href}
-                          onClick={() => setMegaOpen(false)}
-                          className="flex items-center gap-1.5 mb-3 pb-2 border-b border-gray-100 group"
-                        >
-                          <span className="text-lg leading-none">{cat.emoji}</span>
-                          <span className="text-[12px] font-black text-primary group-hover:text-primary/80 transition-colors leading-tight">
-                            {lang === 'bn' ? cat.nameBn : cat.name}
-                          </span>
-                        </Link>
-                        <ul className="flex flex-col gap-1.5">
-                          {cat.subs.map(sub => (
-                            <li key={sub.href}>
-                              <Link
-                                href={sub.href}
-                                onClick={() => setMegaOpen(false)}
-                                className="text-xs text-gray-600 hover:text-primary transition-colors leading-snug block py-0.5"
-                              >
-                                {sub.label}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
-                    <p className="text-[11px] text-gray-400 font-medium">
-                      {lang === 'bn' ? '৭টি বিভাগে হাজারো পণ্য' : '1000s of products across 7 departments'}
-                    </p>
-                    <Link
-                      href="/products"
-                      onClick={() => setMegaOpen(false)}
-                      className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
-                    >
-                      {lang === 'bn' ? 'সব পণ্য দেখুন →' : 'Browse all products →'}
-                    </Link>
+                <div className="absolute top-full left-0 z-50 shadow-2xl rounded-b-2xl overflow-hidden border border-gray-100" style={{ width: '860px' }}>
+                  {/* Top accent bar */}
+                  <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-primary" />
+                  <div className="bg-white p-5">
+                    <div className="grid grid-cols-7 gap-3">
+                      {MEGA_CATEGORIES.map((cat, i) => {
+                        const colors = [
+                          { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', hover: 'hover:bg-emerald-50' },
+                          { bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200',    hover: 'hover:bg-blue-50' },
+                          { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   hover: 'hover:bg-amber-50' },
+                          { bg: 'bg-green-50',   text: 'text-green-700',   border: 'border-green-200',   hover: 'hover:bg-green-50' },
+                          { bg: 'bg-rose-50',    text: 'text-rose-700',    border: 'border-rose-200',    hover: 'hover:bg-rose-50' },
+                          { bg: 'bg-violet-50',  text: 'text-violet-700',  border: 'border-violet-200',  hover: 'hover:bg-violet-50' },
+                          { bg: 'bg-orange-50',  text: 'text-orange-700',  border: 'border-orange-200',  hover: 'hover:bg-orange-50' },
+                        ][i % 7]!;
+                        return (
+                          <div key={cat.href} className="flex flex-col">
+                            {/* Category header card */}
+                            <Link
+                              href={cat.href}
+                              onClick={() => setMegaOpen(false)}
+                              className={`flex items-center gap-1.5 mb-2.5 p-2 rounded-xl border ${colors.bg} ${colors.border} group transition-all hover:shadow-sm`}
+                            >
+                              <span className="text-xl leading-none">{cat.emoji}</span>
+                              <span className={`text-[11px] font-black ${colors.text} leading-tight`}>
+                                {lang === 'bn' ? cat.nameBn : cat.name}
+                              </span>
+                            </Link>
+                            {/* Sub-links */}
+                            <ul className="flex flex-col gap-0.5">
+                              {cat.subs.map(sub => (
+                                <li key={sub.href}>
+                                  <Link
+                                    href={sub.href}
+                                    onClick={() => setMegaOpen(false)}
+                                    className={`text-[11px] text-gray-600 font-medium rounded-lg px-2 py-1.5 block transition-colors ${colors.hover} hover:${colors.text}`}
+                                  >
+                                    {lang === 'bn' ? sub.labelBn : sub.label}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {/* Footer row */}
+                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                      <p className="text-[11px] text-gray-400 font-medium">
+                        {lang === 'bn' ? '৭টি বিভাগে হাজারো পণ্য' : '1000s of products across 7 departments'}
+                      </p>
+                      <Link
+                        href="/products"
+                        onClick={() => setMegaOpen(false)}
+                        className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 bg-primary/5 px-3 py-1.5 rounded-full transition-colors hover:bg-primary/10"
+                      >
+                        {lang === 'bn' ? 'সব পণ্য দেখুন →' : 'Browse all products →'}
+                      </Link>
+                    </div>
                   </div>
                 </div>
               )}
