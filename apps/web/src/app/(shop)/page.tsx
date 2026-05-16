@@ -442,14 +442,14 @@ export default function HomePage() {
 
         {/* Arrow buttons (always visible) */}
         <button
-          onClick={() => setSlideIndex(i => (i - 1 + 3) % 3)}
+          onClick={() => goToSlide(i => (i - 1 + 3) % 3)}
           className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-md transition-all border border-white/30"
           aria-label="Previous slide"
         >
           <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
         </button>
         <button
-          onClick={() => setSlideIndex(i => (i + 1) % 3)}
+          onClick={() => goToSlide(i => (i + 1) % 3)}
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/20 hover:bg-white/40 text-white backdrop-blur-md transition-all border border-white/30"
           aria-label="Next slide"
         >
