@@ -9,6 +9,8 @@ COPY apps/api/package.json ./apps/api/
 COPY packages/database/package.json ./packages/database/
 COPY packages/types/package.json ./packages/types/
 COPY packages/config/tsconfig/package.json ./packages/config/tsconfig/
+COPY packages/config/eslint-config/package.json ./packages/config/eslint-config/
+COPY packages/config/tailwind-config/package.json ./packages/config/tailwind-config/
 RUN npm ci --ignore-scripts
 
 # ── builder ───────────────────────────────────────────────────────

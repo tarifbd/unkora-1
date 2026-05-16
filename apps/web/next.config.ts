@@ -1,7 +1,9 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  // 'standalone' for Docker/Railway self-hosted deployments.
+  // Cloudflare Pages: set BUILD_TARGET=cloudflare in environment to skip this.
+  output: process.env.BUILD_TARGET === 'cloudflare' ? undefined : 'standalone',
   transpilePackages: ['@unkora/ui'],
   images: {
     remotePatterns: [
