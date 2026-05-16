@@ -316,6 +316,182 @@ const MEGA_CATEGORIES = [
   },
 ];
 
+// ── Rich right-panel content for each mega-menu category ──────────────────────
+const MEGA_CONTENT = [
+  // 0 — Books (Rokomari + Amazon inspired)
+  {
+    recommended: [
+      { label: 'Novel & Fiction',   labelBn: 'উপন্যাস',         emoji: '📖', color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+      { label: 'Islamic Books',     labelBn: 'ইসলামিক বই',      emoji: '🕌', color: 'bg-amber-50 border-amber-200 text-amber-700' },
+      { label: 'Academic / BCS',    labelBn: 'একাডেমিক / বিসিএস', emoji: '🎓', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+      { label: 'Self-Help',         labelBn: 'আত্মউন্নয়ন',      emoji: '💡', color: 'bg-purple-50 border-purple-200 text-purple-700' },
+      { label: "Children's",        labelBn: 'শিশুদের বই',       emoji: '🧸', color: 'bg-pink-50 border-pink-200 text-pink-700' },
+      { label: 'Comics & Graphic',  labelBn: 'কমিক্স',          emoji: '🖼️', color: 'bg-orange-50 border-orange-200 text-orange-700' },
+    ],
+    authors: [
+      { label: 'হুমায়ূন আহমেদ',          href: '/products?categorySlug=books' },
+      { label: 'রবীন্দ্রনাথ ঠাকুর',        href: '/products?categorySlug=books' },
+      { label: 'মানিক বন্দ্যোপাধ্যায়',     href: '/products?categorySlug=books' },
+      { label: 'শরৎচন্দ্র চট্টোপাধ্যায়',  href: '/products?categorySlug=books' },
+      { label: 'সমরেশ মজুমদার',            href: '/products?categorySlug=books' },
+      { label: 'James Clear',              href: '/products?categorySlug=books' },
+      { label: 'আরিফ আজাদ',               href: '/products?categorySlug=books' },
+    ],
+    columns: [
+      { heading: 'By Subject', headingBn: 'বিষয় অনুযায়ী', links: [
+        { label: 'Fiction',        labelBn: 'উপন্যাস',       href: '/products?categorySlug=books' },
+        { label: 'Non-Fiction',    labelBn: 'নন-ফিকশন',      href: '/products?categorySlug=books' },
+        { label: 'Islamic',        labelBn: 'ইসলামিক',       href: '/products?categorySlug=books' },
+        { label: 'Academic',       labelBn: 'একাডেমিক',      href: '/products?categorySlug=books' },
+        { label: 'Self-Help',      labelBn: 'আত্মোন্নয়ন',   href: '/products?categorySlug=books' },
+        { label: 'Poetry',         labelBn: 'কবিতা',         href: '/products?categorySlug=books' },
+      ]},
+      { heading: 'By Publisher', headingBn: 'প্রকাশক', links: [
+        { label: 'Anyaprokash',        labelBn: 'অন্যপ্রকাশ',         href: '/products?categorySlug=books' },
+        { label: 'Prothoma',           labelBn: 'প্রথমা',              href: '/products?categorySlug=books' },
+        { label: 'Islamic Foundation', labelBn: 'ইসলামিক ফাউন্ডেশন', href: '/products?categorySlug=books' },
+        { label: 'Bangla Academy',     labelBn: 'বাংলা একাডেমি',      href: '/products?categorySlug=books' },
+        { label: 'Panjeree',           labelBn: 'পাঞ্জেরি',            href: '/products?categorySlug=books' },
+      ]},
+      { heading: 'Collections', headingBn: 'বিশেষ সংকলন', links: [
+        { label: 'Best Sellers 🔥',  labelBn: 'বেস্ট সেলার 🔥',     href: '/products?categorySlug=books' },
+        { label: 'New Arrivals ✨',  labelBn: 'নতুন বই ✨',           href: '/products?categorySlug=books' },
+        { label: 'SSC / HSC Prep',   labelBn: 'এসএসসি / এইচএসসি',   href: '/products?categorySlug=books' },
+        { label: 'BCS Prep',         labelBn: 'বিসিএস প্রস্তুতি',    href: '/products?categorySlug=books' },
+        { label: 'All Books →',      labelBn: 'সব বই দেখুন →',       href: '/products?categorySlug=books' },
+      ]},
+    ],
+  },
+  // 1 — Baby Products
+  {
+    columns: [
+      { heading: 'Diapering & Care', headingBn: 'ডায়াপার ও যত্ন', links: [
+        { label: 'Diapers',    labelBn: 'ডায়াপার',    href: '/products?categorySlug=baby-products' },
+        { label: 'Baby Wipes', labelBn: 'বেবি ওয়াইপস', href: '/products?categorySlug=baby-products' },
+        { label: 'Baby Wash',  labelBn: 'বেবি ওয়াশ',  href: '/products?categorySlug=baby-products' },
+        { label: 'Rash Cream', labelBn: 'র‍্যাশ ক্রিম', href: '/products?categorySlug=baby-products' },
+      ]},
+      { heading: 'Feeding & Nursing', headingBn: 'ফিডিং', links: [
+        { label: 'Baby Bottles', labelBn: 'ফিডিং বোতল',   href: '/products?categorySlug=baby-products' },
+        { label: 'Breast Pumps', labelBn: 'ব্রেস্ট পাম্প', href: '/products?categorySlug=baby-products' },
+        { label: 'Baby Food',    labelBn: 'বেবি ফুড',      href: '/products?categorySlug=baby-products' },
+        { label: 'High Chairs',  labelBn: 'হাই চেয়ার',     href: '/products?categorySlug=baby-products' },
+      ]},
+      { heading: 'Gear & Clothing', headingBn: 'গিয়ার ও পোশাক', links: [
+        { label: 'Strollers',     labelBn: 'স্ট্রোলার',  href: '/products?categorySlug=baby-products' },
+        { label: 'Car Seats',     labelBn: 'কার সিট',    href: '/products?categorySlug=baby-products' },
+        { label: 'Toys',          labelBn: 'খেলনা',      href: '/products?categorySlug=baby-products' },
+        { label: 'Baby Clothing', labelBn: 'শিশু পোশাক', href: '/products?categorySlug=baby-products' },
+        { label: 'All Baby →',    labelBn: 'সব পণ্য →',  href: '/products?categorySlug=baby-products' },
+      ]},
+    ],
+  },
+  // 2 — Leather
+  {
+    columns: [
+      { heading: 'Wallets & Bags', headingBn: 'পার্স ও ব্যাগ', links: [
+        { label: 'Bifold Wallets', labelBn: 'বাইফোল্ড পার্স', href: '/products?categorySlug=leather-products' },
+        { label: 'Card Holders',   labelBn: 'কার্ড হোল্ডার',  href: '/products?categorySlug=leather-products' },
+        { label: 'Office Bags',    labelBn: 'অফিস ব্যাগ',     href: '/products?categorySlug=leather-products' },
+        { label: 'Backpacks',      labelBn: 'ব্যাকপ্যাক',     href: '/products?categorySlug=leather-products' },
+        { label: 'Ladies Bags',    labelBn: 'লেডিস ব্যাগ',    href: '/products?categorySlug=leather-products' },
+      ]},
+      { heading: 'Belts & Footwear', headingBn: 'বেল্ট ও জুতা', links: [
+        { label: 'Formal Belts',  labelBn: 'ফর্মাল বেল্ট', href: '/products?categorySlug=leather-products' },
+        { label: 'Formal Shoes',  labelBn: 'ফর্মাল জুতা',  href: '/products?categorySlug=leather-products' },
+        { label: 'Ladies Heels',  labelBn: 'হিলস',          href: '/products?categorySlug=leather-products' },
+        { label: 'Sandals',       labelBn: 'স্যান্ডেল',     href: '/products?categorySlug=leather-products' },
+        { label: 'All Leather →', labelBn: 'সব চামড়া →',  href: '/products?categorySlug=leather-products' },
+      ]},
+    ],
+  },
+  // 3 — Organic Foods
+  {
+    columns: [
+      { heading: 'Honey & Sweeteners', headingBn: 'মধু ও মিষ্টি', links: [
+        { label: 'Wild Honey',    labelBn: 'বন মধু',       href: '/products?categorySlug=organic-foods' },
+        { label: 'Mustard Honey', labelBn: 'সরিষার মধু',   href: '/products?categorySlug=organic-foods' },
+        { label: 'Date Molasses', labelBn: 'খেজুরের গুড়', href: '/products?categorySlug=organic-foods' },
+      ]},
+      { heading: 'Nuts, Seeds & Spices', headingBn: 'বাদাম ও মশলা', links: [
+        { label: 'Almonds',      labelBn: 'কাঠবাদাম', href: '/products?categorySlug=organic-foods' },
+        { label: 'Black Seed',   labelBn: 'কালিজিরা', href: '/products?categorySlug=organic-foods' },
+        { label: 'Turmeric',     labelBn: 'হলুদ',     href: '/products?categorySlug=organic-foods' },
+        { label: 'Dried Fruits', labelBn: 'শুকনো ফল', href: '/products?categorySlug=organic-foods' },
+      ]},
+      { heading: 'Tea & Snacks', headingBn: 'চা ও স্ন্যাকস', links: [
+        { label: 'Green Tea',    labelBn: 'গ্রিন টি',    href: '/products?categorySlug=organic-foods' },
+        { label: 'Herbal Tea',   labelBn: 'হার্বাল টি',  href: '/products?categorySlug=organic-foods' },
+        { label: 'Granola Bars', labelBn: 'গ্রানোলা বার', href: '/products?categorySlug=organic-foods' },
+        { label: 'All Organic →',labelBn: 'সব অর্গানিক →', href: '/products?categorySlug=organic-foods' },
+      ]},
+    ],
+  },
+  // 4 — Handicrafts
+  {
+    columns: [
+      { heading: 'Wall Art & Decor', headingBn: 'দেওয়াল শিল্প', links: [
+        { label: 'Canvas Prints', labelBn: 'ক্যানভাস',     href: '/products?categorySlug=handicrafts' },
+        { label: 'Calligraphy',   labelBn: 'ক্যালিগ্রাফি', href: '/products?categorySlug=handicrafts' },
+        { label: 'Paintings',     labelBn: 'চিত্রকর্ম',    href: '/products?categorySlug=handicrafts' },
+        { label: 'Clay Items',    labelBn: 'মাটির জিনিস',  href: '/products?categorySlug=handicrafts' },
+      ]},
+      { heading: 'Traditional Crafts', headingBn: 'ঐতিহ্যবাহী', links: [
+        { label: 'Nakshi Kantha', labelBn: 'নকশি কাঁথা',     href: '/products?categorySlug=handicrafts' },
+        { label: 'Muslin',        labelBn: 'মসলিন',           href: '/products?categorySlug=handicrafts' },
+        { label: 'Jamdani',       labelBn: 'জামদানি',         href: '/products?categorySlug=handicrafts' },
+        { label: 'Jute Products', labelBn: 'পাটের পণ্য',     href: '/products?categorySlug=handicrafts' },
+        { label: 'All Crafts →',  labelBn: 'সব হস্তশিল্প →', href: '/products?categorySlug=handicrafts' },
+      ]},
+    ],
+  },
+  // 5 — Electronics
+  {
+    columns: [
+      { heading: 'Mobiles & Laptops', headingBn: 'মোবাইল ও ল্যাপটপ', links: [
+        { label: 'Samsung',        labelBn: 'স্যামসাং',     href: '/products?categorySlug=electronics' },
+        { label: 'iPhone',         labelBn: 'আইফোন',        href: '/products?categorySlug=electronics' },
+        { label: 'Gaming Laptops', labelBn: 'গেমিং ল্যাপটপ', href: '/products?categorySlug=electronics' },
+        { label: 'MacBook',        labelBn: 'ম্যাকবুক',     href: '/products?categorySlug=electronics' },
+      ]},
+      { heading: 'Accessories', headingBn: 'আনুষাঙ্গিক', links: [
+        { label: 'Earbuds & TWS', labelBn: 'ইয়ারবাডস',    href: '/products?categorySlug=electronics' },
+        { label: 'Smartwatches',  labelBn: 'স্মার্টওয়াচ',  href: '/products?categorySlug=electronics' },
+        { label: 'Power Banks',   labelBn: 'পাওয়ার ব্যাংক', href: '/products?categorySlug=electronics' },
+        { label: 'Chargers',      labelBn: 'চার্জার',       href: '/products?categorySlug=electronics' },
+      ]},
+      { heading: 'Gadgets & Home', headingBn: 'গ্যাজেট', links: [
+        { label: 'Smart Cameras',    labelBn: 'ক্যামেরা',            href: '/products?categorySlug=electronics' },
+        { label: 'Air Purifiers',    labelBn: 'এয়ার পিউরিফায়ার',    href: '/products?categorySlug=electronics' },
+        { label: 'Rice Cookers',     labelBn: 'রাইস কুকার',          href: '/products?categorySlug=electronics' },
+        { label: 'All Electronics →',labelBn: 'সব ইলেকট্রনিক্স →',  href: '/products?categorySlug=electronics' },
+      ]},
+    ],
+  },
+  // 6 — Daily Needs
+  {
+    columns: [
+      { heading: 'Grocery', headingBn: 'মুদি পণ্য', links: [
+        { label: 'Rice & Flour', labelBn: 'চাল ও আটা',  href: '/products?categorySlug=daily-needs' },
+        { label: 'Cooking Oil',  labelBn: 'রান্নার তেল', href: '/products?categorySlug=daily-needs' },
+        { label: 'Pulses',       labelBn: 'ডাল',         href: '/products?categorySlug=daily-needs' },
+      ]},
+      { heading: 'Personal Care & Household', headingBn: 'ব্যক্তিগত যত্ন', links: [
+        { label: 'Skin Care',     labelBn: 'স্কিন কেয়ার', href: '/products?categorySlug=daily-needs' },
+        { label: 'Hair Care',     labelBn: 'হেয়ার কেয়ার', href: '/products?categorySlug=daily-needs' },
+        { label: 'Kitchen Tools', labelBn: 'কিচেন টুলস',  href: '/products?categorySlug=daily-needs' },
+        { label: 'Cleaning',      labelBn: 'ক্লিনিং',     href: '/products?categorySlug=daily-needs' },
+      ]},
+      { heading: 'Stationery & Pet', headingBn: 'স্টেশনারি', links: [
+        { label: 'Notebooks',    labelBn: 'নোটবুক',             href: '/products?categorySlug=daily-needs' },
+        { label: 'Pens',         labelBn: 'কলম',                href: '/products?categorySlug=daily-needs' },
+        { label: 'Pet Food',     labelBn: 'পোষা প্রাণীর খাবার', href: '/products?categorySlug=daily-needs' },
+        { label: 'All Daily →',  labelBn: 'সব পণ্য →',          href: '/products?categorySlug=daily-needs' },
+      ]},
+    ],
+  },
+] as const;
+
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
@@ -329,6 +505,7 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSubnav, setActiveSubnav] = useState<string | null>(null);
   const [megaOpen, setMegaOpen] = useState(false);
+  const [megaHoverCat, setMegaHoverCat] = useState(0);
   const [accountOpen, setAccountOpen] = useState(false);
   const megaRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
@@ -665,65 +842,166 @@ export function Header() {
 
               {/* ── Mega Menu Dropdown ── */}
               {megaOpen && (
-                <div className="absolute top-full left-0 z-50 shadow-2xl rounded-b-2xl overflow-hidden border border-gray-100" style={{ width: '860px' }}>
-                  {/* Top accent bar */}
-                  <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-primary" />
-                  <div className="bg-white p-5">
-                    <div className="grid grid-cols-7 gap-3">
-                      {MEGA_CATEGORIES.map((cat, i) => {
-                        const colors = [
-                          { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', hover: 'hover:bg-emerald-50' },
-                          { bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200',    hover: 'hover:bg-blue-50' },
-                          { bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   hover: 'hover:bg-amber-50' },
-                          { bg: 'bg-green-50',   text: 'text-green-700',   border: 'border-green-200',   hover: 'hover:bg-green-50' },
-                          { bg: 'bg-rose-50',    text: 'text-rose-700',    border: 'border-rose-200',    hover: 'hover:bg-rose-50' },
-                          { bg: 'bg-violet-50',  text: 'text-violet-700',  border: 'border-violet-200',  hover: 'hover:bg-violet-50' },
-                          { bg: 'bg-orange-50',  text: 'text-orange-700',  border: 'border-orange-200',  hover: 'hover:bg-orange-50' },
-                        ][i % 7]!;
+                <div className="absolute top-full left-0 z-50 shadow-2xl rounded-b-2xl overflow-hidden border border-gray-100 flex flex-col bg-white" style={{ width: '960px' }}>
+                  {/* Top accent */}
+                  <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-primary flex-shrink-0" />
+
+                  <div className="flex" style={{ minHeight: '380px' }}>
+                    {/* ── Left sidebar ── */}
+                    <div className="w-48 bg-gray-50 border-r border-gray-100 py-1.5 flex-shrink-0 overflow-y-auto">
+                      {MEGA_CATEGORIES.map((cat, i) => (
+                        <div
+                          key={cat.href}
+                          onMouseEnter={() => setMegaHoverCat(i)}
+                          className={cn(
+                            'relative flex items-center gap-2.5 px-4 py-2.5 cursor-pointer transition-colors text-[13px]',
+                            megaHoverCat === i
+                              ? 'bg-white text-primary font-bold border-r-2 border-primary'
+                              : 'text-gray-700 font-medium hover:bg-white hover:text-primary',
+                          )}
+                        >
+                          <span className="text-base leading-none flex-shrink-0">{cat.emoji}</span>
+                          <span className="leading-tight">{lang === 'bn' ? cat.nameBn : cat.name}</span>
+                          <ChevronDown className="w-3 h-3 ml-auto -rotate-90 opacity-40 flex-shrink-0" />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* ── Right content panel ── */}
+                    <div className="flex-1 p-5 overflow-y-auto">
+
+                      {/* ── BOOKS (special — Rokomari + Amazon style) ── */}
+                      {megaHoverCat === 0 && (() => {
+                        const content = MEGA_CONTENT[0];
                         return (
-                          <div key={cat.href} className="flex flex-col">
-                            {/* Category header card */}
-                            <Link
-                              href={cat.href}
-                              onClick={() => setMegaOpen(false)}
-                              className={`flex items-center gap-1.5 mb-2.5 p-2 rounded-xl border ${colors.bg} ${colors.border} group transition-all hover:shadow-sm`}
-                            >
-                              <span className="text-xl leading-none">{cat.emoji}</span>
-                              <span className={`text-[11px] font-black ${colors.text} leading-tight`}>
-                                {lang === 'bn' ? cat.nameBn : cat.name}
-                              </span>
-                            </Link>
-                            {/* Sub-links */}
-                            <ul className="flex flex-col gap-0.5">
-                              {cat.subs.map(sub => (
-                                <li key={sub.href}>
+                          <>
+                            <div className="flex items-center justify-between mb-3">
+                              <h3 className="text-[15px] font-black text-gray-900 flex items-center gap-2">
+                                📚 {lang === 'bn' ? 'বই' : 'Books'}
+                                <span className="text-[10px] font-bold bg-secondary/15 text-secondary px-2 py-0.5 rounded-full uppercase tracking-wide">Featured</span>
+                              </h3>
+                              <Link href="/products?categorySlug=books" onClick={() => setMegaOpen(false)} className="text-xs text-primary hover:underline font-semibold">
+                                {lang === 'bn' ? 'সব বই দেখুন →' : 'Browse all books →'}
+                              </Link>
+                            </div>
+
+                            {/* Genre tiles */}
+                            <div className="mb-4">
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                {lang === 'bn' ? 'জনপ্রিয় বিভাগ' : 'Browse by Genre'}
+                              </p>
+                              <div className="grid grid-cols-6 gap-2">
+                                {content.recommended.map(rec => (
                                   <Link
-                                    href={sub.href}
+                                    key={rec.label}
+                                    href="/products?categorySlug=books"
                                     onClick={() => setMegaOpen(false)}
-                                    className={`text-[11px] text-gray-600 font-medium rounded-lg px-2 py-1.5 block transition-colors ${colors.hover} hover:${colors.text}`}
+                                    className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border ${rec.color} hover:shadow-md transition-all text-center group`}
                                   >
-                                    {lang === 'bn' ? sub.labelBn : sub.label}
+                                    <span className="text-2xl leading-none group-hover:scale-110 transition-transform">{rec.emoji}</span>
+                                    <span className="text-[10px] font-bold leading-tight">{lang === 'bn' ? rec.labelBn : rec.label}</span>
                                   </Link>
-                                </li>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Popular Authors (Rokomari style) */}
+                            <div className="mb-4">
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                {lang === 'bn' ? 'জনপ্রিয় লেখক' : 'Popular Authors'}
+                              </p>
+                              <div className="flex flex-wrap gap-1.5">
+                                {content.authors.map(a => (
+                                  <Link
+                                    key={a.label}
+                                    href={a.href}
+                                    onClick={() => setMegaOpen(false)}
+                                    className="text-[11px] font-medium text-gray-700 bg-gray-100 hover:bg-primary hover:text-white px-3 py-1.5 rounded-full transition-colors border border-gray-200 hover:border-primary"
+                                  >
+                                    {a.label}
+                                  </Link>
+                                ))}
+                                <Link href="/products?categorySlug=books" onClick={() => setMegaOpen(false)} className="text-[11px] font-bold text-primary bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-full transition-colors border border-primary/20">
+                                  {lang === 'bn' ? 'সব লেখক →' : 'All Authors →'}
+                                </Link>
+                              </div>
+                            </div>
+
+                            {/* Sub columns */}
+                            <div className="border-t border-gray-100 pt-3 grid grid-cols-3 gap-x-6">
+                              {content.columns.map(col => (
+                                <div key={col.heading}>
+                                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 pb-1 border-b border-gray-100">
+                                    {lang === 'bn' ? col.headingBn : col.heading}
+                                  </p>
+                                  <ul className="space-y-0.5">
+                                    {col.links.map(link => (
+                                      <li key={link.label}>
+                                        <Link href={link.href} onClick={() => setMegaOpen(false)}
+                                          className="text-[12px] text-gray-600 hover:text-primary transition-colors block py-1 hover:translate-x-0.5 transition-transform">
+                                          {lang === 'bn' ? link.labelBn : link.label}
+                                        </Link>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
                               ))}
-                            </ul>
-                          </div>
+                            </div>
+                          </>
                         );
-                      })}
+                      })()}
+
+                      {/* ── Other categories ── */}
+                      {megaHoverCat !== 0 && (() => {
+                        const cat = MEGA_CATEGORIES[megaHoverCat]!;
+                        const raw = MEGA_CONTENT[megaHoverCat as 1 | 2 | 3 | 4 | 5 | 6];
+                        const content = raw as unknown as { columns: { heading: string; headingBn: string; links: { label: string; labelBn: string; href: string }[] }[] };
+                        if (!content?.columns) return null;
+                        return (
+                          <>
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-[15px] font-black text-gray-900 flex items-center gap-2">
+                                {cat.emoji} {lang === 'bn' ? cat.nameBn : cat.name}
+                              </h3>
+                              <Link href={cat.href} onClick={() => setMegaOpen(false)} className="text-xs text-primary hover:underline font-semibold">
+                                {lang === 'bn' ? 'সব দেখুন →' : 'Browse all →'}
+                              </Link>
+                            </div>
+                            <div className={`grid gap-x-8 ${content.columns.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                              {content.columns.map(col => (
+                                <div key={col.heading}>
+                                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 pb-1 border-b border-gray-100">
+                                    {lang === 'bn' ? col.headingBn : col.heading}
+                                  </p>
+                                  <ul className="space-y-0.5">
+                                    {col.links.map(link => (
+                                      <li key={link.label}>
+                                        <Link href={link.href} onClick={() => setMegaOpen(false)}
+                                          className="text-[13px] text-gray-600 hover:text-primary transition-colors block py-1.5">
+                                          {lang === 'bn' ? link.labelBn : link.label}
+                                        </Link>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        );
+                      })()}
+
                     </div>
-                    {/* Footer row */}
-                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
-                      <p className="text-[11px] text-gray-400 font-medium">
-                        {lang === 'bn' ? '৭টি বিভাগে হাজারো পণ্য' : '1000s of products across 7 departments'}
-                      </p>
-                      <Link
-                        href="/products"
-                        onClick={() => setMegaOpen(false)}
-                        className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 bg-primary/5 px-3 py-1.5 rounded-full transition-colors hover:bg-primary/10"
-                      >
-                        {lang === 'bn' ? 'সব পণ্য দেখুন →' : 'Browse all products →'}
-                      </Link>
-                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="bg-gray-50 border-t border-gray-100 px-5 py-2.5 flex items-center justify-between flex-shrink-0">
+                    <p className="text-[11px] text-gray-400">
+                      {lang === 'bn' ? '৭টি বিভাগে হাজারো পণ্য' : '1000s of products across 7 departments'}
+                    </p>
+                    <Link href="/products" onClick={() => setMegaOpen(false)}
+                      className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 bg-primary/5 px-3 py-1.5 rounded-full transition-colors hover:bg-primary/10">
+                      {lang === 'bn' ? 'সব পণ্য দেখুন →' : 'Browse all products →'}
+                    </Link>
                   </div>
                 </div>
               )}
