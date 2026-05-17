@@ -335,72 +335,75 @@ export default function HomePage() {
     <div className="flex flex-col" style={{ backgroundColor: '#f8fafc' }}>
 
       {/* ── 1: Hero + Flash Sale + Hot Categories ── */}
-      <section className="w-full bg-gray-100 py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[2fr_3fr] gap-3">
+      <section className="w-full bg-gray-50 py-3 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto flex flex-col xl:flex-row items-stretch gap-3">
 
-          {/* LEFT: Static Hero Banner */}
-          <Link href="/products" className="relative rounded-2xl overflow-hidden bg-gray-800 group min-h-[340px] md:min-h-[420px] flex items-end">
+          {/* LEFT: Hero Banner — full width on mobile/tablet, fixed width on desktop */}
+          <Link
+            href="/products"
+            className="relative rounded-2xl overflow-hidden bg-gray-800 group flex items-end flex-shrink-0
+                       h-[240px] sm:h-[300px] md:h-[340px] xl:w-[380px] xl:h-auto xl:min-h-[460px]"
+          >
             <Image
               src="https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=900&auto=format&fit=crop"
               alt="Shop Now"
               fill
               unoptimized
               priority
-              className="object-cover group-hover:scale-105 transition-transform duration-700"
-              sizes="(max-width:1024px) 100vw, 40vw"
+              className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
+              sizes="(max-width:1280px) 100vw, 380px"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            <div className="relative z-10 p-6 md:p-8">
-              <p className="text-white/70 text-sm font-semibold uppercase tracking-widest mb-2">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+            <div className="relative z-10 p-5 sm:p-7 xl:p-8">
+              <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1.5">
                 {lang === 'bn' ? 'স্বাগতম UNKORA-তে' : 'Welcome to UNKORA'}
               </p>
-              <h1 className="text-3xl md:text-4xl font-black text-white leading-tight mb-4">
+              <h1 className="text-2xl sm:text-3xl xl:text-4xl font-black text-white leading-tight mb-4">
                 {lang === 'bn' ? <>বাংলাদেশের সেরা<br />অনলাইন মার্কেটপ্লেস</> : <>Bangladesh&apos;s Best<br />Online Marketplace</>}
               </h1>
-              <span className="inline-flex items-center gap-2 bg-white text-gray-900 font-black text-sm px-5 py-2.5 rounded-xl group-hover:bg-primary group-hover:text-white transition-all duration-300">
+              <span className="inline-flex items-center gap-2 bg-white text-gray-900 font-black text-sm px-4 py-2.5 rounded-xl group-hover:bg-primary group-hover:text-white transition-all duration-300">
                 {lang === 'bn' ? 'কেনাকাটা করুন' : 'Explore Now'}
                 <ArrowRight className="w-4 h-4" />
               </span>
             </div>
           </Link>
 
-          {/* RIGHT: Flash Sale + Hot Categories */}
-          <div className="flex flex-col gap-3">
+          {/* RIGHT: Flash Sale + Hot Categories + Featured Products */}
+          <div className="flex flex-col gap-3 min-w-0 xl:flex-1">
 
-            {/* Top row: Flash sale + Hot categories */}
+            {/* Top row: Flash sale + Hot categories — side by side from sm up */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
               {/* Flash Sale Banner */}
-              <div className="relative rounded-2xl overflow-hidden bg-blue-600 min-h-[200px] flex flex-col justify-between p-5">
+              <div className="relative rounded-2xl overflow-hidden bg-blue-600 min-h-[190px] flex flex-col justify-between p-5">
                 <Image
                   src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop"
                   alt="Flash Sale"
                   fill
                   unoptimized
                   className="object-cover opacity-20"
-                  sizes="300px"
+                  sizes="(max-width:640px) 100vw, 300px"
                 />
                 <div className="relative z-10">
                   <span className="text-xs font-bold text-blue-200 uppercase tracking-widest">
                     {lang === 'bn' ? 'সীমিত সময়' : 'Limited Time'}
                   </span>
-                  <h3 className="text-2xl font-black text-white mt-1 leading-tight">
-                    {lang === 'bn' ? 'সিজন শেষ সেল' : 'End of Season'}
+                  <h3 className="text-xl sm:text-2xl font-black text-white mt-1 leading-tight">
+                    {lang === 'bn' ? 'সিজন শেষ সেল' : 'End of Season Sale'}
                   </h3>
                   <p className="text-blue-200 text-xs mt-1">
-                    {lang === 'bn' ? 'ফ্ল্যাশ সেলে সীমিত অফার' : 'For limited time in Flash Sale'}
+                    {lang === 'bn' ? 'ফ্ল্যাশ সেলে সীমিত অফার' : 'Limited offers in Flash Sale'}
                   </p>
                 </div>
-                {/* Countdown */}
-                <div className="relative z-10 flex gap-2 mt-3">
+                <div className="relative z-10 flex gap-1.5 mt-3 flex-wrap">
                   {[
                     { val: String(Math.floor(countdown.h / 24)).padStart(2, '0'), label: lang === 'bn' ? 'দিন' : 'DAY' },
                     { val: pad(countdown.h % 24), label: lang === 'bn' ? 'ঘন্টা' : 'HRS' },
                     { val: pad(countdown.m), label: lang === 'bn' ? 'মিনিট' : 'MIN' },
                     { val: pad(countdown.s), label: lang === 'bn' ? 'সেকেন্ড' : 'SEC' },
                   ].map(({ val, label }) => (
-                    <div key={label} className="flex flex-col items-center bg-white/20 backdrop-blur-sm rounded-xl px-2.5 py-2 min-w-[46px] border border-white/30">
-                      <span className="text-xl font-black text-white leading-none">{val}</span>
+                    <div key={label} className="flex flex-col items-center bg-white/20 backdrop-blur-sm rounded-lg px-2 py-1.5 min-w-[40px] border border-white/30">
+                      <span className="text-base font-black text-white leading-none">{val}</span>
                       <span className="text-[9px] font-bold text-blue-200 mt-0.5">{label}</span>
                     </div>
                   ))}
@@ -413,12 +416,12 @@ export default function HomePage() {
               {/* Hot Categories */}
               <div className="bg-white rounded-2xl p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-lg">🔥</span>
+                  <span className="text-base">🔥</span>
                   <h3 className="font-black text-gray-900 text-sm">
                     {lang === 'bn' ? 'জনপ্রিয় বিভাগ' : 'Hot Categories'}
                   </h3>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-4 gap-1.5">
                   {(allCategories.length > 0 ? allCategories.slice(0, 8) : [
                     { id: '1', slug: 'books',            name: lang === 'bn' ? 'বই' : 'Books' },
                     { id: '2', slug: 'baby-products',    name: lang === 'bn' ? 'শিশু পণ্য' : 'Baby' },
@@ -432,12 +435,12 @@ export default function HomePage() {
                     <Link
                       key={cat.id}
                       href={`/products?categorySlug=${cat.slug}`}
-                      className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-gray-50 transition-colors group"
+                      className="flex flex-col items-center gap-1 p-1.5 rounded-xl hover:bg-gray-50 transition-colors group"
                     >
-                      <div className="w-12 h-12 rounded-xl bg-gray-100 group-hover:bg-primary/10 flex items-center justify-center text-2xl transition-colors overflow-hidden">
+                      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gray-100 group-hover:bg-primary/10 flex items-center justify-center text-xl transition-colors">
                         {CAT_EMOJI[cat.slug] ?? CAT_EMOJI.default}
                       </div>
-                      <span className="text-[10px] font-semibold text-gray-600 text-center leading-tight line-clamp-2">
+                      <span className="text-[9px] sm:text-[10px] font-semibold text-gray-600 text-center leading-tight line-clamp-2">
                         {cat.name}
                       </span>
                     </Link>
@@ -446,8 +449,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Bottom: Featured Products scroll */}
-            <div className="bg-white rounded-2xl p-4">
+            {/* Bottom: Featured Products horizontal scroll */}
+            <div className="bg-white rounded-2xl p-4 flex-1">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-black text-gray-900 text-sm flex items-center gap-1.5">
                   <Star className="w-4 h-4 text-primary" />
@@ -457,15 +460,15 @@ export default function HomePage() {
                   {lang === 'bn' ? 'সব দেখুন' : 'View all'} <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
-              <div ref={quickDealsRef} className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+              <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
                 {featuredProducts.length > 0 ? (
                   featuredProducts.slice(0, 8).map(product => (
                     <Link
                       key={product.id}
                       href={`/products/${product.slug}`}
-                      className="flex-shrink-0 w-[130px] group"
+                      className="flex-shrink-0 w-[120px] sm:w-[130px] group"
                     >
-                      <div className="relative w-full h-[100px] rounded-lg overflow-hidden bg-gray-50 mb-1.5">
+                      <div className="relative w-full h-[90px] sm:h-[100px] rounded-lg overflow-hidden bg-gray-50 mb-1.5">
                         {product.images?.[0]?.url ? (
                           <Image
                             src={product.images[0].url}
