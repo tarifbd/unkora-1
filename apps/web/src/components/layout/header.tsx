@@ -338,27 +338,36 @@ const MEGA_CONTENT = [
       { label: 'আরিফ আজাদ',               href: '/products?categorySlug=books' },
     ],
     columns: [
-      { heading: 'By Subject', headingBn: 'বিষয় অনুযায়ী', links: [
-        { label: 'Fiction',        labelBn: 'উপন্যাস',       href: '/products?categorySlug=books' },
-        { label: 'Non-Fiction',    labelBn: 'নন-ফিকশন',      href: '/products?categorySlug=books' },
-        { label: 'Islamic',        labelBn: 'ইসলামিক',       href: '/products?categorySlug=books' },
-        { label: 'Academic',       labelBn: 'একাডেমিক',      href: '/products?categorySlug=books' },
-        { label: 'Self-Help',      labelBn: 'আত্মোন্নয়ন',   href: '/products?categorySlug=books' },
-        { label: 'Poetry',         labelBn: 'কবিতা',         href: '/products?categorySlug=books' },
+      { heading: 'Bengali Literature', headingBn: 'বাংলা সাহিত্য', links: [
+        { label: 'Novel / Fiction',    labelBn: 'উপন্যাস',           href: '/products?categorySlug=books' },
+        { label: 'Short Stories',      labelBn: 'ছোটগল্প',           href: '/products?categorySlug=books' },
+        { label: 'Poetry',             labelBn: 'কবিতা',             href: '/products?categorySlug=books' },
+        { label: 'Drama & Essays',     labelBn: 'নাটক ও প্রবন্ধ',    href: '/products?categorySlug=books' },
+        { label: 'Rhymes & Teen Lit',  labelBn: 'ছড়া ও কিশোর সাহিত্য', href: '/products?categorySlug=books' },
+        { label: 'Translated Lit',     labelBn: 'অনুবাদ সাহিত্য',   href: '/products?categorySlug=books' },
       ]},
-      { heading: 'By Publisher', headingBn: 'প্রকাশক', links: [
-        { label: 'Anyaprokash',        labelBn: 'অন্যপ্রকাশ',         href: '/products?categorySlug=books' },
-        { label: 'Prothoma',           labelBn: 'প্রথমা',              href: '/products?categorySlug=books' },
-        { label: 'Islamic Foundation', labelBn: 'ইসলামিক ফাউন্ডেশন', href: '/products?categorySlug=books' },
-        { label: 'Bangla Academy',     labelBn: 'বাংলা একাডেমি',      href: '/products?categorySlug=books' },
-        { label: 'Panjeree',           labelBn: 'পাঞ্জেরি',            href: '/products?categorySlug=books' },
+      { heading: 'Islamic & Religious', headingBn: 'ইসলামিক ও ধর্মীয়', links: [
+        { label: 'Quran & Tafsir',   labelBn: 'কুরআন ও তাফসির',  href: '/products?categorySlug=books' },
+        { label: 'Hadith',           labelBn: 'হাদিস',            href: '/products?categorySlug=books' },
+        { label: 'Sirat & Biography',labelBn: 'সীরাত ও জীবনী',   href: '/products?categorySlug=books' },
+        { label: 'Islamic Fiction',  labelBn: 'ইসলামি উপন্যাস',  href: '/products?categorySlug=books' },
+        { label: 'Fiqh & Masail',    labelBn: 'ফিকহ ও মাসআলা',  href: '/products?categorySlug=books' },
       ]},
-      { heading: 'Collections', headingBn: 'বিশেষ সংকলন', links: [
-        { label: 'Best Sellers 🔥',  labelBn: 'বেস্ট সেলার 🔥',     href: '/products?categorySlug=books' },
-        { label: 'New Arrivals ✨',  labelBn: 'নতুন বই ✨',           href: '/products?categorySlug=books' },
-        { label: 'SSC / HSC Prep',   labelBn: 'এসএসসি / এইচএসসি',   href: '/products?categorySlug=books' },
-        { label: 'BCS Prep',         labelBn: 'বিসিএস প্রস্তুতি',    href: '/products?categorySlug=books' },
-        { label: 'All Books →',      labelBn: 'সব বই দেখুন →',       href: '/products?categorySlug=books' },
+      { heading: 'Academic', headingBn: 'একাডেমিক', links: [
+        { label: 'Primary School',    labelBn: 'প্রাথমিক শিক্ষা',  href: '/products?categorySlug=books' },
+        { label: 'SSC Prep',          labelBn: 'এসএসসি প্রস্তুতি', href: '/products?categorySlug=books' },
+        { label: 'HSC Prep',          labelBn: 'এইচএসসি প্রস্তুতি', href: '/products?categorySlug=books' },
+        { label: 'University Entry',  labelBn: 'বিশ্ববিদ্যালয় ভর্তি', href: '/products?categorySlug=books' },
+        { label: 'BCS Prep',          labelBn: 'বিসিএস প্রস্তুতি', href: '/products?categorySlug=books' },
+        { label: 'Medical',           labelBn: 'মেডিকেল',          href: '/products?categorySlug=books' },
+      ]},
+      { heading: 'More Categories', headingBn: 'আরো বিভাগ', links: [
+        { label: 'Self-Help',         labelBn: 'আত্মউন্নয়ন',        href: '/products?categorySlug=books' },
+        { label: 'Science & Tech',    labelBn: 'বিজ্ঞান ও প্রযুক্তি', href: '/products?categorySlug=books' },
+        { label: 'History',           labelBn: 'ইতিহাস ও ঐতিহ্য',   href: '/products?categorySlug=books' },
+        { label: 'Biography',         labelBn: 'জীবনী',              href: '/products?categorySlug=books' },
+        { label: 'Health',            labelBn: 'স্বাস্থ্য ও চিকিৎসা', href: '/products?categorySlug=books' },
+        { label: 'Best Sellers 🔥',   labelBn: 'বেস্ট সেলার 🔥',     href: '/products?categorySlug=books' },
       ]},
     ],
   },
@@ -927,8 +936,8 @@ export function Header() {
                               </div>
                             </div>
 
-                            {/* Sub columns */}
-                            <div className="border-t border-gray-100 pt-3 grid grid-cols-3 gap-x-6">
+                            {/* Sub columns — 4-col Rokomari style */}
+                            <div className="border-t border-gray-100 pt-3 grid grid-cols-4 gap-x-4">
                               {content.columns.map(col => (
                                 <div key={col.heading}>
                                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5 pb-1 border-b border-gray-100">
@@ -938,7 +947,7 @@ export function Header() {
                                     {col.links.map(link => (
                                       <li key={link.label}>
                                         <Link href={link.href} onClick={() => setMegaOpen(false)}
-                                          className="text-[12px] text-gray-600 hover:text-primary transition-colors block py-1 hover:translate-x-0.5 transition-transform">
+                                          className="text-[11px] text-gray-600 hover:text-primary transition-colors block py-1">
                                           {lang === 'bn' ? link.labelBn : link.label}
                                         </Link>
                                       </li>
@@ -946,6 +955,28 @@ export function Header() {
                                   </ul>
                                 </div>
                               ))}
+                            </div>
+
+                            {/* Sell Your Book CTA */}
+                            <div className="mt-3 bg-gradient-to-r from-primary/10 to-green-50 border border-primary/20 rounded-xl px-4 py-3 flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg">📝</span>
+                                <div>
+                                  <p className="text-[11px] font-black text-primary">
+                                    {lang === 'bn' ? 'আপনার বই বিক্রি করুন' : 'Sell Your Book on UNKORA'}
+                                  </p>
+                                  <p className="text-[10px] text-gray-500">
+                                    {lang === 'bn' ? '১০% রয়্যালটি উপার্জন করুন' : 'Earn 10% royalty on every sale'}
+                                  </p>
+                                </div>
+                              </div>
+                              <Link
+                                href="/publish"
+                                onClick={() => setMegaOpen(false)}
+                                className="text-[11px] font-bold text-white bg-primary hover:bg-primary/90 px-3 py-1.5 rounded-full transition-colors flex-shrink-0"
+                              >
+                                {lang === 'bn' ? 'শুরু করুন →' : 'Get Started →'}
+                              </Link>
                             </div>
                           </>
                         );
