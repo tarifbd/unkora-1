@@ -12,9 +12,7 @@ import {
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { MultipartFile } from '@fastify/multipart';
 import type { FastifyRequest } from 'fastify';
-import * as fs from 'fs';
 import * as path from 'path';
-import { pipeline } from 'stream/promises';
 
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -24,7 +22,7 @@ import { UploadService } from './upload.service';
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 interface MultipartRequest extends FastifyRequest {
   isMultipart: () => boolean;
@@ -40,7 +38,7 @@ export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
   @Post('image')
-  @ApiOperation({ summary: 'Admin: upload a single image' })
+  @ApiOperation({ summary: 'Admin: upload a single image (R2 or local fallback)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -62,14 +60,19 @@ export class UploadController {
       throw new BadRequestException('Only image files (jpg, png, webp, gif) are allowed');
     }
 
+    // Read stream into buffer (works for both local and R2)
+    const chunks: Buffer[] = [];
+    for await (const chunk of data.file) {
+      chunks.push(chunk as Buffer);
+    }
+    const buffer = Buffer.concat(chunks);
+
+    if (buffer.length > MAX_FILE_SIZE) {
+      throw new BadRequestException('File exceeds 10MB limit');
+    }
+
     const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`;
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    fs.mkdirSync(uploadDir, { recursive: true });
-    const filePath = path.join(uploadDir, filename);
-
-    await pipeline(data.file, fs.createWriteStream(filePath));
-
-    return this.uploadService.uploadImage(filename);
+    return this.uploadService.uploadImageBuffer(buffer, filename, data.mimetype);
   }
 
   @Delete('image')
