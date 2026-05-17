@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: process.env.BUILD_TARGET === 'docker' ? 'standalone' : undefined,
+  output: process.env.VERCEL ? undefined : 'standalone',
   transpilePackages: ['@unkora/ui'],
   images: {
     remotePatterns: [
