@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { ShipmentStatus } from '@prisma/client';
+import { OrderStatus, ShipmentStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateShipmentDto } from './dto/create-shipment.dto';
 import { UpdateShipmentDto } from './dto/update-shipment.dto';
@@ -30,7 +30,7 @@ export class ShipmentsService {
     // Auto-update order status to SHIPPED
     await this.prisma.order.update({
       where: { id: dto.orderId },
-      data: { status: 'SHIPPED' },
+      data: { status: OrderStatus.SHIPPED },
     });
 
     return shipment;
@@ -45,7 +45,7 @@ export class ShipmentsService {
     if (dto.status === ShipmentStatus.DELIVERED) {
       data.deliveredAt = new Date();
       // Auto-update order to DELIVERED
-      await this.prisma.order.update({ where: { id: shipment.orderId }, data: { status: 'DELIVERED' } });
+      await this.prisma.order.update({ where: { id: shipment.orderId }, data: { status: OrderStatus.DELIVERED } });
     }
 
     return this.prisma.shipment.update({

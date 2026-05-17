@@ -173,7 +173,7 @@ export class AdminService {
       where: { id: { in: productIds } },
       select: { id: true, category: { select: { name: true } } },
     });
-    const catMap = new Map(products.map(p => [p.id, p.category?.name ?? 'Unknown']));
+    const catMap = new Map<string, string>(products.map(p => [p.id, p.category?.name ?? 'Unknown']));
     const catSales: Record<string, number> = {};
     result.forEach(r => {
       const cat = catMap.get(r.productId) ?? 'Unknown';

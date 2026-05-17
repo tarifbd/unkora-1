@@ -51,9 +51,10 @@ export class ProductsService {
     }
 
     if (minPrice !== undefined || maxPrice !== undefined) {
-      where.basePrice = {};
-      if (minPrice !== undefined) where.basePrice.gte = minPrice;
-      if (maxPrice !== undefined) where.basePrice.lte = maxPrice;
+      where.basePrice = {
+        ...(minPrice !== undefined && { gte: minPrice }),
+        ...(maxPrice !== undefined && { lte: maxPrice }),
+      } as Prisma.DecimalFilter;
     }
 
     if (isFeatured !== undefined) where.isFeatured = isFeatured;

@@ -37,9 +37,10 @@ export class BooksService {
     }
 
     if (minPrice !== undefined || maxPrice !== undefined) {
-      where.basePrice = {};
-      if (minPrice !== undefined) (where.basePrice as Prisma.DecimalFilter).gte = minPrice;
-      if (maxPrice !== undefined) (where.basePrice as Prisma.DecimalFilter).lte = maxPrice;
+      where.basePrice = {
+        ...(minPrice !== undefined && { gte: minPrice }),
+        ...(maxPrice !== undefined && { lte: maxPrice }),
+      } as Prisma.DecimalFilter;
     }
 
     const orderBy: Prisma.ProductOrderByWithRelationInput =

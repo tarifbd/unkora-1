@@ -1,4 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { OrderStatus } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
 import type { CreateReviewDto } from './dto/create-review.dto';
@@ -21,7 +22,7 @@ export class ReviewsService {
     const verifiedPurchase = await this.prisma.orderItem.findFirst({
       where: {
         productId,
-        order: { userId, status: 'DELIVERED' },
+        order: { userId, status: OrderStatus.DELIVERED },
       },
     });
 

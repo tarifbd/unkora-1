@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { PaymentMethod, PaymentStatus } from '@prisma/client';
+import { OrderStatus, PaymentMethod, PaymentStatus } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
 
@@ -61,7 +61,7 @@ export class PaymentsService {
 
     await this.prisma.order.update({
       where: { id: orderId },
-      data: { status: 'CONFIRMED' },
+      data: { status: OrderStatus.CONFIRMED },
     });
 
     return { message: 'COD order confirmed. Payment collected on delivery.' };
@@ -81,7 +81,7 @@ export class PaymentsService {
       if (status === PaymentStatus.PAID) {
         await tx.order.update({
           where: { id: payment.orderId },
-          data: { paymentStatus: PaymentStatus.PAID, status: 'CONFIRMED' },
+          data: { paymentStatus: PaymentStatus.PAID, status: OrderStatus.CONFIRMED },
         });
       } else if (status === PaymentStatus.FAILED) {
         await tx.order.update({
