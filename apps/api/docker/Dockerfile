@@ -32,10 +32,14 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/packages/database/prisma ./prisma
 
+# startup script — migrate then start
+COPY --chown=nestjs:nodejs apps/api/docker/start.sh ./start.sh
+RUN chmod +x ./start.sh
+
 USER nestjs
 EXPOSE 4000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
   CMD wget --quiet --tries=1 --spider http://localhost:4000/api/v1/health || exit 1
 
-CMD ["node", "dist/main"]
+CMD ["./start.sh"]
