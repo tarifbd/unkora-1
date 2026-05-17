@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: process.env.BUILD_TARGET === 'cloudflare' ? undefined : 'standalone',
+  output: process.env.BUILD_TARGET === 'docker' ? 'standalone' : undefined,
   transpilePackages: ['@unkora/ui'],
   images: {
     remotePatterns: [
