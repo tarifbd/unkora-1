@@ -40,7 +40,7 @@ export class CartService {
     const cart = await this.getOrCreateCart(userId);
 
     const existing = await this.prisma.cartItem.findUnique({
-      where: { cartId_productId_variantId: { cartId: cart.id, productId: dto.productId, variantId: dto.variantId ?? '' } },
+      where: { cartId_productId_variantId: { cartId: cart.id, productId: dto.productId, variantId: dto.variantId ?? null } },
     });
 
     if (existing) {

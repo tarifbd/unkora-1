@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
+import * as crypto from 'crypto';
 
 import { PrismaService } from '../../database/prisma.service';
 import { EmailService } from '../email/email.service';
@@ -175,7 +176,6 @@ export class OrdersService {
     });
 
     if (!user) {
-      const crypto = await import('crypto');
       user = await this.prisma.user.create({
         data: {
           email: dto.guestEmail ?? `guest_${dto.guestPhone}@unkora.guest`,
@@ -192,7 +192,7 @@ export class OrdersService {
       const product = products.find(p => p.id === orderItem.productId)!;
       return sum + Number(product.salePrice ?? product.basePrice) * orderItem.quantity;
     }, 0);
-    const shippingCost = subtotal >= 1000 ? 0 : 80;
+    const shippingCost = subtotal >= 1000 ? 0 : 60;
 
     let discountAmount = 0;
     if (dto.couponCode) {
@@ -238,6 +238,14 @@ export class OrdersService {
         await tx.product.update({
           where: { id: orderItem.productId },
           data: { stockQuantity: { decrement: orderItem.quantity } },
+        });
+        await tx.stockMovement.create({
+          data: {
+            productId: orderItem.productId,
+            type: 'SALE',
+            quantity: -orderItem.quantity,
+            note: `Order ${newOrder.id}`,
+          },
         });
       }
 

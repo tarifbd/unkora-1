@@ -72,10 +72,11 @@ export class EmailService {
         </table>
         <div style="background:#f9fafb;padding:12px;border-radius:6px;margin-top:16px">
           <strong>Shipping to:</strong><br>
-          ${order.shippingAddress.fullName}<br>
-          ${order.shippingAddress.addressLine1}<br>
-          ${order.shippingAddress.city}, ${order.shippingAddress.district}<br>
-          ${order.shippingAddress.division}
+          ${order.shippingAddress['recipientName'] ?? ''}<br>
+          ${order.shippingAddress['phone'] ?? ''}<br>
+          ${order.shippingAddress['addressLine1'] ?? ''}<br>
+          ${order.shippingAddress['city'] ?? ''}, ${order.shippingAddress['district'] ?? ''}<br>
+          ${order.shippingAddress['division'] ?? ''}
         </div>
         <p style="margin-top:20px;color:#6b7280;font-size:14px">Delivery within 3-7 business days. Questions? Email support@unkora.com</p>
       </div>

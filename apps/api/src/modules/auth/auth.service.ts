@@ -41,7 +41,7 @@ export class AuthService {
         firstName: dto.firstName,
         lastName: dto.lastName,
         phone: dto.phone,
-        status: 'ACTIVE',
+        status: 'PENDING_VERIFICATION',
       },
     });
 

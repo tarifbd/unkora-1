@@ -45,7 +45,7 @@ function BooksPageInner() {
     }
 
     if (Object.keys(init).length > 0) setFilters(init);
-  }, []); // eslint-disable-line
+  }, [searchParams]);
 
   const { data, isLoading } = useQuery({
     queryKey: ['books', filters, page],

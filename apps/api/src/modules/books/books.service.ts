@@ -15,17 +15,20 @@ export class BooksService {
       sortBy = 'createdAt', sortOrder = 'desc',
     } = filter;
 
+    const bookDetailFilter: Record<string, unknown> = {};
+    if (author) bookDetailFilter['author'] = { contains: author, mode: 'insensitive' };
+    if (publisher) bookDetailFilter['publisher'] = { contains: publisher, mode: 'insensitive' };
+    if (language) bookDetailFilter['language'] = language;
+    if (genre) bookDetailFilter['genres'] = { has: genre };
+    if (series) bookDetailFilter['series'] = { contains: series, mode: 'insensitive' };
+    if (binding) bookDetailFilter['binding'] = binding;
+
     const where: Prisma.ProductWhereInput = {
       isActive: true,
-      bookDetail: { isNot: null },
+      bookDetail: Object.keys(bookDetailFilter).length > 0
+        ? (bookDetailFilter as Prisma.BookDetailWhereInput)
+        : { isNot: null },
     };
-
-    if (author) where.bookDetail = { ...where.bookDetail as object, author: { contains: author, mode: 'insensitive' } };
-    if (publisher) where.bookDetail = { ...where.bookDetail as object, publisher: { contains: publisher, mode: 'insensitive' } };
-    if (language) where.bookDetail = { ...where.bookDetail as object, language };
-    if (genre) where.bookDetail = { ...where.bookDetail as object, genres: { has: genre } };
-    if (series) where.bookDetail = { ...where.bookDetail as object, series: { contains: series, mode: 'insensitive' } };
-    if (binding) where.bookDetail = { ...where.bookDetail as object, binding };
 
     if (search) {
       where.OR = [
