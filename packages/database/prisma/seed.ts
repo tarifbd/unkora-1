@@ -388,7 +388,7 @@ async function main() {
   ];
 
   for (const b of books) {
-    const imgId = BOOK_IDS[bookIdx % BOOK_IDS.length];
+    const imgId = BOOK_IDS[bookIdx % BOOK_IDS.length]!;
     bookIdx++;
     await prisma.product.upsert({
       where: { slug: b.slug },
@@ -403,7 +403,7 @@ async function main() {
         images: {
           create: [
             { url: bookImg(imgId), isPrimary: true, sortOrder: 0 },
-            { url: bookImg(BOOK_IDS[(bookIdx + 3) % BOOK_IDS.length]), isPrimary: false, sortOrder: 1 },
+            { url: bookImg(BOOK_IDS[(bookIdx + 3) % BOOK_IDS.length]!), isPrimary: false, sortOrder: 1 },
           ],
         },
         bookDetail: {
