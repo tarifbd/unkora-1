@@ -38,7 +38,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
+import { Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
+
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  return <CategoryDetailClient slug={slug} />;
+  return (
+    <Suspense fallback={<div className="container flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>}>
+      <CategoryDetailClient slug={slug} />
+    </Suspense>
+  );
 }
