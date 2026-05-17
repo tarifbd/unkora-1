@@ -441,7 +441,7 @@ export default function ReportsPage() {
         </div>
 
         {/* Revenue summary strip */}
-        <div className="mt-6 grid grid-cols-4 gap-4">
+        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
             { label: 'Today', value: formatCurrency(stats?.revenue.today ?? 0), color: '#6ee7b7' },
             { label: 'This Month', value: formatCurrency(stats?.revenue.thisMonth ?? 0), color: '#a5b4fc' },

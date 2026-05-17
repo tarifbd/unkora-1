@@ -157,6 +157,8 @@ model Category {
   slug        String  @unique
   description String?
   imageUrl    String?
+  color       String?
+  icon        String?
   parentId    String?
   sortOrder   Int     @default(0)
   isActive    Boolean @default(true)

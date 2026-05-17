@@ -164,7 +164,7 @@ export default function PromotionsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {[
           { label: 'Flash Deals', value: flashCount, icon: Zap, color: 'text-orange-500 bg-orange-50' },
           { label: 'Featured', value: featuredCount, icon: Star, color: 'text-yellow-500 bg-yellow-50' },

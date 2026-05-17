@@ -69,37 +69,37 @@ async function main() {
   const booksCat = await prisma.category.upsert({
     where: { slug: 'books' },
     update: {},
-    create: { name: 'Books', slug: 'books', description: 'বাংলা ও ইংরেজি বই', sortOrder: 1 },
+    create: { name: 'Books', slug: 'books', description: 'বাংলা ও ইংরেজি বই', sortOrder: 1, color: 'bg-blue-100 text-blue-700', icon: '📚' },
   });
   const babyProductsCat = await prisma.category.upsert({
     where: { slug: 'baby-products' },
     update: {},
-    create: { name: 'Baby Products', slug: 'baby-products', description: 'শিশু সামগ্রী', sortOrder: 2 },
+    create: { name: 'Baby Products', slug: 'baby-products', description: 'শিশু সামগ্রী', sortOrder: 2, color: 'bg-pink-100 text-pink-700', icon: '👶' },
   });
   const leatherProductsCat = await prisma.category.upsert({
     where: { slug: 'leather-products' },
     update: {},
-    create: { name: 'Leather Products', slug: 'leather-products', description: 'চামড়ার প্রিমিয়াম পণ্য', sortOrder: 3 },
+    create: { name: 'Leather Products', slug: 'leather-products', description: 'চামড়ার প্রিমিয়াম পণ্য', sortOrder: 3, color: 'bg-amber-100 text-amber-700', icon: '👜' },
   });
   const organicFoodsCat = await prisma.category.upsert({
     where: { slug: 'organic-foods' },
     update: {},
-    create: { name: 'Organic Foods', slug: 'organic-foods', description: 'প্রাকৃতিক ও জৈব পণ্য', sortOrder: 4 },
+    create: { name: 'Organic Foods', slug: 'organic-foods', description: 'প্রাকৃতিক ও জৈব পণ্য', sortOrder: 4, color: 'bg-green-100 text-green-700', icon: '🌿' },
   });
   const handicraftsCat = await prisma.category.upsert({
     where: { slug: 'handicrafts' },
     update: {},
-    create: { name: 'Handicrafts', slug: 'handicrafts', description: 'হস্তশিল্প', sortOrder: 5 },
+    create: { name: 'Handicrafts', slug: 'handicrafts', description: 'হস্তশিল্প', sortOrder: 5, color: 'bg-purple-100 text-purple-700', icon: '🎨' },
   });
   const electronicsCat = await prisma.category.upsert({
     where: { slug: 'electronics' },
     update: {},
-    create: { name: 'Electronics', slug: 'electronics', description: 'ইলেকট্রনিক্স পণ্য', sortOrder: 6 },
+    create: { name: 'Electronics', slug: 'electronics', description: 'ইলেকট্রনিক্স পণ্য', sortOrder: 6, color: 'bg-cyan-100 text-cyan-700', icon: '⚡' },
   });
   const dailyNeedsCat = await prisma.category.upsert({
     where: { slug: 'daily-needs' },
     update: {},
-    create: { name: 'Daily Needs', slug: 'daily-needs', description: 'দৈনন্দিন প্রয়োজনীয় পণ্য', sortOrder: 7 },
+    create: { name: 'Daily Needs', slug: 'daily-needs', description: 'দৈনন্দিন প্রয়োজনীয় পণ্য', sortOrder: 7, color: 'bg-orange-100 text-orange-700', icon: '🛒' },
   });
 
   // ── Sub-categories of Books ──

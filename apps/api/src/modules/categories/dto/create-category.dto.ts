@@ -24,6 +24,16 @@ export class CreateCategoryDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  color?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  icon?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   parentId?: string;
 
   @ApiPropertyOptional()

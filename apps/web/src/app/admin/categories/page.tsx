@@ -13,6 +13,9 @@ interface Category {
   name: string;
   slug: string;
   description?: string;
+  imageUrl?: string | null;
+  color?: string | null;
+  icon?: string | null;
   parentId?: string | null;
   sortOrder?: number;
   isActive?: boolean;
@@ -22,13 +25,34 @@ interface Category {
 interface FormState {
   name: string; slug: string; description: string;
   parentId: string; sortOrder: string; isActive: boolean;
+  color: string; icon: string; imageUrl: string;
 }
 
-const EMPTY_FORM: FormState = { name: '', slug: '', description: '', parentId: '', sortOrder: '0', isActive: true };
+const EMPTY_FORM: FormState = {
+  name: '', slug: '', description: '', parentId: '', sortOrder: '0', isActive: true,
+  color: '', icon: '', imageUrl: '',
+};
 
-function autoSlug(name: string) {
-  return name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
-}
+const COLOR_PALETTE = [
+  { value: 'bg-blue-100 text-blue-700',   label: 'Blue' },
+  { value: 'bg-pink-100 text-pink-700',   label: 'Pink' },
+  { value: 'bg-amber-100 text-amber-700', label: 'Amber' },
+  { value: 'bg-green-100 text-green-700', label: 'Green' },
+  { value: 'bg-purple-100 text-purple-700', label: 'Purple' },
+  { value: 'bg-cyan-100 text-cyan-700',   label: 'Cyan' },
+  { value: 'bg-orange-100 text-orange-700', label: 'Orange' },
+  { value: 'bg-red-100 text-red-700',     label: 'Red' },
+  { value: 'bg-indigo-100 text-indigo-700', label: 'Indigo' },
+  { value: 'bg-teal-100 text-teal-700',   label: 'Teal' },
+  { value: 'bg-lime-100 text-lime-700',   label: 'Lime' },
+  { value: 'bg-gray-100 text-gray-600',   label: 'Gray' },
+];
+
+const ICON_OPTIONS = [
+  '📚','👶','👜','🌿','🎨','⚡','🛒','👗','🍎','🏠','🎮','🎵',
+  '💄','🐾','🏋️','🖥️','📱','🧴','🍳','🌸','🎁','🔧','📷','✈️',
+  '🧸','🪴','🕯️','🧶','🎯','🏷️',
+];
 
 const CAT_COLORS: Record<string, string> = {
   books: 'bg-blue-100 text-blue-700', 'baby-products': 'bg-pink-100 text-pink-700',
@@ -40,6 +64,17 @@ const CAT_EMOJI: Record<string, string> = {
   books: '📚', 'baby-products': '👶', 'leather-products': '👜',
   'organic-foods': '🌿', handicrafts: '🎨', electronics: '⚡', 'daily-needs': '🛒',
 };
+
+function getCatColor(cat: Category) {
+  return cat.color ?? CAT_COLORS[cat.slug] ?? 'bg-gray-100 text-gray-600';
+}
+function getCatIcon(cat: Category) {
+  return cat.icon ?? CAT_EMOJI[cat.slug] ?? '🏷️';
+}
+
+function autoSlug(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+}
 
 function DeleteModal({ name, onConfirm, onClose, loading }: { name: string; onConfirm: () => void; onClose: () => void; loading: boolean }) {
   return (
@@ -77,8 +112,8 @@ function CategoryRow({ cat, depth, allCats, onEdit, onDelete }: {
   const [expanded, setExpanded] = useState(depth === 0);
   const children = allCats.filter(c => c.parentId === cat.id).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
   const hasChildren = children.length > 0;
-  const emoji = CAT_EMOJI[cat.slug] ?? '🏷️';
-  const color = CAT_COLORS[cat.slug] ?? 'bg-gray-100 text-gray-600';
+  const emoji = getCatIcon(cat);
+  const color = getCatColor(cat);
 
   const toggleActive = useMutation({
     mutationFn: () => api.patch(`/categories/${cat.id}`, { isActive: !cat.isActive }),
@@ -92,20 +127,17 @@ function CategoryRow({ cat, depth, allCats, onEdit, onDelete }: {
     <>
       <div
         className={`flex items-center gap-3 py-2.5 pr-4 hover:bg-gray-50 transition-colors group border-b border-gray-50/80 ${depth > 0 ? 'bg-gray-50/30' : ''}`}
-        style={{ paddingLeft: `${16 + depth * 28}px` }}
+        style={{ paddingLeft: `${16 + depth * 24}px` }}
       >
-        {/* Expand toggle */}
         <button onClick={() => setExpanded(e => !e)}
           className={`w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 flex-shrink-0 ${!hasChildren ? 'invisible' : ''}`}>
           {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
 
-        {/* Icon */}
         <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-base flex-shrink-0 ${color} ${!cat.isActive ? 'opacity-40' : ''}`}>
           {expanded && hasChildren ? <FolderOpen className="w-4 h-4" /> : hasChildren ? <Folder className="w-4 h-4" /> : emoji}
         </div>
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className={`text-sm font-semibold truncate ${!cat.isActive ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{cat.name}</p>
@@ -116,7 +148,6 @@ function CategoryRow({ cat, depth, allCats, onEdit, onDelete }: {
           <p className="text-[11px] text-gray-400 font-mono">/{cat.slug}</p>
         </div>
 
-        {/* Hover actions */}
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
           <button onClick={() => onEdit({ id: '', name: '', slug: '', parentId: cat.id, isActive: true } as Category)}
             title="Add sub-category"
@@ -133,7 +164,6 @@ function CategoryRow({ cat, depth, allCats, onEdit, onDelete }: {
           </button>
         </div>
 
-        {/* Active toggle */}
         <button onClick={() => toggleActive.mutate()} disabled={toggleActive.isPending}
           className={`relative h-5 w-9 rounded-full transition-colors flex-shrink-0 ${cat.isActive ? 'bg-primary' : 'bg-gray-200'}`}>
           <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${cat.isActive ? 'translate-x-4' : 'translate-x-0.5'}`} />
@@ -154,6 +184,8 @@ export default function AdminCategoriesPage() {
   const [slugTouched, setSlugTouched] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
   const [search, setSearch] = useState('');
+  const [showIconPicker, setShowIconPicker] = useState(false);
+  const [showForm, setShowForm] = useState(false);
 
   const { data: categories = [], isLoading } = useQuery<Category[]>({
     queryKey: ['categories-admin-all'],
@@ -182,16 +214,25 @@ export default function AdminCategoriesPage() {
     },
   });
 
-  function resetForm() { setForm(EMPTY_FORM); setEditingId(null); setSlugTouched(false); }
+  function resetForm() {
+    setForm(EMPTY_FORM); setEditingId(null); setSlugTouched(false);
+    setShowIconPicker(false); setShowForm(false);
+  }
 
   function startEdit(cat: Category) {
     if (!cat.id) {
       setEditingId(null); setSlugTouched(false);
       setForm({ ...EMPTY_FORM, parentId: cat.parentId ?? '' });
+      setShowForm(true);
       return;
     }
     setEditingId(cat.id); setSlugTouched(true);
-    setForm({ name: cat.name, slug: cat.slug, description: cat.description ?? '', parentId: cat.parentId ?? '', sortOrder: String(cat.sortOrder ?? 0), isActive: cat.isActive ?? true });
+    setForm({
+      name: cat.name, slug: cat.slug, description: cat.description ?? '',
+      parentId: cat.parentId ?? '', sortOrder: String(cat.sortOrder ?? 0), isActive: cat.isActive ?? true,
+      color: cat.color ?? '', icon: cat.icon ?? '', imageUrl: cat.imageUrl ?? '',
+    });
+    setShowForm(true);
   }
 
   const roots = categories.filter(c => !c.parentId).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
@@ -200,23 +241,200 @@ export default function AdminCategoriesPage() {
   const activeCount = categories.filter(c => c.isActive).length;
   const subCount = categories.filter(c => c.parentId).length;
 
+  const previewColor = form.color || 'bg-gray-100 text-gray-600';
+  const previewIcon = form.icon || '🏷️';
+
+  const FormPanel = (
+    <div className="rounded-2xl border bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between mb-5">
+        <div>
+          <h2 className="font-black text-gray-900 text-lg">{editingId ? 'Edit Category' : 'New Category'}</h2>
+          {form.parentId && (
+            <p className="text-xs text-primary mt-0.5 flex items-center gap-1">
+              <Move className="w-3 h-3" /> Sub of: {categories.find(c => c.id === form.parentId)?.name}
+            </p>
+          )}
+        </div>
+        <button onClick={resetForm} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+      </div>
+
+      {/* Preview */}
+      <div className="mb-4 flex items-center gap-3 p-3 rounded-xl bg-gray-50 border">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${previewColor}`}>
+          {previewIcon}
+        </div>
+        <div>
+          <p className="text-sm font-bold text-gray-900">{form.name || 'Category Name'}</p>
+          <p className="text-[11px] text-gray-400 font-mono">/{form.slug || 'slug'}</p>
+        </div>
+      </div>
+
+      <form onSubmit={e => {
+        e.preventDefault();
+        save.mutate({
+          name: form.name.trim(), slug: form.slug.trim(),
+          description: form.description || undefined,
+          parentId: form.parentId || undefined,
+          sortOrder: Number(form.sortOrder) || 0,
+          isActive: form.isActive,
+          color: form.color || undefined,
+          icon: form.icon || undefined,
+          imageUrl: form.imageUrl || undefined,
+        });
+      }} className="space-y-4">
+
+        <div>
+          <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Name <span className="text-red-500">*</span></label>
+          <input required value={form.name}
+            onChange={e => { const v = e.target.value; setForm(f => ({ ...f, name: v, slug: slugTouched ? f.slug : autoSlug(v) })); }}
+            className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+            placeholder="e.g. Fiction Books" />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-gray-700 mb-1.5 flex justify-between">
+            Slug <span className="text-red-500">*</span>
+            <span className="text-[10px] text-gray-400 font-normal">Auto-generated</span>
+          </label>
+          <div className="relative">
+            <span className="absolute left-3.5 top-2.5 text-gray-400 text-sm">/</span>
+            <input required value={form.slug}
+              onChange={e => { setSlugTouched(true); setForm(f => ({ ...f, slug: e.target.value })); }}
+              className="w-full border rounded-xl pl-6 pr-3.5 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              placeholder="fiction-books" pattern="[a-z0-9-]+" />
+          </div>
+        </div>
+
+        {/* Icon picker */}
+        <div>
+          <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Icon / Emoji</label>
+          <button type="button" onClick={() => setShowIconPicker(p => !p)}
+            className="flex items-center gap-2 border rounded-xl px-3.5 py-2 text-sm w-full hover:bg-gray-50">
+            <span className="text-xl">{previewIcon}</span>
+            <span className="text-gray-500">{form.icon ? 'Change icon' : 'Pick an icon'}</span>
+            <ChevronDown className="w-4 h-4 text-gray-400 ml-auto" />
+          </button>
+          {showIconPicker && (
+            <div className="mt-1 border rounded-xl p-3 bg-white shadow-sm">
+              <div className="grid grid-cols-10 gap-1">
+                {ICON_OPTIONS.map(ic => (
+                  <button key={ic} type="button"
+                    onClick={() => { setForm(f => ({ ...f, icon: ic })); setShowIconPicker(false); }}
+                    className={`text-xl h-8 w-8 rounded-lg hover:bg-gray-100 flex items-center justify-center transition-colors ${form.icon === ic ? 'bg-primary/10 ring-2 ring-primary' : ''}`}>
+                    {ic}
+                  </button>
+                ))}
+              </div>
+              {form.icon && (
+                <button type="button" onClick={() => { setForm(f => ({ ...f, icon: '' })); setShowIconPicker(false); }}
+                  className="mt-2 text-xs text-red-500 hover:underline w-full text-center">Clear icon</button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Color picker */}
+        <div>
+          <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Color Theme</label>
+          <div className="grid grid-cols-6 gap-1.5">
+            {COLOR_PALETTE.map(c => (
+              <button key={c.value} type="button"
+                onClick={() => setForm(f => ({ ...f, color: f.color === c.value ? '' : c.value }))}
+                title={c.label}
+                className={`h-8 rounded-xl text-xs font-bold transition-all ${c.value} ${form.color === c.value ? 'ring-2 ring-offset-1 ring-gray-900 scale-110' : 'hover:scale-105'}`}>
+                {c.label.slice(0, 3)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Description</label>
+          <textarea value={form.description}
+            onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+            rows={2} className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+            placeholder="Optional…" />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Image URL</label>
+          <input value={form.imageUrl}
+            onChange={e => setForm(f => ({ ...f, imageUrl: e.target.value }))}
+            className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            placeholder="https://..." />
+        </div>
+
+        <div>
+          <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Parent Category</label>
+          <select value={form.parentId} onChange={e => setForm(f => ({ ...f, parentId: e.target.value }))}
+            className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white">
+            <option value="">None (top-level)</option>
+            {parentOptions.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+        </div>
+
+        <div className="flex gap-3 items-end">
+          <div className="flex-1">
+            <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Sort Order</label>
+            <input type="number" min="0" value={form.sortOrder}
+              onChange={e => setForm(f => ({ ...f, sortOrder: e.target.value }))}
+              className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
+          </div>
+          <label className="flex items-center gap-2 pb-2.5 cursor-pointer select-none">
+            <div onClick={() => setForm(f => ({ ...f, isActive: !f.isActive }))}
+              className={`relative w-10 h-5 rounded-full transition-colors ${form.isActive ? 'bg-primary' : 'bg-gray-200'}`}>
+              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${form.isActive ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            </div>
+            <span className="text-sm font-semibold text-gray-700">Active</span>
+          </label>
+        </div>
+
+        <div className="flex gap-2.5 pt-1">
+          <button type="submit" disabled={save.isPending}
+            className="flex-1 flex items-center justify-center gap-2 bg-primary text-white rounded-xl py-2.5 text-sm font-bold hover:bg-primary/90 disabled:opacity-50">
+            {save.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            {editingId ? 'Update' : 'Create Category'}
+          </button>
+          <button type="button" onClick={resetForm} className="px-4 border rounded-xl text-sm font-bold hover:bg-gray-50">Cancel</button>
+        </div>
+
+        {save.isError && (
+          <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            Failed to save. Slug may already be taken.
+          </p>
+        )}
+      </form>
+
+      {editingId && (
+        <div className="mt-4 pt-4 border-t">
+          <button onClick={() => setDeleteTarget(categories.find(c => c.id === editingId) ?? null)}
+            className="w-full flex items-center justify-center gap-2 text-red-600 border border-red-200 rounded-xl py-2 text-sm font-bold hover:bg-red-50">
+            <Trash2 className="w-4 h-4" /> Delete this category
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-black text-gray-900">Categories</h1>
           <p className="text-sm text-gray-500 mt-0.5">{categories.length} total · {activeCount} active · {subCount} sub-categories</p>
         </div>
-        <button onClick={resetForm}
+        <button onClick={() => { resetForm(); setShowForm(true); }}
           className="flex items-center gap-2 bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/90 shadow-sm transition-colors">
           <Plus className="w-4 h-4" /> New Category
         </button>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-5">
+      {/* Mobile: form slides in above tree on small screens */}
+      {showForm && <div className="lg:hidden">{FormPanel}</div>}
+
+      <div className="grid gap-6 lg:grid-cols-5">
         {/* Tree panel */}
-        <div className="xl:col-span-3 rounded-2xl border bg-white overflow-hidden shadow-sm">
-          {/* Search bar */}
+        <div className="lg:col-span-3 rounded-2xl border bg-white overflow-hidden shadow-sm">
           <div className="border-b bg-gray-50 px-4 py-3 flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
@@ -229,14 +447,13 @@ export default function AdminCategoriesPage() {
 
           {isLoading && <div className="flex justify-center py-14"><Loader2 className="w-6 h-6 animate-spin text-gray-300" /></div>}
 
-          {/* Search results */}
           {search && filtered && (
             <div className="divide-y">
               {filtered.length === 0 && <p className="py-10 text-center text-sm text-gray-400">No results for "{search}"</p>}
               {filtered.map(cat => (
                 <div key={cat.id} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 group">
-                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm ${CAT_COLORS[cat.slug] ?? 'bg-gray-100 text-gray-500'}`}>
-                    {CAT_EMOJI[cat.slug] ?? '🏷️'}
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm ${getCatColor(cat)}`}>
+                    {getCatIcon(cat)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate">{cat.name}</p>
@@ -251,7 +468,6 @@ export default function AdminCategoriesPage() {
             </div>
           )}
 
-          {/* Tree */}
           {!search && (
             <>
               {roots.map(cat => (
@@ -261,125 +477,32 @@ export default function AdminCategoriesPage() {
                 <div className="py-16 text-center">
                   <Tag className="w-10 h-10 text-gray-200 mx-auto mb-3" />
                   <p className="text-gray-500 font-semibold">No categories yet</p>
-                  <p className="text-gray-400 text-sm mt-1">Use the form to create your first category →</p>
+                  <p className="text-gray-400 text-sm mt-1">Use "New Category" to get started →</p>
                 </div>
               )}
             </>
           )}
         </div>
 
-        {/* Form panel */}
-        <div className="xl:col-span-2 space-y-4">
-          <div className="rounded-2xl border bg-white p-5 shadow-sm sticky top-4">
-            <div className="flex items-center justify-between mb-5">
-              <div>
-                <h2 className="font-black text-gray-900 text-lg">{editingId ? 'Edit Category' : 'New Category'}</h2>
-                {form.parentId && (
-                  <p className="text-xs text-primary mt-0.5 flex items-center gap-1">
-                    <Move className="w-3 h-3" /> Sub of: {categories.find(c => c.id === form.parentId)?.name}
-                  </p>
-                )}
-              </div>
-              {(editingId || form.parentId) && (
-                <button onClick={resetForm} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
-              )}
-            </div>
-
-            <form onSubmit={e => {
-              e.preventDefault();
-              save.mutate({ name: form.name.trim(), slug: form.slug.trim(), description: form.description || undefined, parentId: form.parentId || undefined, sortOrder: Number(form.sortOrder) || 0, isActive: form.isActive });
-            }} className="space-y-4">
-              <div>
-                <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Name <span className="text-red-500">*</span></label>
-                <input required value={form.name}
-                  onChange={e => { const v = e.target.value; setForm(f => ({ ...f, name: v, slug: slugTouched ? f.slug : autoSlug(v) })); }}
-                  className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                  placeholder="e.g. Fiction Books" />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-700 mb-1.5 flex justify-between">
-                  Slug <span className="text-red-500">*</span>
-                  <span className="text-[10px] text-gray-400 font-normal">Auto-generated</span>
-                </label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-2.5 text-gray-400 text-sm">/</span>
-                  <input required value={form.slug}
-                    onChange={e => { setSlugTouched(true); setForm(f => ({ ...f, slug: e.target.value })); }}
-                    className="w-full border rounded-xl pl-6 pr-3.5 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
-                    placeholder="fiction-books" pattern="[a-z0-9-]+" />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Description</label>
-                <textarea value={form.description}
-                  onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                  rows={2} className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-                  placeholder="Optional…" />
-              </div>
-
-              <div>
-                <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Parent Category</label>
-                <select value={form.parentId} onChange={e => setForm(f => ({ ...f, parentId: e.target.value }))}
-                  className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white">
-                  <option value="">None (top-level)</option>
-                  {parentOptions.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-
-              <div className="flex gap-3 items-end">
-                <div className="flex-1">
-                  <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Sort Order</label>
-                  <input type="number" min="0" value={form.sortOrder}
-                    onChange={e => setForm(f => ({ ...f, sortOrder: e.target.value }))}
-                    className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                </div>
-                <label className="flex items-center gap-2 pb-2.5 cursor-pointer select-none">
-                  <div onClick={() => setForm(f => ({ ...f, isActive: !f.isActive }))}
-                    className={`relative w-10 h-5 rounded-full transition-colors ${form.isActive ? 'bg-primary' : 'bg-gray-200'}`}>
-                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${form.isActive ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                  </div>
-                  <span className="text-sm font-semibold text-gray-700">Active</span>
-                </label>
-              </div>
-
-              <div className="flex gap-2.5 pt-1">
-                <button type="submit" disabled={save.isPending}
-                  className="flex-1 flex items-center justify-center gap-2 bg-primary text-white rounded-xl py-2.5 text-sm font-bold hover:bg-primary/90 disabled:opacity-50">
-                  {save.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                  {editingId ? 'Update' : 'Create Category'}
-                </button>
-                {editingId && <button type="button" onClick={resetForm} className="px-4 border rounded-xl text-sm font-bold hover:bg-gray-50">Cancel</button>}
-              </div>
-
-              {save.isError && (
-                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                  Failed to save. Slug may already be taken.
-                </p>
-              )}
-            </form>
-
-            {editingId && (
-              <div className="mt-4 pt-4 border-t">
-                <button onClick={() => setDeleteTarget(categories.find(c => c.id === editingId) ?? null)}
-                  className="w-full flex items-center justify-center gap-2 text-red-600 border border-red-200 rounded-xl py-2 text-sm font-bold hover:bg-red-50">
-                  <Trash2 className="w-4 h-4" /> Delete this category
-                </button>
+        {/* Form panel — desktop only (mobile form shown above) */}
+        <div className="hidden lg:block lg:col-span-2 space-y-4">
+          <div className="sticky top-4 space-y-4">
+            {showForm ? FormPanel : (
+              <div className="rounded-2xl border-2 border-dashed bg-gray-50 p-8 text-center">
+                <Tag className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                <p className="text-sm text-gray-400">Select a category to edit or click <strong>New Category</strong></p>
               </div>
             )}
-          </div>
-
-          {/* Stats */}
-          <div className="rounded-2xl border bg-white p-4 shadow-sm">
-            <p className="text-xs font-black text-gray-400 uppercase tracking-wide mb-3">Stats</p>
-            <div className="grid grid-cols-3 gap-3 text-center">
-              {[['Total', categories.length, 'text-gray-900'], ['Active', activeCount, 'text-green-600'], ['Sub-cats', subCount, 'text-blue-600']].map(([l, v, c]) => (
-                <div key={String(l)}>
-                  <p className={`text-2xl font-black ${c}`}>{v}</p>
-                  <p className="text-[11px] text-gray-400">{l}</p>
-                </div>
-              ))}
+            <div className="rounded-2xl border bg-white p-4 shadow-sm">
+              <p className="text-xs font-black text-gray-400 uppercase tracking-wide mb-3">Stats</p>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                {([['Total', categories.length, 'text-gray-900'], ['Active', activeCount, 'text-green-600'], ['Sub-cats', subCount, 'text-blue-600']] as const).map(([l, v, c]) => (
+                  <div key={String(l)}>
+                    <p className={`text-2xl font-black ${c}`}>{v}</p>
+                    <p className="text-[11px] text-gray-400">{l}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

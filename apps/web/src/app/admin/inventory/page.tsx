@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Package, AlertTriangle, Plus, Minus, History, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Package, AlertTriangle, Plus, Minus, History, ChevronDown, ChevronUp, Loader2, Search, X } from 'lucide-react';
 import { inventoryApi, type InventoryProduct } from '@/lib/api/inventory';
 
 const MOVEMENT_TYPES = [
@@ -180,10 +180,11 @@ function HistoryPanel({ productId }: { productId: string }) {
 export default function AdminInventoryPage() {
   const [adjustingId, setAdjustingId] = useState<string | null>(null);
   const [historyId, setHistoryId] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
 
   const { data: overview, isLoading } = useQuery({
     queryKey: ['admin-inventory'],
-    queryFn: () => inventoryApi.getOverview(1, 100),
+    queryFn: () => inventoryApi.getOverview(1, 200),
   });
 
   const { data: lowStockData } = useQuery({
@@ -191,16 +192,26 @@ export default function AdminInventoryPage() {
     queryFn: () => inventoryApi.getLowStock(),
   });
 
-  const products: InventoryProduct[] = Array.isArray(overview?.data)
+  const allProducts: InventoryProduct[] = Array.isArray(overview?.data)
     ? overview.data
     : Array.isArray(overview)
       ? overview
       : [];
   const lowStockCount = Array.isArray(lowStockData) ? lowStockData.length : 0;
 
+  const products = useMemo(() => {
+    if (!search.trim()) return allProducts;
+    const q = search.toLowerCase();
+    return allProducts.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      (p.sku ?? '').toLowerCase().includes(q) ||
+      p.category.name.toLowerCase().includes(q),
+    );
+  }, [allProducts, search]);
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="font-serif text-2xl font-bold">Inventory</h1>
           {lowStockCount > 0 && (
@@ -210,16 +221,48 @@ export default function AdminInventoryPage() {
             </p>
           )}
         </div>
+        <div className="text-sm text-muted-foreground">
+          {!isLoading && <span>{allProducts.length} products total</span>}
+        </div>
       </div>
+
+      {/* Search */}
+      {!isLoading && allProducts.length > 0 && (
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name, SKU, or category…"
+            className="w-full rounded-md border bg-background pl-9 pr-8 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+              <X className="h-4 w-4 text-muted-foreground" />
+            </button>
+          )}
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
+      ) : allProducts.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center px-4">
+          <Package className="mb-3 h-12 w-12 text-muted-foreground/30" />
+          <p className="font-semibold text-lg mb-1">No products found</p>
+          <p className="text-sm text-muted-foreground max-w-xs">
+            Your inventory is empty. Add products first, or run the database seed to populate sample data.
+          </p>
+          <div className="mt-4 rounded-lg bg-muted/50 px-4 py-3 text-xs text-muted-foreground font-mono text-left">
+            npm run db:seed
+          </div>
+        </div>
       ) : products.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16">
-          <Package className="mb-3 h-10 w-10 text-muted-foreground/30" />
-          <p className="font-semibold">No products found</p>
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-12">
+          <Search className="mb-3 h-10 w-10 text-muted-foreground/30" />
+          <p className="font-semibold">No results for "{search}"</p>
         </div>
       ) : (
         <div className="rounded-xl border bg-card overflow-hidden">

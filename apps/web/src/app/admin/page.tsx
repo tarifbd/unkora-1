@@ -403,7 +403,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* ── Row 1: KPI Cards ── */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Total Revenue"
           value={formatCurrency(stats?.revenue.total ?? 0)}
@@ -444,7 +444,7 @@ export default function AdminDashboard() {
 
       {/* ── Revenue sub-bar ── */}
       <div
-        className="rounded-2xl px-6 py-4 grid grid-cols-3 gap-6"
+        className="rounded-2xl px-4 py-4 grid grid-cols-3 gap-3 sm:gap-6 sm:px-6"
         style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)' }}
       >
         {[
