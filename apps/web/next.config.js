@@ -1,8 +1,5 @@
-import type { NextConfig } from 'next';
-
-const nextConfig: NextConfig = {
-  // 'standalone' for Docker/Railway self-hosted deployments.
-  // Cloudflare Pages: set BUILD_TARGET=cloudflare in environment to skip this.
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   output: process.env.BUILD_TARGET === 'cloudflare' ? undefined : 'standalone',
   transpilePackages: ['@unkora/ui'],
   images: {
@@ -19,4 +16,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
