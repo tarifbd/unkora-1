@@ -38,7 +38,7 @@ async function main() {
 
   await prisma.user.upsert({
     where: { email: 'admin@unkora.com' },
-    update: {},
+    update: { passwordHash: adminHash, role: 'SUPER_ADMIN', status: 'ACTIVE' },
     create: {
       email: 'admin@unkora.com',
       passwordHash: adminHash,
@@ -51,7 +51,7 @@ async function main() {
   });
   await prisma.user.upsert({
     where: { email: 'customer@test.com' },
-    update: {},
+    update: { passwordHash: customerHash, status: 'ACTIVE' },
     create: {
       email: 'customer@test.com',
       passwordHash: customerHash,
