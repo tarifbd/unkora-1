@@ -15,4 +15,9 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  couponCode?: string;
 }

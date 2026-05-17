@@ -69,6 +69,29 @@ export class UsersService {
     return this.prisma.address.delete({ where: { id } });
   }
 
+  async updateProfile(userId: string, dto: { firstName?: string; lastName?: string; phone?: string; avatarUrl?: string; dateOfBirth?: string }) {
+    const data: Record<string, unknown> = {};
+    if (dto.firstName !== undefined) data.firstName = dto.firstName;
+    if (dto.lastName !== undefined) data.lastName = dto.lastName;
+    if (dto.phone !== undefined) data.phone = dto.phone;
+    if (dto.avatarUrl !== undefined) data.avatarUrl = dto.avatarUrl;
+
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+
+    if (dto.dateOfBirth) {
+      await this.prisma.customerProfile.upsert({
+        where: { userId },
+        create: { userId, dateOfBirth: new Date(dto.dateOfBirth) },
+        update: { dateOfBirth: new Date(dto.dateOfBirth) },
+      });
+    }
+
+    return this.toDto(user);
+  }
+
   toDto(user: User): UserDto {
     return {
       id: user.id,

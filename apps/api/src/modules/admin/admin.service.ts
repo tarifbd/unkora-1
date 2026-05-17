@@ -185,6 +185,69 @@ export class AdminService {
       .slice(0, 8);
   }
 
+  async exportOrdersCsv(startDate?: string, endDate?: string): Promise<string> {
+    const where: any = {};
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) where.createdAt.lte = new Date(endDate);
+    }
+
+    const orders = await this.prisma.order.findMany({
+      where,
+      include: {
+        user: { select: { email: true, firstName: true, lastName: true, phone: true } },
+        items: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10000,
+    });
+
+    const rows = [
+      ['Order Number', 'Date', 'Customer Name', 'Email', 'Phone', 'Items', 'Subtotal', 'Shipping', 'Discount', 'Total', 'Status', 'Payment Method'].join(','),
+      ...orders.map((o: any) => [
+        o.orderNumber,
+        o.createdAt.toISOString().slice(0, 10),
+        `"${o.user.firstName} ${o.user.lastName}"`,
+        o.user.email,
+        o.user.phone ?? '',
+        o.items.length,
+        o.subtotal,
+        o.shippingCost,
+        o.discount,
+        o.total,
+        o.status,
+        o.paymentMethod,
+      ].join(',')),
+    ];
+
+    return rows.join('\n');
+  }
+
+  async exportCustomersCsv(): Promise<string> {
+    const users = await this.prisma.user.findMany({
+      where: { role: 'CUSTOMER' },
+      include: { _count: { select: { orders: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 10000,
+    });
+
+    const rows = [
+      ['Name', 'Email', 'Phone', 'Status', 'Orders', 'Joined', 'Email Verified'].join(','),
+      ...users.map((u: any) => [
+        `"${u.firstName} ${u.lastName}"`,
+        u.email,
+        u.phone ?? '',
+        u.status,
+        u._count.orders,
+        u.createdAt.toISOString().slice(0, 10),
+        u.emailVerifiedAt ? 'Yes' : 'No',
+      ].join(',')),
+    ];
+
+    return rows.join('\n');
+  }
+
   async getTopCustomers() {
     const result = await this.prisma.order.groupBy({
       by: ['userId'],

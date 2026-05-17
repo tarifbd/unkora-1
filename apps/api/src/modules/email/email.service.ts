@@ -116,4 +116,48 @@ export class EmailService {
     </div>`;
     await this.send(to, `Order #${orderNumber} — ${statusLabel[status] ?? status}`, html);
   }
+
+  async sendPasswordReset(to: string, resetUrl: string, firstName: string) {
+  const html = `
+  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px">
+    <div style="background:#1c1917;color:#fbbf24;padding:20px;text-align:center;border-radius:8px 8px 0 0">
+      <h1 style="margin:0;font-size:28px">UNKORA</h1>
+      <p style="margin:4px 0 0;color:#d6d3d1">Password Reset</p>
+    </div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 8px 8px">
+      <h2 style="color:#1c1917">Hi ${firstName},</h2>
+      <p>You requested to reset your password. Click the button below within 1 hour:</p>
+      <div style="text-align:center;margin:28px 0">
+        <a href="${resetUrl}" style="background:#d97706;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;display:inline-block">
+          Reset Password
+        </a>
+      </div>
+      <p style="color:#6b7280;font-size:13px">If you didn't request this, you can safely ignore this email. Your password will not change.</p>
+      <p style="color:#9ca3af;font-size:12px;word-break:break-all">Or copy this link: ${resetUrl}</p>
+    </div>
+  </div>`;
+  await this.send(to, 'Reset Your UNKORA Password', html);
+}
+
+  async sendEmailVerification(to: string, verifyUrl: string, firstName: string) {
+  const html = `
+  <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px">
+    <div style="background:#1c1917;color:#fbbf24;padding:20px;text-align:center;border-radius:8px 8px 0 0">
+      <h1 style="margin:0;font-size:28px">UNKORA</h1>
+      <p style="margin:4px 0 0;color:#d6d3d1">Verify Your Email</p>
+    </div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 8px 8px">
+      <h2 style="color:#1c1917">Welcome to UNKORA, ${firstName}!</h2>
+      <p>Please verify your email address to unlock all features. This link expires in 24 hours.</p>
+      <div style="text-align:center;margin:28px 0">
+        <a href="${verifyUrl}" style="background:#16a34a;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;display:inline-block">
+          Verify Email
+        </a>
+      </div>
+      <p style="color:#6b7280;font-size:13px">If you didn't create an account, please ignore this email.</p>
+      <p style="color:#9ca3af;font-size:12px;word-break:break-all">Or copy this link: ${verifyUrl}</p>
+    </div>
+  </div>`;
+  await this.send(to, 'Verify your UNKORA email address', html);
+}
 }

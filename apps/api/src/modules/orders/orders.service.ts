@@ -4,6 +4,7 @@ import { OrderStatus } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { EmailService } from '../email/email.service';
 import { FacebookCAPIService } from '../settings/facebook-capi.service';
+import { CouponsService } from '../coupons/coupons.service';
 import type { CreateOrderDto } from './dto/create-order.dto';
 import type { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 
@@ -15,6 +16,7 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
     private readonly facebookCAPIService: FacebookCAPIService,
+    private readonly couponsService: CouponsService,
   ) {}
 
   private generateOrderNumber(): string {
@@ -46,7 +48,14 @@ export class OrdersService {
 
     const subtotal = cart.items.reduce((sum, item) => sum + Number(item.price) * item.quantity, 0);
     const shippingCost = subtotal >= 1000 ? 0 : 60; // Free shipping over ৳1000
-    const total = subtotal + shippingCost;
+
+    let discountAmount = 0;
+    if (dto.couponCode) {
+      const result = await this.couponsService.validate(dto.couponCode, subtotal);
+      discountAmount = result.discountAmount;
+    }
+
+    const total = subtotal + shippingCost - discountAmount;
 
     const order = await this.prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
@@ -57,6 +66,7 @@ export class OrdersService {
           paymentMethod: dto.paymentMethod,
           subtotal,
           shippingCost,
+          discount: discountAmount,
           total,
           notes: dto.notes,
           shippingAddress: {
@@ -107,6 +117,15 @@ export class OrdersService {
 
       return newOrder;
     });
+
+    // Apply coupon usage (non-blocking)
+    if (dto.couponCode) {
+      try {
+        await this.couponsService.apply(dto.couponCode);
+      } catch (err) {
+        this.logger.error('Failed to apply coupon', err);
+      }
+    }
 
     // Send order confirmation email (non-blocking)
     try {
@@ -174,7 +193,14 @@ export class OrdersService {
       return sum + Number(product.salePrice ?? product.basePrice) * orderItem.quantity;
     }, 0);
     const shippingCost = subtotal >= 1000 ? 0 : 80;
-    const total = subtotal + shippingCost;
+
+    let discountAmount = 0;
+    if (dto.couponCode) {
+      const result = await this.couponsService.validate(dto.couponCode, subtotal);
+      discountAmount = result.discountAmount;
+    }
+
+    const total = subtotal + shippingCost - discountAmount;
 
     const order = await this.prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
@@ -184,6 +210,7 @@ export class OrdersService {
           paymentMethod: dto.paymentMethod,
           subtotal,
           shippingCost,
+          discount: discountAmount,
           total,
           notes: dto.notes,
           shippingAddress: { ...dto.shippingAddress },
@@ -216,6 +243,15 @@ export class OrdersService {
 
       return newOrder;
     });
+
+    // Apply coupon usage (non-blocking)
+    if (dto.couponCode) {
+      try {
+        await this.couponsService.apply(dto.couponCode);
+      } catch (err) {
+        this.logger.error('Failed to apply coupon', err);
+      }
+    }
 
     // Fire Facebook CAPI Purchase event (non-blocking)
     this.facebookCAPIService.sendPurchase({

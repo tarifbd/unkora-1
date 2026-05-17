@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, Param, Patch, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Query, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { FastifyReply } from 'fastify';
 
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -79,5 +80,29 @@ export class AdminController {
   @ApiOperation({ summary: 'Get top 5 customers by total spend' })
   getTopCustomers() {
     return this.adminService.getTopCustomers();
+  }
+
+  @Get('export/orders')
+  @ApiOperation({ summary: 'Admin: export orders as CSV' })
+  async exportOrders(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Res() res?: FastifyReply,
+  ) {
+    const csv = await this.adminService.exportOrdersCsv(startDate, endDate);
+    (res as FastifyReply)
+      .header('Content-Type', 'text/csv')
+      .header('Content-Disposition', `attachment; filename="orders-${new Date().toISOString().slice(0,10)}.csv"`)
+      .send(csv);
+  }
+
+  @Get('export/customers')
+  @ApiOperation({ summary: 'Admin: export customers as CSV' })
+  async exportCustomers(@Res() res?: FastifyReply) {
+    const csv = await this.adminService.exportCustomersCsv();
+    (res as FastifyReply)
+      .header('Content-Type', 'text/csv')
+      .header('Content-Disposition', `attachment; filename="customers-${new Date().toISOString().slice(0,10)}.csv"`)
+      .send(csv);
   }
 }

@@ -5,6 +5,7 @@ import type { User } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CreateAddressDto, UpdateAddressDto } from './dto/address.dto';
+import { UpdateProfileDto } from '../auth/dto/update-profile.dto';
 import { UsersService } from './users.service';
 
 @ApiTags('users')
@@ -24,6 +25,12 @@ export class UsersController {
   @ApiOperation({ summary: 'Get full profile with addresses' })
   getProfile(@CurrentUser('id') userId: string) {
     return this.usersService.getProfile(userId);
+  }
+
+  @Patch('me/profile')
+  @ApiOperation({ summary: 'Update my profile' })
+  updateProfile(@CurrentUser('id') userId: string, @Body() dto: UpdateProfileDto) {
+    return this.usersService.updateProfile(userId, dto);
   }
 
   // ── Addresses ──────────────────────────────────────────────

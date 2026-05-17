@@ -17,6 +17,14 @@ export class ReviewsService {
     });
     if (existing) throw new BadRequestException('You have already reviewed this product');
 
+    // Check if user has a delivered order containing this product
+    const verifiedPurchase = await this.prisma.orderItem.findFirst({
+      where: {
+        productId,
+        order: { userId, status: 'DELIVERED' },
+      },
+    });
+
     return this.prisma.review.create({
       data: {
         userId,
@@ -24,6 +32,7 @@ export class ReviewsService {
         rating: dto.rating,
         title: dto.title,
         body: dto.body,
+        isVerified: !!verifiedPurchase,
       },
       include: {
         user: { select: { firstName: true, lastName: true } },

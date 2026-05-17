@@ -78,4 +78,9 @@ export class CreateGuestOrderDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  couponCode?: string;
 }

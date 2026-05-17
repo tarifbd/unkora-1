@@ -582,10 +582,10 @@ export function Header() {
                 {t.header.deliverTo} <span className="font-bold text-white ml-0.5">{t.header.selectAddress}</span>
               </span>
               <div className="h-3 w-px bg-gray-600" />
-              <div className="flex items-center gap-1">
+              <a href="tel:+8801708166233" className="flex items-center gap-1 hover:text-white transition-colors">
                 <Phone className="w-3 h-3 text-primary" />
-                <span>{t.header.callHours}</span>
-              </div>
+                <span>+880 1708-166233</span>
+              </a>
               <div className="h-3 w-px bg-gray-600" />
               {/* Language toggle */}
               <div className="flex items-center bg-gray-800 rounded-full px-1 py-0.5 border border-gray-700">
@@ -619,7 +619,7 @@ export function Header() {
         </div>
 
         {/* ── Tier 2: Main bar ── */}
-        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 relative z-40 bg-white">
+        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 relative z-50 bg-white">
           <div className="flex items-center justify-between gap-4 md:gap-6 lg:gap-8">
 
             {/* Mobile toggle + Logo */}
@@ -686,7 +686,7 @@ export function Header() {
 
                 {/* Account Dropdown */}
                 {accountOpen && (
-                  <div className="absolute top-full right-0 z-50 bg-white shadow-2xl rounded-xl border border-gray-100 overflow-hidden" style={{ width: '240px', marginTop: '0px' }}>
+                  <div className="absolute top-full right-0 z-[60] bg-white shadow-2xl rounded-xl border border-gray-100 overflow-hidden" style={{ width: '240px', marginTop: '0px' }}>
                     {/* Top accent */}
                     <div className="h-0.5 w-full bg-gradient-to-r from-primary to-secondary" />
 
@@ -833,7 +833,7 @@ export function Header() {
         </div>
 
         {/* ── Tier 3: Category nav (desktop) ── */}
-        <div className="bg-white hidden lg:block border-b border-gray-200 relative z-40" ref={megaRef}>
+        <div className="bg-white hidden lg:block border-b border-gray-200 relative z-30" ref={megaRef}>
           <div className="max-w-7xl mx-auto pl-4 flex items-center relative">
 
             {/* All Departments button */}
