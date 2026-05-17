@@ -22,6 +22,8 @@ import {
   Target,
   Globe,
   TrendingUp,
+  Zap,
+  ShieldAlert,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -49,6 +51,8 @@ const navGroups = [
       { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
       { href: '/admin/shipments', label: 'Shipments', icon: Truck },
       { href: '/admin/coupons', label: 'Coupons', icon: Ticket },
+      { href: '/admin/promotions', label: 'Promotions', icon: Zap },
+      { href: '/admin/fraud', label: 'Fraud Detection', icon: ShieldAlert },
     ],
   },
   {

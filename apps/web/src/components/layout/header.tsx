@@ -1038,14 +1038,14 @@ export function Header() {
               )}
             </div>
 
-            <nav className="flex items-center justify-start h-[48px] text-[14px] font-bold text-gray-700 flex-1 overflow-x-auto hide-scrollbar">
+            <nav className="flex items-center justify-start h-[48px] text-[13px] font-bold text-gray-700 flex-1 overflow-x-auto hide-scrollbar">
               {NAV_CATEGORIES.map((cat, idx) => (
                 <Link
                   key={cat.slug}
                   href={`/products?categorySlug=${cat.slug}`}
                   onMouseEnter={() => setActiveCategoryIndex(idx)}
                   className={cn(
-                    'px-5 h-full flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap relative',
+                    'px-3.5 h-full flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative',
                     activeCategoryIndex === idx ? 'text-primary' : 'hover:text-primary',
                   )}
                 >
