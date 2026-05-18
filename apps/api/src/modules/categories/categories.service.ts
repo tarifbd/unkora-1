@@ -11,7 +11,7 @@ export class CategoriesService {
   async findAll(includeInactive = false) {
     return this.prisma.category.findMany({
       where: includeInactive ? {} : { isActive: true },
-      include: { children: { where: { isActive: true } }, _count: { select: { products: true } } },
+      include: { parent: true, children: { where: { isActive: true } }, _count: { select: { products: true } } },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     });
   }

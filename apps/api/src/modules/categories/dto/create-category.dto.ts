@@ -33,6 +33,21 @@ export class CreateCategoryDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsBoolean()
+  isFeatured?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isHot?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsString()
   parentId?: string;
 

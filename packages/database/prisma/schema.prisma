@@ -159,6 +159,9 @@ model Category {
   imageUrl    String?
   color       String?
   icon        String?
+  isFeatured Boolean @default(false)
+  isHot      Boolean @default(false)
+  type       String  @default("physical")
   parentId    String?
   sortOrder   Int     @default(0)
   isActive    Boolean @default(true)
