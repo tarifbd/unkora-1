@@ -613,7 +613,12 @@ export function Header() {
                 <HelpCircle className="w-3 h-3" /> {t.header.support}
               </a>
               <a href="#" className="hover:text-primary transition-colors">{t.header.trackOrder}</a>
-              <a href="#" className="hover:text-primary transition-colors font-bold text-white">{t.header.sellOnUnkora}</a>
+              <Link href="/publish" className="flex items-center gap-2 ml-2 bg-primary/15 hover:bg-primary/25 border border-primary/30 rounded-full px-3 py-0.5 transition-colors normal-case">
+                <span className="text-[10px]">📝</span>
+                <span className="text-white font-bold text-[10px]">Sell Your Book</span>
+                <span className="text-gray-400 text-[10px]">/</span>
+                <span className="text-primary font-bold text-[10px]">বই বিক্রি করুন</span>
+              </Link>
             </div>
           </div>
         </div>
