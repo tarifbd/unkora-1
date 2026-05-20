@@ -9,7 +9,7 @@ import {
   ChevronLeft, ChevronRight, Truck, RotateCcw, ShieldCheck, Headphones,
   Flame, Star, Tag, ArrowRight,
 } from 'lucide-react';
-import { productsApi, categoriesApi } from '@/lib/api/products';
+import { productsApi, categoriesApi, type Product } from '@/lib/api/products';
 import { ProductCard } from '@/components/product/product-card';
 import { useLanguage } from '@/lib/i18n/language-context';
 
@@ -23,27 +23,9 @@ const HERO_IMGS = [
 ];
 
 const HERO_SLIDES = [
-  {
-    bg: '#0f172a',
-    headline: 'বাংলাদেশের সেরা বইয়ের দোকান',
-    subtext: '১ লাখেরও বেশি বই • সেরা দামে',
-    cta: 'বই দেখুন →',
-    ctaHref: '/books',
-  },
-  {
-    bg: '#14532d',
-    headline: 'খাঁটি অর্গানিক পণ্য',
-    subtext: 'প্রকৃতির কাছ থেকে সরাসরি আপনার কাছে',
-    cta: 'অর্গানিক দেখুন →',
-    ctaHref: '/categories/organic-foods',
-  },
-  {
-    bg: '#1e1b4b',
-    headline: 'মেগা সেল চলছে!',
-    subtext: '৭০% পর্যন্ত ছাড় • সীমিত সময়',
-    cta: 'অফার দেখুন →',
-    ctaHref: '/products',
-  },
+  { bg: '#0f172a', headline: 'বাংলাদেশের সেরা বইয়ের দোকান', subtext: '১ লাখেরও বেশি বই • সেরা দামে', cta: 'বই দেখুন →', ctaHref: '/books' },
+  { bg: '#14532d', headline: 'খাঁটি অর্গানিক পণ্য', subtext: 'প্রকৃতির কাছ থেকে সরাসরি আপনার কাছে', cta: 'অর্গানিক দেখুন →', ctaHref: '/categories/organic-foods' },
+  { bg: '#1e1b4b', headline: 'মেগা সেল চলছে!', subtext: '৭০% পর্যন্ত ছাড় • সীমিত সময়', cta: 'অফার দেখুন →', ctaHref: '/products' },
 ] as const;
 
 const HERO_BOOKS = [
@@ -137,6 +119,22 @@ const BEST_SELLER_TABS = [
   { key: 'handicraft', labelBn: 'হস্তশিল্প',  labelEn: 'Handicraft', category: 'handicrafts' },
 ];
 
+const BOOK_SHELF_TABS = [
+  { key: 'fiction',         labelBn: 'উপন্যাস',      labelEn: 'Fiction',      color: 'bg-blue-600' },
+  { key: 'islamic-books',   labelBn: 'ইসলামিক',      labelEn: 'Islamic',      color: 'bg-green-600' },
+  { key: 'academic',        labelBn: 'একাডেমিক',     labelEn: 'Academic',     color: 'bg-purple-600' },
+  { key: 'self-help',       labelBn: 'আত্মউন্নয়ন',  labelEn: 'Self Help',    color: 'bg-orange-500' },
+  { key: 'childrens-books', labelBn: 'শিশু-কিশোর',   labelEn: "Children's",   color: 'bg-pink-500' },
+];
+
+const RANK_SECTIONS = [
+  { id: 'rank-1', title: 'কল্পকাহিনী',   titleEn: 'Fiction',     tabs: ['Fiction', 'Thriller'],              tabsBn: ['কল্পকাহিনী', 'থ্রিলার'],          default: 'Fiction' },
+  { id: 'rank-2', title: 'নন-ফিকশন',     titleEn: 'Non-Fiction', tabs: ['Non-Fiction', 'Productivity'],      tabsBn: ['নন-ফিকশন', 'প্রোডাক্টিভিটি'],    default: 'Non-Fiction' },
+  { id: 'rank-3', title: 'ইসলামিক',      titleEn: 'Islamic',     tabs: ['Islamic', 'Hadith'],                tabsBn: ['ইসলামিক', 'হাদীস'],               default: 'Islamic' },
+];
+
+/* ─────────────────────────── components ─────────────────────────── */
+
 function NewsletterForm({ lang }: { lang: string }) {
   const [email, setEmail] = useState('');
   const [done, setDone] = useState(false);
@@ -146,15 +144,8 @@ function NewsletterForm({ lang }: { lang: string }) {
       <span>{lang === 'bn' ? 'সাবস্ক্রাইব সফল হয়েছে! ধন্যবাদ।' : 'Subscribed successfully! Thank you.'}</span>
     </div>
   ) : (
-    <form
-      onSubmit={e => { e.preventDefault(); if (email) setDone(true); }}
-      className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
-    >
-      <input
-        type="email"
-        required
-        value={email}
-        onChange={e => setEmail(e.target.value)}
+    <form onSubmit={e => { e.preventDefault(); if (email) setDone(true); }} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+      <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
         placeholder={lang === 'bn' ? 'আপনার ইমেইল লিখুন' : 'Enter your email'}
         className="flex-1 px-5 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-white/30 text-sm"
       />
@@ -185,83 +176,89 @@ function FlashDealCard({ deal, lang }: { deal: typeof FLASH_DEALS[number]; lang:
   const pct = Math.round((deal.sold / deal.total) * 100);
   const discount = Math.round((1 - deal.price / deal.originalPrice) * 100);
   return (
-    <Link href={deal.href} className="min-w-[200px] w-[200px] flex-shrink-0 bg-white rounded-xl overflow-hidden group hover:shadow-lg transition-all border border-gray-100">
-      <div className="relative h-44 bg-gray-50 overflow-hidden">
-        <Image src={deal.image} alt={deal.titleEn} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized={deal.image.includes('unsplash')} sizes="200px" />
-        <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded">
-          -{discount}%
-        </div>
+    <Link href={deal.href} className="min-w-[170px] w-[170px] flex-shrink-0 bg-white rounded-xl overflow-hidden group hover:shadow-lg transition-all border border-gray-100">
+      <div className="relative h-40 bg-gray-50 overflow-hidden">
+        <Image src={deal.image} alt={deal.titleEn} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized={deal.image.includes('unsplash')} sizes="170px" />
+        <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded">-{discount}%</div>
       </div>
-      <div className="p-3">
-        <p className="text-xs font-bold text-gray-800 line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-          {lang === 'bn' ? deal.title : deal.titleEn}
-        </p>
-        <div className="flex items-baseline gap-2 mb-2">
-          <span className="text-base font-black text-red-500">৳{deal.price}</span>
-          <span className="text-xs text-gray-400 line-through">৳{deal.originalPrice}</span>
+      <div className="p-2.5">
+        <p className="text-[11px] font-bold text-gray-800 line-clamp-2 mb-2 leading-tight group-hover:text-primary transition-colors">{lang === 'bn' ? deal.title : deal.titleEn}</p>
+        <div className="flex items-baseline gap-1.5 mb-2">
+          <span className="text-sm font-black text-red-500">৳{deal.price}</span>
+          <span className="text-[10px] text-gray-400 line-through">৳{deal.originalPrice}</span>
         </div>
-        <div className="mb-1">
-          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-            <div className="h-full bg-red-400 rounded-full transition-all" style={{ width: `${pct}%` }} />
-          </div>
+        <div className="h-1 bg-gray-100 rounded-full overflow-hidden mb-1">
+          <div className="h-full bg-red-400 rounded-full" style={{ width: `${pct}%` }} />
         </div>
-        <p className="text-[10px] text-gray-500">{lang === 'bn' ? `বিক্রি হয়েছে ${deal.sold}টি` : `${deal.sold} sold`}</p>
+        <p className="text-[9px] text-gray-400">{lang === 'bn' ? `${deal.sold}টি বিক্রি` : `${deal.sold} sold`}</p>
       </div>
     </Link>
   );
 }
 
-const RANK_SECTIONS = [
-  { id: 'rank-1', title: 'কল্পকাহিনী',   titleEn: 'Fiction',     tabs: ['Fiction', 'Thriller'],              tabsBn: ['কল্পকাহিনী', 'থ্রিলার'],   default: 'Fiction' },
-  { id: 'rank-2', title: 'নন-ফিকশন',     titleEn: 'Non-Fiction', tabs: ['Non-Fiction', 'Productivity'],      tabsBn: ['নন-ফিকশন', 'প্রোডাক্টিভিটি'], default: 'Non-Fiction' },
-  { id: 'rank-3', title: 'ইসলামিক',      titleEn: 'Islamic',     tabs: ['Islamic', 'Hadith'],                tabsBn: ['ইসলামিক', 'হাদীস'],         default: 'Islamic' },
-];
-
-/* ─────────────────────────── sub-components ─────────────────────────── */
+function BookShelfCard({ product }: { product: Product }) {
+  const price = Number(product.salePrice ?? product.basePrice);
+  const original = product.salePrice && Number(product.salePrice) < Number(product.basePrice) ? Number(product.basePrice) : null;
+  const discount = original ? Math.round((1 - price / original) * 100) : null;
+  const img = product.images?.[0]?.url;
+  return (
+    <Link href={`/products/${product.slug}`} className="min-w-[130px] w-[130px] flex-shrink-0 group">
+      <div className="relative h-[175px] bg-gray-100 rounded-lg overflow-hidden mb-2 shadow-sm group-hover:shadow-md transition-shadow">
+        {img ? (
+          <Image src={img} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform duration-400" sizes="130px" unoptimized={img.includes('unsplash')} />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-blue-50 to-indigo-100">📚</div>
+        )}
+        {discount && (
+          <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-black px-1 py-0.5 rounded">-{discount}%</span>
+        )}
+      </div>
+      <p className="text-[11px] font-bold text-gray-800 line-clamp-2 mb-0.5 leading-snug group-hover:text-primary transition-colors">{product.name}</p>
+      {product.bookDetail && (
+        <p className="text-[10px] text-gray-400 truncate mb-1">{product.bookDetail.author}</p>
+      )}
+      <div className="flex items-center gap-1">
+        <span className="text-xs font-black text-primary">৳{price}</span>
+        {original && <span className="text-[10px] text-gray-400 line-through">৳{original}</span>}
+      </div>
+    </Link>
+  );
+}
 
 function RankSection({ section }: { section: typeof RANK_SECTIONS[number] }) {
   const { lang, t } = useLanguage();
   const [activeTab, setActiveTab] = useState(section.default);
   const items = RANK_DATA[activeTab] ?? RANK_DATA[section.default] ?? [];
-
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-black text-gray-900">{lang === 'bn' ? section.title : section.titleEn}</h3>
-        <Link href="/books" className="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
-          {t.common.seeMore} <ChevronRight className="w-3.5 h-3.5" />
+    <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-black text-gray-900">{lang === 'bn' ? section.title : section.titleEn}</h3>
+        <Link href="/books" className="text-primary text-xs font-bold flex items-center gap-1 hover:underline">
+          {t.common.seeMore} <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
-      <div className="flex gap-4 border-b border-gray-100 mb-6">
+      <div className="flex gap-3 border-b border-gray-100 mb-4">
         {section.tabs.map((tab, idx) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`pb-2 px-1 text-sm font-bold transition-all relative ${activeTab === tab ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}
-          >
+          <button key={tab} onClick={() => setActiveTab(tab)}
+            className={`pb-2 px-1 text-xs font-bold transition-all relative ${activeTab === tab ? 'text-primary' : 'text-gray-400 hover:text-gray-600'}`}>
             {lang === 'bn' ? section.tabsBn[idx] : tab}
             {activeTab === tab && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />}
           </button>
         ))}
       </div>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {items.map((item, index) => (
-          <Link key={item.href} href={item.href} className="flex gap-4 group cursor-pointer">
-            <div className="w-8 h-8 flex items-center justify-center font-black text-lg text-gray-200 group-hover:text-primary transition-colors shrink-0">
+          <Link key={item.href} href={item.href} className="flex gap-3 group cursor-pointer items-center">
+            <span className={`w-6 text-center font-black text-sm flex-shrink-0 ${index === 0 ? 'text-amber-500' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-amber-700' : 'text-gray-200'}`}>
               {index + 1}
+            </span>
+            <div className="w-10 h-13 rounded overflow-hidden flex-shrink-0 bg-gray-50" style={{ height: '52px' }}>
+              <Image src={item.image} alt={item.titleEn} width={40} height={52} unoptimized className="w-full h-full object-cover" />
             </div>
-            <div className="w-16 h-20 bg-gray-50 rounded overflow-hidden shrink-0">
-              <Image src={item.image} alt={item.titleEn} width={64} height={80} unoptimized className="w-full h-full object-cover" />
-            </div>
-            <div className="flex-grow">
-              <h4 className="text-sm font-bold text-gray-800 line-clamp-1 mb-0.5 group-hover:text-primary transition-colors">
-                {lang === 'bn' ? item.title : item.titleEn}
-              </h4>
-              <p className="text-xs text-gray-500 mb-1">{item.author}</p>
-              <div className="flex items-center gap-1">
-                <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1 rounded font-bold">★ {item.rating}</span>
-                <span className="text-[10px] text-gray-400">({item.reviews})</span>
-              </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors">{lang === 'bn' ? item.title : item.titleEn}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5 truncate">{item.author}</p>
+              <span className="text-[9px] bg-yellow-50 text-yellow-600 px-1 py-0.5 rounded font-bold">★ {item.rating}</span>
             </div>
           </Link>
         ))}
@@ -277,11 +274,14 @@ export default function HomePage() {
   const h = t.home;
   const [slideIndex, setSlideIndex] = useState(0);
   const [bestTab, setBestTab] = useState('all');
+  const [bookShelfTab, setBookShelfTab] = useState('fiction');
+
   const quickDealsRef  = useRef<HTMLDivElement>(null);
   const recentRef      = useRef<HTMLDivElement>(null);
   const authorsRef     = useRef<HTMLDivElement>(null);
   const flashRef       = useRef<HTMLDivElement>(null);
   const newArrivalRef  = useRef<HTMLDivElement>(null);
+  const bookShelfRef   = useRef<HTMLDivElement>(null);
 
   const flashEnd = useRef(new Date(Date.now() + 8 * 3600 * 1000)).current;
   const countdown = useCountdown(flashEnd);
@@ -309,8 +309,8 @@ export default function HomePage() {
   });
 
   const { data: allCategories = [] } = useQuery({
-    queryKey: ['categories-all'],
-    queryFn: () => categoriesApi.getAll(),
+    queryKey: ['categories-roots'],
+    queryFn: () => categoriesApi.getRoots(),
   });
 
   const { data: recentData } = useQuery({
@@ -327,9 +327,24 @@ export default function HomePage() {
 
   const { data: bestData } = useQuery({
     queryKey: ['products', 'bestsellers', bestTab],
-    queryFn: () => productsApi.getAll({ limit: 8, ...(bestTab !== 'all' ? { category: BEST_SELLER_TABS.find(t => t.key === bestTab)?.category } : {}) } as Parameters<typeof productsApi.getAll>[0]),
+    queryFn: () => productsApi.getAll({
+      limit: 8,
+      ...(bestTab !== 'all' ? { categorySlug: BEST_SELLER_TABS.find(tab => tab.key === bestTab)?.category } : {}),
+    } as Parameters<typeof productsApi.getAll>[0]),
   });
   const bestProducts = bestData?.data ?? [];
+
+  const { data: bookShelfData } = useQuery({
+    queryKey: ['products', 'book-shelf', bookShelfTab],
+    queryFn: () => productsApi.getAll({ categorySlug: bookShelfTab, limit: 10 } as Parameters<typeof productsApi.getAll>[0]),
+  });
+  const shelfBooks = bookShelfData?.data ?? [];
+
+  const { data: organicData } = useQuery({
+    queryKey: ['products', 'organic'],
+    queryFn: () => productsApi.getAll({ categorySlug: 'organic-foods', limit: 6 } as Parameters<typeof productsApi.getAll>[0]),
+  });
+  const organicProducts = organicData?.data ?? [];
 
   return (
     <div className="flex flex-col" style={{ backgroundColor: '#f8fafc' }}>
@@ -338,18 +353,13 @@ export default function HomePage() {
       <section className="w-full bg-gray-50 py-3 px-3 md:px-4">
         <div className="max-w-7xl mx-auto flex flex-col xl:flex-row items-stretch gap-3">
 
-          {/* LEFT: Hero Banner — full width on mobile/tablet, fixed width on desktop */}
-          <Link
-            href="/products"
+          {/* LEFT: Hero Banner */}
+          <Link href="/products"
             className="relative rounded-2xl overflow-hidden bg-gray-800 group flex items-end flex-shrink-0
-                       h-[240px] sm:h-[300px] md:h-[340px] xl:w-[380px] xl:h-auto xl:min-h-[460px]"
-          >
+                       h-[240px] sm:h-[300px] md:h-[340px] xl:w-[380px] xl:h-auto xl:min-h-[460px]">
             <Image
               src="https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=900&auto=format&fit=crop"
-              alt="Shop Now"
-              fill
-              unoptimized
-              priority
+              alt="Shop Now" fill unoptimized priority
               className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
               sizes="(max-width:1280px) 100vw, 380px"
             />
@@ -370,30 +380,16 @@ export default function HomePage() {
 
           {/* RIGHT: Flash Sale + Hot Categories + Featured Products */}
           <div className="flex flex-col gap-3 min-w-0 xl:flex-1">
-
-            {/* Top row: Flash sale + Hot categories — side by side from sm up */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
               {/* Flash Sale Banner */}
               <div className="relative rounded-2xl overflow-hidden bg-blue-600 min-h-[190px] flex flex-col justify-between p-5">
-                <Image
-                  src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop"
-                  alt="Flash Sale"
-                  fill
-                  unoptimized
-                  className="object-cover opacity-20"
-                  sizes="(max-width:640px) 100vw, 300px"
-                />
+                <Image src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=600&auto=format&fit=crop"
+                  alt="Flash Sale" fill unoptimized className="object-cover opacity-20" sizes="(max-width:640px) 100vw, 300px" />
                 <div className="relative z-10">
-                  <span className="text-xs font-bold text-blue-200 uppercase tracking-widest">
-                    {lang === 'bn' ? 'সীমিত সময়' : 'Limited Time'}
-                  </span>
-                  <h3 className="text-xl sm:text-2xl font-black text-white mt-1 leading-tight">
-                    {lang === 'bn' ? 'সিজন শেষ সেল' : 'End of Season Sale'}
-                  </h3>
-                  <p className="text-blue-200 text-xs mt-1">
-                    {lang === 'bn' ? 'ফ্ল্যাশ সেলে সীমিত অফার' : 'Limited offers in Flash Sale'}
-                  </p>
+                  <span className="text-xs font-bold text-blue-200 uppercase tracking-widest">{lang === 'bn' ? 'সীমিত সময়' : 'Limited Time'}</span>
+                  <h3 className="text-xl sm:text-2xl font-black text-white mt-1 leading-tight">{lang === 'bn' ? 'সিজন শেষ সেল' : 'End of Season Sale'}</h3>
+                  <p className="text-blue-200 text-xs mt-1">{lang === 'bn' ? 'ফ্ল্যাশ সেলে সীমিত অফার' : 'Limited offers in Flash Sale'}</p>
                 </div>
                 <div className="relative z-10 flex gap-1.5 mt-3 flex-wrap">
                   {[
@@ -417,9 +413,7 @@ export default function HomePage() {
               <div className="bg-white rounded-2xl p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="text-base">🔥</span>
-                  <h3 className="font-black text-gray-900 text-sm">
-                    {lang === 'bn' ? 'জনপ্রিয় বিভাগ' : 'Hot Categories'}
-                  </h3>
+                  <h3 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'জনপ্রিয় বিভাগ' : 'Hot Categories'}</h3>
                 </div>
                 <div className="grid grid-cols-4 gap-1.5">
                   {(allCategories.length > 0 ? allCategories.slice(0, 8) : [
@@ -432,17 +426,12 @@ export default function HomePage() {
                     { id: '7', slug: 'daily-needs',      name: lang === 'bn' ? 'দৈনন্দিন' : 'Daily' },
                     { id: '8', slug: 'default',          name: lang === 'bn' ? 'আরো' : 'More' },
                   ] as { id: string; slug: string; name: string }[]).map(cat => (
-                    <Link
-                      key={cat.id}
-                      href={`/products?categorySlug=${cat.slug}`}
-                      className="flex flex-col items-center gap-1 p-1.5 rounded-xl hover:bg-gray-50 transition-colors group"
-                    >
+                    <Link key={cat.id} href={`/products?categorySlug=${cat.slug}`}
+                      className="flex flex-col items-center gap-1 p-1.5 rounded-xl hover:bg-gray-50 transition-colors group">
                       <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gray-100 group-hover:bg-primary/10 flex items-center justify-center text-xl transition-colors">
                         {CAT_EMOJI[cat.slug] ?? CAT_EMOJI.default}
                       </div>
-                      <span className="text-[9px] sm:text-[10px] font-semibold text-gray-600 text-center leading-tight line-clamp-2">
-                        {cat.name}
-                      </span>
+                      <span className="text-[9px] sm:text-[10px] font-semibold text-gray-600 text-center leading-tight line-clamp-2">{cat.name}</span>
                     </Link>
                   ))}
                 </div>
@@ -463,21 +452,13 @@ export default function HomePage() {
               <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
                 {featuredProducts.length > 0 ? (
                   featuredProducts.slice(0, 8).map(product => (
-                    <Link
-                      key={product.id}
-                      href={`/products/${product.slug}`}
-                      className="flex-shrink-0 w-[120px] sm:w-[130px] group"
-                    >
+                    <Link key={product.id} href={`/products/${product.slug}`}
+                      className="flex-shrink-0 w-[120px] sm:w-[130px] group">
                       <div className="relative w-full h-[90px] sm:h-[100px] rounded-lg overflow-hidden bg-gray-50 mb-1.5">
                         {product.images?.[0]?.url ? (
-                          <Image
-                            src={product.images[0].url}
-                            alt={product.name}
-                            fill
+                          <Image src={product.images[0].url} alt={product.name} fill
                             unoptimized={product.images[0].url.includes('unsplash')}
-                            className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            sizes="130px"
-                          />
+                            className="object-cover group-hover:scale-105 transition-transform duration-300" sizes="130px" />
                         ) : (
                           <div className="flex h-full items-center justify-center text-3xl text-gray-200">📦</div>
                         )}
@@ -506,213 +487,155 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 2: Quick Categories ── */}
-      <section className="py-6 md:py-8">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-6">
-          {QUICK_CATS.map(({ icon: Icon, slug }, idx) => {
-            const cat = h.quickCats[idx];
-            return (
-              <Link
-                key={slug}
-                href={slug}
-                className="bg-white p-4 md:p-6 rounded-xl border border-gray-100 flex flex-col items-center text-center group cursor-pointer hover:shadow-xl transition-all hover:border-primary/50 hover:-translate-y-1 duration-300"
-              >
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-50 rounded-full flex items-center justify-center mb-3 md:mb-4 group-hover:bg-primary group-hover:text-white transition-colors text-gray-500">
-                  <Icon className="w-6 h-6 md:w-7 md:h-7" />
-                </div>
-                <h3 className="font-bold text-gray-900 mb-1 text-sm md:text-base">{cat?.title}</h3>
-                <p className="text-[10px] md:text-xs text-gray-500 font-medium">{cat?.count}{t.common.items}</p>
-              </Link>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── 2b: Flash Deals ── */}
+      {/* ── 2: Flash Deals ── */}
       <section className="py-8 md:py-10" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)' }}>
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-500/20 rounded-lg">
-                <Flame className="w-6 h-6 text-red-400" />
-              </div>
+              <div className="p-2 bg-red-500/20 rounded-lg"><Flame className="w-5 h-5 text-red-400" /></div>
               <div>
-                <h2 className="text-xl md:text-2xl font-black text-white">{lang === 'bn' ? 'ফ্ল্যাশ ডিল' : 'Flash Deals'}</h2>
+                <h2 className="text-lg md:text-xl font-black text-white">{lang === 'bn' ? 'ফ্ল্যাশ ডিল' : 'Flash Deals'}</h2>
                 <p className="text-xs text-gray-400">{lang === 'bn' ? 'সীমিত সময়ের অফার' : 'Limited time offers'}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="flex gap-2 items-center">
-                {[
-                  { val: pad(countdown.h), label: lang === 'bn' ? 'ঘন্টা' : 'HRS' },
-                  { val: pad(countdown.m), label: lang === 'bn' ? 'মিনিট' : 'MIN' },
-                  { val: pad(countdown.s), label: lang === 'bn' ? 'সেকেন্ড' : 'SEC' },
-                ].map(({ val, label }, i) => (
-                  <div key={label} className="flex items-center gap-1.5">
-                    <div className="bg-red-500 text-white rounded-md px-2.5 py-1.5 text-center min-w-[48px]">
-                      <div className="text-xl font-black leading-none">{val}</div>
-                      <div className="text-[9px] font-bold opacity-80 mt-0.5">{label}</div>
+              <div className="flex gap-1.5 items-center">
+                {[{ val: pad(countdown.h), label: lang === 'bn' ? 'ঘন্টা' : 'HRS' }, { val: pad(countdown.m), label: lang === 'bn' ? 'মিনিট' : 'MIN' }, { val: pad(countdown.s), label: lang === 'bn' ? 'সেকেন্ড' : 'SEC' }].map(({ val, label }, i) => (
+                  <div key={label} className="flex items-center gap-1">
+                    <div className="bg-red-500 text-white rounded px-2 py-1 text-center min-w-[40px]">
+                      <div className="text-lg font-black leading-none">{val}</div>
+                      <div className="text-[8px] font-bold opacity-80">{label}</div>
                     </div>
-                    {i < 2 && <span className="text-red-400 font-black text-xl">:</span>}
+                    {i < 2 && <span className="text-red-400 font-black">:</span>}
                   </div>
                 ))}
               </div>
-              <div className="flex gap-1.5">
-                <button onClick={() => scroll(flashRef, 'left')} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button onClick={() => scroll(flashRef, 'right')} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+              <div className="flex gap-1">
+                <button onClick={() => scroll(flashRef, 'left')} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all"><ChevronLeft className="w-4 h-4" /></button>
+                <button onClick={() => scroll(flashRef, 'right')} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-all"><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
           </div>
-          <div ref={flashRef} className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+          <div ref={flashRef} className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
             {FLASH_DEALS.map(deal => <FlashDealCard key={deal.id} deal={deal} lang={lang} />)}
           </div>
         </div>
       </section>
 
-      {/* ── 2c: Promo Banners ── */}
-      <section className="py-6 bg-white">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* ── 3: Book World — tabbed shelf with real API data ── */}
+      <section className="py-8 md:py-10 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between mb-5">
+            <div>
+              <h2 className="text-xl md:text-2xl font-black text-gray-900">📚 {lang === 'bn' ? 'বইয়ের জগৎ' : 'Book World'}</h2>
+              <p className="text-xs text-gray-400 mt-0.5">{lang === 'bn' ? 'বিভাগ অনুযায়ী বই বেছে নিন' : 'Browse books by category'}</p>
+            </div>
+            <Link href="/books" className="text-primary text-sm font-bold hover:underline flex items-center gap-1">
+              {lang === 'bn' ? 'সব বই' : 'All Books'} <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex gap-2 mb-5 overflow-x-auto pb-1 [scrollbar-width:none]">
+            {BOOK_SHELF_TABS.map(tab => (
+              <button key={tab.key} onClick={() => setBookShelfTab(tab.key)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all flex-shrink-0
+                  ${bookShelfTab === tab.key ? `${tab.color} text-white shadow-sm` : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                {lang === 'bn' ? tab.labelBn : tab.labelEn}
+              </button>
+            ))}
+          </div>
+
+          {/* Book shelf scroll */}
+          <div className="relative">
+            <button onClick={() => scroll(bookShelfRef, 'left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center border border-gray-100 hover:bg-gray-50">
+              <ChevronLeft className="w-4 h-4 text-gray-600" />
+            </button>
+            <div ref={bookShelfRef} className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth px-1">
+              {shelfBooks.length > 0 ? (
+                shelfBooks.map(product => <BookShelfCard key={product.id} product={product} />)
+              ) : (
+                Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="min-w-[130px] w-[130px] flex-shrink-0 animate-pulse">
+                    <div className="h-[175px] bg-gray-100 rounded-lg mb-2" />
+                    <div className="h-3 bg-gray-100 rounded mb-1" />
+                    <div className="h-3 bg-gray-100 rounded w-2/3" />
+                  </div>
+                ))
+              )}
+            </div>
+            <button onClick={() => scroll(bookShelfRef, 'right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center border border-gray-100 hover:bg-gray-50">
+              <ChevronRight className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4: Promo Banners ── */}
+      <section className="py-5 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
           {PROMO_BANNERS.map(b => (
             <Link key={b.id} href={b.href}
-              className={`bg-gradient-to-r ${b.gradient} rounded-xl p-5 flex items-center gap-4 group hover:scale-[1.02] transition-transform`}>
-              <div className="text-4xl">{b.emoji}</div>
-              <div>
-                <h3 className="text-white font-black text-base mb-0.5">{lang === 'bn' ? b.title : b.titleEn}</h3>
-                <p className="text-white/80 text-xs">{lang === 'bn' ? b.sub : b.subEn}</p>
+              className={`bg-gradient-to-r ${b.gradient} rounded-xl p-4 flex items-center gap-3 group hover:scale-[1.02] transition-transform`}>
+              <div className="text-3xl">{b.emoji}</div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-white font-black text-sm">{lang === 'bn' ? b.title : b.titleEn}</h3>
+                <p className="text-white/75 text-xs truncate">{lang === 'bn' ? b.sub : b.subEn}</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-white/60 ml-auto group-hover:translate-x-1 transition-transform" />
+              <ChevronRight className="w-4 h-4 text-white/50 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
             </Link>
           ))}
         </div>
       </section>
 
-      {/* ── 3: Popular Categories ── */}
-      <section className="py-12 bg-white">
+      {/* ── 5: New Arrivals ── */}
+      <section className="py-8 md:py-10 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-2xl font-black text-gray-900 mb-8">{h.popularCats}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {h.catHighlights.map(({ title, tags }, idx) => (
-              <Link key={title} href={CAT_HREFS[idx] ?? '#'} className="group cursor-pointer hover:-translate-y-2 transition-transform duration-300">
-                <div className="bg-accent/30 rounded-2xl p-6 h-full flex flex-col items-center text-center transition-all group-hover:bg-primary/5 group-hover:shadow-xl border border-transparent group-hover:border-primary/20">
-                  <div className="w-24 h-24 rounded-full overflow-hidden mb-6 shadow-md border-4 border-white group-hover:border-primary transition-all">
-                    <Image src={CAT_IMGS[idx] ?? CAT_IMGS[0]!} alt={title} width={96} height={96} unoptimized className="w-full h-full object-cover" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">{title}</h3>
-                  <div className="flex flex-wrap justify-center gap-2 mb-6">
-                    {tags.map(tag => (
-                      <span key={tag} className="text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-white px-2 py-1 rounded border border-gray-100 group-hover:text-primary transition-colors">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                  <span className="mt-auto flex items-center gap-2 text-sm font-bold text-gray-400 group-hover:text-primary transition-colors">
-                    {t.common.seeMore} <ChevronRight className="w-4 h-4" />
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 4: Simple Grids ── */}
-      <section className="py-6 md:py-8">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
-          {h.simpleGrids.map(({ title, items }, gIdx) => (
-            <div key={title} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-black text-gray-900">{title}</h3>
-                <button className="text-primary text-xs font-bold flex items-center gap-1 hover:underline">
-                  {t.common.seeMore} <ChevronRight className="w-3 h-3" />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                {items.map(({ label }, iIdx) => (
-                  <Link
-                    key={label}
-                    href="/products"
-                    className="flex flex-col items-center gap-2 p-4 bg-accent/30 rounded-xl cursor-pointer group hover:-translate-y-1 transition-transform"
-                  >
-                    <div className="text-3xl group-hover:scale-110 transition-transform">{GRID_EMOJIS[gIdx]?.[iIdx]}</div>
-                    <p className="text-xs font-bold text-gray-600 group-hover:text-primary transition-colors">{label}</p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── 5: Rank Lists ── */}
-      <section className="py-8 md:py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {RANK_SECTIONS.map(sec => <RankSection key={sec.id} section={sec} />)}
-        </div>
-      </section>
-
-      {/* ── 5b: New Arrivals ── */}
-      <section className="py-10 md:py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center gap-3">
-              <Star className="w-6 h-6 text-primary" />
+          <div className="flex justify-between items-center mb-5">
+            <div className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-primary" />
               <div>
-                <h2 className="text-xl md:text-2xl font-black text-gray-900">{lang === 'bn' ? 'নতুন আগমন' : 'New Arrivals'}</h2>
-                <p className="text-xs text-gray-400">{lang === 'bn' ? 'সর্বশেষ যোগ হওয়া পণ্য' : 'Latest additions to our store'}</p>
+                <h2 className="text-lg md:text-xl font-black text-gray-900">{lang === 'bn' ? 'নতুন আগমন' : 'New Arrivals'}</h2>
+                <p className="text-xs text-gray-400">{lang === 'bn' ? 'সর্বশেষ যোগ হওয়া পণ্য' : 'Latest additions'}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Link href="/products?sortBy=createdAt&sortOrder=desc" className="text-primary text-sm font-bold hover:underline hidden sm:block">
-                {t.common.viewAll}
-              </Link>
-              <div className="flex gap-2">
-                <button onClick={() => scroll(newArrivalRef, 'left')} className="p-2 rounded-lg bg-gray-50 border border-gray-100 hover:shadow-md transition-all">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button onClick={() => scroll(newArrivalRef, 'right')} className="p-2 rounded-lg bg-gray-50 border border-gray-100 hover:shadow-md transition-all">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+            <div className="flex items-center gap-2">
+              <Link href="/products?sortBy=createdAt&sortOrder=desc" className="text-primary text-xs font-bold hover:underline hidden sm:block">{t.common.viewAll}</Link>
+              <div className="flex gap-1.5">
+                <button onClick={() => scroll(newArrivalRef, 'left')} className="p-1.5 rounded-lg bg-gray-50 border border-gray-100 hover:shadow-md transition-all"><ChevronLeft className="w-4 h-4" /></button>
+                <button onClick={() => scroll(newArrivalRef, 'right')} className="p-1.5 rounded-lg bg-gray-50 border border-gray-100 hover:shadow-md transition-all"><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
           </div>
-          <div ref={newArrivalRef} className="flex gap-5 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+          <div ref={newArrivalRef} className="flex gap-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
             {newArrivals.length > 0 ? (
               newArrivals.map(product => (
-                <div key={product.id} className="min-w-[220px] w-[220px] flex-shrink-0">
-                  <ProductCard product={product} />
-                </div>
+                <div key={product.id} className="min-w-[200px] w-[200px] flex-shrink-0"><ProductCard product={product} /></div>
               ))
             ) : (
-              Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="min-w-[220px] w-[220px] flex-shrink-0 bg-gray-50 rounded-xl border border-gray-100 h-80 animate-pulse" />
-              ))
+              Array.from({ length: 6 }).map((_, i) => <div key={i} className="min-w-[200px] w-[200px] flex-shrink-0 bg-gray-50 rounded-xl border border-gray-100 h-72 animate-pulse" />)
             )}
           </div>
         </div>
       </section>
 
-      {/* ── 5c: Best Sellers ── */}
-      <section className="py-10 md:py-12 bg-accent/20">
+      {/* ── 6: Best Sellers ── */}
+      <section className="py-8 md:py-10 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-            <div className="flex items-center gap-3">
-              <Tag className="w-6 h-6 text-secondary" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-5 gap-3">
+            <div className="flex items-center gap-2">
+              <Tag className="w-5 h-5 text-secondary" />
               <div>
-                <h2 className="text-xl md:text-2xl font-black text-gray-900">{lang === 'bn' ? 'বেস্ট সেলার' : 'Best Sellers'}</h2>
-                <p className="text-xs text-gray-400">{lang === 'bn' ? 'সর্বাধিক বিক্রিত পণ্য' : 'Our most popular products'}</p>
+                <h2 className="text-lg md:text-xl font-black text-gray-900">{lang === 'bn' ? 'বেস্ট সেলার' : 'Best Sellers'}</h2>
+                <p className="text-xs text-gray-400">{lang === 'bn' ? 'সর্বাধিক বিক্রিত পণ্য' : 'Most popular products'}</p>
               </div>
             </div>
-            <div className="flex gap-1 flex-wrap">
+            <div className="flex gap-1.5 flex-wrap">
               {BEST_SELLER_TABS.map(tab => (
-                <button
-                  key={tab.key}
-                  onClick={() => setBestTab(tab.key)}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all ${bestTab === tab.key ? 'bg-primary text-white shadow-md' : 'bg-white text-gray-500 border border-gray-100 hover:border-primary hover:text-primary'}`}
-                >
+                <button key={tab.key} onClick={() => setBestTab(tab.key)}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-full transition-all ${bestTab === tab.key ? 'bg-primary text-white shadow-sm' : 'bg-white text-gray-500 border border-gray-200 hover:border-primary hover:text-primary'}`}>
                   {lang === 'bn' ? tab.labelBn : tab.labelEn}
                 </button>
               ))}
@@ -722,85 +645,81 @@ export default function HomePage() {
             {bestProducts.length > 0 ? (
               bestProducts.map(product => <ProductCard key={product.id} product={product} />)
             ) : (
-              Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="bg-white rounded-xl border border-gray-100 h-72 animate-pulse" />
-              ))
+              Array.from({ length: 8 }).map((_, i) => <div key={i} className="bg-white rounded-xl border border-gray-100 h-72 animate-pulse" />)
             )}
           </div>
-          <div className="flex justify-center mt-8">
-            <Link href="/products" className="px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-md hover:shadow-lg">
+          <div className="flex justify-center mt-6">
+            <Link href="/products" className="px-8 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-md text-sm">
               {lang === 'bn' ? 'সকল পণ্য দেখুন' : 'View All Products'}
             </Link>
           </div>
         </div>
       </section>
 
-      {/* ── 6: Quick Deals ── */}
-      <section className="py-12 bg-accent">
+      {/* ── 7: Rankings ── */}
+      <section className="py-8 md:py-10 bg-white">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-end mb-8">
-            <div>
-              <h2 className="text-2xl font-black tracking-tight text-gray-900 mb-2">{h.quickDeals}</h2>
-              <p className="text-gray-500 font-medium text-sm">{h.quickDealsSub}</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link href="/products?isFeatured=true" className="text-primary font-bold text-sm flex items-center gap-1 hover:underline group">
-                {t.common.viewAll} <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <div className="flex gap-2">
-                <button onClick={() => scroll(quickDealsRef, 'left')} className="p-2 rounded-lg bg-white border border-gray-100 shadow-sm hover:shadow-md hover:bg-gray-50 transition-all">
-                  <ChevronLeft className="w-5 h-5 text-gray-600" />
-                </button>
-                <button onClick={() => scroll(quickDealsRef, 'right')} className="p-2 rounded-lg bg-white border border-gray-100 shadow-sm hover:shadow-md hover:bg-gray-50 transition-all">
-                  <ChevronRight className="w-5 h-5 text-gray-600" />
-                </button>
-              </div>
-            </div>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg md:text-xl font-black text-gray-900">{lang === 'bn' ? '📊 র‍্যাংকিং' : '📊 Rankings'}</h2>
+            <Link href="/books" className="text-primary text-xs font-bold hover:underline">{t.common.seeMore}</Link>
           </div>
-          <div ref={quickDealsRef} className="flex gap-6 overflow-x-auto pb-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
-            {featuredProducts.length > 0 ? (
-              featuredProducts.map(product => (
-                <div key={product.id} className="min-w-[240px] w-[240px] flex-shrink-0">
-                  <ProductCard product={product} />
-                </div>
-              ))
-            ) : (
-              Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="min-w-[240px] w-[240px] flex-shrink-0 bg-white rounded-lg border border-gray-100 h-80 animate-pulse" />
-              ))
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {RANK_SECTIONS.map(sec => <RankSection key={sec.id} section={sec} />)}
           </div>
         </div>
       </section>
 
-      {/* ── 7: Authors Carousel ── */}
-      <section className="py-12" style={{ backgroundColor: '#f8fafc' }}>
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-black text-gray-900">{h.weeklyAuthors}</h2>
-            <div className="flex gap-2">
-              <button onClick={() => scroll(authorsRef, 'left')} className="p-2 rounded-full bg-white border border-gray-100 hover:shadow-md transition-all">
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <button onClick={() => scroll(authorsRef, 'right')} className="p-2 rounded-full bg-white border border-gray-100 hover:shadow-md transition-all">
-                <ChevronRight className="w-5 h-5" />
-              </button>
+      {/* ── 8: Organic Products Showcase ── */}
+      {organicProducts.length > 0 && (
+        <section className="py-8 md:py-10" style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' }}>
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-lg md:text-xl font-black text-gray-900">🌿 {lang === 'bn' ? 'অর্গানিক পণ্য' : 'Organic Products'}</h2>
+                <p className="text-xs text-gray-500 mt-0.5">{lang === 'bn' ? 'প্রকৃতির সেরা উপহার' : 'Nature\'s finest gifts'}</p>
+              </div>
+              <Link href="/categories/organic-foods" className="text-green-700 text-xs font-bold hover:underline flex items-center gap-1">
+                {t.common.viewAll} <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {organicProducts.map(product => (
+                <Link key={product.id} href={`/products/${product.slug}`}
+                  className="bg-white rounded-xl p-3 group hover:shadow-md transition-all border border-green-100">
+                  <div className="relative h-24 bg-gray-50 rounded-lg overflow-hidden mb-2">
+                    {product.images?.[0]?.url ? (
+                      <Image src={product.images[0].url} alt={product.name} fill className="object-cover group-hover:scale-105 transition-transform" sizes="150px" unoptimized={product.images[0].url.includes('unsplash')} />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-3xl">🌿</div>
+                    )}
+                  </div>
+                  <p className="text-[11px] font-bold text-gray-700 line-clamp-2 leading-tight mb-1 group-hover:text-green-700 transition-colors">{product.name}</p>
+                  <span className="text-xs font-black text-green-700">৳{Number(product.salePrice ?? product.basePrice)}</span>
+                </Link>
+              ))}
             </div>
           </div>
-          <div ref={authorsRef} className="flex gap-8 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+        </section>
+      )}
+
+      {/* ── 9: Authors ── */}
+      <section className="py-8 md:py-10 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="text-lg md:text-xl font-black text-gray-900">{h.weeklyAuthors}</h2>
+            <div className="flex gap-1.5">
+              <button onClick={() => scroll(authorsRef, 'left')} className="p-1.5 rounded-full bg-gray-50 border border-gray-100 hover:shadow-md transition-all"><ChevronLeft className="w-4 h-4" /></button>
+              <button onClick={() => scroll(authorsRef, 'right')} className="p-1.5 rounded-full bg-gray-50 border border-gray-100 hover:shadow-md transition-all"><ChevronRight className="w-4 h-4" /></button>
+            </div>
+          </div>
+          <div ref={authorsRef} className="flex gap-6 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
             {AUTHORS.map(author => (
-              <Link key={author.href} href={author.href} className="flex flex-col items-center gap-4 min-w-[120px] group">
-                <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-white shadow-lg">
-                  <Image
-                    src={author.image}
-                    alt={author.nameEn}
-                    width={96}
-                    height={96}
-                    unoptimized
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
+              <Link key={author.href} href={author.href} className="flex flex-col items-center gap-3 min-w-[100px] group">
+                <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-gray-100 group-hover:ring-primary transition-all shadow-sm">
+                  <Image src={author.image} alt={author.nameEn} width={80} height={80} unoptimized
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                 </div>
-                <p className="text-sm font-bold text-gray-800 text-center line-clamp-2 group-hover:text-primary transition-colors">
+                <p className="text-xs font-bold text-gray-700 text-center line-clamp-2 group-hover:text-primary transition-colors">
                   {lang === 'bn' ? author.name : author.nameEn}
                 </p>
               </Link>
@@ -809,82 +728,30 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 8: Kids Section ── */}
-      <section className="py-8 md:py-12 bg-white">
+      {/* ── 10: Browse by Genre ── */}
+      <section className="py-8 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
-          <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-6 md:mb-8">{h.kidsSection}</h2>
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-8">
-            {KIDS_ITEMS.map(({ emoji, slugLabel }) => (
-              <Link key={slugLabel} href="/categories/baby-products" className="flex flex-col items-center gap-2 md:gap-3 group cursor-pointer text-center">
-                <div className="w-16 h-16 md:w-20 md:h-20 bg-accent rounded-full flex items-center justify-center text-2xl md:text-3xl group-hover:scale-110 transition-transform">
-                  {emoji}
-                </div>
-                <p className="text-xs md:text-sm font-bold text-gray-700 leading-tight">{slugLabel}</p>
-              </Link>
-            ))}
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-lg md:text-xl font-black text-gray-900">{lang === 'bn' ? 'বিষয় অনুযায়ী বই' : 'Browse by Genre'}</h2>
+            <Link href="/books" className="text-primary text-xs font-bold hover:underline flex items-center gap-1">{lang === 'bn' ? 'সব বই' : 'All Books'} <ChevronRight className="w-3.5 h-3.5" /></Link>
           </div>
-        </div>
-      </section>
-
-      {/* ── 9: Recently Sold ── */}
-      <section className="py-12 bg-accent/30">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-between items-end mb-8">
-            <div>
-              <h2 className="text-2xl font-black tracking-tight text-gray-900 mb-2">{h.recentlySold}</h2>
-              <p className="text-gray-500 font-medium text-sm">{h.recentlySoldSub}</p>
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => scroll(recentRef, 'left')} className="p-2 rounded-lg bg-white border border-gray-100 shadow-sm hover:shadow-md hover:bg-gray-50 transition-all">
-                <ChevronLeft className="w-5 h-5 text-gray-600" />
-              </button>
-              <button onClick={() => scroll(recentRef, 'right')} className="p-2 rounded-lg bg-white border border-gray-100 shadow-sm hover:shadow-md hover:bg-gray-50 transition-all">
-                <ChevronRight className="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
-          </div>
-          <div ref={recentRef} className="flex gap-6 overflow-x-auto pb-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
-            {recentProducts.length > 0 ? (
-              recentProducts.map(product => (
-                <div key={product.id} className="min-w-[240px] w-[240px] flex-shrink-0">
-                  <ProductCard product={product} />
-                </div>
-              ))
-            ) : (
-              Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="min-w-[240px] w-[240px] flex-shrink-0 bg-white rounded-lg border border-gray-100 h-80 animate-pulse" />
-              ))
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ── 10: Shop by Genre (Book Tags) ── */}
-      <section className="py-10 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl md:text-2xl font-black text-gray-900">{lang === 'bn' ? 'বিষয় অনুযায়ী বই' : 'Browse by Genre'}</h2>
-            <Link href="/books" className="text-primary text-sm font-bold hover:underline flex items-center gap-1">
-              {lang === 'bn' ? 'সব বই' : 'All Books'} <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2.5">
             {[
-              { label: 'উপন্যাস',        labelEn: 'Fiction',       href: '/books?genre=Fiction',       color: 'bg-blue-50   text-blue-700   border-blue-200   hover:bg-blue-600'  },
-              { label: 'ইসলামিক',        labelEn: 'Islamic',       href: '/books?genre=Islamic',       color: 'bg-green-50  text-green-700  border-green-200  hover:bg-green-600' },
-              { label: 'আত্মউন্নয়ন',   labelEn: 'Self-Help',     href: '/books?genre=Self-Help',     color: 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500'},
-              { label: 'নন-ফিকশন',      labelEn: 'Non-Fiction',   href: '/books?genre=Non-Fiction',   color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-600'},
-              { label: 'থ্রিলার',        labelEn: 'Thriller',      href: '/books?genre=Thriller',      color: 'bg-red-50    text-red-700    border-red-200    hover:bg-red-600'   },
-              { label: 'শিশু-কিশোর',    labelEn: "Children's",    href: "/books?genre=Children's",    color: 'bg-pink-50   text-pink-700   border-pink-200   hover:bg-pink-500'  },
-              { label: 'বিজ্ঞান',        labelEn: 'Science',       href: '/books?genre=Science',       color: 'bg-cyan-50   text-cyan-700   border-cyan-200   hover:bg-cyan-600'  },
-              { label: 'ইতিহাস',         labelEn: 'History',       href: '/books?genre=History',       color: 'bg-amber-50  text-amber-700  border-amber-200  hover:bg-amber-500' },
-              { label: 'একাডেমিক',      labelEn: 'Academic',      href: '/books?genre=Academic',      color: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-600'},
-              { label: 'কবিতা',          labelEn: 'Poetry',        href: '/books?genre=Poetry',        color: 'bg-rose-50   text-rose-700   border-rose-200   hover:bg-rose-500'  },
-              { label: 'মুক্তিযুদ্ধ',   labelEn: 'Liberation War',href: '/books?genre=Liberation+War',color: 'bg-lime-50   text-lime-700   border-lime-200   hover:bg-lime-600'  },
-              { label: 'রান্না ও রেসিপি', labelEn: 'Cooking',    href: '/books?genre=Cooking',       color: 'bg-teal-50   text-teal-700   border-teal-200   hover:bg-teal-600'  },
+              { label: 'উপন্যাস',       labelEn: 'Fiction',       href: '/books?genre=Fiction',       color: 'bg-blue-50   text-blue-700   border-blue-200   hover:bg-blue-600'   },
+              { label: 'ইসলামিক',       labelEn: 'Islamic',       href: '/books?genre=Islamic',       color: 'bg-green-50  text-green-700  border-green-200  hover:bg-green-600'  },
+              { label: 'আত্মউন্নয়ন',  labelEn: 'Self-Help',     href: '/books?genre=Self-Help',     color: 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-500'  },
+              { label: 'নন-ফিকশন',     labelEn: 'Non-Fiction',   href: '/books?genre=Non-Fiction',   color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-600'  },
+              { label: 'থ্রিলার',       labelEn: 'Thriller',      href: '/books?genre=Thriller',      color: 'bg-red-50    text-red-700    border-red-200    hover:bg-red-600'     },
+              { label: 'শিশু-কিশোর',   labelEn: "Children's",    href: "/books?genre=Children's",    color: 'bg-pink-50   text-pink-700   border-pink-200   hover:bg-pink-500'    },
+              { label: 'বিজ্ঞান',       labelEn: 'Science',       href: '/books?genre=Science',       color: 'bg-cyan-50   text-cyan-700   border-cyan-200   hover:bg-cyan-600'    },
+              { label: 'ইতিহাস',        labelEn: 'History',       href: '/books?genre=History',       color: 'bg-amber-50  text-amber-700  border-amber-200  hover:bg-amber-500'   },
+              { label: 'একাডেমিক',     labelEn: 'Academic',      href: '/books?genre=Academic',      color: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-600'  },
+              { label: 'কবিতা',         labelEn: 'Poetry',        href: '/books?genre=Poetry',        color: 'bg-rose-50   text-rose-700   border-rose-200   hover:bg-rose-500'    },
+              { label: 'মুক্তিযুদ্ধ',  labelEn: 'Liberation War',href: '/books?genre=Liberation+War',color: 'bg-lime-50   text-lime-700   border-lime-200   hover:bg-lime-600'    },
+              { label: 'রান্না ও রেসিপি',labelEn: 'Cooking',     href: '/books?genre=Cooking',       color: 'bg-teal-50   text-teal-700   border-teal-200   hover:bg-teal-600'    },
             ].map(g => (
               <Link key={g.href} href={g.href}
-                className={`px-5 py-2.5 rounded-full border text-sm font-bold transition-all hover:text-white hover:border-transparent hover:shadow-md ${g.color}`}>
+                className={`px-4 py-2 rounded-full border text-xs font-bold transition-all hover:text-white hover:border-transparent hover:shadow-sm ${g.color}`}>
                 {lang === 'bn' ? g.label : g.labelEn}
               </Link>
             ))}
@@ -892,39 +759,31 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 11: Customer Reviews / Testimonials ── */}
-      <section className="py-12 md:py-16" style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' }}>
+      {/* ── 11: Reviews ── */}
+      <section className="py-10 md:py-12" style={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)' }}>
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-10">
-            <h2 className="text-2xl md:text-3xl font-black text-gray-900 mb-2">{lang === 'bn' ? 'ক্রেতাদের মতামত' : 'What Our Customers Say'}</h2>
-            <p className="text-gray-500 text-sm">{lang === 'bn' ? '১০,০০০+ সন্তুষ্ট ক্রেতা' : '10,000+ happy customers'}</p>
+          <div className="text-center mb-8">
+            <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-1">{lang === 'bn' ? 'ক্রেতাদের মতামত' : 'What Our Customers Say'}</h2>
+            <p className="text-gray-500 text-xs">{lang === 'bn' ? '১০,০০০+ সন্তুষ্ট ক্রেতা' : '10,000+ happy customers'}</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[
-              { name: 'রাকিব হাসান',   nameEn: 'Rakib Hasan',   loc: 'ঢাকা',     locEn: 'Dhaka',     rating: 5, text: 'অসাধারণ সার্ভিস! অর্ডার করার ২৪ ঘন্টার মধ্যে বই পেয়ে গেছি। প্যাকেজিং খুবই ভালো ছিল।', textEn: 'Amazing service! Got my book within 24 hours. Packaging was excellent.', avatar: '👨' },
-              { name: 'তানিয়া আক্তার', nameEn: 'Tania Akter',  loc: 'চট্টগ্রাম', locEn: 'Chittagong',rating: 5, text: 'দাম অনেক কম, বই একদম অরিজিনাল। Unkora থেকেই এখন সব বই কিনি। রিটার্ন পলিসিও ভালো।', textEn: 'Great prices, genuine books. I buy all my books from Unkora now. Return policy is also great.', avatar: '👩' },
-              { name: 'আরিফ রহমান',    nameEn: 'Arif Rahman',   loc: 'রাজশাহী',   locEn: 'Rajshahi',  rating: 5, text: 'অর্গানিক পণ্যগুলো সত্যিই ভালো মানের। মধু আর বাদাম নিয়েছিলাম, দুটোই খাঁটি পেয়েছি।', textEn: 'The organic products are genuinely high quality. The honey and nuts I ordered were pure.', avatar: '👨' },
+              { name: 'রাকিব হাসান',   nameEn: 'Rakib Hasan',   loc: 'ঢাকা',      locEn: 'Dhaka',      rating: 5, text: 'অসাধারণ সার্ভিস! অর্ডার করার ২৪ ঘন্টার মধ্যে বই পেয়ে গেছি।', textEn: 'Amazing service! Got my book within 24 hours. Packaging was excellent.', avatar: '👨' },
+              { name: 'তানিয়া আক্তার', nameEn: 'Tania Akter',  loc: 'চট্টগ্রাম', locEn: 'Chittagong', rating: 5, text: 'দাম অনেক কম, বই একদম অরিজিনাল। Unkora থেকেই এখন সব বই কিনি।',    textEn: 'Great prices, genuine books. I buy all my books from Unkora now.',          avatar: '👩' },
+              { name: 'আরিফ রহমান',    nameEn: 'Arif Rahman',   loc: 'রাজশাহী',   locEn: 'Rajshahi',   rating: 5, text: 'অর্গানিক পণ্যগুলো সত্যিই ভালো মানের। মধু আর বাদাম দুটোই খাঁটি।',  textEn: 'The organic products are genuinely high quality. Pure honey and nuts.',       avatar: '👨' },
             ].map(review => (
-              <div key={review.name} className="bg-white rounded-2xl p-6 shadow-sm border border-green-100 hover:shadow-md transition-shadow">
-                <div className="flex gap-1 mb-4">
-                  {Array.from({ length: review.rating }).map((_, i) => (
-                    <svg key={i} className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
+              <div key={review.name} className="bg-white rounded-2xl p-5 shadow-sm border border-green-100">
+                <div className="flex gap-0.5 mb-3">
+                  {Array.from({ length: review.rating }).map((_, i) => <span key={i} className="text-yellow-400 text-sm">★</span>)}
                 </div>
-                <p className="text-gray-700 text-sm leading-relaxed mb-5 italic">
-                  &ldquo;{lang === 'bn' ? review.text : review.textEn}&rdquo;
-                </p>
+                <p className="text-gray-700 text-xs leading-relaxed mb-4 italic">&ldquo;{lang === 'bn' ? review.text : review.textEn}&rdquo;</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xl">{review.avatar}</div>
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-lg">{review.avatar}</div>
                   <div>
-                    <p className="font-bold text-gray-900 text-sm">{lang === 'bn' ? review.name : review.nameEn}</p>
-                    <p className="text-xs text-gray-400">{lang === 'bn' ? review.loc : review.locEn}</p>
+                    <p className="font-bold text-gray-900 text-xs">{lang === 'bn' ? review.name : review.nameEn}</p>
+                    <p className="text-[10px] text-gray-400">{lang === 'bn' ? review.loc : review.locEn}</p>
                   </div>
-                  <div className="ml-auto">
-                    <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✓ {lang === 'bn' ? 'যাচাইকৃত' : 'Verified'}</span>
-                  </div>
+                  <span className="ml-auto text-[9px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">✓ {lang === 'bn' ? 'যাচাইকৃত' : 'Verified'}</span>
                 </div>
               </div>
             ))}
@@ -933,38 +792,32 @@ export default function HomePage() {
       </section>
 
       {/* ── 12: Newsletter ── */}
-      <section className="py-16" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #0f2340 100%)' }}>
+      <section className="py-14" style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #0f2340 100%)' }}>
         <div className="max-w-2xl mx-auto px-4 text-center">
-          <div className="text-5xl mb-4">📬</div>
-          <h2 className="text-2xl md:text-3xl font-black text-white mb-2">
-            {lang === 'bn' ? 'অফার মিস করতে চান না?' : 'Never Miss a Deal?'}
-          </h2>
-          <p className="text-blue-200 text-sm mb-8">
-            {lang === 'bn' ? 'সাবস্ক্রাইব করুন এবং প্রতিদিনের সেরা অফার সবার আগে পান' : 'Subscribe and get the best daily deals before anyone else'}
-          </p>
+          <div className="text-4xl mb-3">📬</div>
+          <h2 className="text-xl md:text-2xl font-black text-white mb-2">{lang === 'bn' ? 'অফার মিস করতে চান না?' : 'Never Miss a Deal?'}</h2>
+          <p className="text-blue-200 text-xs mb-7">{lang === 'bn' ? 'সাবস্ক্রাইব করুন এবং প্রতিদিনের সেরা অফার সবার আগে পান' : 'Subscribe and get the best daily deals before anyone else'}</p>
           <NewsletterForm lang={lang} />
-          <p className="text-blue-300/60 text-xs mt-4">
-            {lang === 'bn' ? 'স্প্যাম নেই। যেকোনো সময় আনসাবস্ক্রাইব করা যাবে।' : 'No spam. Unsubscribe anytime.'}
-          </p>
+          <p className="text-blue-300/50 text-xs mt-4">{lang === 'bn' ? 'স্প্যাম নেই। যেকোনো সময় আনসাবস্ক্রাইব করা যাবে।' : 'No spam. Unsubscribe anytime.'}</p>
         </div>
       </section>
 
-      {/* ── 14: Service Features ── */}
-      <section className="max-w-7xl mx-auto px-4 py-12 border-t border-gray-100">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      {/* ── 13: Service Features ── */}
+      <section className="max-w-7xl mx-auto px-4 py-10 border-t border-gray-100">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {([
-            { icon: Truck,       title: h.features.delivery, subtitle: h.features.deliverySub, color: 'text-primary' },
-            { icon: RotateCcw,   title: h.features.return,   subtitle: h.features.returnSub,   color: 'text-secondary' },
-            { icon: ShieldCheck, title: h.features.genuine,  subtitle: h.features.genuineSub,  color: 'text-green-500' },
-            { icon: Headphones,  title: h.features.support,  subtitle: h.features.supportSub,  color: 'text-purple-500' },
-          ] as const).map(({ icon: Icon, title, subtitle, color }) => (
-            <div key={title} className="flex items-center gap-4 group">
-              <div className={`w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center group-hover:bg-white group-hover:shadow-md transition-all ${color}`}>
+            { icon: Truck,       title: h.features.delivery, subtitle: h.features.deliverySub, color: 'text-primary',    bg: 'bg-primary/5' },
+            { icon: RotateCcw,   title: h.features.return,   subtitle: h.features.returnSub,   color: 'text-secondary',  bg: 'bg-secondary/5' },
+            { icon: ShieldCheck, title: h.features.genuine,  subtitle: h.features.genuineSub,  color: 'text-green-500',  bg: 'bg-green-50' },
+            { icon: Headphones,  title: h.features.support,  subtitle: h.features.supportSub,  color: 'text-purple-500', bg: 'bg-purple-50' },
+          ] as const).map(({ icon: Icon, title, subtitle, color, bg }) => (
+            <div key={title} className="flex items-start gap-3">
+              <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
                 <Icon className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-bold text-gray-900 mb-0.5">{title}</h4>
-                <p className="text-xs text-gray-500 font-medium">{subtitle}</p>
+                <h4 className="text-xs font-bold text-gray-900 mb-0.5">{title}</h4>
+                <p className="text-[10px] text-gray-500">{subtitle}</p>
               </div>
             </div>
           ))}
