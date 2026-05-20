@@ -24,13 +24,13 @@ function isParent(item: NavItem): item is NavParent {
 const NAV: NavItem[] = [
   { href: '/admin',   label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/reports', label: 'Reports', icon: BarChart3 },
+  { href: '/admin/categories', label: 'Categories', icon: Tag },
   {
     label: 'Products', icon: Package,
     children: [
       { href: '/admin/products',     label: 'All Products',     icon: Package },
       { href: '/admin/products/new', label: 'Add New Product',  icon: Plus },
       { href: '/admin/inventory',    label: 'Inventory',        icon: Archive },
-      { href: '/admin/categories',   label: 'Categories',       icon: Tag },
     ],
   },
   {

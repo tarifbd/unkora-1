@@ -57,8 +57,8 @@ export const booksApi = {
 };
 
 export const categoriesApi = {
-  getAll: () =>
-    api.get('/categories').then(r => r.data.data as Category[]),
+  getAll: (includeInactive = false) =>
+    api.get(`/categories/all?includeInactive=${includeInactive}`).then(r => r.data.data as Category[]),
 
   getRoots: () =>
     api.get('/categories').then(r => r.data.data as (Category & { children: Category[] })[]),
@@ -68,6 +68,9 @@ export const categoriesApi = {
 
   create: (data: Record<string, unknown>) =>
     api.post('/categories', data).then(r => r.data.data),
+
+  update: (id: string, data: Record<string, unknown>) =>
+    api.patch(`/categories/${id}`, data).then(r => r.data.data),
 
   delete: (id: string) =>
     api.delete(`/categories/${id}`),
