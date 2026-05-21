@@ -615,7 +615,7 @@ export default function HomePage() {
                 <div key={product.id} className="min-w-[200px] w-[200px] flex-shrink-0"><ProductCard product={product} /></div>
               ))
             ) : (
-              Array.from({ length: 6 }).map((_, i) => <div key={i} className="min-w-[200px] w-[200px] flex-shrink-0 bg-gray-50 rounded-xl border border-gray-100 h-72 animate-pulse" />)
+              Array.from({ length: 6 }).map((_, i) => <div key={i} className="min-w-[200px] w-[200px] flex-shrink-0 bg-gray-200 rounded-xl h-72 animate-pulse" />)
             )}
           </div>
         </div>
@@ -645,7 +645,7 @@ export default function HomePage() {
             {bestProducts.length > 0 ? (
               bestProducts.map(product => <ProductCard key={product.id} product={product} />)
             ) : (
-              Array.from({ length: 8 }).map((_, i) => <div key={i} className="bg-white rounded-xl border border-gray-100 h-72 animate-pulse" />)
+              Array.from({ length: 8 }).map((_, i) => <div key={i} className="bg-gray-200 rounded-xl h-72 animate-pulse" />)
             )}
           </div>
           <div className="flex justify-center mt-6">
