@@ -13,9 +13,26 @@ out
 # Environment files
 .env
 .env.local
+.env.development
+.env.production
+.env.test
 .env.*.local
+apps/api/.env
+apps/api/.env.*
+packages/database/.env
+packages/database/.env.*
+
+# Keep example env files
 !.env.example
 !.env.*.example
+!apps/api/.env.example
+!packages/database/.env.example
+
+# Local startup scripts
+start-local.bat
+start-local.ps1
+*.local.bat
+*.local.ps1
 
 # Logs
 *.log
@@ -37,6 +54,14 @@ Thumbs.db
 # Testing
 coverage
 .nyc_output
+
+# Database backup/dump files
+*.dump
+*.backup
+*.sql.backup
+
+# Docker local override
+docker-compose.override.yml
 
 # Misc
 *.tsbuildinfo
