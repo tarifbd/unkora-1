@@ -1,32 +1,43 @@
-import axios, { type AxiosInstance } from 'axios';
+import axios, { type AxiosInstance, type AxiosError } from 'axios';
 
 const BASE_URL = process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:4000/api/v1';
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   withCredentials: false,
+  timeout: 15_000,
+  headers: { 'Content-Type': 'application/json' },
 });
 
-apiClient.defaults.headers.common['Content-Type'] = 'application/json';
-
-// Request interceptor — attach access token from localStorage
+// Request interceptor — attach access token
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-// Response interceptor — handle 401 with token refresh
+let isRefreshing = false;
+let refreshQueue: ((token: string) => void)[] = [];
+
+function drainQueue(token: string) {
+  refreshQueue.forEach((cb) => cb(token));
+  refreshQueue = [];
+}
+
+// Response interceptor — 401 refresh with queue to prevent race conditions
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error) => {
+  async (error: AxiosError) => {
     const originalRequest = error.config as typeof error.config & { _retry?: boolean };
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Network / timeout errors
+    if (!error.response) {
+      return Promise.reject(new Error('Network error — please check your connection'));
+    }
+
+    if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null;
@@ -35,15 +46,30 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
       }
 
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          refreshQueue.push((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(apiClient(originalRequest));
+          });
+        });
+      }
+
+      isRefreshing = true;
       try {
-        const { data } = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
+        const { data } = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken }, { timeout: 10_000 });
         const { accessToken, refreshToken: newRefresh } = data.data as { accessToken: string; refreshToken: string };
         saveAuthTokens(accessToken, newRefresh);
+        drainQueue(accessToken);
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return apiClient(originalRequest);
       } catch {
         clearAuthTokens();
+        refreshQueue = [];
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('auth:logout'));
         return Promise.reject(error);
+      } finally {
+        isRefreshing = false;
       }
     }
 

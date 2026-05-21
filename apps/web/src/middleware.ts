@@ -1,0 +1,47 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+const PROTECTED_ROUTES = ['/account', '/checkout', '/cart'];
+const ADMIN_ROUTES = ['/admin'];
+const AUTH_ROUTES = ['/login', '/register'];
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const accessToken = request.cookies.get('access_token')?.value;
+  const userRole = request.cookies.get('user_role')?.value;
+
+  const isProtected = PROTECTED_ROUTES.some((r) => pathname.startsWith(r));
+  const isAdmin = ADMIN_ROUTES.some((r) => pathname.startsWith(r));
+  const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r));
+
+  // Redirect unauthenticated users away from protected routes
+  if ((isProtected || isAdmin) && !accessToken) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('redirect', pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect non-admins away from admin routes
+  if (isAdmin && accessToken && userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN') {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  // Redirect authenticated users away from login/register
+  if (isAuthRoute && accessToken) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  // Security headers on all responses
+  const response = NextResponse.next();
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+
+  return response;
+}
+
+export const config = {
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+};
