@@ -16,7 +16,7 @@ export function useAuth() {
     onSuccess: ({ user: u }) => {
       setUser(u);
       void qc.invalidateQueries({ queryKey: ['cart'] });
-      router.push('/');
+      router.push(u.role === 'ADMIN' || u.role === 'SUPER_ADMIN' ? '/admin' : '/');
     },
   });
 

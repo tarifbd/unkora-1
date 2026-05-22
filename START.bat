@@ -1,49 +1,105 @@
 @echo off
+setlocal
 echo ========================================
 echo   UNKORA Local Dev - Starting up...
 echo ========================================
 
-:: Create apps/api/.env
-echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:5432/unkora > apps\api\.env
-echo REDIS_URL=redis://localhost:6379 >> apps\api\.env
-echo JWT_SECRET=dev-secret-local-unkora-min64chars-do-not-use-in-production-abc123 >> apps\api\.env
-echo JWT_EXPIRES_IN=15m >> apps\api\.env
-echo JWT_REFRESH_SECRET=dev-refresh-local-unkora-min64chars-do-not-use-in-production-xyz789 >> apps\api\.env
-echo JWT_REFRESH_EXPIRES_IN=7d >> apps\api\.env
-echo API_PORT=4000 >> apps\api\.env
-echo API_PREFIX=api >> apps\api\.env
-echo NODE_ENV=development >> apps\api\.env
-echo CORS_ORIGINS=http://localhost:3000 >> apps\api\.env
+:: ── 1. Write .env files ───────────────────────────────────────────────────────
 
-:: Create apps/web/.env.local
-echo NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1 > apps\web\.env.local
-echo NEXT_PUBLIC_SITE_URL=http://localhost:3000 >> apps\web\.env.local
+(
+echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:5432/unkora
+echo REDIS_URL=redis://localhost:6379
+echo JWT_SECRET=dev-secret-local-unkora-min64chars-do-not-use-in-production-abc123
+echo JWT_EXPIRES_IN=15m
+echo JWT_REFRESH_SECRET=dev-refresh-local-unkora-min64chars-do-not-use-in-production-xyz789
+echo JWT_REFRESH_EXPIRES_IN=7d
+echo API_PORT=4000
+echo API_PREFIX=api
+echo NODE_ENV=development
+echo CORS_ORIGINS=http://localhost:3000
+) > apps\api\.env
 
-:: Create packages/database/.env
-echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:5432/unkora > packages\database\.env
+(
+echo NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+echo NEXT_PUBLIC_SITE_URL=http://localhost:3000
+) > apps\web\.env.local
+
+(
+echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:5432/unkora
+) > packages\database\.env
 
 echo [OK] .env files created
 
-:: Run seed
+:: ── 2. Start Docker infra (Postgres + Redis) ──────────────────────────────────
+
 echo.
-echo Running database seed...
+echo Starting Docker containers (Postgres + Redis)...
+docker-compose -f docker-compose.dev.yml up -d
+if %errorlevel% neq 0 (
+  echo [ERROR] Docker failed. Make sure Docker Desktop is running!
+  pause
+  exit /b 1
+)
+echo [OK] Docker containers started
+
+:: ── 3. Wait for Postgres to be ready ─────────────────────────────────────────
+
+echo.
+echo Waiting for Postgres to be ready...
+:WAIT_LOOP
+docker exec unkora_postgres_dev pg_isready -U unkora -d unkora >nul 2>&1
+if %errorlevel% neq 0 (
+  timeout /t 2 /nobreak >nul
+  goto WAIT_LOOP
+)
+echo [OK] Postgres is ready
+
+:: ── 4. Run migrations + seed ──────────────────────────────────────────────────
+
+echo.
+echo Running database migrations...
 cd packages\database
+call npx prisma migrate deploy
+if %errorlevel% neq 0 (
+  echo [ERROR] Migrations failed!
+  cd ..\..
+  pause
+  exit /b 1
+)
+echo [OK] Migrations done
+
+echo.
+echo Seeding database...
 call npx prisma db seed
+if %errorlevel% neq 0 (
+  echo [WARN] Seed had errors - check above output
+)
+echo [OK] Seed done
+
 cd ..\..
+
+:: ── 5. Start API and Web servers ──────────────────────────────────────────────
 
 echo.
 echo Starting API server...
 start "UNKORA API" cmd /k "cd /d %~dp0apps\api && npm run dev"
 
-echo Waiting 5 seconds for API to start...
-timeout /t 5 /nobreak > nul
+echo Waiting 6 seconds for API to start...
+timeout /t 6 /nobreak >nul
 
 echo Starting Web server...
 start "UNKORA Web" cmd /k "cd /d %~dp0apps\web && npm run dev"
 
 echo.
 echo ========================================
-echo   Done! Opening browser in 8 seconds...
+echo   UNKORA is starting up!
+echo.
+echo   Web:   http://localhost:3000
+echo   API:   http://localhost:4000/api/v1
+echo.
+echo   Admin: http://localhost:3000/admin
+echo   Login: admin@unkora.com
+echo   Pass:  Admin@123456
 echo ========================================
-timeout /t 8 /nobreak > nul
+timeout /t 10 /nobreak >nul
 start http://localhost:3000
