@@ -58,10 +58,10 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (!user || !user.passwordHash) throw new UnauthorizedException('Invalid credentials');
 
+    if (user.status === 'SUSPENDED') throw new UnauthorizedException('Account suspended');
+
     const valid = await argon2.verify(user.passwordHash, dto.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
-
-    if (user.status === 'SUSPENDED') throw new UnauthorizedException('Account suspended');
 
     await this.prisma.user.update({
       where: { id: user.id },

@@ -42,9 +42,7 @@ export function LoginForm() {
       </div>
 
       {login.error && (
-        <p className="text-xs text-destructive">
-          {(login.error as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Invalid email or password'}
-        </p>
+        <p className="text-xs text-destructive">Invalid email or password</p>
       )}
 
       <button type="submit" disabled={login.isPending}

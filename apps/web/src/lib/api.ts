@@ -37,7 +37,10 @@ apiClient.interceptors.response.use(
       return Promise.reject(new Error('Network error — please check your connection'));
     }
 
-    if (error.response.status === 401 && !originalRequest._retry) {
+    // Auth endpoints (login, register, refresh) should never trigger a token refresh retry
+    const isAuthEndpoint = originalRequest?.url?.includes('/auth/');
+
+    if (error.response.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
 
       const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null;
