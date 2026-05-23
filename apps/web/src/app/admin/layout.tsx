@@ -7,6 +7,7 @@ import {
   Truck, Ticket, Users, MessageSquare, LogOut, Menu, X,
   ExternalLink, Bell, Settings, Target, Globe, TrendingUp, Zap,
   ShieldAlert, Plus, ChevronDown, ChevronRight,
+  RotateCcw, Bike, FileText, User,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -36,11 +37,19 @@ const NAV: NavItem[] = [
   {
     label: 'Sales', icon: ShoppingBag,
     children: [
-      { href: '/admin/orders',     label: 'Orders',         icon: ShoppingBag },
-      { href: '/admin/shipments',  label: 'Shipments',      icon: Truck },
-      { href: '/admin/coupons',    label: 'Coupons',        icon: Ticket },
-      { href: '/admin/promotions', label: 'Promotions',     icon: Zap },
-      { href: '/admin/fraud',      label: 'Fraud Detection',icon: ShieldAlert },
+      { href: '/admin/orders',       label: 'Orders',          icon: ShoppingBag },
+      { href: '/admin/shipments',    label: 'Shipments',       icon: Truck },
+      { href: '/admin/coupons',      label: 'Coupons',         icon: Ticket },
+      { href: '/admin/promotions',   label: 'Promotions',      icon: Zap },
+      { href: '/admin/refunds',      label: 'Refunds',         icon: RotateCcw },
+      { href: '/admin/flash-deals',  label: 'Flash Deals',     icon: Zap },
+      { href: '/admin/fraud',        label: 'Fraud Detection', icon: ShieldAlert },
+    ],
+  },
+  {
+    label: 'Delivery', icon: Bike,
+    children: [
+      { href: '/admin/delivery-boys', label: 'Delivery Boys', icon: User },
     ],
   },
   {
@@ -48,6 +57,7 @@ const NAV: NavItem[] = [
     children: [
       { href: '/admin/users',   label: 'Users',   icon: Users },
       { href: '/admin/reviews', label: 'Reviews', icon: MessageSquare },
+      { href: '/admin/blog',    label: 'Blog',    icon: FileText },
     ],
   },
   {
@@ -157,6 +167,11 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/users': 'Users',
   '/admin/reviews': 'Reviews',
   '/admin/settings': 'Settings',
+  '/admin/refunds': 'Refunds',
+  '/admin/flash-deals': 'Flash Deals',
+  '/admin/delivery-boys': 'Delivery Boys',
+  '/admin/blog/new': 'New Blog Post',
+  '/admin/blog': 'Blog',
   '/admin/analytics': 'Marketing Analytics',
   '/admin/analytics/meta-pixel': 'Meta Pixel & CAPI',
   '/admin/analytics/google-analytics': 'Google Analytics 4',

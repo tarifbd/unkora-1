@@ -49,3 +49,57 @@ export const adminApi = {
   getTopCustomers: () =>
     api.get('/admin/analytics/top-customers').then(r => r.data.data as { user: { id: string; firstName: string; lastName: string; email: string } | undefined; totalSpent: number; orderCount: number }[]),
 };
+
+// Refunds
+export const refundsApi = {
+  list: (params?: { status?: string; page?: number }) =>
+    api.get('/refunds/admin', { params }).then(r => r.data.data),
+  update: (id: string, data: { status: string; adminNote?: string }) =>
+    api.patch(`/refunds/admin/${id}`, data).then(r => r.data.data),
+};
+
+// Flash Deals
+export const flashDealsApi = {
+  list: (params?: { page?: number }) =>
+    api.get('/flash-deals/admin', { params }).then(r => r.data.data),
+  create: (data: object) =>
+    api.post('/flash-deals/admin', data).then(r => r.data.data),
+  update: (id: string, data: object) =>
+    api.patch(`/flash-deals/admin/${id}`, data).then(r => r.data.data),
+  remove: (id: string) =>
+    api.delete(`/flash-deals/admin/${id}`),
+};
+
+// Delivery Boys
+export const deliveryBoysApi = {
+  list: (params?: { status?: string; page?: number }) =>
+    api.get('/delivery-boys', { params }).then(r => r.data.data),
+  create: (data: object) =>
+    api.post('/delivery-boys', data).then(r => r.data.data),
+  update: (id: string, data: object) =>
+    api.patch(`/delivery-boys/${id}`, data).then(r => r.data.data),
+  remove: (id: string) =>
+    api.delete(`/delivery-boys/${id}`),
+  assignOrder: (id: string, orderId: string) =>
+    api.post(`/delivery-boys/${id}/assign`, { orderId }).then(r => r.data.data),
+};
+
+// Blog
+export const blogApi = {
+  adminList: (params?: { status?: string; page?: number }) =>
+    api.get('/blog/admin', { params }).then(r => r.data.data),
+  create: (data: object) =>
+    api.post('/blog/admin', data).then(r => r.data.data),
+  update: (id: string, data: object) =>
+    api.patch(`/blog/admin/${id}`, data).then(r => r.data.data),
+  remove: (id: string) =>
+    api.delete(`/blog/admin/${id}`),
+};
+
+// Wholesale
+export const wholesaleApi = {
+  get: (productId: string) =>
+    api.get(`/products/${productId}/wholesale`).then(r => r.data.data),
+  set: (productId: string, tiers: { minQty: number; price: number }[]) =>
+    api.put(`/products/${productId}/wholesale`, { tiers }).then(r => r.data.data),
+};
