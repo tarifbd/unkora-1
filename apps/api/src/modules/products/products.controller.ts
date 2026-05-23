@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -7,6 +7,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { SetWholesaleDto } from './dto/wholesale.dto';
 import { ProductsService } from './products.service';
 
 @ApiTags('products')
@@ -66,5 +67,22 @@ export class ProductsController {
   @ApiOperation({ summary: 'Soft delete product (admin)' })
   remove(@Param('id') id: string) {
     return this.productsService.remove(id);
+  }
+
+  @Get(':id/wholesale')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get wholesale pricing tiers for a product' })
+  getWholesaleTiers(@Param('id') id: string) {
+    return this.productsService.getWholesaleTiers(id);
+  }
+
+  @Put(':id/wholesale')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Admin: replace all wholesale pricing tiers for a product' })
+  setWholesaleTiers(@Param('id') id: string, @Body() dto: SetWholesaleDto) {
+    return this.productsService.setWholesaleTiers(id, dto);
   }
 }

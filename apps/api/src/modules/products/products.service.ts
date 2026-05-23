@@ -7,6 +7,7 @@ import { PrismaService } from '../../database/prisma.service';
 import type { CreateProductDto } from './dto/create-product.dto';
 import type { ProductQueryDto } from './dto/product-query.dto';
 import type { UpdateProductDto } from './dto/update-product.dto';
+import type { SetWholesaleDto } from './dto/wholesale.dto';
 
 @Injectable()
 export class ProductsService {
@@ -275,6 +276,33 @@ export class ProductsService {
     return this.prisma.product.update({
       where: { id },
       data: { stockQuantity: quantity },
+    });
+  }
+
+  async getWholesaleTiers(productId: string) {
+    await this.findById(productId);
+    return this.prisma.wholesalePrice.findMany({
+      where: { productId },
+      orderBy: { minQty: 'asc' },
+    });
+  }
+
+  async setWholesaleTiers(productId: string, dto: SetWholesaleDto) {
+    await this.findById(productId);
+    return this.prisma.$transaction(async (tx) => {
+      await tx.wholesalePrice.deleteMany({ where: { productId } });
+      if (dto.tiers.length === 0) return [];
+      await tx.wholesalePrice.createMany({
+        data: dto.tiers.map((tier) => ({
+          productId,
+          minQty: tier.minQty,
+          price: tier.price,
+        })),
+      });
+      return tx.wholesalePrice.findMany({
+        where: { productId },
+        orderBy: { minQty: 'asc' },
+      });
     });
   }
 }

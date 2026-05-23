@@ -1,4 +1,4 @@
-// Prisma schema for UNKORA — V1 Core E-Commerce MVP
+// Prisma schema for UNKORA — V2 Feature Expansion
 
 generator client {
   provider = "prisma-client-js"
@@ -15,6 +15,7 @@ datasource db {
 
 enum UserRole {
   CUSTOMER
+  DELIVERY_BOY
   ADMIN
   SUPER_ADMIN
 }
@@ -60,6 +61,63 @@ enum PaymentMethod {
   COD
 }
 
+enum DiscountType {
+  PERCENTAGE
+  FIXED
+}
+
+enum BookSubmissionStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  PUBLISHED
+}
+
+enum StockMovementType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  RETURN
+}
+
+enum ShipmentStatus {
+  PENDING
+  PICKED_UP
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+  RETURNED
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PROCESSED
+}
+
+enum RefundReason {
+  DEFECTIVE
+  NOT_AS_DESCRIBED
+  WRONG_ITEM
+  DAMAGED_IN_TRANSIT
+  OTHER
+}
+
+enum DeliveryBoyStatus {
+  ACTIVE
+  INACTIVE
+  ON_DELIVERY
+}
+
+enum BlogPostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
 // ─────────────────────────────────────────────────────────────
 // USER & AUTH
 // ─────────────────────────────────────────────────────────────
@@ -87,6 +145,9 @@ model User {
   wishlists       Wishlist[]
   reviews         Review[]
   bookSubmissions BookSubmission[]
+  refunds         Refund[]
+  blogPosts       BlogPost[]
+  deliveryBoy     DeliveryBoy?
 
   @@index([email])
   @@index([phone])
@@ -159,9 +220,9 @@ model Category {
   imageUrl    String?
   color       String?
   icon        String?
-  isFeatured Boolean @default(false)
-  isHot      Boolean @default(false)
-  type       String  @default("physical")
+  isFeatured  Boolean @default(false)
+  isHot       Boolean @default(false)
+  type        String  @default("physical")
   parentId    String?
   sortOrder   Int     @default(0)
   isActive    Boolean @default(true)
@@ -194,20 +255,25 @@ model Product {
   isActive      Boolean  @default(true)
   isFeatured    Boolean  @default(false)
   isDigital     Boolean  @default(false)
+  isPreorder    Boolean  @default(false)
+  preorderNote  String?
+  preorderDate  DateTime?
   metaTitle     String?
   metaDesc      String?
   tags          String[]
 
-  category       Category        @relation(fields: [categoryId], references: [id])
-  images         ProductImage[]
-  variants       ProductVariant[]
-  bookDetail     BookDetail?
-  orderItems     OrderItem[]
-  cartItems      CartItem[]
-  reviews        Review[]
-  wishlists      Wishlist[]
-  stockMovements StockMovement[]
-  submission     BookSubmission?
+  category        Category         @relation(fields: [categoryId], references: [id])
+  images          ProductImage[]
+  variants        ProductVariant[]
+  bookDetail      BookDetail?
+  orderItems      OrderItem[]
+  cartItems       CartItem[]
+  reviews         Review[]
+  wishlists       Wishlist[]
+  stockMovements  StockMovement[]
+  submission      BookSubmission?
+  flashDeal       FlashDeal?
+  wholesalePrices WholesalePrice[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -234,14 +300,14 @@ model ProductImage {
 }
 
 model ProductVariant {
-  id            String   @id @default(cuid())
+  id            String  @id @default(cuid())
   productId     String
   name          String
-  sku           String   @unique
-  price         Decimal  @db.Decimal(10, 2)
-  stockQuantity Int      @default(0)
+  sku           String  @unique
+  price         Decimal @db.Decimal(10, 2)
+  stockQuantity Int     @default(0)
   attributes    Json
-  isActive      Boolean  @default(true)
+  isActive      Boolean @default(true)
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -250,12 +316,12 @@ model ProductVariant {
 }
 
 model BookDetail {
-  id          String   @id @default(cuid())
-  productId   String   @unique
+  id          String    @id @default(cuid())
+  productId   String    @unique
   author      String
   publisher   String?
-  isbn        String?  @unique
-  language    String   @default("Bengali")
+  isbn        String?   @unique
+  language    String    @default("Bengali")
   pageCount   Int?
   edition     String?
   genres      String[]
@@ -315,6 +381,7 @@ model Order {
   orderNumber     String        @unique
   userId          String
   addressId       String?
+  deliveryBoyId   String?
   status          OrderStatus   @default(PENDING)
   paymentStatus   PaymentStatus @default(PENDING)
   paymentMethod   PaymentMethod @default(COD)
@@ -329,16 +396,19 @@ model Order {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  user     User           @relation(fields: [userId], references: [id])
-  address  Address?       @relation(fields: [addressId], references: [id])
-  items    OrderItem[]
-  payment  Payment?
-  timeline OrderTimeline[]
-  shipment Shipment?
+  user        User           @relation(fields: [userId], references: [id])
+  address     Address?       @relation(fields: [addressId], references: [id])
+  deliveryBoy DeliveryBoy?   @relation(fields: [deliveryBoyId], references: [id])
+  items       OrderItem[]
+  payment     Payment?
+  timeline    OrderTimeline[]
+  shipment    Shipment?
+  refunds     Refund[]
 
   @@index([userId])
   @@index([orderNumber])
   @@index([status])
+  @@index([deliveryBoyId])
   @@map("orders")
 }
 
@@ -398,16 +468,16 @@ model Payment {
 // ─────────────────────────────────────────────────────────────
 
 model Review {
-  id         String   @id @default(cuid())
-  productId  String
-  userId     String
-  rating     Int
-  title      String?
-  body       String?
-  isVerified Boolean  @default(false)
-  isPublished Boolean @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(cuid())
+  productId   String
+  userId      String
+  rating      Int
+  title       String?
+  body        String?
+  isVerified  Boolean  @default(false)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -436,38 +506,8 @@ model Wishlist {
 }
 
 // ─────────────────────────────────────────────────────────────
-// COUPONS
+// COUPONS & PROMOTIONS
 // ─────────────────────────────────────────────────────────────
-
-enum DiscountType {
-  PERCENTAGE
-  FIXED
-}
-
-enum BookSubmissionStatus {
-  PENDING
-  UNDER_REVIEW
-  APPROVED
-  REJECTED
-  PUBLISHED
-}
-
-enum StockMovementType {
-  PURCHASE
-  SALE
-  ADJUSTMENT
-  RETURN
-}
-
-enum ShipmentStatus {
-  PENDING
-  PICKED_UP
-  IN_TRANSIT
-  OUT_FOR_DELIVERY
-  DELIVERED
-  FAILED
-  RETURNED
-}
 
 model Coupon {
   id            String       @id @default(cuid())
@@ -489,6 +529,35 @@ model Coupon {
   @@map("coupons")
 }
 
+model FlashDeal {
+  id         String   @id @default(cuid())
+  productId  String   @unique
+  discount   Decimal  @db.Decimal(5, 2)
+  startsAt   DateTime
+  endsAt     DateTime
+  isFeatured Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([isActive, endsAt])
+  @@map("flash_deals")
+}
+
+model WholesalePrice {
+  id        String  @id @default(cuid())
+  productId String
+  minQty    Int
+  price     Decimal @db.Decimal(10, 2)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, minQty])
+  @@map("wholesale_prices")
+}
+
 // ─────────────────────────────────────────────────────────────
 // INVENTORY & SHIPMENTS
 // ─────────────────────────────────────────────────────────────
@@ -501,7 +570,8 @@ model StockMovement {
   note      String?
   createdBy String?
   createdAt DateTime          @default(now())
-  product   Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
   @@map("stock_movements")
@@ -519,10 +589,90 @@ model Shipment {
   notes          String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
-  order          Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@map("shipments")
 }
+
+// ─────────────────────────────────────────────────────────────
+// REFUNDS
+// ─────────────────────────────────────────────────────────────
+
+model Refund {
+  id          String       @id @default(cuid())
+  orderId     String
+  userId      String
+  amount      Decimal      @db.Decimal(10, 2)
+  reason      RefundReason
+  description String?
+  status      RefundStatus @default(PENDING)
+  adminNote   String?
+  processedBy String?
+  processedAt DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@index([orderId])
+  @@index([userId])
+  @@index([status])
+  @@map("refunds")
+}
+
+// ─────────────────────────────────────────────────────────────
+// DELIVERY BOYS
+// ─────────────────────────────────────────────────────────────
+
+model DeliveryBoy {
+  id              String            @id @default(cuid())
+  userId          String            @unique
+  phone           String
+  area            String?
+  vehicleType     String?
+  status          DeliveryBoyStatus @default(ACTIVE)
+  totalDeliveries Int               @default(0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@map("delivery_boys")
+}
+
+// ─────────────────────────────────────────────────────────────
+// BLOG
+// ─────────────────────────────────────────────────────────────
+
+model BlogPost {
+  id          String         @id @default(cuid())
+  title       String
+  slug        String         @unique
+  content     String         @db.Text
+  excerpt     String?
+  coverImage  String?
+  authorId    String
+  status      BlogPostStatus @default(DRAFT)
+  tags        String[]
+  metaTitle   String?
+  metaDesc    String?
+  publishedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  author User @relation(fields: [authorId], references: [id])
+
+  @@index([slug])
+  @@index([status])
+  @@map("blog_posts")
+}
+
+// ─────────────────────────────────────────────────────────────
+// BOOK SUBMISSIONS
+// ─────────────────────────────────────────────────────────────
 
 model BookSubmission {
   id             String               @id @default(cuid())
