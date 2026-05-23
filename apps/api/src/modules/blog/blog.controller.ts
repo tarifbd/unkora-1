@@ -26,31 +26,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 export class BlogController {
   constructor(private readonly blogService: BlogService) {}
 
-  // ---- Public routes ----
-
-  @Get()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Public: list published blog posts (paginated, optional ?tag= filter)' })
-  findPublished(
-    @Query('page') page = '1',
-    @Query('limit') limit = '20',
-    @Query('tag') tag?: string,
-  ) {
-    return this.blogService.findPublished({
-      page: parseInt(page, 10),
-      limit: parseInt(limit, 10),
-      tag,
-    });
-  }
-
-  @Get(':slug')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Public: get a single published post by slug' })
-  findBySlug(@Param('slug') slug: string) {
-    return this.blogService.findBySlug(slug);
-  }
-
-  // ---- Admin routes ----
+  // ---- Admin routes (must be declared before :slug wildcard) ----
 
   @Get('admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -99,5 +75,29 @@ export class BlogController {
   @ApiOperation({ summary: 'Admin: delete a blog post' })
   remove(@Param('id') id: string) {
     return this.blogService.remove(id);
+  }
+
+  // ---- Public routes ----
+
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Public: list published blog posts (paginated, optional ?tag= filter)' })
+  findPublished(
+    @Query('page') page = '1',
+    @Query('limit') limit = '20',
+    @Query('tag') tag?: string,
+  ) {
+    return this.blogService.findPublished({
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      tag,
+    });
+  }
+
+  @Get(':slug')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Public: get a single published post by slug' })
+  findBySlug(@Param('slug') slug: string) {
+    return this.blogService.findBySlug(slug);
   }
 }

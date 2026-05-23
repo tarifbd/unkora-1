@@ -7,9 +7,9 @@ import { flashDealsApi } from '@/lib/api/admin';
 interface FlashDeal {
   id: string;
   productId: string;
-  discountPercent: number;
-  startTime: string;
-  endTime: string;
+  discount: number;
+  startsAt: string;
+  endsAt: string;
   isFeatured: boolean;
   isActive: boolean;
   product?: { name: string; images?: { url: string }[] };
@@ -17,17 +17,17 @@ interface FlashDeal {
 
 interface FormState {
   productId: string;
-  discountPercent: string;
-  startTime: string;
-  endTime: string;
+  discount: string;
+  startsAt: string;
+  endsAt: string;
   isFeatured: boolean;
 }
 
 const defaultForm: FormState = {
   productId: '',
-  discountPercent: '',
-  startTime: '',
-  endTime: '',
+  discount: '',
+  startsAt: '',
+  endsAt: '',
   isFeatured: false,
 };
 
@@ -72,7 +72,7 @@ export default function AdminFlashDealsPage() {
     setError(null);
     try {
       const data = await flashDealsApi.list();
-      setDeals(Array.isArray(data?.deals) ? data.deals : Array.isArray(data) ? data : []);
+      setDeals(Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : []);
     } catch {
       setError('Failed to load flash deals');
     } finally {
@@ -93,9 +93,9 @@ export default function AdminFlashDealsPage() {
     setEditId(deal.id);
     setForm({
       productId: deal.productId,
-      discountPercent: String(deal.discountPercent),
-      startTime: deal.startTime ? deal.startTime.slice(0, 16) : '',
-      endTime: deal.endTime ? deal.endTime.slice(0, 16) : '',
+      discount: String(deal.discount),
+      startsAt: deal.startsAt ? deal.startsAt.slice(0, 16) : '',
+      endsAt: deal.endsAt ? deal.endsAt.slice(0, 16) : '',
       isFeatured: deal.isFeatured,
     });
     setFormError(null);

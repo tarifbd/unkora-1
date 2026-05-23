@@ -207,7 +207,7 @@ export class DeliveryBoysService {
           select: {
             id: true,
             quantity: true,
-            price: true,
+            unitPrice: true,
             product: { select: { name: true } },
           },
         },
