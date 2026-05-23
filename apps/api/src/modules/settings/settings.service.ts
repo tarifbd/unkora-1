@@ -27,6 +27,11 @@ export class SettingsService {
     await Promise.all(Object.entries(data).map(([key, value]) => this.set(key, value)));
   }
 
+  async getAllSettings(): Promise<Record<string, string>> {
+    const settings = await this.prisma.siteSetting.findMany({ orderBy: { key: 'asc' } });
+    return Object.fromEntries(settings.map(s => [s.key, s.value]));
+  }
+
   async getAnalyticsSettings() {
     const keys = [
       'analytics.ga4.enabled', 'analytics.ga4.measurementId', 'analytics.ga4.enhancedEcom', 'analytics.ga4.debugMode',

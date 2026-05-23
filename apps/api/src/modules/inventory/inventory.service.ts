@@ -64,20 +64,32 @@ export class InventoryService {
     return { data: movements, meta: { total, page, limit } };
   }
 
-  async getInventoryOverview(page = 1, limit = 20) {
-    const [products, total] = await Promise.all([
+  async getInventoryOverview(page = 1, limit = 20, filter?: string) {
+    const stockFilter =
+      filter === 'out' ? { equals: 0 } :
+      filter === 'low' ? { gt: 0, lte: LOW_STOCK_THRESHOLD } :
+      filter === 'ok'  ? { gt: LOW_STOCK_THRESHOLD } :
+      undefined;
+
+    const where = { isActive: true, ...(stockFilter ? { stockQuantity: stockFilter } : {}) };
+
+    const [products, total, outCount, lowCount] = await Promise.all([
       this.prisma.product.findMany({
-        where: { isActive: true },
+        where,
         select: {
-          id: true, name: true, slug: true, sku: true, stockQuantity: true,
+          id: true, name: true, slug: true, sku: true,
+          stockQuantity: true, basePrice: true, salePrice: true,
           category: { select: { name: true } },
+          images: { select: { url: true }, take: 1, orderBy: { position: 'asc' } },
         },
         orderBy: { stockQuantity: 'asc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      this.prisma.product.count({ where: { isActive: true } }),
+      this.prisma.product.count({ where }),
+      this.prisma.product.count({ where: { isActive: true, stockQuantity: { equals: 0 } } }),
+      this.prisma.product.count({ where: { isActive: true, stockQuantity: { gt: 0, lte: LOW_STOCK_THRESHOLD } } }),
     ]);
-    return { data: products, meta: { total, page, limit } };
+    return { data: products, meta: { total, page, limit, outCount, lowCount } };
   }
 }

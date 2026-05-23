@@ -18,8 +18,8 @@ export class InventoryController {
   @Get()
   @Version('1')
   @ApiOperation({ summary: 'Admin: get inventory overview' })
-  getOverview(@Query('page') page = 1, @Query('limit') limit = 20) {
-    return this.inventoryService.getInventoryOverview(+page, +limit);
+  getOverview(@Query('page') page = 1, @Query('limit') limit = 200, @Query('filter') filter?: string) {
+    return this.inventoryService.getInventoryOverview(+page, +limit, filter);
   }
 
   @Get('low-stock')
