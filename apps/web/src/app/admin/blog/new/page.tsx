@@ -56,7 +56,7 @@ export default function NewBlogPostPage() {
         status: form.status,
         tags: tags.length > 0 ? tags : undefined,
         metaTitle: form.metaTitle.trim() || undefined,
-        metaDescription: form.metaDescription.trim() || undefined,
+        metaDesc: form.metaDescription.trim() || undefined,
       });
       router.push('/admin/blog');
     } catch {

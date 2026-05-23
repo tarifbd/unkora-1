@@ -6,20 +6,26 @@ import { deliveryBoysApi } from '@/lib/api/admin';
 
 interface DeliveryBoy {
   id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
   phone?: string;
   area?: string;
   vehicleType?: string;
   status: string;
   totalDeliveries?: number;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    status: string;
+  };
 }
 
 interface DeliveryBoysData {
+  data?: DeliveryBoy[];
   deliveryBoys?: DeliveryBoy[];
   items?: DeliveryBoy[];
   total?: number;
+  meta?: { total: number };
 }
 
 interface FormState {
@@ -76,7 +82,7 @@ export default function AdminDeliveryBoysPage() {
     setError(null);
     try {
       const data: DeliveryBoysData = await deliveryBoysApi.list();
-      const list = data?.deliveryBoys ?? data?.items ?? (Array.isArray(data) ? (data as DeliveryBoy[]) : []);
+      const list = data?.data ?? data?.deliveryBoys ?? data?.items ?? (Array.isArray(data) ? (data as DeliveryBoy[]) : []);
       setBoys(list);
     } catch {
       setError('Failed to load delivery boys');
@@ -97,9 +103,9 @@ export default function AdminDeliveryBoysPage() {
   const openEdit = (boy: DeliveryBoy) => {
     setEditId(boy.id);
     setForm({
-      firstName: boy.firstName,
-      lastName: boy.lastName,
-      email: boy.email,
+      firstName: boy.user.firstName,
+      lastName: boy.user.lastName,
+      email: boy.user.email,
       password: '',
       phone: boy.phone ?? '',
       area: boy.area ?? '',
@@ -148,7 +154,7 @@ export default function AdminDeliveryBoysPage() {
   };
 
   const handleDeactivate = async (boy: DeliveryBoy) => {
-    if (!confirm(`Deactivate ${boy.firstName} ${boy.lastName}?`)) return;
+    if (!confirm(`Deactivate ${boy.user.firstName} ${boy.user.lastName}?`)) return;
     try {
       await deliveryBoysApi.update(boy.id, { status: 'INACTIVE' });
       setBoys(prev => prev.map(b => b.id === boy.id ? { ...b, status: 'INACTIVE' } : b));
@@ -243,9 +249,9 @@ export default function AdminDeliveryBoysPage() {
                   return (
                     <tr key={boy.id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-4 py-3">
-                        <p className="font-medium">{boy.firstName} {boy.lastName}</p>
+                        <p className="font-medium">{boy.user.firstName} {boy.user.lastName}</p>
                       </td>
-                      <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">{boy.email}</td>
+                      <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">{boy.user.email}</td>
                       <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">{boy.phone ?? '—'}</td>
                       <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">{boy.area ?? '—'}</td>
                       <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">{boy.vehicleType ?? '—'}</td>

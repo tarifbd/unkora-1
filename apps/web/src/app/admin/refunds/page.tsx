@@ -28,13 +28,11 @@ const STATUS_BADGE: Record<string, string> = {
 };
 
 const REASON_LABELS: Record<string, string> = {
-  DEFECTIVE:         'Defective Product',
-  NOT_AS_DESCRIBED:  'Not as Described',
-  WRONG_ITEM:        'Wrong Item',
-  DAMAGED:           'Damaged in Shipping',
-  CHANGED_MIND:      'Changed Mind',
-  LATE_DELIVERY:     'Late Delivery',
-  OTHER:             'Other',
+  DEFECTIVE:          'Defective Product',
+  NOT_AS_DESCRIBED:   'Not as Described',
+  WRONG_ITEM:         'Wrong Item',
+  DAMAGED_IN_TRANSIT: 'Damaged in Transit',
+  OTHER:              'Other',
 };
 
 function formatTaka(amount: number | string) {
@@ -66,11 +64,11 @@ export default function AdminRefundsPage() {
       const params: { status?: string; page: number } = { page };
       if (filter !== 'ALL') params.status = filter;
       const data = await refundsApi.list(params);
-      const list: Refund[] = Array.isArray(data?.refunds) ? data.refunds : Array.isArray(data) ? data : [];
+      const list: Refund[] = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
       setRefunds(list);
       // Compute stats from all (may be filtered — best effort)
       if (filter === 'ALL') {
-        const total = data?.total ?? list.length;
+        const total = data?.meta?.total ?? data?.total ?? list.length;
         const pending  = list.filter(r => r.status === 'PENDING').length;
         const approved = list.filter(r => r.status === 'APPROVED').length;
         const rejected = list.filter(r => r.status === 'REJECTED').length;

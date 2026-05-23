@@ -106,19 +106,19 @@ export default function AdminFlashDealsPage() {
 
   const handleSave = async () => {
     if (!form.productId.trim()) { setFormError('Product ID is required'); return; }
-    const pct = Number(form.discountPercent);
+    const pct = Number(form.discount);
     if (!pct || pct < 1 || pct > 99) { setFormError('Discount % must be 1–99'); return; }
-    if (!form.startTime || !form.endTime) { setFormError('Start and End times are required'); return; }
-    if (new Date(form.endTime) <= new Date(form.startTime)) { setFormError('End time must be after start time'); return; }
+    if (!form.startsAt || !form.endsAt) { setFormError('Start and End times are required'); return; }
+    if (new Date(form.endsAt) <= new Date(form.startsAt)) { setFormError('End time must be after start time'); return; }
 
     setSaving(true);
     setFormError(null);
     try {
       const payload = {
         productId: form.productId.trim(),
-        discountPercent: pct,
-        startTime: new Date(form.startTime).toISOString(),
-        endTime: new Date(form.endTime).toISOString(),
+        discount: pct,
+        startsAt: new Date(form.startsAt).toISOString(),
+        endsAt: new Date(form.endsAt).toISOString(),
         isFeatured: form.isFeatured,
       };
       if (editId) {
@@ -155,8 +155,8 @@ export default function AdminFlashDealsPage() {
     } catch { /* ignore */ }
   };
 
-  const active  = deals.filter(d => d.isActive && !isExpired(d.endTime)).length;
-  const expired = deals.filter(d => isExpired(d.endTime)).length;
+  const active  = deals.filter(d => d.isActive && !isExpired(d.endsAt)).length;
+  const expired = deals.filter(d => isExpired(d.endsAt)).length;
   const featured = deals.filter(d => d.isFeatured).length;
 
   return (
@@ -219,7 +219,7 @@ export default function AdminFlashDealsPage() {
               </thead>
               <tbody className="divide-y">
                 {deals.map(deal => {
-                  const expired_ = isExpired(deal.endTime);
+                  const expired_ = isExpired(deal.endsAt);
                   const img = deal.product?.images?.[0]?.url;
                   const name = deal.product?.name ?? deal.productId;
                   return (
@@ -241,17 +241,17 @@ export default function AdminFlashDealsPage() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="font-bold text-brand-600">{deal.discountPercent}%</span>
+                        <span className="font-bold text-brand-600">{deal.discount}%</span>
                       </td>
                       <td className="hidden px-4 py-3 text-xs text-muted-foreground md:table-cell whitespace-nowrap">
-                        {new Date(deal.startTime).toLocaleString('en-BD', { dateStyle: 'short', timeStyle: 'short' })}
+                        {new Date(deal.startsAt).toLocaleString('en-BD', { dateStyle: 'short', timeStyle: 'short' })}
                       </td>
                       <td className="hidden px-4 py-3 md:table-cell">
                         <div>
                           <p className="text-xs text-muted-foreground whitespace-nowrap">
-                            {new Date(deal.endTime).toLocaleString('en-BD', { dateStyle: 'short', timeStyle: 'short' })}
+                            {new Date(deal.endsAt).toLocaleString('en-BD', { dateStyle: 'short', timeStyle: 'short' })}
                           </p>
-                          {!expired_ && deal.isActive && <Countdown endTime={deal.endTime} />}
+                          {!expired_ && deal.isActive && <Countdown endTime={deal.endsAt} />}
                           {expired_ && <span className="text-xs text-muted-foreground">Expired</span>}
                         </div>
                       </td>
@@ -329,8 +329,8 @@ export default function AdminFlashDealsPage() {
                   type="number"
                   min={1}
                   max={99}
-                  value={form.discountPercent}
-                  onChange={e => setForm(f => ({ ...f, discountPercent: e.target.value }))}
+                  value={form.discount}
+                  onChange={e => setForm(f => ({ ...f, discount: e.target.value }))}
                   placeholder="e.g. 30"
                   className={inputCls}
                 />
@@ -340,8 +340,8 @@ export default function AdminFlashDealsPage() {
                   <label className="mb-1.5 block text-sm font-medium">Start Date <span className="text-destructive">*</span></label>
                   <input
                     type="datetime-local"
-                    value={form.startTime}
-                    onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))}
+                    value={form.startsAt}
+                    onChange={e => setForm(f => ({ ...f, startsAt: e.target.value }))}
                     className={inputCls}
                   />
                 </div>
@@ -349,8 +349,8 @@ export default function AdminFlashDealsPage() {
                   <label className="mb-1.5 block text-sm font-medium">End Date <span className="text-destructive">*</span></label>
                   <input
                     type="datetime-local"
-                    value={form.endTime}
-                    onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))}
+                    value={form.endsAt}
+                    onChange={e => setForm(f => ({ ...f, endsAt: e.target.value }))}
                     className={inputCls}
                   />
                 </div>

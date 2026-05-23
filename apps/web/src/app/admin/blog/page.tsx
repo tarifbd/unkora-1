@@ -10,7 +10,7 @@ interface BlogPost {
   title: string;
   excerpt?: string;
   coverImage?: string;
-  author?: string;
+  author?: { id: string; firstName: string; lastName: string } | string;
   authorName?: string;
   tags?: string[];
   status: string;
@@ -19,11 +19,13 @@ interface BlogPost {
 }
 
 interface BlogData {
+  data?: BlogPost[];
   posts?: BlogPost[];
   items?: BlogPost[];
   total?: number;
   totalPages?: number;
   page?: number;
+  meta?: { total: number; totalPages: number; page: number };
 }
 
 type FilterTab = 'ALL' | 'PUBLISHED' | 'DRAFT' | 'ARCHIVED';
@@ -59,9 +61,9 @@ export default function AdminBlogPage() {
 
   useEffect(() => { void load(); }, [load]);
 
-  const posts: BlogPost[] = data?.posts ?? data?.items ?? (Array.isArray(data) ? (data as BlogPost[]) : []);
+  const posts: BlogPost[] = data?.data ?? data?.posts ?? data?.items ?? (Array.isArray(data) ? (data as BlogPost[]) : []);
 
-  const total     = data?.total ?? posts.length;
+  const total     = data?.meta?.total ?? data?.total ?? posts.length;
   const published = posts.filter(p => p.status === 'PUBLISHED').length;
   const draft     = posts.filter(p => p.status === 'DRAFT').length;
   const archived  = posts.filter(p => p.status === 'ARCHIVED').length;
@@ -73,9 +75,10 @@ export default function AdminBlogPage() {
       await blogApi.remove(id);
       setData(prev => {
         if (!prev) return prev;
-        const list = prev.posts ?? prev.items ?? [];
-        const updated = list.filter(p => p.id !== id);
-        return prev.posts ? { ...prev, posts: updated } : { ...prev, items: updated };
+        if (prev.data) return { ...prev, data: prev.data.filter(p => p.id !== id) };
+        if (prev.posts) return { ...prev, posts: prev.posts.filter(p => p.id !== id) };
+        if (prev.items) return { ...prev, items: prev.items.filter(p => p.id !== id) };
+        return prev;
       });
     } catch { /* ignore */ } finally {
       setDeletingId(null);
@@ -172,7 +175,11 @@ export default function AdminBlogPage() {
                   const date = new Date(dateStr).toLocaleDateString('en-BD', {
                     day: '2-digit', month: 'short', year: 'numeric',
                   });
-                  const authorName = post.authorName ?? post.author ?? '—';
+                  const authorName = post.authorName ??
+                    (post.author && typeof post.author === 'object'
+                      ? `${post.author.firstName} ${post.author.lastName}`
+                      : (post.author as string | undefined)) ??
+                    '—';
                   return (
                     <tr key={post.id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-4 py-3">
@@ -251,9 +258,9 @@ export default function AdminBlogPage() {
       </div>
 
       {/* Pagination */}
-      {data && (data.totalPages ?? 1) > 1 && (
+      {data && ((data.meta?.totalPages ?? data.totalPages ?? 1) > 1) && (
         <div className="flex items-center justify-between text-sm">
-          <p className="text-muted-foreground">Page {page} of {data.totalPages}</p>
+          <p className="text-muted-foreground">Page {page} of {data.meta?.totalPages ?? data.totalPages}</p>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setPage(p => Math.max(p - 1, 1))}
@@ -263,8 +270,8 @@ export default function AdminBlogPage() {
               Prev
             </button>
             <button
-              onClick={() => setPage(p => Math.min(p + 1, data.totalPages ?? 1))}
-              disabled={page >= (data.totalPages ?? 1)}
+              onClick={() => setPage(p => Math.min(p + 1, data.meta?.totalPages ?? data.totalPages ?? 1))}
+              disabled={page >= (data.meta?.totalPages ?? data.totalPages ?? 1)}
               className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Next
