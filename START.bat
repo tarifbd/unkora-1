@@ -95,21 +95,32 @@ echo [OK] Seed done
 
 cd ..\..
 
-:: ── 5. Start API and Web servers ──────────────────────────────────────────────
+:: ── 5. Kill any old API/Web processes on ports 4000 and 3000 ──────────────────
+
+echo.
+echo Stopping any old API/Web processes...
+for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":4000 " ^| findstr LISTENING') do taskkill /F /PID %%a 2>nul
+for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":3000 " ^| findstr LISTENING') do taskkill /F /PID %%a 2>nul
+
+:: ── 6. Start API and Web servers ──────────────────────────────────────────────
 
 echo.
 echo Starting API server...
 start "UNKORA API" cmd /k "cd /d %~dp0apps\api && npm run dev"
 
-echo Waiting 6 seconds for API to start...
-timeout /t 6 /nobreak >nul
+echo Waiting for API to be ready (this takes ~30s for first compile)...
+:WAIT_API
+timeout /t 3 /nobreak >nul
+powershell -Command "try { Invoke-WebRequest -Uri 'http://localhost:4000/api/v1/health' -UseBasicParsing -TimeoutSec 2 | Out-Null; exit 0 } catch { exit 1 }" >nul 2>&1
+if %errorlevel% neq 0 goto WAIT_API
+echo [OK] API is ready
 
 echo Starting Web server...
 start "UNKORA Web" cmd /k "cd /d %~dp0apps\web && npm run dev"
 
 echo.
 echo ========================================
-echo   UNKORA is starting up!
+echo   UNKORA is ready!
 echo.
 echo   Web:   http://localhost:3000
 echo   API:   http://localhost:4000/api/v1
@@ -118,5 +129,5 @@ echo   Admin: http://localhost:3000/admin
 echo   Login: admin@unkora.com
 echo   Pass:  Admin@123456
 echo ========================================
-timeout /t 10 /nobreak >nul
-start http://localhost:3000
+timeout /t 5 /nobreak >nul
+start http://localhost:3000/admin
