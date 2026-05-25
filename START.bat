@@ -7,7 +7,7 @@ echo ========================================
 :: ── 1. Write .env files ───────────────────────────────────────────────────────
 
 (
-echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:5433/unkora
+echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:5432/unkora
 echo REDIS_URL=redis://localhost:6379
 echo JWT_SECRET=dev-secret-local-unkora-min64chars-do-not-use-in-production-abc123
 echo JWT_EXPIRES_IN=15m
@@ -25,7 +25,7 @@ echo NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ) > apps\web\.env.local
 
 (
-echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:5433/unkora
+echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:5432/unkora
 ) > packages\database\.env
 
 echo [OK] .env files created
@@ -33,8 +33,13 @@ echo [OK] .env files created
 :: ── 2. Start Docker infra (Postgres + Redis) ──────────────────────────────────
 
 echo.
+echo Cleaning up old containers...
+docker rm -f unkora_postgres_dev 2>nul
+docker rm -f unkora_redis_dev 2>nul
+docker rm -f unkora_typesense 2>nul
+
 echo Starting Docker containers (Postgres)...
-docker-compose -f docker-compose.dev.yml up -d
+docker-compose -f docker-compose.dev.yml up -d --remove-orphans
 if %errorlevel% neq 0 (
   echo [ERROR] Docker failed. Make sure Docker Desktop is running!
   pause
