@@ -303,6 +303,20 @@ export class OrdersService {
     return order;
   }
 
+  async adminFindById(id: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { id },
+      include: {
+        user: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
+        items: { include: { product: { include: { images: { where: { isPrimary: true }, take: 1 } } } } },
+        payment: true,
+        timeline: { orderBy: { createdAt: 'asc' } },
+      },
+    });
+    if (!order) throw new NotFoundException('Order not found');
+    return order;
+  }
+
   async findByOrderNumber(orderNumber: string, userId: string) {
     const order = await this.prisma.order.findFirst({
       where: { orderNumber, userId },

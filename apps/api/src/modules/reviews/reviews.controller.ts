@@ -69,6 +69,15 @@ export class ReviewsController {
     return this.reviewsService.adminPublish(id, dto.isPublished);
   }
 
+  @Delete('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin: delete any review' })
+  adminDelete(@Param('id') id: string) {
+    return this.reviewsService.adminDelete(id);
+  }
+
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

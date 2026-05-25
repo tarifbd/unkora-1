@@ -36,7 +36,7 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
 
   const { data: order, isLoading } = useQuery<Order>({
     queryKey: ['admin-order-detail', id],
-    queryFn: () => ordersApi.getById(id),
+    queryFn: () => ordersApi.adminGetById(id),
     select: data => {
       if (!selectedStatus) setSelectedStatus(data.status);
       return data;
@@ -245,8 +245,10 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
               <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Customer</h2>
             </div>
             <div className="space-y-1 text-sm">
-              <p className="font-medium">{order.customer?.name ?? '—'}</p>
-              <p className="text-muted-foreground">{order.customer?.email ?? '—'}</p>
+              <p className="font-medium">
+                {order.user ? `${order.user.firstName} ${order.user.lastName}`.trim() : order.customer?.name ?? '—'}
+              </p>
+              <p className="text-muted-foreground">{order.user?.email ?? order.customer?.email ?? '—'}</p>
             </div>
           </div>
 

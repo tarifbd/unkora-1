@@ -74,6 +74,14 @@ export class OrdersController {
     return this.ordersService.findAll(page ? +page : 1, limit ? +limit : 20, status);
   }
 
+  @Get('admin/:id')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Get single order (admin)' })
+  adminFindOne(@Param('id') id: string) {
+    return this.ordersService.adminFindById(id);
+  }
+
   @Patch('admin/:id/status')
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'SUPER_ADMIN')

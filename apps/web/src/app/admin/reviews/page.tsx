@@ -66,7 +66,7 @@ export default function ReviewsPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/reviews/${id}`),
+    mutationFn: (id: string) => api.delete(`/reviews/admin/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-reviews'] }),
   });
 

@@ -154,7 +154,7 @@ function FraudOrderRow({ order, flags }: { order: Order; flags: FraudFlag[] }) {
 
   const updateStatus = useMutation({
     mutationFn: (status: string) =>
-      api.patch(`/orders/${order.id}/status`, { status }).then(r => r.data.data),
+      api.patch(`/orders/admin/${order.id}/status`, { status }).then(r => r.data.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['fraud-orders'] }),
   });
 
@@ -268,7 +268,7 @@ export default function FraudDetectionPage() {
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['fraud-orders'],
-    queryFn: () => api.get('/orders', { params: { limit: 200, page: 1 } }).then(r => r.data.data.data as Order[]),
+    queryFn: () => api.get('/orders/admin/all', { params: { limit: 200, page: 1 } }).then(r => r.data.data.data as Order[]),
     refetchInterval: 60000,
   });
 

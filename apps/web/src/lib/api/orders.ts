@@ -14,6 +14,7 @@ export interface Order {
   subtotal: string; shippingCost: string; discount: string; total: string;
   shippingAddress: Record<string, string>; notes?: string;
   items: OrderItem[]; createdAt: string;
+  user?: { id: string; firstName: string; lastName: string; email: string };
   customer?: { name?: string; email?: string };
   timeline?: { status: OrderStatus; note?: string; createdAt: string }[];
 }
@@ -46,10 +47,13 @@ export const ordersApi = {
     api.patch(`/orders/my/${id}/cancel`, { reason }).then(r => r.data.data as Order),
 
   adminGetAll: (params: { page?: number; limit?: number; status?: string } = {}) =>
-    api.get('/orders', { params }).then(r => r.data.data as PaginatedOrders),
+    api.get('/orders/admin/all', { params }).then(r => r.data.data as PaginatedOrders),
+
+  adminGetById: (id: string) =>
+    api.get(`/orders/admin/${id}`).then(r => r.data.data as Order),
 
   adminUpdateStatus: (id: string, status: string, note?: string) =>
-    api.patch(`/orders/${id}/status`, { status, note }).then(r => r.data.data as Order),
+    api.patch(`/orders/admin/${id}/status`, { status, note }).then(r => r.data.data as Order),
 
   initiateBkash: (orderId: string) => api.post(`/payments/${orderId}/bkash`),
   initiateNagad: (orderId: string) => api.post(`/payments/${orderId}/nagad`),

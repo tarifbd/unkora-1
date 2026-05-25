@@ -329,8 +329,10 @@ export default function AdminOrdersPage() {
                       </td>
 
                       <td className="hidden px-4 py-3 sm:table-cell">
-                        <p className="font-medium">{order.customer?.name ?? 'Guest'}</p>
-                        <p className="text-xs text-muted-foreground">{order.customer?.email}</p>
+                        <p className="font-medium">
+                          {order.user ? `${order.user.firstName} ${order.user.lastName}`.trim() : order.customer?.name ?? 'Guest'}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{order.user?.email ?? order.customer?.email}</p>
                       </td>
 
                       <td className="hidden px-4 py-3 md:table-cell">
