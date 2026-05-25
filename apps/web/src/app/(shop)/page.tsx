@@ -397,8 +397,8 @@ export default function HomePage() {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <Flame className="w-4 h-4 text-yellow-300" />
-                    <span className="text-yellow-200 text-xs font-bold uppercase tracking-widest">{lang === 'bn' ? 'ফ্ল্যাশ সেল' : 'Flash Sale'}</span>
+                    <Flame className="w-4 h-4 text-yellow-300 animate-bounce" />
+                    <span className="text-yellow-200 text-xs font-bold uppercase tracking-widest animate-pulse">{lang === 'bn' ? 'ফ্ল্যাশ সেল' : 'Flash Sale'}</span>
                   </div>
                   <h3 className="text-xl font-black text-white leading-tight">{lang === 'bn' ? 'সীমিত সময়ের অফার' : 'Limited Time Deals'}</h3>
                   <p className="text-orange-100 text-xs mt-1">{lang === 'bn' ? '৭০% পর্যন্ত ছাড়' : 'Up to 70% discount'}</p>
@@ -483,8 +483,8 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-red-500 text-white px-3 py-1.5 rounded-lg">
-                <Flame className="w-4 h-4" />
+              <div className="flex items-center gap-2 bg-red-500 text-white px-3 py-1.5 rounded-full shadow-lg shadow-red-200 animate-pulse">
+                <Flame className="w-4 h-4 animate-bounce" />
                 <span className="font-black text-sm">{lang === 'bn' ? 'ফ্ল্যাশ ডিল' : 'Flash Deals'}</span>
               </div>
               <div className="flex gap-1 items-center">

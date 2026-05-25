@@ -3,32 +3,9 @@ import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
 
-const bookImg = (id: string) =>
-  `https://images.unsplash.com/photo-${id}?q=80&w=400&auto=format&fit=crop`;
-
-const BOOK_IDS = [
-  '1544947950-fa07a98d237f',
-  '1532012197267-da84d127e765',
-  '1589829085413-56de8ae18c73',
-  '1495446815901-a7297e633e8d',
-  '1512820790803-83ca734da794',
-  '1474932430478-3a7fb9065da0',
-  '1544948191-c83610230351',
-  '1585036156171-3839efc229b7',
-  '1497633762265-9d179a990bc6',
-  '1506126613408-eca07ce68773',
-];
-
-const OTHER_IDS = [
-  '1587049352847-81a56dff8f4f',
-  '1556909114-4d4a51b2f17e',
-  '1587854692152-cbe660dbde88',
-  '1568702846914-96b305d2aaeb',
-  '1553062407-98eeb64c6a62',
-  '1547756536-cde0ea0bcab2',
-  '1519681393784-d120267933ba',
-  '1496181133206-80ce9b88a853',
-];
+// picsum.photos gives consistent, always-loading images keyed by slug
+const productImg = (slug: string, w = 400, h = 500) =>
+  `https://picsum.photos/seed/${encodeURIComponent(slug)}/${w}/${h}`;
 
 async function main() {
   console.log('🌱 Seeding UNKORA...');
@@ -172,8 +149,6 @@ async function main() {
     binding: string; genres: string[];
   };
 
-  let bookIdx = 0;
-
   const books: BookSeed[] = [
     // Fiction
     { name: 'হিমুর দ্বিতীয় প্রহর', slug: 'himur-dwitiy-prohor', sku: 'BK-001', base: 280, sale: 240, stock: 42, featured: true, catId: fictionCat.id, short: 'হুমায়ূন আহমেদের জনপ্রিয় হিমু সিরিজের একটি অসাধারণ উপন্যাস।', desc: 'হুমায়ূন আহমেদের হিমু চরিত্রকে ঘিরে গড়ে ওঠা রহস্য ও রোমাঞ্চকর কাহিনী।', author: 'হুমায়ূন আহমেদ', publisher: 'অন্যপ্রকাশ', lang: 'Bengali', pages: 224, isbn: '9789841000001', binding: 'Paperback', genres: ['Fiction', 'Bengali Literature'] },
@@ -212,11 +187,14 @@ async function main() {
   ];
 
   for (const b of books) {
-    const imgId = BOOK_IDS[bookIdx % BOOK_IDS.length]!;
-    bookIdx++;
+    const img1 = productImg(b.slug);
+    const img2 = productImg(b.slug + '-back');
     await prisma.product.upsert({
       where: { slug: b.slug },
-      update: { isFeatured: b.featured, stockQuantity: b.stock, salePrice: b.sale ?? null },
+      update: {
+        isFeatured: b.featured, stockQuantity: b.stock, salePrice: b.sale ?? null,
+        images: { deleteMany: {}, create: [{ url: img1, isPrimary: true, sortOrder: 0 }, { url: img2, isPrimary: false, sortOrder: 1 }] },
+      },
       create: {
         name: b.name, slug: b.slug, sku: b.sku,
         basePrice: b.base, salePrice: b.sale ?? null,
@@ -224,12 +202,7 @@ async function main() {
         shortDesc: b.short, description: b.desc,
         categoryId: b.catId,
         tags: b.genres.map(g => g.toLowerCase().replace(/[^a-z0-9]+/g, '-')),
-        images: {
-          create: [
-            { url: bookImg(imgId), isPrimary: true, sortOrder: 0 },
-            { url: bookImg(BOOK_IDS[(bookIdx + 3) % BOOK_IDS.length]!), isPrimary: false, sortOrder: 1 },
-          ],
-        },
+        images: { create: [{ url: img1, isPrimary: true, sortOrder: 0 }, { url: img2, isPrimary: false, sortOrder: 1 }] },
         bookDetail: {
           create: {
             author: b.author, publisher: b.publisher, language: b.lang,
@@ -244,35 +217,38 @@ async function main() {
   // ── Non-book products ──────────────────────────────────────────────────────
   type OtherSeed = {
     name: string; slug: string; sku: string; base: number; sale?: number;
-    stock: number; featured: boolean; imgIdx: number; catId: string;
+    stock: number; featured: boolean; catId: string;
     short: string; desc: string; tags: string[];
   };
 
   const others: OtherSeed[] = [
-    { name: 'অর্গানিক মধু — সুন্দরবন', slug: 'organic-honey-sundarban', sku: 'ORG-001', base: 650, sale: 580, stock: 50, featured: true, imgIdx: 0, catId: organicFoodsCat.id, short: 'সুন্দরবনের খাঁটি ফুলের মধু — ১০০% প্রাকৃতিক।', desc: 'সুন্দরবন থেকে সংগ্রহ করা খাঁটি ফুলের মধু। কোনো কৃত্রিম রং বা preservative নেই।', tags: ['organic', 'honey', 'natural'] },
-    { name: 'অর্গানিক হলুদ গুঁড়া', slug: 'organic-turmeric-powder', sku: 'ORG-002', base: 220, sale: 190, stock: 80, featured: true, imgIdx: 1, catId: organicFoodsCat.id, short: 'কীটনাশকমুক্ত খাঁটি হলুদ গুঁড়া।', desc: 'রাসায়নিক সার ও কীটনাশকমুক্ত জমিতে চাষ করা হলুদ থেকে তৈরি বিশুদ্ধ গুঁড়া।', tags: ['organic', 'turmeric', 'spice'] },
-    { name: 'কোল্ড প্রেসড নারিকেল তেল', slug: 'cold-pressed-coconut-oil', sku: 'ORG-003', base: 480, stock: 35, featured: false, imgIdx: 2, catId: organicFoodsCat.id, short: 'ঐতিহ্যবাহী পদ্ধতিতে তৈরি খাঁটি নারিকেল তেল।', desc: 'কোল্ড প্রেস পদ্ধতিতে তৈরি ১০০% বিশুদ্ধ নারিকেল তেল।', tags: ['organic', 'coconut-oil'] },
-    { name: 'অর্গানিক কালিজিরা', slug: 'organic-black-seed', sku: 'ORG-004', base: 180, sale: 150, stock: 65, featured: true, imgIdx: 3, catId: organicFoodsCat.id, short: 'খাঁটি কালিজিরা — রোগ প্রতিরোধ ক্ষমতা বৃদ্ধি করে।', desc: '১০০% প্রাকৃতিক কালিজিরা — কোনো ভেজাল নেই।', tags: ['organic', 'black-seed', 'natural'] },
-    { name: 'খাঁটি সরিষার তেল', slug: 'pure-mustard-oil', sku: 'ORG-005', base: 320, sale: 280, stock: 45, featured: false, imgIdx: 4, catId: organicFoodsCat.id, short: 'ঐতিহ্যবাহী কোলু পদ্ধতিতে তৈরি সরিষার তেল।', desc: 'ঘানি ভাঙা খাঁটি সরিষার তেল — সম্পূর্ণ প্রাকৃতিক।', tags: ['organic', 'mustard-oil'] },
-    { name: 'শিশু সফট টয় — টেডি বেয়ার', slug: 'baby-teddy-bear', sku: 'BB-001', base: 750, sale: 620, stock: 40, featured: true, imgIdx: 5, catId: babyProductsCat.id, short: 'নিরাপদ ও মোলায়েম টেডি বেয়ার।', desc: 'শিশুর কোমল ত্বকের জন্য নিরাপদ উপাদানে তৈরি নরম টেডি বেয়ার। BPA free ও non-toxic।', tags: ['baby', 'toy', 'soft-toy'] },
-    { name: 'শিশু মশারি — সুতির', slug: 'baby-mosquito-net', sku: 'BB-002', base: 420, stock: 45, featured: false, imgIdx: 6, catId: babyProductsCat.id, short: 'শিশুর নিরাপদ ঘুমের জন্য মশামুক্ত মশারি।', desc: 'শিশুর জন্য বিশেষভাবে তৈরি হালকা সুতির মশারি।', tags: ['baby', 'mosquito-net', 'cotton'] },
-    { name: 'চামড়ার হ্যান্ডব্যাগ — লেডিস', slug: 'leather-ladies-handbag', sku: 'LT-001', base: 2800, sale: 2400, stock: 15, featured: true, imgIdx: 7, catId: leatherProductsCat.id, short: 'নরসিংদীর খাঁটি চামড়ায় তৈরি মহিলাদের হ্যান্ডব্যাগ।', desc: 'বাংলাদেশের সেরা চামড়া ব্যবহার করে দক্ষ কারিগরদের হাতে তৈরি হ্যান্ডব্যাগ।', tags: ['leather', 'handbag', 'ladies', 'premium'] },
-    { name: 'চামড়ার পার্স — জেন্টস', slug: 'leather-mens-wallet', sku: 'LT-002', base: 950, sale: 820, stock: 30, featured: true, imgIdx: 0, catId: leatherProductsCat.id, short: 'আসল চামড়ার পাতলা ও মজবুত পুরুষের পার্স।', desc: 'genuine leather দিয়ে তৈরি স্লিম ডিজাইনের পার্স।', tags: ['leather', 'wallet', 'mens'] },
-    { name: 'নকশিকাঁথা — হস্তশিল্প', slug: 'nakshi-kantha', sku: 'HC-001', base: 1800, sale: 1500, stock: 12, featured: true, imgIdx: 1, catId: handicraftsCat.id, short: 'বাংলাদেশের ঐতিহ্যবাহী নকশিকাঁথা — হাতে সেলাই।', desc: 'দক্ষ কারিগরদের হাতে তৈরি ঐতিহ্যবাহী নকশিকাঁথা। প্রতিটি কাঁথাই অনন্য শিল্পকর্ম।', tags: ['handicraft', 'nakshi-kantha', 'traditional'] },
+    { name: 'অর্গানিক মধু — সুন্দরবন', slug: 'organic-honey-sundarban', sku: 'ORG-001', base: 650, sale: 580, stock: 50, featured: true, catId: organicFoodsCat.id, short: 'সুন্দরবনের খাঁটি ফুলের মধু — ১০০% প্রাকৃতিক।', desc: 'সুন্দরবন থেকে সংগ্রহ করা খাঁটি ফুলের মধু। কোনো কৃত্রিম রং বা preservative নেই।', tags: ['organic', 'honey', 'natural'] },
+    { name: 'অর্গানিক হলুদ গুঁড়া', slug: 'organic-turmeric-powder', sku: 'ORG-002', base: 220, sale: 190, stock: 80, featured: true, catId: organicFoodsCat.id, short: 'কীটনাশকমুক্ত খাঁটি হলুদ গুঁড়া।', desc: 'রাসায়নিক সার ও কীটনাশকমুক্ত জমিতে চাষ করা হলুদ থেকে তৈরি বিশুদ্ধ গুঁড়া।', tags: ['organic', 'turmeric', 'spice'] },
+    { name: 'কোল্ড প্রেসড নারিকেল তেল', slug: 'cold-pressed-coconut-oil', sku: 'ORG-003', base: 480, stock: 35, featured: false, catId: organicFoodsCat.id, short: 'ঐতিহ্যবাহী পদ্ধতিতে তৈরি খাঁটি নারিকেল তেল।', desc: 'কোল্ড প্রেস পদ্ধতিতে তৈরি ১০০% বিশুদ্ধ নারিকেল তেল।', tags: ['organic', 'coconut-oil'] },
+    { name: 'অর্গানিক কালিজিরা', slug: 'organic-black-seed', sku: 'ORG-004', base: 180, sale: 150, stock: 65, featured: true, catId: organicFoodsCat.id, short: 'খাঁটি কালিজিরা — রোগ প্রতিরোধ ক্ষমতা বৃদ্ধি করে।', desc: '১০০% প্রাকৃতিক কালিজিরা — কোনো ভেজাল নেই।', tags: ['organic', 'black-seed', 'natural'] },
+    { name: 'খাঁটি সরিষার তেল', slug: 'pure-mustard-oil', sku: 'ORG-005', base: 320, sale: 280, stock: 45, featured: false, catId: organicFoodsCat.id, short: 'ঐতিহ্যবাহী কোলু পদ্ধতিতে তৈরি সরিষার তেল।', desc: 'ঘানি ভাঙা খাঁটি সরিষার তেল — সম্পূর্ণ প্রাকৃতিক।', tags: ['organic', 'mustard-oil'] },
+    { name: 'শিশু সফট টয় — টেডি বেয়ার', slug: 'baby-teddy-bear', sku: 'BB-001', base: 750, sale: 620, stock: 40, featured: true, catId: babyProductsCat.id, short: 'নিরাপদ ও মোলায়েম টেডি বেয়ার।', desc: 'শিশুর কোমল ত্বকের জন্য নিরাপদ উপাদানে তৈরি নরম টেডি বেয়ার। BPA free ও non-toxic।', tags: ['baby', 'toy', 'soft-toy'] },
+    { name: 'শিশু মশারি — সুতির', slug: 'baby-mosquito-net', sku: 'BB-002', base: 420, stock: 45, featured: false, catId: babyProductsCat.id, short: 'শিশুর নিরাপদ ঘুমের জন্য মশামুক্ত মশারি।', desc: 'শিশুর জন্য বিশেষভাবে তৈরি হালকা সুতির মশারি।', tags: ['baby', 'mosquito-net', 'cotton'] },
+    { name: 'চামড়ার হ্যান্ডব্যাগ — লেডিস', slug: 'leather-ladies-handbag', sku: 'LT-001', base: 2800, sale: 2400, stock: 15, featured: true, catId: leatherProductsCat.id, short: 'নরসিংদীর খাঁটি চামড়ায় তৈরি মহিলাদের হ্যান্ডব্যাগ।', desc: 'বাংলাদেশের সেরা চামড়া ব্যবহার করে দক্ষ কারিগরদের হাতে তৈরি হ্যান্ডব্যাগ।', tags: ['leather', 'handbag', 'ladies', 'premium'] },
+    { name: 'চামড়ার পার্স — জেন্টস', slug: 'leather-mens-wallet', sku: 'LT-002', base: 950, sale: 820, stock: 30, featured: true, catId: leatherProductsCat.id, short: 'আসল চামড়ার পাতলা ও মজবুত পুরুষের পার্স।', desc: 'genuine leather দিয়ে তৈরি স্লিম ডিজাইনের পার্স।', tags: ['leather', 'wallet', 'mens'] },
+    { name: 'নকশিকাঁথা — হস্তশিল্প', slug: 'nakshi-kantha', sku: 'HC-001', base: 1800, sale: 1500, stock: 12, featured: true, catId: handicraftsCat.id, short: 'বাংলাদেশের ঐতিহ্যবাহী নকশিকাঁথা — হাতে সেলাই।', desc: 'দক্ষ কারিগরদের হাতে তৈরি ঐতিহ্যবাহী নকশিকাঁথা। প্রতিটি কাঁথাই অনন্য শিল্পকর্ম।', tags: ['handicraft', 'nakshi-kantha', 'traditional'] },
   ];
 
   for (const p of others) {
-    const imgUrl = `https://images.unsplash.com/photo-${OTHER_IDS[p.imgIdx % OTHER_IDS.length]}?q=80&w=400`;
+    const img = productImg(p.slug);
     await prisma.product.upsert({
       where: { slug: p.slug },
-      update: { isFeatured: p.featured, stockQuantity: p.stock, salePrice: p.sale ?? null },
+      update: {
+        isFeatured: p.featured, stockQuantity: p.stock, salePrice: p.sale ?? null,
+        images: { deleteMany: {}, create: [{ url: img, isPrimary: true, sortOrder: 0 }] },
+      },
       create: {
         name: p.name, slug: p.slug, sku: p.sku,
         basePrice: p.base, salePrice: p.sale ?? null,
         stockQuantity: p.stock, isFeatured: p.featured, isActive: true,
         shortDesc: p.short, description: p.desc,
         categoryId: p.catId, tags: p.tags,
-        images: { create: [{ url: imgUrl, isPrimary: true, sortOrder: 0 }] },
+        images: { create: [{ url: img, isPrimary: true, sortOrder: 0 }] },
       },
     });
   }
