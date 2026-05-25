@@ -80,12 +80,28 @@ if %errorlevel% neq 0 (
 echo [2/6] Postgres ready  (after !tries! checks^)
 
 :: ═══════════════════════════════════════════════════════════════
-::  3.  npm install  (only when node_modules is missing)
+::  3.  KILL old Node processes FIRST (frees DLL lock for prisma generate)
+:: ═══════════════════════════════════════════════════════════════
+
+echo.
+echo [3/6] Stopping old API/Web processes (frees file locks)...
+for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":4000 " ^| findstr LISTENING') do (
+  taskkill /F /PID %%a >nul 2>&1
+)
+for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":3000 " ^| findstr LISTENING') do (
+  taskkill /F /PID %%a >nul 2>&1
+)
+:: Also kill any node processes holding the Prisma DLL
+taskkill /F /IM node.exe >nul 2>&1
+timeout /t 2 /nobreak >nul
+
+:: ═══════════════════════════════════════════════════════════════
+::  4.  npm install  (only when node_modules is missing)
 :: ═══════════════════════════════════════════════════════════════
 
 echo.
 if not exist node_modules (
-  echo [3/6] node_modules missing — installing dependencies...
+  echo [4a] node_modules missing — installing dependencies...
   call npm install
   if %errorlevel% neq 0 (
     echo  [ERROR] npm install failed.
@@ -93,15 +109,15 @@ if not exist node_modules (
     exit /b 1
   )
 ) else (
-  echo [3/6] node_modules already present — skipping npm install
+  echo [4a] node_modules present — skipping npm install
 )
 
 :: ═══════════════════════════════════════════════════════════════
-::  4.  PRISMA  — migrate + generate + seed
+::  5.  PRISMA  — migrate + generate + seed
 :: ═══════════════════════════════════════════════════════════════
 
 echo.
-echo [4/6] Running Prisma migrate deploy...
+echo [5/6] Running Prisma migrate + generate + seed...
 cd packages\database
 call npx prisma migrate deploy
 if %errorlevel% neq 0 (
@@ -129,21 +145,7 @@ if %errorlevel% neq 0 (
 )
 
 cd ..\..
-echo [4/6] Database ready
-
-:: ═══════════════════════════════════════════════════════════════
-::  5.  KILL old Node processes on ports 4000 / 3000
-:: ═══════════════════════════════════════════════════════════════
-
-echo.
-echo [5/6] Freeing ports 4000 and 3000...
-for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":4000 " ^| findstr LISTENING') do (
-  taskkill /F /PID %%a >nul 2>&1
-)
-for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":3000 " ^| findstr LISTENING') do (
-  taskkill /F /PID %%a >nul 2>&1
-)
-timeout /t 1 /nobreak >nul
+echo [5/6] Database ready
 
 :: ═══════════════════════════════════════════════════════════════
 ::  6.  START API + WEB
