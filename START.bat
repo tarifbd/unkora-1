@@ -1,14 +1,20 @@
 @echo off
-setlocal
-echo ========================================
-echo   UNKORA Local Dev - Starting up...
-echo ========================================
+setlocal EnableDelayedExpansion
+title UNKORA Dev Startup
+color 0A
 
-:: ── 1. Write .env files ───────────────────────────────────────────────────────
+echo.
+echo  ╔══════════════════════════════════════════╗
+echo  ║        UNKORA Local Dev  ^|  START         ║
+echo  ╚══════════════════════════════════════════╝
+echo.
+
+:: ═══════════════════════════════════════════════════════════════
+::  1.  WRITE .env FILES  (safe to run every time)
+:: ═══════════════════════════════════════════════════════════════
 
 (
 echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:15432/unkora
-echo REDIS_URL=redis://localhost:6379
 echo JWT_SECRET=dev-secret-local-unkora-min64chars-do-not-use-in-production-abc123
 echo JWT_EXPIRES_IN=15m
 echo JWT_REFRESH_SECRET=dev-refresh-local-unkora-min64chars-do-not-use-in-production-xyz789
@@ -28,106 +34,167 @@ echo NEXT_PUBLIC_SITE_URL=http://localhost:3000
 echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:15432/unkora
 ) > packages\database\.env
 
-echo [OK] .env files created
+echo [1/6] .env files written
 
-:: ── 2. Start Docker infra (Postgres + Redis) ──────────────────────────────────
+:: ═══════════════════════════════════════════════════════════════
+::  2.  DOCKER  —  start Postgres (keep existing data)
+:: ═══════════════════════════════════════════════════════════════
 
 echo.
-echo Cleaning up old containers and volumes...
-docker rm -f unkora_postgres_dev 2>nul
-docker rm -f unkora_redis_dev 2>nul
-docker rm -f unkora_typesense 2>nul
-docker volume rm unkora-1_postgres_dev_data 2>nul
+echo [2/6] Starting Docker Postgres...
 
-echo Starting Docker containers (Postgres)...
-docker-compose -f docker-compose.dev.yml up -d --remove-orphans
+docker info >nul 2>&1
 if %errorlevel% neq 0 (
-  echo [ERROR] Docker failed. Make sure Docker Desktop is running!
+  echo.
+  echo  [ERROR] Docker Desktop is not running!
+  echo  Please start Docker Desktop and try again.
+  echo.
   pause
   exit /b 1
 )
-echo [OK] Docker containers started
 
-:: ── 3. Wait for Postgres to be ready ─────────────────────────────────────────
+:: Remove only stale *stopped* containers — volume stays intact (data preserved)
+docker rm -f unkora_postgres_dev >nul 2>&1
 
-echo.
-echo Waiting for Postgres to be ready...
-:WAIT_LOOP
+docker-compose -f docker-compose.dev.yml up -d --remove-orphans
+if %errorlevel% neq 0 (
+  echo  [ERROR] docker-compose failed. Check output above.
+  pause
+  exit /b 1
+)
+
+:: Wait for Postgres health check
+set /a tries=0
+:WAIT_PG
+set /a tries+=1
 docker exec unkora_postgres_dev pg_isready -U unkora -d unkora >nul 2>&1
 if %errorlevel% neq 0 (
+  if !tries! geq 30 (
+    echo  [ERROR] Postgres did not become ready after 60s. Check Docker logs.
+    pause
+    exit /b 1
+  )
   timeout /t 2 /nobreak >nul
-  goto WAIT_LOOP
+  goto WAIT_PG
 )
-echo [OK] Postgres is ready
+echo [2/6] Postgres ready  (after !tries! checks^)
 
-:: ── 4. Run migrations + seed ──────────────────────────────────────────────────
+:: ═══════════════════════════════════════════════════════════════
+::  3.  npm install  (only when node_modules is missing)
+:: ═══════════════════════════════════════════════════════════════
 
 echo.
-echo Running database migrations...
+if not exist node_modules (
+  echo [3/6] node_modules missing — installing dependencies...
+  call npm install
+  if %errorlevel% neq 0 (
+    echo  [ERROR] npm install failed.
+    pause
+    exit /b 1
+  )
+) else (
+  echo [3/6] node_modules already present — skipping npm install
+)
+
+:: ═══════════════════════════════════════════════════════════════
+::  4.  PRISMA  — migrate + generate + seed
+:: ═══════════════════════════════════════════════════════════════
+
+echo.
+echo [4/6] Running Prisma migrate deploy...
 cd packages\database
 call npx prisma migrate deploy
 if %errorlevel% neq 0 (
-  echo [ERROR] Migrations failed!
+  echo  [ERROR] Migrations failed — try FRESH-START.bat to wipe and rebuild.
   cd ..\..
   pause
   exit /b 1
 )
-echo [OK] Migrations done
 
-echo.
-echo Generating Prisma client...
 call npx prisma generate
 if %errorlevel% neq 0 (
-  echo [ERROR] Prisma generate failed!
+  echo  [ERROR] Prisma generate failed.
   cd ..\..
   pause
   exit /b 1
 )
-echo [OK] Prisma client generated
 
-echo.
-echo Seeding database...
-call npx prisma db seed
+:: Seed only if admin user doesn't exist yet
+docker exec unkora_postgres_dev psql -U unkora -d unkora -c "SELECT 1 FROM users WHERE email='admin@unkora.com' LIMIT 1;" 2>nul | findstr "(1 row)" >nul
 if %errorlevel% neq 0 (
-  echo [WARN] Seed had errors - check above output
+  echo Seeding database for the first time...
+  call npx prisma db seed
+) else (
+  echo  (seed skipped — admin user already exists^)
 )
-echo [OK] Seed done
 
 cd ..\..
+echo [4/6] Database ready
 
-:: ── 5. Kill any old API/Web processes on ports 4000 and 3000 ──────────────────
-
-echo.
-echo Stopping any old API/Web processes...
-for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":4000 " ^| findstr LISTENING') do taskkill /F /PID %%a 2>nul
-for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":3000 " ^| findstr LISTENING') do taskkill /F /PID %%a 2>nul
-
-:: ── 6. Start API and Web servers ──────────────────────────────────────────────
+:: ═══════════════════════════════════════════════════════════════
+::  5.  KILL old Node processes on ports 4000 / 3000
+:: ═══════════════════════════════════════════════════════════════
 
 echo.
-echo Starting API server...
-start "UNKORA API" cmd /k "cd /d %~dp0apps\api && npm run dev"
+echo [5/6] Freeing ports 4000 and 3000...
+for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":4000 " ^| findstr LISTENING') do (
+  taskkill /F /PID %%a >nul 2>&1
+)
+for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":3000 " ^| findstr LISTENING') do (
+  taskkill /F /PID %%a >nul 2>&1
+)
+timeout /t 1 /nobreak >nul
 
-echo Waiting for API to be ready (this takes ~30s for first compile)...
+:: ═══════════════════════════════════════════════════════════════
+::  6.  START API + WEB
+:: ═══════════════════════════════════════════════════════════════
+
+echo.
+echo [6/6] Starting API server...
+start "UNKORA — API :4000" cmd /k "cd /d %~dp0apps\api && npm run dev"
+
+echo  Waiting for API health check (first compile can take ~30-60s)...
+set /a api_tries=0
 :WAIT_API
+set /a api_tries+=1
+if !api_tries! geq 40 (
+  echo  [ERROR] API didn't respond after 120s. Check the API window for errors.
+  pause
+  exit /b 1
+)
 timeout /t 3 /nobreak >nul
 powershell -Command "try { Invoke-WebRequest -Uri 'http://localhost:4000/api/v1/health' -UseBasicParsing -TimeoutSec 2 | Out-Null; exit 0 } catch { exit 1 }" >nul 2>&1
 if %errorlevel% neq 0 goto WAIT_API
-echo [OK] API is ready
-
-echo Starting Web server...
-start "UNKORA Web" cmd /k "cd /d %~dp0apps\web && npm run dev"
+echo  API is healthy!
 
 echo.
-echo ========================================
-echo   UNKORA is ready!
+echo [6/6] Starting Web server...
+start "UNKORA — Web :3000" cmd /k "cd /d %~dp0apps\web && npm run dev"
+
+echo  Waiting for Web to compile...
+set /a web_tries=0
+:WAIT_WEB
+set /a web_tries+=1
+if !web_tries! geq 30 (
+  echo  [WARN] Web is taking long — opening browser anyway...
+  goto OPEN
+)
+timeout /t 3 /nobreak >nul
+powershell -Command "try { Invoke-WebRequest -Uri 'http://localhost:3000' -UseBasicParsing -TimeoutSec 2 | Out-Null; exit 0 } catch { exit 1 }" >nul 2>&1
+if %errorlevel% neq 0 goto WAIT_WEB
+
+:OPEN
 echo.
-echo   Web:   http://localhost:3000
-echo   API:   http://localhost:4000/api/v1
+echo  ╔══════════════════════════════════════════╗
+echo  ║           UNKORA is LIVE!                ║
+echo  ║                                          ║
+echo  ║  Shop   →  http://localhost:3000         ║
+echo  ║  Admin  →  http://localhost:3000/admin   ║
+echo  ║  API    →  http://localhost:4000/api/v1  ║
+echo  ║                                          ║
+echo  ║  admin@unkora.com  /  Admin@123456       ║
+echo  ╚══════════════════════════════════════════╝
 echo.
-echo   Admin: http://localhost:3000/admin
-echo   Login: admin@unkora.com
-echo   Pass:  Admin@123456
-echo ========================================
-timeout /t 5 /nobreak >nul
+
+timeout /t 3 /nobreak >nul
 start http://localhost:3000/admin
