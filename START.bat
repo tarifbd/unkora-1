@@ -7,7 +7,7 @@ echo ========================================
 :: ── 1. Write .env files ───────────────────────────────────────────────────────
 
 (
-echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:5432/unkora
+echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:15432/unkora
 echo REDIS_URL=redis://localhost:6379
 echo JWT_SECRET=dev-secret-local-unkora-min64chars-do-not-use-in-production-abc123
 echo JWT_EXPIRES_IN=15m
@@ -25,7 +25,7 @@ echo NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ) > apps\web\.env.local
 
 (
-echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:5432/unkora
+echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:15432/unkora
 ) > packages\database\.env
 
 echo [OK] .env files created
