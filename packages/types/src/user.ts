@@ -1,4 +1,4 @@
-export type UserRole = 'CUSTOMER' | 'ADMIN' | 'SUPER_ADMIN';
+export type UserRole = 'CUSTOMER' | 'DELIVERY_BOY' | 'ADMIN' | 'SUPER_ADMIN';
 export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'PENDING_VERIFICATION';
 
 export interface UserDto {

@@ -108,7 +108,7 @@ export class RefundsService {
       RefundStatus.APPROVED,
       RefundStatus.REJECTED,
       RefundStatus.PROCESSED,
-    ].includes(dto.status);
+    ].includes(dto.status as RefundStatus);
 
     return this.prisma.refund.update({
       where: { id },
