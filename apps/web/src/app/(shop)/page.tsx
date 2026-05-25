@@ -283,6 +283,36 @@ function RankRow({ item, index, lang }: { item: typeof RANK_DATA['Fiction'][numb
   );
 }
 
+/* ── Featured product item — hides itself if image fails to load ── */
+function FeaturedItem({ p, lang }: { product?: never; p: Product; lang: string }) {
+  const [hidden, setHidden] = useState(false);
+  const url = p.images?.[0]?.url;
+  if (!url || hidden) return null;
+  const price = Number(p.salePrice ?? p.basePrice);
+  const hasDiscount = p.salePrice && Number(p.salePrice) < Number(p.basePrice);
+  const discountPct = hasDiscount ? Math.round((1 - Number(p.salePrice) / Number(p.basePrice)) * 100) : 0;
+  return (
+    <Link href={`/products/${p.slug}`}
+      className="flex-shrink-0 w-[115px] group flex flex-col">
+      <div className="relative w-full h-[150px] rounded-xl overflow-hidden bg-gray-100 mb-1.5 flex-shrink-0">
+        <Image src={url} alt={p.name} fill
+          className="object-cover group-hover:scale-105 transition-transform duration-400"
+          sizes="115px" unoptimized={url.includes('unsplash')}
+          onError={() => setHidden(true)} />
+        {hasDiscount && (
+          <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow">
+            -{discountPct}%
+          </span>
+        )}
+      </div>
+      <p className="text-[10px] font-semibold text-gray-700 line-clamp-2 leading-tight mb-0.5 group-hover:text-blue-600 transition-colors flex-1">
+        {p.name}
+      </p>
+      <span className="text-[11px] font-black text-red-600">৳{price.toLocaleString('en-BD')}</span>
+    </Link>
+  );
+}
+
 /* ─────────────────────── main page ─────────────────────────────────── */
 
 export default function HomePage() {
@@ -426,24 +456,20 @@ export default function HomePage() {
                   {lang === 'bn' ? 'সব দেখুন' : 'View all'} <ArrowRight className="w-3 h-3" />
                 </Link>
               </div>
-              <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {featuredProducts.length > 0 ? featuredProducts.slice(0, 6).map(p => (
-                  <Link key={p.id} href={`/products/${p.slug}`} className="flex-shrink-0 w-[100px] group">
-                    <div className="relative w-full h-[130px] rounded-lg overflow-hidden bg-gray-100 mb-1.5">
-                      {p.images?.[0]?.url ? (
-                        <Image src={p.images[0].url} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform" sizes="100px" unoptimized={p.images[0].url.includes('unsplash')} />
-                      ) : <div className="flex h-full items-center justify-center text-2xl">📦</div>}
+              <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+                {featuredProducts.length > 0
+                  ? featuredProducts
+                      .filter(p => p.images?.[0]?.url)
+                      .slice(0, 8)
+                      .map(p => <FeaturedItem key={p.id} p={p} lang={lang} />)
+                  : Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex-shrink-0 w-[115px] animate-pulse">
+                      <div className="w-full h-[150px] rounded-xl bg-gray-200 mb-1.5" />
+                      <div className="h-3 bg-gray-200 rounded mb-1" />
+                      <div className="h-3 bg-gray-200 rounded w-2/3" />
                     </div>
-                    <p className="text-[10px] font-semibold text-gray-700 line-clamp-2 leading-tight mb-0.5 group-hover:text-blue-600 transition-colors">{p.name}</p>
-                    <span className="text-[11px] font-black text-red-600">৳{Number(p.salePrice ?? p.basePrice).toLocaleString('en-BD')}</span>
-                  </Link>
-                )) : Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-[100px] animate-pulse">
-                    <div className="w-full h-[130px] rounded-lg bg-gray-200 mb-1.5" />
-                    <div className="h-3 bg-gray-200 rounded mb-1" />
-                    <div className="h-3 bg-gray-200 rounded w-2/3" />
-                  </div>
-                ))}
+                  ))
+                }
               </div>
             </div>
           </div>
