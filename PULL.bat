@@ -4,9 +4,9 @@ title UNKORA — Pull Latest Code
 color 0B
 
 echo.
-echo  ╔══════════════════════════════════════════╗
-echo  ║     UNKORA Pull Latest from GitHub       ║
-echo  ╚══════════════════════════════════════════╝
+echo  ============================================
+echo    UNKORA Pull Latest from GitHub
+echo  ============================================
 echo.
 
 :: ─── 1. Show current branch ────────────────────────────────────
@@ -70,10 +70,9 @@ cd ..\..
 
 :: ─── 7. Done ───────────────────────────────────────────────────
 echo.
-echo  ╔══════════════════════════════════════════╗
-echo  ║  Pull complete! Latest code is ready.    ║
-echo  ║                                          ║
-echo  ║  Now run START.bat to launch the app.    ║
-echo  ╚══════════════════════════════════════════╝
+echo  ============================================
+echo    Pull complete! Latest code is ready.
+echo    Now run START.bat to launch the app.
+echo  ============================================
 echo.
 pause

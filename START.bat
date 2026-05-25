@@ -4,9 +4,9 @@ title UNKORA Dev Startup
 color 0A
 
 echo.
-echo  ╔══════════════════════════════════════════╗
-echo  ║        UNKORA Local Dev  ^|  START         ║
-echo  ╚══════════════════════════════════════════╝
+echo  ============================================
+echo    UNKORA Local Dev  --  START
+echo  ============================================
 echo.
 
 :: ═══════════════════════════════════════════════════════════════
@@ -185,15 +185,15 @@ if %errorlevel% neq 0 goto WAIT_WEB
 
 :OPEN
 echo.
-echo  ╔══════════════════════════════════════════╗
-echo  ║           UNKORA is LIVE!                ║
-echo  ║                                          ║
-echo  ║  Shop   →  http://localhost:3000         ║
-echo  ║  Admin  →  http://localhost:3000/admin   ║
-echo  ║  API    →  http://localhost:4000/api/v1  ║
-echo  ║                                          ║
-echo  ║  admin@unkora.com  /  Admin@123456       ║
-echo  ╚══════════════════════════════════════════╝
+echo  ============================================
+echo    UNKORA is LIVE!
+echo.
+echo    Shop   --  http://localhost:3000
+echo    Admin  --  http://localhost:3000/admin
+echo    API    --  http://localhost:4000/api/v1
+echo.
+echo    admin@unkora.com  /  Admin@123456
+echo  ============================================
 echo.
 
 timeout /t 3 /nobreak >nul
