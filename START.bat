@@ -33,10 +33,11 @@ echo [OK] .env files created
 :: ── 2. Start Docker infra (Postgres + Redis) ──────────────────────────────────
 
 echo.
-echo Cleaning up old containers...
+echo Cleaning up old containers and volumes...
 docker rm -f unkora_postgres_dev 2>nul
 docker rm -f unkora_redis_dev 2>nul
 docker rm -f unkora_typesense 2>nul
+docker volume rm unkora-1_postgres_dev_data 2>nul
 
 echo Starting Docker containers (Postgres)...
 docker-compose -f docker-compose.dev.yml up -d --remove-orphans
