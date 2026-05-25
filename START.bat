@@ -75,6 +75,17 @@ if %errorlevel% neq 0 (
 echo [OK] Migrations done
 
 echo.
+echo Generating Prisma client...
+call npx prisma generate
+if %errorlevel% neq 0 (
+  echo [ERROR] Prisma generate failed!
+  cd ..\..
+  pause
+  exit /b 1
+)
+echo [OK] Prisma client generated
+
+echo.
 echo Seeding database...
 call npx prisma db seed
 if %errorlevel% neq 0 (

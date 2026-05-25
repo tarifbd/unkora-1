@@ -80,7 +80,7 @@ export class InventoryService {
           id: true, name: true, slug: true, sku: true,
           stockQuantity: true, basePrice: true, salePrice: true,
           category: { select: { name: true } },
-          images: { select: { url: true }, take: 1, orderBy: { position: 'asc' } },
+          images: { select: { url: true }, take: 1, orderBy: { sortOrder: 'asc' } },
         },
         orderBy: { stockQuantity: 'asc' },
         skip: (page - 1) * limit,
