@@ -31,7 +31,7 @@ export interface InventoryMeta {
 
 export const inventoryApi = {
   getOverview: (page = 1, limit = 200, filter?: string) =>
-    api.get('/inventory', { params: { page, limit, ...(filter ? { filter } : {}) } }).then(r => r.data as { data: InventoryProduct[]; meta: InventoryMeta }),
+    api.get('/inventory', { params: { page, limit, ...(filter ? { filter } : {}) } }).then(r => r.data.data as { data: InventoryProduct[]; meta: InventoryMeta }),
 
   getLowStock: () =>
     api.get('/inventory/low-stock').then(r => r.data.data as InventoryProduct[]),
