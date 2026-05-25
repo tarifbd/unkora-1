@@ -83,11 +83,23 @@ apiClient.interceptors.response.use(
 export function saveAuthTokens(accessToken: string, refreshToken: string) {
   localStorage.setItem('access_token', accessToken);
   localStorage.setItem('refresh_token', refreshToken);
+  const accessExp = new Date(Date.now() + 15 * 60 * 1000).toUTCString();
+  const refreshExp = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `access_token=${accessToken}; path=/; expires=${accessExp}; SameSite=Lax`;
+  document.cookie = `refresh_token=${refreshToken}; path=/; expires=${refreshExp}; SameSite=Lax`;
+}
+
+export function saveUserRole(role: string) {
+  const exp = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `user_role=${role}; path=/; expires=${exp}; SameSite=Lax`;
 }
 
 export function clearAuthTokens() {
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
+  document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
 }
 
 export default apiClient;

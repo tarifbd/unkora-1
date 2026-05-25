@@ -6,7 +6,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   ChevronLeft, ChevronRight, Truck, RotateCcw, ShieldCheck, Headphones,
-  Flame, Star, ArrowRight, ShoppingCart,
+  Flame, Star, ArrowRight, ShoppingCart, Zap,
 } from 'lucide-react';
 import { productsApi, categoriesApi, type Product } from '@/lib/api/products';
 import { useLanguage } from '@/lib/i18n/language-context';
@@ -146,32 +146,31 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
   const hasDiscount = product.salePrice && salePrice < basePrice;
   const discountPct = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
   const reviewCount = product._count?.reviews ?? 0;
+  const inStock = product.stockQuantity > 0;
 
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
+      className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
     >
-      {/* Image */}
-      <div className="relative w-full" style={{ paddingTop: '133%' }}>
+      {/* Image — fixed height for uniform cards */}
+      <div className="relative h-44 bg-gray-50 overflow-hidden flex-shrink-0">
         {img ? (
-          <Image
-            src={img} alt={product.name} fill
-            className="object-cover group-hover:scale-105 transition-transform duration-400"
+          <Image src={img} alt={product.name} fill
+            className="object-cover group-hover:scale-110 transition-transform duration-500"
             sizes="(max-width:640px) 50vw, (max-width:1024px) 25vw, 180px"
-            unoptimized={img.includes('unsplash')}
-          />
+            unoptimized={img.includes('unsplash')} />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-4xl">📚</div>
         )}
         {hasDiscount && (
-          <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded">
+          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm">
             -{discountPct}%
           </span>
         )}
-        {product.stockQuantity === 0 && (
+        {!inStock && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-            <span className="bg-gray-700 text-white text-[10px] font-bold px-2 py-1 rounded">
+            <span className="bg-gray-800 text-white text-[10px] font-bold px-3 py-1 rounded-full">
               {lang === 'bn' ? 'স্টক নেই' : 'Out of Stock'}
             </span>
           </div>
@@ -180,14 +179,14 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
 
       {/* Info */}
       <div className="p-2.5 flex flex-col flex-1">
-        <p className="text-[11px] font-bold text-gray-800 line-clamp-2 leading-snug mb-1 group-hover:text-blue-600 transition-colors flex-1">
+        <p className="text-[11px] font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors flex-1">
           {product.name}
         </p>
         {product.bookDetail?.author && (
-          <p className="text-[10px] text-gray-400 truncate mb-1">{product.bookDetail.author}</p>
+          <p className="text-[10px] text-gray-400 truncate mt-0.5">{product.bookDetail.author}</p>
         )}
         {reviewCount > 0 && (
-          <div className="flex items-center gap-1 mb-1.5">
+          <div className="flex items-center gap-1 mt-1">
             <div className="flex">
               {[1,2,3,4,5].map(i => (
                 <svg key={i} className={`w-2.5 h-2.5 ${i <= 4 ? 'text-yellow-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
@@ -198,21 +197,28 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
             <span className="text-[9px] text-gray-400">({reviewCount})</span>
           </div>
         )}
-        <div className="flex items-baseline gap-1.5 mb-2">
-          <span className="text-sm font-black text-red-600">৳{salePrice.toLocaleString('en-BD')}</span>
-          {hasDiscount && (
-            <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>
+        <div className="flex items-baseline gap-1.5 mt-1.5">
+          <span className="text-sm font-black text-primary">৳{salePrice.toLocaleString('en-BD')}</span>
+          {hasDiscount && <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
+        </div>
+        {/* Both buttons always visible */}
+        <div className="flex gap-1.5 mt-2">
+          <button
+            onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
+            disabled={!inStock}
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-bold transition-all ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+          >
+            <ShoppingCart className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
+          </button>
+          {inStock && (
+            <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
+              className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold hover:bg-orange-600 transition-all">
+              <Zap className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{lang === 'bn' ? 'কিনুন' : 'Buy Now'}</span>
+            </Link>
           )}
         </div>
-        {product.stockQuantity > 0 && (
-          <button
-            onClick={e => { e.preventDefault(); e.stopPropagation(); addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
-            className="w-full flex items-center justify-center gap-1 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold rounded hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all"
-          >
-            <ShoppingCart className="w-3 h-3" />
-            {lang === 'bn' ? 'কার্টে যোগ' : 'Add to Cart'}
-          </button>
-        )}
       </div>
     </Link>
   );

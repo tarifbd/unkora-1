@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { authApi } from '../api/auth';
+import { saveUserRole } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 
 export function useAuth() {
@@ -15,6 +16,7 @@ export function useAuth() {
       authApi.login(email, password),
     onSuccess: ({ user: u }) => {
       setUser(u);
+      saveUserRole(u.role);
       void qc.invalidateQueries({ queryKey: ['cart'] });
       router.push(u.role === 'ADMIN' || u.role === 'SUPER_ADMIN' ? '/admin' : '/');
     },
