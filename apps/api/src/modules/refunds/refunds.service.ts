@@ -104,11 +104,7 @@ export class RefundsService {
     const refund = await this.prisma.refund.findUnique({ where: { id } });
     if (!refund) throw new NotFoundException('Refund not found');
 
-    const isTerminalStatus = [
-      RefundStatus.APPROVED,
-      RefundStatus.REJECTED,
-      RefundStatus.PROCESSED,
-    ].includes(dto.status as RefundStatus);
+    const isTerminalStatus = dto.status !== RefundStatus.PENDING;
 
     return this.prisma.refund.update({
       where: { id },
