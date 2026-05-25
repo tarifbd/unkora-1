@@ -239,22 +239,62 @@ function SkeletonCard() {
   );
 }
 
-/* ── Flash deal card ── */
-function FlashCard({ deal, lang }: { deal: typeof FLASH_DEALS[number]; lang: string }) {
-  const discount = Math.round((1 - deal.price / deal.originalPrice) * 100);
+/* ── Flash deal card — uses real Product data with cart buttons ── */
+function FlashCard({ product, lang }: { product: Product; lang: string }) {
+  const { addItem } = useCart();
+  const [imgErr, setImgErr] = useState(false);
+  const img = product.images?.[0]?.url;
+  const salePrice = Number(product.salePrice ?? product.basePrice);
+  const basePrice = Number(product.basePrice);
+  const hasDiscount = product.salePrice && salePrice < basePrice;
+  const discount = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
+  const inStock = product.stockQuantity > 0;
+  if (imgErr || !img) return null;
   return (
-    <Link href={deal.href}
-      className="flex-shrink-0 w-[150px] group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-      <div className="relative h-[200px] bg-gray-100 overflow-hidden">
-        <Image src={deal.image} alt={deal.titleEn} fill className="object-cover group-hover:scale-105 transition-transform duration-400" unoptimized={deal.image.includes('unsplash')} sizes="150px" />
-        <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[10px] font-black px-1.5 py-0.5 rounded">-{discount}%</span>
+    <Link href={`/products/${product.slug}`}
+      className="flex-shrink-0 w-[165px] group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
+      <div className="relative h-[200px] bg-gray-50 overflow-hidden flex-shrink-0">
+        <Image src={img} alt={product.name} fill
+          className="object-cover group-hover:scale-110 transition-transform duration-500"
+          unoptimized={img.includes('unsplash') || img.includes('picsum')}
+          sizes="165px" onError={() => setImgErr(true)} />
+        {hasDiscount && (
+          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow">-{discount}%</span>
+        )}
+        {!inStock && (
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+            <span className="bg-gray-800 text-white text-[10px] font-bold px-3 py-1 rounded-full">
+              {lang === 'bn' ? 'স্টক নেই' : 'Out of Stock'}
+            </span>
+          </div>
+        )}
       </div>
-      <div className="p-2">
-        <p className="text-[11px] font-bold text-gray-800 line-clamp-2 leading-snug mb-0.5 group-hover:text-blue-600 transition-colors">{lang === 'bn' ? deal.title : deal.titleEn}</p>
-        <p className="text-[10px] text-gray-400 truncate mb-1.5">{deal.author}</p>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-sm font-black text-red-600">৳{deal.price}</span>
-          <span className="text-[10px] text-gray-400 line-through">৳{deal.originalPrice}</span>
+      <div className="p-2.5 flex flex-col flex-1">
+        <p className="text-[11px] font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors flex-1">
+          {product.name}
+        </p>
+        {product.bookDetail?.author && (
+          <p className="text-[10px] text-gray-400 truncate mt-0.5">{product.bookDetail.author}</p>
+        )}
+        <div className="flex items-baseline gap-1.5 mt-1.5">
+          <span className="text-sm font-black text-red-600">৳{salePrice.toLocaleString('en-BD')}</span>
+          {hasDiscount && <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
+        </div>
+        <div className="flex gap-1 mt-2">
+          <button
+            onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
+            disabled={!inStock}
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-bold transition-all ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
+            <ShoppingCart className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
+          </button>
+          {inStock && (
+            <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
+              className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold hover:bg-orange-600 transition-all">
+              <Zap className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{lang === 'bn' ? 'কিনুন' : 'Buy Now'}</span>
+            </Link>
+          )}
         </div>
       </div>
     </Link>
@@ -353,6 +393,8 @@ export default function HomePage() {
   const shelfBooks = shelfData?.data ?? [];
   const { data: organicData } = useQuery({ queryKey: ['products', 'organic'], queryFn: () => productsApi.getAll({ categorySlug: 'organic-foods', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
   const organicProducts = organicData?.data ?? [];
+  const { data: flashData } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]) });
+  const flashProducts = (flashData?.data ?? []).filter(p => p.salePrice && Number(p.salePrice) < Number(p.basePrice) && p.images?.[0]?.url).slice(0, 12);
 
   const slide = HERO_SLIDES[slideIndex];
 
@@ -506,7 +548,17 @@ export default function HomePage() {
             </div>
           </div>
           <div ref={flashRef} className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
-            {FLASH_DEALS.map(d => <FlashCard key={d.id} deal={d} lang={lang} />)}
+            {flashProducts.length > 0
+              ? flashProducts.map(p => <FlashCard key={p.id} product={p} lang={lang} />)
+              : Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex-shrink-0 w-[165px] animate-pulse">
+                  <div className="w-full h-[200px] rounded-2xl bg-gray-200 mb-2" />
+                  <div className="h-3 bg-gray-200 rounded mb-1 mx-2" />
+                  <div className="h-3 bg-gray-200 rounded w-2/3 mx-2 mb-2" />
+                  <div className="h-7 bg-gray-200 rounded mx-2" />
+                </div>
+              ))
+            }
           </div>
         </div>
       </section>
