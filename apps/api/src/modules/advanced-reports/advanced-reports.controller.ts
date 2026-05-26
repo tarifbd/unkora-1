@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -16,35 +11,47 @@ import { AdvancedReportsService } from './advanced-reports.service';
 @Roles('ADMIN', 'SUPER_ADMIN')
 @ApiBearerAuth()
 export class AdvancedReportsController {
-  constructor(private readonly advancedReportsService: AdvancedReportsService) {}
+  constructor(private readonly svc: AdvancedReportsService) {}
 
   @Get('revenue')
-  @ApiOperation({ summary: 'Revenue over time (period: 7d|30d|90d|1y)' })
+  @ApiOperation({ summary: 'Revenue over time — reads from DailyMetric cache, falls back to live' })
   getRevenue(@Query('period') period = '30d') {
-    return this.advancedReportsService.getRevenue(period);
+    return this.svc.getDailyMetrics(period);
+  }
+
+  @Get('revenue/live')
+  @ApiOperation({ summary: 'Live revenue aggregation (slower on large datasets)' })
+  getRevenueLive(@Query('period') period = '30d') {
+    return this.svc.getRevenue(period);
+  }
+
+  @Post('metrics/sync')
+  @ApiOperation({ summary: "Sync today's metrics into DailyMetric cache table" })
+  syncMetrics() {
+    return this.svc.syncDailyMetrics();
   }
 
   @Get('top-products')
   @ApiOperation({ summary: 'Top 10 products by units sold' })
   getTopProducts() {
-    return this.advancedReportsService.getTopProducts();
+    return this.svc.getTopProducts();
   }
 
   @Get('top-customers')
   @ApiOperation({ summary: 'Top 10 customers by total spend' })
   getTopCustomers() {
-    return this.advancedReportsService.getTopCustomers();
+    return this.svc.getTopCustomers();
   }
 
   @Get('funnel')
-  @ApiOperation({ summary: 'Conversion funnel: users → orders → delivered' })
+  @ApiOperation({ summary: 'Conversion funnel: customers → orders → paid → delivered' })
   getFunnel() {
-    return this.advancedReportsService.getFunnel();
+    return this.svc.getFunnel();
   }
 
   @Get('cohort')
-  @ApiOperation({ summary: 'Monthly user cohort with order counts' })
+  @ApiOperation({ summary: 'Monthly user cohort with order counts and revenue' })
   getCohort() {
-    return this.advancedReportsService.getCohort();
+    return this.svc.getCohort();
   }
 }
