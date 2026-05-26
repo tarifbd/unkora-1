@@ -18,6 +18,9 @@ import { ProductLabelsModule } from './modules/product-labels/product-labels.mod
 import { ProductNotesModule } from './modules/product-notes/product-notes.module';
 import { SmartBarModule } from './modules/smart-bar/smart-bar.module';
 import { AuctionsModule } from './modules/auctions/auctions.module';
+import { GiftCardsModule } from './modules/gift-cards/gift-cards.module';
+import { LoyaltyModule } from './modules/loyalty/loyalty.module';
+import { ReferralsModule } from './modules/referrals/referrals.module';
 import { BookSubmissionsModule } from './modules/book-submissions/book-submissions.module';
 import { BooksModule } from './modules/books/books.module';
 import { AppCacheModule } from './modules/cache/cache.module';
@@ -88,6 +91,9 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     ProductNotesModule,
     SmartBarModule,
     AuctionsModule,
+    GiftCardsModule,
+    LoyaltyModule,
+    ReferralsModule,
   ],
 })
 export class AppModule {}

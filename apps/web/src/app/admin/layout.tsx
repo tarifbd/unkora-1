@@ -8,6 +8,7 @@ import {
   ExternalLink, Bell, Settings, Target, Globe, TrendingUp, Zap,
   ShieldAlert, Plus, ChevronDown, ChevronRight,
   RotateCcw, Bike, FileText, User, Sliders, Gavel, Layers,
+  CreditCard, Star, Share2,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -46,6 +47,7 @@ const NAV: NavItem[] = [
       { href: '/admin/refunds',      label: 'Refunds',         icon: RotateCcw },
       { href: '/admin/flash-deals',  label: 'Flash Deals',     icon: Zap },
       { href: '/admin/wholesale',    label: 'Wholesale',       icon: Layers },
+      { href: '/admin/gift-cards',   label: 'Gift Cards',      icon: CreditCard },
       { href: '/admin/fraud',        label: 'Fraud Detection', icon: ShieldAlert },
     ],
   },
@@ -58,9 +60,11 @@ const NAV: NavItem[] = [
   {
     label: 'Community', icon: Users,
     children: [
-      { href: '/admin/users',   label: 'Users',   icon: Users },
-      { href: '/admin/reviews', label: 'Reviews', icon: MessageSquare },
-      { href: '/admin/blog',    label: 'Blog',    icon: FileText },
+      { href: '/admin/users',     label: 'Users',         icon: Users },
+      { href: '/admin/reviews',   label: 'Reviews',       icon: MessageSquare },
+      { href: '/admin/blog',      label: 'Blog',          icon: FileText },
+      { href: '/admin/loyalty',   label: 'Club Points',   icon: Star },
+      { href: '/admin/referrals', label: 'Referrals',     icon: Share2 },
     ],
   },
   {
@@ -169,6 +173,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/products/setup/labels': 'Product Labels',
   '/admin/auctions': 'Auctions',
   '/admin/wholesale': 'Wholesale Pricing',
+  '/admin/gift-cards': 'Gift Cards',
+  '/admin/loyalty': 'Club Points',
+  '/admin/referrals': 'Referral Program',
   '/admin/categories': 'Categories',
   '/admin/inventory': 'Inventory',
   '/admin/orders': 'Orders',
