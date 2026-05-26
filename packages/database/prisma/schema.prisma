@@ -74,6 +74,11 @@ enum BookSubmissionStatus {
   PUBLISHED
 }
 
+enum ProductSource {
+  INHOUSE
+  SELLER
+}
+
 enum StockMovementType {
   PURCHASE
   SALE
@@ -240,31 +245,45 @@ model Category {
 }
 
 model Product {
-  id            String   @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String
-  slug          String   @unique
-  description   String?
+  slug          String        @unique
+  description   String?       @db.Text
   shortDesc     String?
   categoryId    String
-  sku           String   @unique
-  basePrice     Decimal  @db.Decimal(10, 2)
-  salePrice     Decimal? @db.Decimal(10, 2)
-  stockQuantity Int      @default(0)
-  lowStockAlert Int      @default(5)
-  weight        Decimal? @db.Decimal(8, 3)
-  isActive      Boolean  @default(true)
-  isFeatured    Boolean  @default(false)
-  isDigital     Boolean  @default(false)
-  isPreorder    Boolean  @default(false)
+  brandId       String?
+  sizeGuideId   String?
+  warrantyId    String?
+  source        ProductSource @default(INHOUSE)
+  sku           String        @unique
+  basePrice     Decimal       @db.Decimal(10, 2)
+  salePrice     Decimal?      @db.Decimal(10, 2)
+  stockQuantity Int           @default(0)
+  lowStockAlert Int           @default(5)
+  weight        Decimal?      @db.Decimal(8, 3)
+  warrantyInfo  String?
+  isActive      Boolean       @default(true)
+  isFeatured    Boolean       @default(false)
+  isDigital     Boolean       @default(false)
+  digitalFileUrl String?
+  isPreorder    Boolean       @default(false)
   preorderNote  String?
   preorderDate  DateTime?
   metaTitle     String?
   metaDesc      String?
+  metaKeywords  String?
   tags          String[]
+  deletedAt     DateTime?
 
-  category        Category         @relation(fields: [categoryId], references: [id])
+  category        Category              @relation(fields: [categoryId], references: [id])
+  brand           Brand?                @relation(fields: [brandId], references: [id])
+  sizeGuide       SizeGuide?            @relation(fields: [sizeGuideId], references: [id])
+  warranty        Warranty?             @relation(fields: [warrantyId], references: [id])
   images          ProductImage[]
   variants        ProductVariant[]
+  colors          ProductColor[]
+  labels          ProductLabelProduct[]
+  notes           ProductNote[]
   bookDetail      BookDetail?
   orderItems      OrderItem[]
   cartItems       CartItem[]
@@ -274,14 +293,18 @@ model Product {
   submission      BookSubmission?
   flashDeal       FlashDeal?
   wholesalePrices WholesalePrice[]
+  smartBars       SmartBar[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([slug])
   @@index([categoryId])
+  @@index([brandId])
   @@index([isActive, isFeatured])
+  @@index([source])
   @@index([sku])
+  @@index([deletedAt])
   @@map("products")
 }
 
@@ -712,4 +735,187 @@ model SiteSetting {
   updatedAt DateTime @updatedAt
 
   @@map("site_settings")
+}
+
+// ─────────────────────────────────────────────────────────────
+// BRANDS
+// ─────────────────────────────────────────────────────────────
+
+model Brand {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  logoUrl     String?
+  website     String?
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  products Product[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("brands")
+}
+
+// ─────────────────────────────────────────────────────────────
+// COLORS
+// ─────────────────────────────────────────────────────────────
+
+model Color {
+  id        String   @id @default(cuid())
+  name      String
+  hexCode   String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  productColors ProductColor[]
+
+  @@unique([hexCode])
+  @@map("colors")
+}
+
+model ProductColor {
+  productId String
+  colorId   String
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  color   Color   @relation(fields: [colorId], references: [id], onDelete: Cascade)
+
+  @@id([productId, colorId])
+  @@map("product_colors")
+}
+
+// ─────────────────────────────────────────────────────────────
+// ATTRIBUTES
+// ─────────────────────────────────────────────────────────────
+
+model Attribute {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  values AttributeValue[]
+
+  @@map("attributes")
+}
+
+model AttributeValue {
+  id          String @id @default(cuid())
+  attributeId String
+  value       String
+
+  attribute Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  @@unique([attributeId, value])
+  @@index([attributeId])
+  @@map("attribute_values")
+}
+
+// ─────────────────────────────────────────────────────────────
+// SIZE GUIDES
+// ─────────────────────────────────────────────────────────────
+
+model SizeGuide {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  imageUrl  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+
+  @@map("size_guides")
+}
+
+// ─────────────────────────────────────────────────────────────
+// WARRANTIES
+// ─────────────────────────────────────────────────────────────
+
+model Warranty {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  duration    String
+  type        String   @default("seller")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  products Product[]
+
+  @@map("warranties")
+}
+
+// ─────────────────────────────────────────────────────────────
+// PRODUCT LABELS
+// ─────────────────────────────────────────────────────────────
+
+model ProductLabel {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#ef4444")
+  bgColor   String   @default("#fef2f2")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  products ProductLabelProduct[]
+
+  @@map("product_labels")
+}
+
+model ProductLabelProduct {
+  productId String
+  labelId   String
+
+  product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  label   ProductLabel @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([productId, labelId])
+  @@map("product_label_products")
+}
+
+// ─────────────────────────────────────────────────────────────
+// PRODUCT NOTES (ADMIN INTERNAL NOTES)
+// ─────────────────────────────────────────────────────────────
+
+model ProductNote {
+  id        String   @id @default(cuid())
+  productId String
+  note      String   @db.Text
+  createdBy String?
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("product_notes")
+}
+
+// ─────────────────────────────────────────────────────────────
+// SMART BAR (PRODUCT PAGE ANNOUNCEMENT/OFFER BAR)
+// ─────────────────────────────────────────────────────────────
+
+model SmartBar {
+  id        String   @id @default(cuid())
+  productId String
+  text      String
+  linkUrl   String?
+  bgColor   String   @default("#1d4ed8")
+  textColor String   @default("#ffffff")
+  isActive  Boolean  @default(true)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@map("smart_bars")
 }

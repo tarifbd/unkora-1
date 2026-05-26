@@ -7,7 +7,7 @@ import {
   Truck, Ticket, Users, MessageSquare, LogOut, Menu, X,
   ExternalLink, Bell, Settings, Target, Globe, TrendingUp, Zap,
   ShieldAlert, Plus, ChevronDown, ChevronRight,
-  RotateCcw, Bike, FileText, User,
+  RotateCcw, Bike, FileText, User, Sliders,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -29,9 +29,10 @@ const NAV: NavItem[] = [
   {
     label: 'Products', icon: Package,
     children: [
-      { href: '/admin/products',     label: 'All Products',     icon: Package },
-      { href: '/admin/products/new', label: 'Add New Product',  icon: Plus },
-      { href: '/admin/inventory',    label: 'Inventory',        icon: Archive },
+      { href: '/admin/products',             label: 'All Products',    icon: Package },
+      { href: '/admin/products/new',         label: 'Add New Product', icon: Plus },
+      { href: '/admin/inventory',            label: 'Inventory',       icon: Archive },
+      { href: '/admin/products/setup',       label: 'Product Setup',   icon: Sliders },
     ],
   },
   {
@@ -157,6 +158,13 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/reports': 'Reports & Analytics',
   '/admin/products': 'Products',
   '/admin/products/new': 'Add New Product',
+  '/admin/products/setup': 'Product Setup',
+  '/admin/products/setup/brands': 'Brands',
+  '/admin/products/setup/colors': 'Colors',
+  '/admin/products/setup/attributes': 'Attributes',
+  '/admin/products/setup/size-guides': 'Size Guides',
+  '/admin/products/setup/warranties': 'Warranties',
+  '/admin/products/setup/labels': 'Product Labels',
   '/admin/categories': 'Categories',
   '/admin/inventory': 'Inventory',
   '/admin/orders': 'Orders',

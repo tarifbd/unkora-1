@@ -9,6 +9,14 @@ import { DatabaseModule } from './database/database.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { BlogModule } from './modules/blog/blog.module';
+import { BrandsModule } from './modules/brands/brands.module';
+import { ColorsModule } from './modules/colors/colors.module';
+import { AttributesModule } from './modules/attributes/attributes.module';
+import { SizeGuidesModule } from './modules/size-guides/size-guides.module';
+import { WarrantiesModule } from './modules/warranties/warranties.module';
+import { ProductLabelsModule } from './modules/product-labels/product-labels.module';
+import { ProductNotesModule } from './modules/product-notes/product-notes.module';
+import { SmartBarModule } from './modules/smart-bar/smart-bar.module';
 import { BookSubmissionsModule } from './modules/book-submissions/book-submissions.module';
 import { BooksModule } from './modules/books/books.module';
 import { AppCacheModule } from './modules/cache/cache.module';
@@ -70,6 +78,14 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     FlashDealsModule,
     DeliveryBoysModule,
     BlogModule,
+    BrandsModule,
+    ColorsModule,
+    AttributesModule,
+    SizeGuidesModule,
+    WarrantiesModule,
+    ProductLabelsModule,
+    ProductNotesModule,
+    SmartBarModule,
   ],
 })
 export class AppModule {}

@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsBoolean,
+  IsEnum,
   IsNumber,
   IsOptional,
   IsString,
@@ -10,6 +11,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
+import { ProductSource } from '@prisma/client';
 
 export class CreateBookDetailDto {
   @ApiProperty()
@@ -145,4 +147,56 @@ export class CreateProductDto {
   @IsOptional()
   @IsString()
   imageUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  brandId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  sizeGuideId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  warrantyId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  warrantyInfo?: string;
+
+  @ApiPropertyOptional({ enum: ProductSource })
+  @IsOptional()
+  @IsEnum(ProductSource)
+  source?: ProductSource;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isDigital?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  digitalFileUrl?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  metaKeywords?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  colorIds?: string[];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  labelIds?: string[];
 }

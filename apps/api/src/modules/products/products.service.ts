@@ -71,7 +71,9 @@ export class ProductsService {
         include: {
           images: { where: { isPrimary: true }, take: 1 },
           category: { select: { id: true, name: true, slug: true } },
+          brand: { select: { id: true, name: true } },
           bookDetail: { select: { author: true, language: true, genres: true } },
+          labels: { include: { label: { select: { id: true, name: true, color: true, bgColor: true } } } },
           _count: { select: { reviews: true } },
         },
         orderBy: { [orderField]: sortOrder },
@@ -106,6 +108,11 @@ export class ProductsService {
       include: {
         images: { orderBy: { sortOrder: 'asc' } },
         category: true,
+        brand: { select: { id: true, name: true, slug: true, logoUrl: true } },
+        sizeGuide: true,
+        warranty: true,
+        colors: { include: { color: true } },
+        labels: { include: { label: true } },
         variants: { where: { isActive: true } },
         bookDetail: true,
         reviews: {
@@ -123,7 +130,17 @@ export class ProductsService {
   async findById(id: string) {
     const product = await this.prisma.product.findUnique({
       where: { id },
-      include: { images: true, category: true, variants: true, bookDetail: true },
+      include: {
+        images: true,
+        category: true,
+        variants: true,
+        bookDetail: true,
+        brand: { select: { id: true, name: true, slug: true } },
+        sizeGuide: { select: { id: true, title: true } },
+        warranty: { select: { id: true, title: true, duration: true } },
+        colors: { include: { color: true } },
+        labels: { include: { label: true } },
+      },
     });
     if (!product) throw new NotFoundException('Product not found');
     return product;
@@ -160,7 +177,7 @@ export class ProductsService {
       if (skuExists) throw new ConflictException('SKU already exists');
     }
 
-    const { bookDetail, imageUrl, ...productData } = dto;
+    const { bookDetail, imageUrl, colorIds, labelIds, ...productData } = dto;
 
     const product = await this.prisma.product.create({
       data: {
@@ -169,6 +186,12 @@ export class ProductsService {
         basePrice: productData.basePrice,
         salePrice: productData.salePrice ?? null,
         bookDetail: bookDetail ? { create: bookDetail } : undefined,
+        colors: colorIds?.length
+          ? { create: colorIds.map(colorId => ({ colorId })) }
+          : undefined,
+        labels: labelIds?.length
+          ? { create: labelIds.map(labelId => ({ labelId })) }
+          : undefined,
       },
       include: { bookDetail: true, category: true, images: true },
     });
@@ -199,7 +222,25 @@ export class ProductsService {
       if (existing && existing.id !== id) throw new ConflictException('Slug already exists');
     }
 
-    const { bookDetail, imageUrl, ...productData } = dto;
+    const { bookDetail, imageUrl, colorIds, labelIds, ...productData } = dto;
+
+    if (colorIds !== undefined) {
+      await this.prisma.productColor.deleteMany({ where: { productId: id } });
+      if (colorIds.length) {
+        await this.prisma.productColor.createMany({
+          data: colorIds.map(colorId => ({ productId: id, colorId })),
+        });
+      }
+    }
+
+    if (labelIds !== undefined) {
+      await this.prisma.productLabelProduct.deleteMany({ where: { productId: id } });
+      if (labelIds.length) {
+        await this.prisma.productLabelProduct.createMany({
+          data: labelIds.map(labelId => ({ productId: id, labelId })),
+        });
+      }
+    }
 
     const product = await this.prisma.product.update({
       where: { id },
