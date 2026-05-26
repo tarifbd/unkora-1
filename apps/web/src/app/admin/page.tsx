@@ -242,7 +242,7 @@ export default function AdminDashboard() {
     .map(([method, count]) => ({
       label: method === 'COD' ? 'Cash on Delivery' : method,
       value: count,
-      color: PAYMENT_COLORS[method] ?? PAYMENT_COLORS.OTHER,
+      color: PAYMENT_COLORS[method] ?? '#6b7280',
     }))
     .sort((a, b) => b.value - a.value);
 
@@ -272,10 +272,10 @@ export default function AdminDashboard() {
     <div className="space-y-5 pb-10">
 
       {/* ── Header ────────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-2xl font-black tracking-tight text-gray-900">Admin Dashboard</h1>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-gray-900">Admin Dashboard</h1>
             <span className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold bg-green-100 text-green-700">
               <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-green-500 inline-block" />
               Live
@@ -283,7 +283,7 @@ export default function AdminDashboard() {
           </div>
           <p className="text-sm text-gray-500">Real-time store overview · Auto-updates every 30s</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link href="/admin/reports" className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold border text-indigo-600 bg-indigo-50 border-indigo-200 hover:bg-indigo-100 transition-colors">
             <FileBarChart className="h-4 w-4" /> Reports
           </Link>

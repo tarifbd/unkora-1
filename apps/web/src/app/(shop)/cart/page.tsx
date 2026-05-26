@@ -58,26 +58,26 @@ export default function CartPage() {
                     <Link href={`/products/${item.slug}`} className="font-medium hover:text-brand-600 transition-colors line-clamp-2">
                       {item.name}
                     </Link>
-                    <button onClick={() => guestCart.removeItem(item.productId)} className="text-muted-foreground hover:text-destructive transition-colors">
+                    <button onClick={() => guestCart.removeItem(item.productId)} className="flex h-11 w-11 items-center justify-center text-muted-foreground hover:text-destructive transition-colors touch-manipulation rounded-md flex-shrink-0">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 rounded-md border px-2 py-1">
+                    <div className="flex items-center gap-1 rounded-md border">
                       <button
                         onClick={() => guestCart.updateQty(item.productId, item.quantity - 1)}
                         disabled={item.quantity <= 1}
-                        className="hover:text-brand-600 disabled:opacity-30 transition-colors"
+                        className="flex h-11 w-11 items-center justify-center hover:text-brand-600 disabled:opacity-30 transition-colors touch-manipulation"
                       >
-                        <Minus className="h-3 w-3" />
+                        <Minus className="h-4 w-4" />
                       </button>
-                      <span className="min-w-[20px] text-center text-sm font-medium">{item.quantity}</span>
+                      <span className="min-w-[28px] text-center text-sm font-medium">{item.quantity}</span>
                       <button
                         onClick={() => guestCart.updateQty(item.productId, item.quantity + 1)}
-                        className="hover:text-brand-600 transition-colors"
+                        className="flex h-11 w-11 items-center justify-center hover:text-brand-600 transition-colors touch-manipulation"
                       >
-                        <Plus className="h-3 w-3" />
+                        <Plus className="h-4 w-4" />
                       </button>
                     </div>
                     <span className="font-semibold text-brand-600">{formatCurrency(item.price * item.quantity)}</span>
@@ -177,21 +177,21 @@ export default function CartPage() {
                       <p className="text-xs text-muted-foreground">by {item.product.bookDetail.author}</p>
                     )}
                   </div>
-                  <button onClick={() => removeItem.mutate(item.id)} className="text-muted-foreground hover:text-destructive transition-colors">
+                  <button onClick={() => removeItem.mutate(item.id)} className="flex h-11 w-11 items-center justify-center text-muted-foreground hover:text-destructive transition-colors touch-manipulation rounded-md flex-shrink-0">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 rounded-md border px-2 py-1">
+                  <div className="flex items-center gap-1 rounded-md border">
                     <button onClick={() => updateItem.mutate({ itemId: item.id, quantity: item.quantity - 1 })}
-                      disabled={item.quantity <= 1} className="hover:text-brand-600 disabled:opacity-30 transition-colors">
-                      <Minus className="h-3 w-3" />
+                      disabled={item.quantity <= 1} className="flex h-11 w-11 items-center justify-center hover:text-brand-600 disabled:opacity-30 transition-colors touch-manipulation">
+                      <Minus className="h-4 w-4" />
                     </button>
-                    <span className="min-w-[20px] text-center text-sm font-medium">{item.quantity}</span>
+                    <span className="min-w-[28px] text-center text-sm font-medium">{item.quantity}</span>
                     <button onClick={() => updateItem.mutate({ itemId: item.id, quantity: item.quantity + 1 })}
-                      className="hover:text-brand-600 transition-colors">
-                      <Plus className="h-3 w-3" />
+                      className="flex h-11 w-11 items-center justify-center hover:text-brand-600 transition-colors touch-manipulation">
+                      <Plus className="h-4 w-4" />
                     </button>
                   </div>
                   <span className="font-semibold text-brand-600">{formatCurrency(Number(item.price) * item.quantity)}</span>

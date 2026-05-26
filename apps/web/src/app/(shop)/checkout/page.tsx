@@ -164,7 +164,7 @@ function CheckoutContent() {
 
   return (
     <div className="container py-8">
-      <h1 className="mb-6 font-serif text-2xl font-bold">{t.checkout.title}</h1>
+      <h1 className="mb-6 font-serif text-xl sm:text-2xl font-bold">{t.checkout.title}</h1>
 
       {!isAuthenticated && (
         <div className="mb-4 flex items-center justify-between rounded-lg border border-muted bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
@@ -172,7 +172,7 @@ function CheckoutContent() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 lg:grid-cols-3">
+      <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           {/* Shipping Address */}
           <div className="rounded-xl border bg-card p-6">

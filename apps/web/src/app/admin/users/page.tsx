@@ -464,22 +464,16 @@ export default function AdminUsersPage() {
   const users: UserDetail[] = data?.data ?? [];
   const meta = data?.meta;
 
-  const statsQuery = useQuery({
-    queryKey: ['admin-users-stats'],
-    queryFn: () => adminApi.getUsers({ limit: 1 }).then(r => r.meta?.total ?? 0),
-    staleTime: 60000,
-  });
-
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black text-gray-900">Customers</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-gray-900">Customers</h1>
           <p className="text-sm text-gray-500 mt-0.5">Manage users, roles, and account status</p>
         </div>
         {meta && (
-          <div className="bg-primary/10 text-primary px-4 py-2 rounded-xl">
+          <div className="bg-primary/10 text-primary px-4 py-2 rounded-xl self-start sm:self-auto">
             <span className="font-black text-lg">{meta.total}</span>
             <span className="text-xs ml-1.5 font-medium">total users</span>
           </div>
@@ -498,7 +492,7 @@ export default function AdminUsersPage() {
           />
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           {ROLE_TABS.map(r => (
             <button
               key={r}
@@ -512,7 +506,7 @@ export default function AdminUsersPage() {
           ))}
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           {STATUS_TABS.map(s => (
             <button
               key={s}
@@ -535,6 +529,7 @@ export default function AdminUsersPage() {
 
       {/* Table */}
       <div className="bg-white rounded-2xl border overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="border-b bg-gray-50">
             <tr>
@@ -563,6 +558,7 @@ export default function AdminUsersPage() {
             <p className="text-xs mt-1">Try adjusting your search or filters</p>
           </div>
         )}
+        </div>
       </div>
 
       {/* Pagination */}

@@ -196,9 +196,9 @@ export default function AdminOrdersPage() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-3">
         <div>
-          <h1 className="font-serif text-2xl font-bold">Orders</h1>
+          <h1 className="font-serif text-xl sm:text-2xl font-bold">Orders</h1>
           {meta && <p className="text-sm text-muted-foreground">{meta.total} orders</p>}
         </div>
         <div className="flex items-center gap-2">
@@ -213,7 +213,7 @@ export default function AdminOrdersPage() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5">
         {statCards.map(card => (
           <button
             key={card.label}

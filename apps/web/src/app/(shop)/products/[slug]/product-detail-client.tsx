@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import { ShoppingCart, Minus, Plus, Loader2, ArrowLeft, BookOpen, Package, Zap } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+
 import { productsApi } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useCartStore } from '@/store/cart.store';
@@ -27,14 +27,13 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const { addItem } = useCart();
   const { openCart } = useCartStore();
   const { t } = useLanguage();
-  const router = useRouter();
   const buyBtnRef = useRef<HTMLDivElement>(null);
 
   // Show sticky bar when the main buy button scrolls out of view
   useEffect(() => {
     if (!buyBtnRef.current) return;
     const observer = new IntersectionObserver(
-      ([entry]) => setStickyVisible(!entry.isIntersecting),
+      (entries) => setStickyVisible(!(entries[0]?.isIntersecting ?? true)),
       { threshold: 0 }
     );
     observer.observe(buyBtnRef.current);

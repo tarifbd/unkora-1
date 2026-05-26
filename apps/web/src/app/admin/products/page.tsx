@@ -264,9 +264,9 @@ export default function AdminProductsPage() {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-3">
         <div>
-          <h1 className="font-serif text-2xl font-bold">Products</h1>
+          <h1 className="font-serif text-xl sm:text-2xl font-bold">Products</h1>
           {meta && <p className="text-sm text-muted-foreground">{meta.total} products found</p>}
         </div>
         <Link
