@@ -28,6 +28,12 @@ import { ReturnsModule } from './modules/returns/returns.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { EmailCampaignsModule } from './modules/email-campaigns/email-campaigns.module';
 import { SeoModule } from './modules/seo/seo.module';
+import { LocalizationModule } from './modules/localization/localization.module';
+import { AffiliatesModule } from './modules/affiliates/affiliates.module';
+import { SegmentsModule } from './modules/segments/segments.module';
+import { AdvancedReportsModule } from './modules/advanced-reports/advanced-reports.module';
+import { StaffModule } from './modules/staff/staff.module';
+import { DesignModule } from './modules/design/design.module';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
 import { BookSubmissionsModule } from './modules/book-submissions/book-submissions.module';
@@ -112,6 +118,12 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     NotificationsModule,
     EmailCampaignsModule,
     SeoModule,
+    LocalizationModule,
+    AffiliatesModule,
+    SegmentsModule,
+    AdvancedReportsModule,
+    StaffModule,
+    DesignModule,
   ],
 })
 export class AppModule {}

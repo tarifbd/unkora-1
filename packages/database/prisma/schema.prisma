@@ -166,6 +166,8 @@ model User {
   posSessions          PosSession[]
   posOrders            PosOrder[]            @relation("PosCustomer")
   seller               Seller?
+  affiliate            Affiliate?
+  auditLogs            AuditLog[]
 
   @@index([email])
   @@index([phone])
@@ -1415,4 +1417,178 @@ model EmailCampaign {
 
   @@index([status])
   @@map("email_campaigns")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 17: MULTI-CURRENCY & MULTI-LANGUAGE
+// ─────────────────────────────────────────────────────────────
+
+model Currency {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  name      String
+  symbol    String
+  rate      Float    @default(1.0)
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("currencies")
+}
+
+model Language {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  name       String
+  nativeName String
+  isDefault  Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  isRtl      Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("languages")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 18: AFFILIATE MARKETING
+// ─────────────────────────────────────────────────────────────
+
+model Affiliate {
+  id             String           @id @default(cuid())
+  userId         String           @unique
+  code           String           @unique
+  commissionRate Float            @default(5.0)
+  totalEarned    Float            @default(0)
+  pendingPayout  Float            @default(0)
+  totalClicks    Int              @default(0)
+  totalOrders    Int              @default(0)
+  status         String           @default("ACTIVE")
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  user    User              @relation(fields: [userId], references: [id])
+  payouts AffiliatePayout[]
+
+  @@map("affiliates")
+}
+
+model AffiliatePayout {
+  id          String    @id @default(cuid())
+  affiliateId String
+  amount      Float
+  method      String
+  status      String    @default("PENDING")
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id])
+
+  @@map("affiliate_payouts")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 21: SETTINGS (key-value store)
+// ─────────────────────────────────────────────────────────────
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  group     String   @default("general")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([group])
+  @@map("settings")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 22: STAFF MANAGEMENT
+// ─────────────────────────────────────────────────────────────
+
+model StaffInvitation {
+  id        String    @id @default(cuid())
+  email     String
+  role      String    @default("ADMIN")
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@map("staff_invitations")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String
+  resource   String
+  resourceId String?
+  oldData    Json?
+  newData    Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MODULE 23: DESIGN STUDIO
+// ─────────────────────────────────────────────────────────────
+
+model ThemeConfig {
+  id           String   @id @default(cuid())
+  name         String
+  primaryColor String   @default("#2563eb")
+  accentColor  String   @default("#f59e0b")
+  fontFamily   String   @default("Inter")
+  borderRadius String   @default("0.5rem")
+  isActive     Boolean  @default(false)
+  config       Json     @default("{}")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("theme_configs")
+}
+
+model HomepageSection {
+  id        String   @id @default(cuid())
+  type      String
+  title     String?
+  subtitle  String?
+  config    Json     @default("{}")
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@map("homepage_sections")
+}
+
+model Banner {
+  id       String    @id @default(cuid())
+  title    String
+  imageUrl String
+  linkUrl  String?
+  position String    @default("hero")
+  order    Int       @default(0)
+  isActive Boolean   @default(true)
+  startsAt DateTime?
+  endsAt   DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([position])
+  @@map("banners")
 }

@@ -5,8 +5,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Store, Truck, CreditCard, Zap, Globe, Info,
   Save, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff,
+  Search, Share2,
 } from 'lucide-react';
-import { settingsApi } from '@/lib/api/admin';
 import api from '@/lib/api';
 
 /* ─── settings API helper ─────────────────────────────────────── */
@@ -18,15 +18,15 @@ const storeSettingsApi = {
 };
 
 /* ─── shared components ───────────────────────────────────────── */
-type TabId = 'store' | 'shipping' | 'payment' | 'flash' | 'analytics' | 'about';
+type TabId = 'general' | 'store' | 'payment' | 'shipping' | 'seo' | 'social';
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
-  { id: 'store',     label: 'Store Info',    icon: Store },
-  { id: 'shipping',  label: 'Shipping',      icon: Truck },
-  { id: 'payment',   label: 'Payments',      icon: CreditCard },
-  { id: 'flash',     label: 'Flash Sale',    icon: Zap },
-  { id: 'analytics', label: 'Analytics',     icon: Globe },
-  { id: 'about',     label: 'About',         icon: Info },
+  { id: 'general',  label: 'General',   icon: Store },
+  { id: 'store',    label: 'Store Info', icon: Info },
+  { id: 'payment',  label: 'Payment',   icon: CreditCard },
+  { id: 'shipping', label: 'Shipping',  icon: Truck },
+  { id: 'seo',      label: 'SEO',       icon: Search },
+  { id: 'social',   label: 'Social',    icon: Share2 },
 ];
 
 function FieldRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
@@ -73,85 +73,24 @@ function SaveBar({ isDirty, onSave, isPending, success }: { isDirty: boolean; on
   );
 }
 
-/* ─── Store Info Tab ──────────────────────────────────────────── */
-function StoreInfoTab({ settings, onSave }: { settings: Record<string, string>; onSave: (data: Record<string, string>) => Promise<void> }) {
+/* ─── General Tab ────────────────────────────────────────────── */
+function GeneralTab({ settings, onSave }: { settings: Record<string, string>; onSave: (d: Record<string, string>) => Promise<void> }) {
   const [form, setForm] = useState({
-    'site.name':     settings['site.name'] ?? 'UNKORA',
-    'site.tagline':  settings['site.tagline'] ?? '',
-    'site.phone':    settings['site.phone'] ?? '',
-    'site.email':    settings['site.email'] ?? '',
-    'site.address':  settings['site.address'] ?? '',
-    'currency.code': settings['currency.code'] ?? 'BDT',
-    'currency.symbol': settings['currency.symbol'] ?? '৳',
+    'site.name':        settings['site.name'] ?? 'UNKORA',
+    'site.tagline':     settings['site.tagline'] ?? '',
+    'site.email':       settings['site.email'] ?? '',
+    'site.phone':       settings['site.phone'] ?? '',
+    'site.address':     settings['site.address'] ?? '',
+    'currency.code':    settings['currency.code'] ?? 'BDT',
+    'currency.symbol':  settings['currency.symbol'] ?? '৳',
+    'timezone':         settings['timezone'] ?? 'Asia/Dhaka',
+    'date.format':      settings['date.format'] ?? 'DD/MM/YYYY',
   });
   const [dirty, setDirty] = useState(false);
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setForm(f => ({ ...f, [k]: e.target.value }));
-    setDirty(true);
-    setSuccess(false);
-  };
-
-  const handleSave = async () => {
-    setPending(true);
-    await onSave(form);
-    setDirty(false);
-    setSuccess(true);
-    setPending(false);
-    setTimeout(() => setSuccess(false), 3000);
-  };
-
-  return (
-    <div>
-      <div className="mb-5">
-        <h2 className="font-bold text-lg">Store Information</h2>
-        <p className="text-sm text-muted-foreground">Basic details about your UNKORA store</p>
-      </div>
-      <div className="rounded-xl border bg-card px-5">
-        <FieldRow label="Store Name" hint="Displayed in browser title and emails">
-          <input value={form['site.name']} onChange={set('site.name')} className={inp} />
-        </FieldRow>
-        <FieldRow label="Tagline" hint="Short description shown in marketing">
-          <input value={form['site.tagline']} onChange={set('site.tagline')} className={inp} placeholder="e.g. Bangladesh's Best Bookstore" />
-        </FieldRow>
-        <FieldRow label="Phone Number" hint="Customer support number">
-          <input value={form['site.phone']} onChange={set('site.phone')} className={inp} placeholder="+880 1700-000000" />
-        </FieldRow>
-        <FieldRow label="Support Email">
-          <input type="email" value={form['site.email']} onChange={set('site.email')} className={inp} placeholder="support@unkora.com" />
-        </FieldRow>
-        <FieldRow label="Business Address">
-          <textarea value={form['site.address']} onChange={set('site.address')} rows={2}
-            className={inp + ' resize-none'} placeholder="Dhaka, Bangladesh" />
-        </FieldRow>
-        <FieldRow label="Currency">
-          <div className="flex gap-2">
-            <input value={form['currency.code']} onChange={set('currency.code')} className={inp + ' w-24'} placeholder="BDT" />
-            <input value={form['currency.symbol']} onChange={set('currency.symbol')} className={inp + ' w-20'} placeholder="৳" />
-            <span className="self-center text-xs text-muted-foreground">Code · Symbol</span>
-          </div>
-        </FieldRow>
-      </div>
-      <SaveBar isDirty={dirty} onSave={handleSave} isPending={pending} success={success} />
-    </div>
-  );
-}
-
-/* ─── Shipping Tab ────────────────────────────────────────────── */
-function ShippingTab({ settings, onSave }: { settings: Record<string, string>; onSave: (data: Record<string, string>) => Promise<void> }) {
-  const [form, setForm] = useState({
-    'shipping.dhaka_rate':        settings['shipping.dhaka_rate'] ?? '60',
-    'shipping.outside_dhaka_rate': settings['shipping.outside_dhaka_rate'] ?? '100',
-    'shipping.free_threshold':    settings['shipping.free_threshold'] ?? '500',
-    'shipping.cod_charge':        settings['shipping.cod_charge'] ?? '0',
-  });
-  const [dirty, setDirty] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [pending, setPending] = useState(false);
-
-  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm(f => ({ ...f, [k]: e.target.value }));
     setDirty(true); setSuccess(false);
   };
@@ -166,47 +105,148 @@ function ShippingTab({ settings, onSave }: { settings: Record<string, string>; o
   return (
     <div>
       <div className="mb-5">
-        <h2 className="font-bold text-lg">Shipping Rates</h2>
-        <p className="text-sm text-muted-foreground">Delivery zones and pricing for Bangladesh</p>
+        <h2 className="font-bold text-lg">General Settings</h2>
+        <p className="text-sm text-muted-foreground">Core site configuration and regional settings</p>
       </div>
-
-      <div className="space-y-3 mb-5">
-        {[
-          { key: 'shipping.dhaka_rate',         label: '🏙️ Dhaka City Delivery',  hint: '1–2 business days', icon: '৳' },
-          { key: 'shipping.outside_dhaka_rate', label: '🗺️ Outside Dhaka',         hint: '3–5 business days', icon: '৳' },
-          { key: 'shipping.cod_charge',         label: '💵 COD Charge',            hint: 'Extra fee for Cash on Delivery', icon: '৳' },
-          { key: 'shipping.free_threshold',     label: '🎁 Free Shipping Threshold', hint: 'Orders above this get free delivery', icon: '৳' },
-        ].map(({ key, label, hint, icon }) => (
-          <div key={key} className="flex items-center gap-4 rounded-xl border bg-card px-5 py-4">
-            <div className="flex-1">
-              <p className="font-semibold text-sm">{label}</p>
-              <p className="text-xs text-muted-foreground">{hint}</p>
-            </div>
-            <div className="relative w-32">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">{icon}</span>
-              <input type="number" min="0" value={form[key as keyof typeof form]} onChange={set(key)}
-                className={inp + ' pl-7 text-right font-bold'} />
-            </div>
+      <div className="rounded-xl border bg-card px-5">
+        <FieldRow label="Site Name" hint="Shown in browser title and emails">
+          <input value={form['site.name']} onChange={set('site.name')} className={inp} />
+        </FieldRow>
+        <FieldRow label="Tagline" hint="Short marketing description">
+          <input value={form['site.tagline']} onChange={set('site.tagline')} className={inp} placeholder="Bangladesh's Best Bookstore" />
+        </FieldRow>
+        <FieldRow label="Support Email">
+          <input type="email" value={form['site.email']} onChange={set('site.email')} className={inp} placeholder="support@unkora.com" />
+        </FieldRow>
+        <FieldRow label="Phone Number">
+          <input value={form['site.phone']} onChange={set('site.phone')} className={inp} placeholder="+880 1700-000000" />
+        </FieldRow>
+        <FieldRow label="Business Address">
+          <textarea value={form['site.address']} onChange={set('site.address')} rows={2}
+            className={inp + ' resize-none'} placeholder="Dhaka, Bangladesh" />
+        </FieldRow>
+        <FieldRow label="Currency" hint="Default currency code and symbol">
+          <div className="flex gap-2">
+            <input value={form['currency.code']} onChange={set('currency.code')} className={inp + ' w-24'} placeholder="BDT" />
+            <input value={form['currency.symbol']} onChange={set('currency.symbol')} className={inp + ' w-20'} placeholder="৳" />
           </div>
-        ))}
+        </FieldRow>
+        <FieldRow label="Timezone">
+          <select value={form['timezone']} onChange={set('timezone')} className={inp}>
+            <option value="Asia/Dhaka">Asia/Dhaka (UTC+6)</option>
+            <option value="Asia/Kolkata">Asia/Kolkata (UTC+5:30)</option>
+            <option value="UTC">UTC</option>
+          </select>
+        </FieldRow>
+        <FieldRow label="Date Format">
+          <select value={form['date.format']} onChange={set('date.format')} className={inp}>
+            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+          </select>
+        </FieldRow>
       </div>
+      <SaveBar isDirty={dirty} onSave={handleSave} isPending={pending} success={success} />
+    </div>
+  );
+}
 
-      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-700">
-        <p className="font-semibold mb-1">💡 How it works</p>
-        <ul className="space-y-1 text-xs text-blue-600 list-disc list-inside">
-          <li>Orders below the free shipping threshold pay the zone rate</li>
-          <li>COD charge is added on top of shipping when customer selects Cash on Delivery</li>
-          <li>Pathao, Steadfast, RedX integrations use these base rates</li>
-        </ul>
+/* ─── Store Info Tab ──────────────────────────────────────────── */
+function StoreTab({ settings, onSave }: { settings: Record<string, string>; onSave: (d: Record<string, string>) => Promise<void> }) {
+  const [form, setForm] = useState({
+    'store.orderPrefix':       settings['store.orderPrefix'] ?? 'ORD',
+    'store.minOrderAmount':    settings['store.minOrderAmount'] ?? '0',
+    'store.maxOrderAmount':    settings['store.maxOrderAmount'] ?? '',
+    'store.guestCheckout':     settings['store.guestCheckout'] ?? 'true',
+    'store.stockWarningLevel': settings['store.stockWarningLevel'] ?? '5',
+    'store.reviewsEnabled':    settings['store.reviewsEnabled'] ?? 'true',
+    'store.wishlistEnabled':   settings['store.wishlistEnabled'] ?? 'true',
+    'store.maintenanceMode':   settings['store.maintenanceMode'] ?? 'false',
+    'new_arrival.days_window': settings['new_arrival.days_window'] ?? '7',
+    'flash_sale.enabled':      settings['flash_sale.enabled'] ?? 'false',
+    'flash_sale.discount_percentage': settings['flash_sale.discount_percentage'] ?? '20',
+  });
+  const [dirty, setDirty] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm(f => ({ ...f, [k]: e.target.value }));
+    setDirty(true); setSuccess(false);
+  };
+  const toggle = (k: keyof typeof form) => {
+    setForm(f => ({ ...f, [k]: f[k] === 'true' ? 'false' : 'true' }));
+    setDirty(true); setSuccess(false);
+  };
+
+  const handleSave = async () => {
+    setPending(true);
+    await onSave(form);
+    setDirty(false); setSuccess(true); setPending(false);
+    setTimeout(() => setSuccess(false), 3000);
+  };
+
+  return (
+    <div>
+      <div className="mb-5">
+        <h2 className="font-bold text-lg">Store Configuration</h2>
+        <p className="text-sm text-muted-foreground">Order settings, features, and maintenance</p>
       </div>
-
+      <div className="rounded-xl border bg-card px-5">
+        <FieldRow label="Order ID Prefix" hint="Prepended to all order IDs">
+          <input value={form['store.orderPrefix']} onChange={set('store.orderPrefix')} className={inp + ' w-32'} />
+        </FieldRow>
+        <FieldRow label="Min Order Amount (৳)" hint="0 for no minimum">
+          <input type="number" min="0" value={form['store.minOrderAmount']} onChange={set('store.minOrderAmount')} className={inp + ' w-40'} />
+        </FieldRow>
+        <FieldRow label="Stock Warning Level" hint="Show low-stock badge below this count">
+          <input type="number" min="1" value={form['store.stockWarningLevel']} onChange={set('store.stockWarningLevel')} className={inp + ' w-40'} />
+        </FieldRow>
+        <FieldRow label="New Arrival Window" hint="Days a product is labeled 'New'">
+          <input type="number" min="1" max="60" value={form['new_arrival.days_window']} onChange={set('new_arrival.days_window')} className={inp + ' w-40'} />
+        </FieldRow>
+        <FieldRow label="Guest Checkout">
+          <div className="flex items-center gap-3">
+            <Toggle value={form['store.guestCheckout'] === 'true'} onChange={() => toggle('store.guestCheckout')} />
+            <span className="text-sm text-muted-foreground">Allow orders without account</span>
+          </div>
+        </FieldRow>
+        <FieldRow label="Product Reviews">
+          <Toggle value={form['store.reviewsEnabled'] === 'true'} onChange={() => toggle('store.reviewsEnabled')} />
+        </FieldRow>
+        <FieldRow label="Wishlist">
+          <Toggle value={form['store.wishlistEnabled'] === 'true'} onChange={() => toggle('store.wishlistEnabled')} />
+        </FieldRow>
+        <FieldRow label="Flash Sale" hint="Show sitewide flash sale banner">
+          <div className="flex items-center gap-3">
+            <Toggle value={form['flash_sale.enabled'] === 'true'} onChange={() => toggle('flash_sale.enabled')} />
+            {form['flash_sale.enabled'] === 'true' && (
+              <div className="flex items-center gap-2">
+                <input type="number" min="1" max="90" value={form['flash_sale.discount_percentage']}
+                  onChange={set('flash_sale.discount_percentage')} className={inp + ' w-20'} />
+                <span className="text-sm text-muted-foreground">% off</span>
+              </div>
+            )}
+          </div>
+        </FieldRow>
+        <FieldRow label="Maintenance Mode" hint="Shows a maintenance page to visitors">
+          <div className="flex items-center gap-3">
+            <Toggle value={form['store.maintenanceMode'] === 'true'} onChange={() => toggle('store.maintenanceMode')} />
+            {form['store.maintenanceMode'] === 'true' && (
+              <span className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5">
+                Site is in maintenance mode
+              </span>
+            )}
+          </div>
+        </FieldRow>
+      </div>
       <SaveBar isDirty={dirty} onSave={handleSave} isPending={pending} success={success} />
     </div>
   );
 }
 
 /* ─── Payment Tab ────────────────────────────────────────────── */
-function PaymentTab({ settings, onSave }: { settings: Record<string, string>; onSave: (data: Record<string, string>) => Promise<void> }) {
+function PaymentTab({ settings, onSave }: { settings: Record<string, string>; onSave: (d: Record<string, string>) => Promise<void> }) {
   const [form, setForm] = useState({
     'payment.bkash.enabled':   settings['payment.bkash.enabled']   ?? 'true',
     'payment.nagad.enabled':   settings['payment.nagad.enabled']   ?? 'true',
@@ -220,8 +260,8 @@ function PaymentTab({ settings, onSave }: { settings: Record<string, string>; on
   const [success, setSuccess] = useState(false);
   const [pending, setPending] = useState(false);
 
-  const toggle = (k: string) => {
-    setForm(f => ({ ...f, [k]: f[k as keyof typeof f] === 'true' ? 'false' : 'true' }));
+  const toggle = (k: keyof typeof form) => {
+    setForm(f => ({ ...f, [k]: f[k] === 'true' ? 'false' : 'true' }));
     setDirty(true); setSuccess(false);
   };
   const setField = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -237,17 +277,17 @@ function PaymentTab({ settings, onSave }: { settings: Record<string, string>; on
   };
 
   const METHODS = [
-    { key: 'bkash',  name: 'bKash',             type: 'Mobile Banking', color: 'border-pink-200 bg-pink-50',    numKey: 'payment.bkash.number',   placeholder: '01XXXXXXXXX (Merchant)' },
-    { key: 'nagad',  name: 'Nagad',              type: 'Mobile Banking', color: 'border-orange-200 bg-orange-50', numKey: 'payment.nagad.number',   placeholder: '01XXXXXXXXX (Merchant)' },
-    { key: 'rocket', name: 'Rocket (DBBL)',       type: 'Mobile Banking', color: 'border-purple-200 bg-purple-50', numKey: 'payment.rocket.number', placeholder: '01XXXXXXXXX' },
-    { key: 'cod',    name: 'Cash on Delivery',   type: 'Cash Payment',   color: 'border-green-200 bg-green-50',  numKey: null,                     placeholder: '' },
+    { key: 'bkash',  name: 'bKash',           color: 'border-pink-200 bg-pink-50',    numKey: 'payment.bkash.number',   placeholder: '01XXXXXXXXX (Merchant)' },
+    { key: 'nagad',  name: 'Nagad',            color: 'border-orange-200 bg-orange-50', numKey: 'payment.nagad.number',  placeholder: '01XXXXXXXXX (Merchant)' },
+    { key: 'rocket', name: 'Rocket (DBBL)',     color: 'border-purple-200 bg-purple-50', numKey: 'payment.rocket.number', placeholder: '01XXXXXXXXX' },
+    { key: 'cod',    name: 'Cash on Delivery', color: 'border-green-200 bg-green-50',  numKey: null, placeholder: '' },
   ];
 
   return (
     <div>
       <div className="mb-5">
         <h2 className="font-bold text-lg">Payment Methods</h2>
-        <p className="text-sm text-muted-foreground">Enable or disable payment options for your customers</p>
+        <p className="text-sm text-muted-foreground">Enable or disable payment options at checkout</p>
       </div>
       <div className="space-y-3">
         {METHODS.map(m => {
@@ -256,16 +296,8 @@ function PaymentTab({ settings, onSave }: { settings: Record<string, string>; on
           return (
             <div key={m.key} className={`rounded-xl border p-4 ${m.color}`}>
               <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="font-bold text-sm">{m.name}</p>
-                  <p className="text-xs text-muted-foreground">{m.type}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`text-xs font-semibold ${isEnabled ? 'text-green-700' : 'text-muted-foreground'}`}>
-                    {isEnabled ? 'Enabled' : 'Disabled'}
-                  </span>
-                  <Toggle value={isEnabled} onChange={() => toggle(enabledKey)} />
-                </div>
+                <p className="font-bold text-sm">{m.name}</p>
+                <Toggle value={isEnabled} onChange={() => toggle(enabledKey)} />
               </div>
               {m.numKey && isEnabled && (
                 <div className="mt-3">
@@ -279,84 +311,20 @@ function PaymentTab({ settings, onSave }: { settings: Record<string, string>; on
           );
         })}
       </div>
-      <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-700">
-        <p className="font-semibold mb-1">⚠️ Important</p>
-        <p>These settings control which payment options customers see at checkout. Make sure merchant numbers are correct before enabling. For bKash/Nagad merchant API integration, contact your developer.</p>
-      </div>
       <SaveBar isDirty={dirty} onSave={handleSave} isPending={pending} success={success} />
     </div>
   );
 }
 
-/* ─── Flash Sale Tab ─────────────────────────────────────────── */
-function FlashSaleTab({ settings, onSave }: { settings: Record<string, string>; onSave: (data: Record<string, string>) => Promise<void> }) {
+/* ─── Shipping Tab ────────────────────────────────────────────── */
+function ShippingTab({ settings, onSave }: { settings: Record<string, string>; onSave: (d: Record<string, string>) => Promise<void> }) {
   const [form, setForm] = useState({
-    'flash_sale.enabled':             settings['flash_sale.enabled'] ?? 'false',
-    'flash_sale.discount_percentage': settings['flash_sale.discount_percentage'] ?? '20',
-    'new_arrival.days_window':        settings['new_arrival.days_window'] ?? '7',
-  });
-  const [dirty, setDirty] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [pending, setPending] = useState(false);
-
-  const isEnabled = form['flash_sale.enabled'] === 'true';
-
-  const handleSave = async () => {
-    setPending(true);
-    await onSave(form);
-    setDirty(false); setSuccess(true); setPending(false);
-    setTimeout(() => setSuccess(false), 3000);
-  };
-
-  return (
-    <div>
-      <div className="mb-5">
-        <h2 className="font-bold text-lg">Flash Sale & Promotions</h2>
-        <p className="text-sm text-muted-foreground">Control sitewide sale settings and new arrival windows</p>
-      </div>
-      <div className="rounded-xl border bg-card px-5 mb-4">
-        <FieldRow label="Flash Sale" hint="Show flash sale banner and apply sitewide discount">
-          <div className="flex items-center gap-3">
-            <Toggle value={isEnabled} onChange={v => { setForm(f => ({ ...f, 'flash_sale.enabled': v ? 'true' : 'false' })); setDirty(true); setSuccess(false); }} />
-            <span className={`text-sm font-semibold ${isEnabled ? 'text-green-600' : 'text-muted-foreground'}`}>
-              {isEnabled ? 'Active' : 'Off'}
-            </span>
-          </div>
-        </FieldRow>
-        {isEnabled && (
-          <FieldRow label="Discount Percentage" hint="Applied to marked products during flash sale">
-            <div className="relative w-32">
-              <input type="number" min="1" max="90" value={form['flash_sale.discount_percentage']}
-                onChange={e => { setForm(f => ({ ...f, 'flash_sale.discount_percentage': e.target.value })); setDirty(true); setSuccess(false); }}
-                className={inp + ' pr-8'} />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-muted-foreground">%</span>
-            </div>
-          </FieldRow>
-        )}
-        <FieldRow label="New Arrival Window" hint="Products added within this many days appear as 'New'">
-          <div className="relative w-32">
-            <input type="number" min="1" max="60" value={form['new_arrival.days_window']}
-              onChange={e => { setForm(f => ({ ...f, 'new_arrival.days_window': e.target.value })); setDirty(true); setSuccess(false); }}
-              className={inp + ' pr-16'} />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">days</span>
-          </div>
-        </FieldRow>
-      </div>
-      <SaveBar isDirty={dirty} onSave={handleSave} isPending={pending} success={success} />
-    </div>
-  );
-}
-
-/* ─── Analytics Tab ───────────────────────────────────────────── */
-function AnalyticsTab({ settings, onSave }: { settings: Record<string, string>; onSave: (data: Record<string, string>) => Promise<void> }) {
-  const [form, setForm] = useState({
-    'analytics.ga4.enabled':       settings['analytics.ga4.enabled'] ?? 'false',
-    'analytics.ga4.measurementId': settings['analytics.ga4.measurementId'] ?? '',
-    'analytics.gtm.enabled':       settings['analytics.gtm.enabled'] ?? 'false',
-    'analytics.gtm.containerId':   settings['analytics.gtm.containerId'] ?? '',
-    'analytics.pixel.enabled':     settings['analytics.pixel.enabled'] ?? 'false',
-    'analytics.pixel.pixelId':     settings['analytics.pixel.pixelId'] ?? '',
-    'analytics.gsc.verificationTag': settings['analytics.gsc.verificationTag'] ?? '',
+    'shipping.dhaka_rate':         settings['shipping.dhaka_rate']         ?? '60',
+    'shipping.outside_dhaka_rate': settings['shipping.outside_dhaka_rate'] ?? '100',
+    'shipping.free_threshold':     settings['shipping.free_threshold']     ?? '500',
+    'shipping.cod_charge':         settings['shipping.cod_charge']         ?? '0',
+    'shipping.express_rate':       settings['shipping.express_rate']       ?? '150',
+    'shipping.same_day_enabled':   settings['shipping.same_day_enabled']   ?? 'false',
   });
   const [dirty, setDirty] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -366,8 +334,8 @@ function AnalyticsTab({ settings, onSave }: { settings: Record<string, string>; 
     setForm(f => ({ ...f, [k]: e.target.value }));
     setDirty(true); setSuccess(false);
   };
-  const toggleField = (k: string) => {
-    setForm(f => ({ ...f, [k]: f[k as keyof typeof form] === 'true' ? 'false' : 'true' }));
+  const toggle = (k: keyof typeof form) => {
+    setForm(f => ({ ...f, [k]: f[k] === 'true' ? 'false' : 'true' }));
     setDirty(true); setSuccess(false);
   };
 
@@ -378,93 +346,216 @@ function AnalyticsTab({ settings, onSave }: { settings: Record<string, string>; 
     setTimeout(() => setSuccess(false), 3000);
   };
 
-  const TOOLS = [
-    { enableKey: 'analytics.ga4.enabled', idKey: 'analytics.ga4.measurementId', name: 'Google Analytics 4', placeholder: 'G-XXXXXXXXXX', color: 'border-orange-200 bg-orange-50' },
-    { enableKey: 'analytics.gtm.enabled', idKey: 'analytics.gtm.containerId',   name: 'Google Tag Manager', placeholder: 'GTM-XXXXXXX',  color: 'border-blue-200 bg-blue-50' },
-    { enableKey: 'analytics.pixel.enabled', idKey: 'analytics.pixel.pixelId',   name: 'Meta (Facebook) Pixel', placeholder: '123456789012345', color: 'border-indigo-200 bg-indigo-50' },
+  const rates = [
+    { key: 'shipping.dhaka_rate',         label: 'Dhaka City Delivery', hint: '1–2 business days' },
+    { key: 'shipping.outside_dhaka_rate', label: 'Outside Dhaka',       hint: '3–5 business days' },
+    { key: 'shipping.express_rate',       label: 'Express Delivery',    hint: 'Next day delivery' },
+    { key: 'shipping.cod_charge',         label: 'COD Charge',          hint: 'Extra for Cash on Delivery' },
+    { key: 'shipping.free_threshold',     label: 'Free Shipping Above', hint: '0 to disable free shipping' },
   ];
 
   return (
     <div>
       <div className="mb-5">
-        <h2 className="font-bold text-lg">Analytics & Tracking</h2>
-        <p className="text-sm text-muted-foreground">Connect your marketing and analytics tools</p>
+        <h2 className="font-bold text-lg">Shipping Rates</h2>
+        <p className="text-sm text-muted-foreground">Delivery zones and pricing for Bangladesh</p>
       </div>
       <div className="space-y-3 mb-4">
-        {TOOLS.map(t => {
-          const enabled = form[t.enableKey as keyof typeof form] === 'true';
-          return (
-            <div key={t.enableKey} className={`rounded-xl border p-4 ${t.color}`}>
-              <div className="flex items-center justify-between gap-3 mb-2">
-                <p className="font-bold text-sm">{t.name}</p>
-                <Toggle value={enabled} onChange={() => toggleField(t.enableKey)} />
-              </div>
-              {enabled && (
-                <input value={form[t.idKey as keyof typeof form]} onChange={set(t.idKey)}
-                  placeholder={t.placeholder}
-                  className="w-full rounded-md border bg-white px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-ring" />
-              )}
+        {rates.map(r => (
+          <div key={r.key} className="flex items-center gap-4 rounded-xl border bg-card px-5 py-4">
+            <div className="flex-1">
+              <p className="font-semibold text-sm">{r.label}</p>
+              <p className="text-xs text-muted-foreground">{r.hint}</p>
             </div>
-          );
-        })}
-
-        <div className="rounded-xl border bg-card p-4">
-          <p className="font-bold text-sm mb-2">Google Search Console</p>
-          <label className="text-xs font-semibold text-muted-foreground">Verification Meta Tag</label>
-          <input value={form['analytics.gsc.verificationTag']} onChange={set('analytics.gsc.verificationTag')}
-            placeholder="<meta name='google-site-verification' content='...' />"
-            className={inp + ' mt-1 font-mono text-xs'} />
-        </div>
+            <div className="relative w-32">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">৳</span>
+              <input type="number" min="0" value={form[r.key as keyof typeof form]}
+                onChange={set(r.key)} className={inp + ' pl-7 text-right font-bold'} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="rounded-xl border bg-card px-5 mb-4">
+        <FieldRow label="Same-Day Delivery" hint="Enable same-day delivery option">
+          <Toggle value={form['shipping.same_day_enabled'] === 'true'} onChange={() => toggle('shipping.same_day_enabled')} />
+        </FieldRow>
       </div>
       <SaveBar isDirty={dirty} onSave={handleSave} isPending={pending} success={success} />
     </div>
   );
 }
 
-/* ─── About Tab ──────────────────────────────────────────────── */
-function AboutTab() {
-  const rows = [
-    { l: 'Application',  v: 'UNKORA Admin Panel' },
-    { l: 'Version',      v: 'v1.0.0' },
-    { l: 'Framework',    v: 'Next.js 15 App Router + TypeScript' },
-    { l: 'API',          v: 'NestJS + Fastify (REST)' },
-    { l: 'Database',     v: 'PostgreSQL 16 via Prisma ORM' },
-    { l: 'Cache',        v: 'Redis 7 / In-Memory (dev)' },
-    { l: 'Auth',         v: 'JWT (access 15m + refresh 7d) + Argon2' },
-    { l: 'Payments',     v: 'bKash, Nagad, COD (Rocket optional)' },
-    { l: 'Shipping',     v: 'Pathao, Steadfast, RedX integrations' },
-    { l: 'Support',      v: 'dev@unkora.com' },
-  ];
-  const stack = ['Next.js 15','TypeScript','Tailwind CSS','TanStack Query','Zustand','NestJS','Fastify','Prisma','PostgreSQL','Redis','Argon2','Zod'];
+/* ─── SEO Tab ────────────────────────────────────────────────── */
+function SeoTab({ settings, onSave }: { settings: Record<string, string>; onSave: (d: Record<string, string>) => Promise<void> }) {
+  const [form, setForm] = useState({
+    'seo.title':              settings['seo.title']              ?? '',
+    'seo.description':        settings['seo.description']        ?? '',
+    'seo.keywords':           settings['seo.keywords']           ?? '',
+    'seo.ogImage':            settings['seo.ogImage']            ?? '',
+    'seo.robots':             settings['seo.robots']             ?? 'index, follow',
+    'seo.canonicalUrl':       settings['seo.canonicalUrl']       ?? '',
+    'analytics.ga4.enabled':  settings['analytics.ga4.enabled']  ?? 'false',
+    'analytics.ga4.measurementId': settings['analytics.ga4.measurementId'] ?? '',
+    'analytics.gtm.enabled':  settings['analytics.gtm.enabled']  ?? 'false',
+    'analytics.gtm.containerId': settings['analytics.gtm.containerId'] ?? '',
+    'analytics.gsc.verificationTag': settings['analytics.gsc.verificationTag'] ?? '',
+  });
+  const [dirty, setDirty] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm(f => ({ ...f, [k]: e.target.value }));
+    setDirty(true); setSuccess(false);
+  };
+  const toggle = (k: keyof typeof form) => {
+    setForm(f => ({ ...f, [k]: f[k] === 'true' ? 'false' : 'true' }));
+    setDirty(true); setSuccess(false);
+  };
+
+  const handleSave = async () => {
+    setPending(true);
+    await onSave(form);
+    setDirty(false); setSuccess(true); setPending(false);
+    setTimeout(() => setSuccess(false), 3000);
+  };
+
   return (
     <div>
       <div className="mb-5">
-        <h2 className="font-bold text-lg">About UNKORA</h2>
-        <p className="text-sm text-muted-foreground">System information and tech stack</p>
+        <h2 className="font-bold text-lg">SEO & Analytics</h2>
+        <p className="text-sm text-muted-foreground">Search engine optimization and tracking</p>
       </div>
       <div className="rounded-xl border bg-card px-5 mb-4">
-        {rows.map(r => (
-          <div key={r.l} className="py-3 border-b last:border-0 grid grid-cols-2 gap-4">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{r.l}</span>
-            <span className="text-sm font-medium">{r.v}</span>
+        <FieldRow label="Meta Title" hint="Default page title (60 chars max)">
+          <input value={form['seo.title']} onChange={set('seo.title')} className={inp} maxLength={60} placeholder="UNKORA - Bangladesh's Best Bookstore" />
+        </FieldRow>
+        <FieldRow label="Meta Description" hint="Default page description (160 chars max)">
+          <textarea value={form['seo.description']} onChange={set('seo.description')} rows={3}
+            className={inp + ' resize-none'} maxLength={160} placeholder="Shop books, stationery and more..." />
+        </FieldRow>
+        <FieldRow label="Keywords" hint="Comma-separated keywords">
+          <input value={form['seo.keywords']} onChange={set('seo.keywords')} className={inp} placeholder="books, stationery, bangladesh" />
+        </FieldRow>
+        <FieldRow label="OG Image URL" hint="Social share preview image">
+          <input type="url" value={form['seo.ogImage']} onChange={set('seo.ogImage')} className={inp} placeholder="https://..." />
+        </FieldRow>
+        <FieldRow label="Robots" hint="Crawling directive for search engines">
+          <select value={form['seo.robots']} onChange={(e) => { setForm(f => ({ ...f, 'seo.robots': e.target.value })); setDirty(true); }} className={inp}>
+            <option value="index, follow">index, follow</option>
+            <option value="noindex, follow">noindex, follow</option>
+            <option value="index, nofollow">index, nofollow</option>
+            <option value="noindex, nofollow">noindex, nofollow</option>
+          </select>
+        </FieldRow>
+        <FieldRow label="Canonical URL" hint="Base URL for canonicalization">
+          <input type="url" value={form['seo.canonicalUrl']} onChange={set('seo.canonicalUrl')} className={inp} placeholder="https://unkora.com" />
+        </FieldRow>
+      </div>
+      <div className="rounded-xl border bg-card px-5">
+        <FieldRow label="Google Analytics 4">
+          <div className="flex items-center gap-3">
+            <Toggle value={form['analytics.ga4.enabled'] === 'true'} onChange={() => toggle('analytics.ga4.enabled')} />
+            {form['analytics.ga4.enabled'] === 'true' && (
+              <input value={form['analytics.ga4.measurementId']} onChange={set('analytics.ga4.measurementId')}
+                placeholder="G-XXXXXXXXXX" className={inp + ' font-mono'} />
+            )}
           </div>
+        </FieldRow>
+        <FieldRow label="Google Tag Manager">
+          <div className="flex items-center gap-3">
+            <Toggle value={form['analytics.gtm.enabled'] === 'true'} onChange={() => toggle('analytics.gtm.enabled')} />
+            {form['analytics.gtm.enabled'] === 'true' && (
+              <input value={form['analytics.gtm.containerId']} onChange={set('analytics.gtm.containerId')}
+                placeholder="GTM-XXXXXXX" className={inp + ' font-mono'} />
+            )}
+          </div>
+        </FieldRow>
+        <FieldRow label="Google Search Console" hint="Verification meta tag">
+          <input value={form['analytics.gsc.verificationTag']} onChange={set('analytics.gsc.verificationTag')}
+            placeholder="<meta name='google-site-verification' content='...' />"
+            className={inp + ' font-mono text-xs'} />
+        </FieldRow>
+      </div>
+      <SaveBar isDirty={dirty} onSave={handleSave} isPending={pending} success={success} />
+    </div>
+  );
+}
+
+/* ─── Social Tab ─────────────────────────────────────────────── */
+function SocialTab({ settings, onSave }: { settings: Record<string, string>; onSave: (d: Record<string, string>) => Promise<void> }) {
+  const [form, setForm] = useState({
+    'social.facebook':  settings['social.facebook']  ?? '',
+    'social.instagram': settings['social.instagram'] ?? '',
+    'social.twitter':   settings['social.twitter']   ?? '',
+    'social.youtube':   settings['social.youtube']   ?? '',
+    'social.linkedin':  settings['social.linkedin']  ?? '',
+    'social.tiktok':    settings['social.tiktok']    ?? '',
+    'analytics.pixel.enabled': settings['analytics.pixel.enabled'] ?? 'false',
+    'analytics.pixel.pixelId': settings['analytics.pixel.pixelId'] ?? '',
+  });
+  const [dirty, setDirty] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm(f => ({ ...f, [k]: e.target.value }));
+    setDirty(true); setSuccess(false);
+  };
+  const toggle = (k: keyof typeof form) => {
+    setForm(f => ({ ...f, [k]: f[k] === 'true' ? 'false' : 'true' }));
+    setDirty(true); setSuccess(false);
+  };
+
+  const handleSave = async () => {
+    setPending(true);
+    await onSave(form);
+    setDirty(false); setSuccess(true); setPending(false);
+    setTimeout(() => setSuccess(false), 3000);
+  };
+
+  const PLATFORMS = [
+    { key: 'social.facebook',  label: 'Facebook',  placeholder: 'https://facebook.com/yourpage' },
+    { key: 'social.instagram', label: 'Instagram', placeholder: 'https://instagram.com/yourhandle' },
+    { key: 'social.twitter',   label: 'X (Twitter)', placeholder: 'https://x.com/yourhandle' },
+    { key: 'social.youtube',   label: 'YouTube',   placeholder: 'https://youtube.com/@yourchannel' },
+    { key: 'social.linkedin',  label: 'LinkedIn',  placeholder: 'https://linkedin.com/company/yourco' },
+    { key: 'social.tiktok',    label: 'TikTok',    placeholder: 'https://tiktok.com/@yourhandle' },
+  ];
+
+  return (
+    <div>
+      <div className="mb-5">
+        <h2 className="font-bold text-lg">Social Media</h2>
+        <p className="text-sm text-muted-foreground">Links to your social media profiles and ad pixels</p>
+      </div>
+      <div className="rounded-xl border bg-card px-5 mb-4">
+        {PLATFORMS.map(p => (
+          <FieldRow key={p.key} label={p.label}>
+            <input type="url" value={form[p.key as keyof typeof form]} onChange={set(p.key)}
+              placeholder={p.placeholder} className={inp} />
+          </FieldRow>
         ))}
       </div>
-      <div className="rounded-xl border bg-card p-4">
-        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">Tech Stack</p>
-        <div className="flex flex-wrap gap-2">
-          {stack.map(t => (
-            <span key={t} className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">{t}</span>
-          ))}
-        </div>
+      <div className="rounded-xl border bg-card px-5">
+        <FieldRow label="Meta (Facebook) Pixel" hint="Conversion tracking pixel">
+          <div className="flex items-center gap-3">
+            <Toggle value={form['analytics.pixel.enabled'] === 'true'} onChange={() => toggle('analytics.pixel.enabled')} />
+            {form['analytics.pixel.enabled'] === 'true' && (
+              <input value={form['analytics.pixel.pixelId']} onChange={set('analytics.pixel.pixelId')}
+                placeholder="123456789012345" className={inp + ' font-mono'} />
+            )}
+          </div>
+        </FieldRow>
       </div>
+      <SaveBar isDirty={dirty} onSave={handleSave} isPending={pending} success={success} />
     </div>
   );
 }
 
 /* ─── Main Page ──────────────────────────────────────────────── */
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<TabId>('store');
+  const [activeTab, setActiveTab] = useState<TabId>('general');
   const qc = useQueryClient();
 
   const { data: settings = {}, isLoading, error } = useQuery({
@@ -493,12 +584,12 @@ export default function SettingsPage() {
   );
 
   const tabContent: Record<TabId, React.ReactNode> = {
-    store:     <StoreInfoTab    settings={settings} onSave={handleSave} />,
-    shipping:  <ShippingTab     settings={settings} onSave={handleSave} />,
-    payment:   <PaymentTab      settings={settings} onSave={handleSave} />,
-    flash:     <FlashSaleTab    settings={settings} onSave={handleSave} />,
-    analytics: <AnalyticsTab    settings={settings} onSave={handleSave} />,
-    about:     <AboutTab />,
+    general:  <GeneralTab  settings={settings} onSave={handleSave} />,
+    store:    <StoreTab    settings={settings} onSave={handleSave} />,
+    payment:  <PaymentTab  settings={settings} onSave={handleSave} />,
+    shipping: <ShippingTab settings={settings} onSave={handleSave} />,
+    seo:      <SeoTab      settings={settings} onSave={handleSave} />,
+    social:   <SocialTab   settings={settings} onSave={handleSave} />,
   };
 
   return (

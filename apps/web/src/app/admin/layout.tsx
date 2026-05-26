@@ -10,6 +10,7 @@ import {
   RotateCcw, Bike, FileText, User, Sliders, Gavel, Layers,
   CreditCard, Star, Share2, Monitor, Store, MessageCircle,
   DollarSign, RefreshCw, Bell as BellIcon, Mail, Search,
+  Globe, Users2, PieChart, UserCog, Palette,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -94,10 +95,26 @@ const NAV: NavItem[] = [
   {
     label: 'SEO', icon: Search,
     children: [
-      { href: '/admin/seo', label: 'SEO Tools', icon: Search },
+      { href: '/admin/seo',          label: 'SEO Tools',    icon: Search },
     ],
   },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
+  {
+    label: 'Growth', icon: TrendingUp,
+    children: [
+      { href: '/admin/affiliates',        label: 'Affiliates',          icon: Share2 },
+      { href: '/admin/segments',          label: 'Segments',            icon: Users2 },
+      { href: '/admin/advanced-reports',  label: 'Advanced Reports',    icon: PieChart },
+    ],
+  },
+  {
+    label: 'Configuration', icon: Settings,
+    children: [
+      { href: '/admin/localization', label: 'Multi-Currency/Lang', icon: Globe },
+      { href: '/admin/design',       label: 'Design Studio',       icon: Palette },
+      { href: '/admin/staff',        label: 'Staff & Permissions', icon: UserCog },
+      { href: '/admin/settings',     label: 'Settings',            icon: Settings },
+    ],
+  },
 ];
 
 /* ─── Helpers ────────────────────────────────────────────────── */
@@ -225,6 +242,12 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/notifications': 'Push Notifications',
   '/admin/email-campaigns': 'Email Campaigns',
   '/admin/seo': 'SEO Tools',
+  '/admin/localization': 'Multi-Currency & Languages',
+  '/admin/affiliates': 'Affiliate Marketing',
+  '/admin/segments': 'Customer Segments',
+  '/admin/advanced-reports': 'Advanced Reports',
+  '/admin/staff': 'Staff & Permissions',
+  '/admin/design': 'Design Studio',
 };
 
 /* ─── Sidebar content ────────────────────────────────────────── */
