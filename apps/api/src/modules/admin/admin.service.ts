@@ -24,6 +24,9 @@ export class AdminService {
       newCustomersThisMonth,
       recentOrders,
       topProducts,
+      totalCategories,
+      orderStatusCounts,
+      paymentMethodCounts,
     ] = await Promise.all([
       this.prisma.order.aggregate({ where: { paymentStatus: 'PAID' }, _sum: { total: true } }),
       this.prisma.order.aggregate({ where: { paymentStatus: 'PAID', createdAt: { gte: startOfMonth } }, _sum: { total: true } }),
@@ -45,7 +48,23 @@ export class AdminService {
         orderBy: { _sum: { totalPrice: 'desc' } },
         take: 5,
       }),
+      this.prisma.category.count({ where: { isActive: true } }),
+      Promise.all(
+        ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'].map(status =>
+          this.prisma.order.count({ where: { status: status as any } }).then(count => ({ status, count })),
+        ),
+      ),
+      this.prisma.order.groupBy({
+        by: ['paymentMethod'],
+        _count: { id: true },
+      }),
     ]);
+
+    const byStatus: Record<string, number> = {};
+    orderStatusCounts.forEach(({ status, count }) => { byStatus[status] = count; });
+
+    const byPayment: Record<string, number> = {};
+    paymentMethodCounts.forEach(r => { byPayment[r.paymentMethod] = r._count.id; });
 
     return {
       revenue: {
@@ -56,6 +75,8 @@ export class AdminService {
       orders: {
         total: totalOrders,
         pending: pendingOrders,
+        byStatus,
+        byPayment,
       },
       products: {
         total: totalProducts,
@@ -64,6 +85,9 @@ export class AdminService {
       customers: {
         total: totalCustomers,
         newThisMonth: newCustomersThisMonth,
+      },
+      categories: {
+        total: totalCategories,
       },
       recentOrders,
       topProducts,

@@ -2,9 +2,10 @@ import api from '@/lib/api';
 
 export interface DashboardStats {
   revenue: { total: number; thisMonth: number; today: number };
-  orders: { total: number; pending: number };
+  orders: { total: number; pending: number; byStatus: Record<string, number>; byPayment: Record<string, number> };
   products: { total: number; lowStock: number };
   customers: { total: number; newThisMonth: number };
+  categories: { total: number };
   recentOrders: Array<{
     id: string;
     orderNumber: string;
