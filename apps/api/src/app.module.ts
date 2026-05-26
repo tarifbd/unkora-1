@@ -17,6 +17,7 @@ import { WarrantiesModule } from './modules/warranties/warranties.module';
 import { ProductLabelsModule } from './modules/product-labels/product-labels.module';
 import { ProductNotesModule } from './modules/product-notes/product-notes.module';
 import { SmartBarModule } from './modules/smart-bar/smart-bar.module';
+import { AuctionsModule } from './modules/auctions/auctions.module';
 import { BookSubmissionsModule } from './modules/book-submissions/book-submissions.module';
 import { BooksModule } from './modules/books/books.module';
 import { AppCacheModule } from './modules/cache/cache.module';
@@ -86,6 +87,7 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     ProductLabelsModule,
     ProductNotesModule,
     SmartBarModule,
+    AuctionsModule,
   ],
 })
 export class AppModule {}

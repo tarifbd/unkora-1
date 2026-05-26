@@ -7,7 +7,7 @@ import {
   Truck, Ticket, Users, MessageSquare, LogOut, Menu, X,
   ExternalLink, Bell, Settings, Target, Globe, TrendingUp, Zap,
   ShieldAlert, Plus, ChevronDown, ChevronRight,
-  RotateCcw, Bike, FileText, User, Sliders,
+  RotateCcw, Bike, FileText, User, Sliders, Gavel, Layers,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -33,6 +33,7 @@ const NAV: NavItem[] = [
       { href: '/admin/products/new',         label: 'Add New Product', icon: Plus },
       { href: '/admin/inventory',            label: 'Inventory',       icon: Archive },
       { href: '/admin/products/setup',       label: 'Product Setup',   icon: Sliders },
+      { href: '/admin/auctions',             label: 'Auctions',        icon: Gavel },
     ],
   },
   {
@@ -44,6 +45,7 @@ const NAV: NavItem[] = [
       { href: '/admin/promotions',   label: 'Promotions',      icon: Zap },
       { href: '/admin/refunds',      label: 'Refunds',         icon: RotateCcw },
       { href: '/admin/flash-deals',  label: 'Flash Deals',     icon: Zap },
+      { href: '/admin/wholesale',    label: 'Wholesale',       icon: Layers },
       { href: '/admin/fraud',        label: 'Fraud Detection', icon: ShieldAlert },
     ],
   },
@@ -165,6 +167,8 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/products/setup/size-guides': 'Size Guides',
   '/admin/products/setup/warranties': 'Warranties',
   '/admin/products/setup/labels': 'Product Labels',
+  '/admin/auctions': 'Auctions',
+  '/admin/wholesale': 'Wholesale Pricing',
   '/admin/categories': 'Categories',
   '/admin/inventory': 'Inventory',
   '/admin/orders': 'Orders',
