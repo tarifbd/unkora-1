@@ -215,7 +215,7 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
             <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
               className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold hover:bg-orange-600 transition-all">
               <Zap className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">{lang === 'bn' ? 'কিনুন' : 'Buy Now'}</span>
+              <span className="truncate">{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
             </Link>
           )}
         </div>
@@ -292,7 +292,7 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
             <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
               className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold hover:bg-orange-600 transition-all">
               <Zap className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">{lang === 'bn' ? 'কিনুন' : 'Buy Now'}</span>
+              <span className="truncate">{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
             </Link>
           )}
         </div>

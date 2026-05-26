@@ -155,7 +155,7 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
             <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
               className="flex-1 flex items-center justify-center gap-1 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 transition-all">
               <Zap className="w-3.5 h-3.5 flex-shrink-0" />
-              <span className="truncate">{lang === 'bn' ? 'কিনুন' : 'Buy Now'}</span>
+              <span className="truncate">{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
             </Link>
           )}
         </div>

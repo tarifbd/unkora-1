@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
-import { ShoppingCart, Minus, Plus, Loader2, ArrowLeft, BookOpen, Package } from 'lucide-react';
+import { ShoppingCart, Minus, Plus, Loader2, ArrowLeft, BookOpen, Package, Zap } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { productsApi } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useCartStore } from '@/store/cart.store';
@@ -22,9 +23,23 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   });
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
+  const [stickyVisible, setStickyVisible] = useState(false);
   const { addItem } = useCart();
   const { openCart } = useCartStore();
   const { t } = useLanguage();
+  const router = useRouter();
+  const buyBtnRef = useRef<HTMLDivElement>(null);
+
+  // Show sticky bar when the main buy button scrolls out of view
+  useEffect(() => {
+    if (!buyBtnRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setStickyVisible(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(buyBtnRef.current);
+    return () => observer.disconnect();
+  }, [product]);
 
   useEffect(() => {
     if (!product) return;
@@ -144,7 +159,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 
           {/* Qty + Add to Cart + Wishlist */}
           {product.stockQuantity > 0 && (
-            <div className="flex flex-col gap-2">
+            <div ref={buyBtnRef} className="flex flex-col gap-2">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 rounded-md border px-3 py-2">
                   <button onClick={() => setQty(Math.max(1, qty - 1))} className="hover:text-brand-600 transition-colors"><Minus className="h-4 w-4" /></button>
@@ -163,9 +178,9 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
               </div>
               <Link
                 href={`/checkout?productId=${product.id}&qty=${qty}`}
-                className="flex items-center justify-center gap-2 w-full py-3 bg-secondary text-white rounded-xl font-bold text-sm hover:bg-secondary/90 transition-all"
+                className="flex items-center justify-center gap-2 w-full py-3.5 bg-orange-500 text-white rounded-xl font-bold text-sm hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-200"
               >
-                ⚡ {t.product.buyNow}
+                <Zap className="h-4 w-4" /> এখনই কিনুন
               </Link>
             </div>
           )}
@@ -190,6 +205,43 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
       <ProductReviews productId={product.id} />
 
       <RelatedProducts categorySlug={product.category.slug} currentId={product.id} />
+
+      {/* ── Mobile sticky buy bar — shows when main button scrolls out of view ── */}
+      {product.stockQuantity > 0 && (
+        <div className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden transition-transform duration-300 ${stickyVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+          {/* Notification-style top hint */}
+          <div className="mx-3 mb-1 flex items-center gap-2 rounded-xl bg-gray-900/90 backdrop-blur-sm px-4 py-2.5 shadow-2xl">
+            <div className="relative flex-shrink-0">
+              {product.images[0] && (
+                <Image src={product.images[0].url} alt="" width={36} height={36} className="rounded-lg object-cover" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white text-xs font-bold truncate">{product.name}</p>
+              <p className="text-orange-400 text-xs font-black">{formatCurrency(price)}</p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <button
+                onClick={handleAddToCart}
+                disabled={addItem.isPending}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/20 text-white text-xs font-bold hover:bg-white/10 transition-colors"
+              >
+                <ShoppingCart className="h-3.5 w-3.5" />
+                <span className="hidden xs:inline">কার্ট</span>
+              </button>
+              <Link
+                href={`/checkout?productId=${product.id}&qty=${qty}`}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-orange-500 text-white text-xs font-black hover:bg-orange-600 active:scale-95 transition-all"
+              >
+                <Zap className="h-3.5 w-3.5" />
+                এখনই কিনুন
+              </Link>
+            </div>
+          </div>
+          {/* Safe area padding for iOS */}
+          <div className="bg-gray-900/90 pb-safe" style={{ height: 'env(safe-area-inset-bottom)' }} />
+        </div>
+      )}
     </div>
   );
 }

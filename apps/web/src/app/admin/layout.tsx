@@ -56,11 +56,11 @@ const NAV: NavItem[] = [
   {
     label: 'Operations', icon: Monitor,
     children: [
-      { href: '/admin/pos',                 label: 'POS Terminal',     icon: Monitor },
-      { href: '/admin/sellers',             label: 'Sellers',          icon: Store },
-      { href: '/admin/courier',             label: 'Courier',          icon: Truck },
+      { href: '/admin/pos',                 label: 'POS Terminal',       icon: Monitor },
+      { href: '/admin/sellers',             label: 'Sellers',            icon: Store },
+      { href: '/admin/courier',             label: 'Courier',            icon: Truck },
       { href: '/admin/cod-reconciliation',  label: 'COD Reconciliation', icon: DollarSign },
-      { href: '/admin/returns',             label: 'Returns',          icon: RefreshCw },
+      { href: '/admin/returns',             label: 'Returns',            icon: RefreshCw },
     ],
   },
   {
@@ -82,28 +82,28 @@ const NAV: NavItem[] = [
   {
     label: 'Marketing', icon: TrendingUp,
     children: [
-      { href: '/admin/analytics',                        label: 'Analytics Hub',    icon: TrendingUp },
-      { href: '/admin/analytics/meta-pixel',             label: 'Meta Pixel',       icon: Target },
-      { href: '/admin/analytics/google-analytics',       label: 'Google Analytics', icon: BarChart3 },
-      { href: '/admin/analytics/google-tag-manager',     label: 'Tag Manager',      icon: Tag },
-      { href: '/admin/analytics/google-search-console',  label: 'Search Console',   icon: Globe },
-      { href: '/admin/sms',                              label: 'SMS',              icon: MessageCircle },
+      { href: '/admin/analytics',                        label: 'Analytics Hub',      icon: TrendingUp },
+      { href: '/admin/analytics/meta-pixel',             label: 'Meta Pixel',         icon: Target },
+      { href: '/admin/analytics/google-analytics',       label: 'Google Analytics',   icon: BarChart3 },
+      { href: '/admin/analytics/google-tag-manager',     label: 'Tag Manager',        icon: Tag },
+      { href: '/admin/analytics/google-search-console',  label: 'Search Console',     icon: Globe },
+      { href: '/admin/sms',                              label: 'SMS',                icon: MessageCircle },
       { href: '/admin/notifications',                    label: 'Push Notifications', icon: BellIcon },
-      { href: '/admin/email-campaigns',                  label: 'Email Campaigns',  icon: Mail },
+      { href: '/admin/email-campaigns',                  label: 'Email Campaigns',    icon: Mail },
     ],
   },
   {
     label: 'SEO', icon: Search,
     children: [
-      { href: '/admin/seo',          label: 'SEO Tools',    icon: Search },
+      { href: '/admin/seo', label: 'SEO Tools', icon: Search },
     ],
   },
   {
     label: 'Growth', icon: TrendingUp,
     children: [
-      { href: '/admin/affiliates',        label: 'Affiliates',          icon: Share2 },
-      { href: '/admin/segments',          label: 'Segments',            icon: Users2 },
-      { href: '/admin/advanced-reports',  label: 'Advanced Reports',    icon: PieChart },
+      { href: '/admin/affiliates',        label: 'Affiliates',       icon: Share2 },
+      { href: '/admin/segments',          label: 'Segments',         icon: Users2 },
+      { href: '/admin/advanced-reports',  label: 'Advanced Reports', icon: PieChart },
     ],
   },
   {
@@ -156,35 +156,29 @@ function NavLeafItem({
   );
 }
 
-/* ─── Expandable group ───────────────────────────────────────── */
+/* ─── Expandable group — controlled via openGroup ────────────── */
 function NavGroupItem({
-  item, pathname, onClose,
+  item, pathname, isOpen, onToggle, onClose,
 }: {
-  item: NavParent; pathname: string; onClose?: () => void;
+  item: NavParent; pathname: string; isOpen: boolean; onToggle: () => void; onClose?: () => void;
 }) {
   const active = groupIsActive(item.children, pathname);
-  const [open, setOpen] = useState(active);
-
-  // auto-open when navigating into this group
-  useEffect(() => {
-    if (active) setOpen(true);
-  }, [active]);
 
   return (
     <div>
       <button
-        onClick={() => setOpen(o => !o)}
+        onClick={onToggle}
         className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all
           ${active ? 'text-white' : 'text-white/60 hover:text-white/90 hover:bg-white/8'}`}
       >
         <item.icon className="h-4 w-4 flex-shrink-0" />
         <span className="flex-1 truncate text-left">{item.label}</span>
-        {open
-          ? <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 transition-transform" />
-          : <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 transition-transform" />}
+        {isOpen
+          ? <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 transition-transform duration-200" />
+          : <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 transition-transform duration-200" />}
       </button>
 
-      {open && (
+      {isOpen && (
         <div className="mt-0.5 space-y-0.5">
           {item.children.map(child => (
             <NavLeafItem key={child.href} item={child} pathname={pathname} depth={1} onClose={onClose} />
@@ -257,6 +251,29 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
   const { clearAuth } = useAuthStore();
 
+  // Accordion: only one group open at a time
+  const [openGroup, setOpenGroup] = useState<string | null>(() => {
+    // auto-open the group that contains the current route
+    for (const item of NAV) {
+      if (isParent(item) && groupIsActive(item.children, pathname)) return item.label;
+    }
+    return null;
+  });
+
+  // When route changes, open the matching group
+  useEffect(() => {
+    for (const item of NAV) {
+      if (isParent(item) && groupIsActive(item.children, pathname)) {
+        setOpenGroup(item.label);
+        return;
+      }
+    }
+  }, [pathname]);
+
+  const handleToggle = (label: string) => {
+    setOpenGroup(prev => (prev === label ? null : label));
+  };
+
   const handleLogout = async () => {
     try { await authApi.logout(); } catch { /* ignore */ }
     clearAuth();
@@ -270,7 +287,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   return (
     <div className="flex h-full flex-col" style={{ background: '#0d1b3e' }}>
       {/* Brand */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-white/10">
+      <div className="flex items-center justify-between px-4 py-4 border-b border-white/10 flex-shrink-0">
         <div>
           <Link href="/" className="font-serif text-xl font-black text-white tracking-wide">
             UNKORA
@@ -287,10 +304,17 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5 overscroll-contain">
         {NAV.map((item, i) =>
           isParent(item) ? (
-            <NavGroupItem key={i} item={item} pathname={pathname} onClose={onClose} />
+            <NavGroupItem
+              key={i}
+              item={item}
+              pathname={pathname}
+              isOpen={openGroup === item.label}
+              onToggle={() => handleToggle(item.label)}
+              onClose={onClose}
+            />
           ) : (
             <NavLeafItem key={item.href} item={item} pathname={pathname} onClose={onClose} />
           )
@@ -298,7 +322,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       </nav>
 
       {/* User + logout */}
-      <div className="border-t border-white/10 px-3 py-3 space-y-2">
+      <div className="border-t border-white/10 px-3 py-3 space-y-2 flex-shrink-0">
         <div className="flex items-center gap-3 rounded-lg px-3 py-2.5" style={{ background: 'rgba(255,255,255,0.07)' }}>
           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
             {initials}
@@ -337,6 +361,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN') router.push('/');
   }, [isAuthenticated, user, router]);
 
+  // Close mobile sidebar on route change
+  useEffect(() => { setSidebarOpen(false); }, [pathname]);
+
   if (!isAuthenticated || (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN')) return null;
 
   const initials = user
@@ -350,8 +377,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen bg-muted/20">
-      {/* Desktop Sidebar */}
-      <aside className="hidden w-60 flex-shrink-0 lg:flex lg:flex-col">
+      {/* Desktop Sidebar — sticky full height */}
+      <aside className="hidden lg:flex lg:flex-col w-60 flex-shrink-0 sticky top-0 h-screen overflow-hidden">
         <SidebarContent />
       </aside>
 
@@ -362,7 +389,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
-          <aside className="absolute left-0 top-0 h-full w-60 shadow-2xl">
+          <aside className="absolute left-0 top-0 h-full w-64 shadow-2xl">
             <SidebarContent onClose={() => setSidebarOpen(false)} />
           </aside>
         </div>
@@ -371,7 +398,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top Header */}
-        <header className="flex items-center justify-between border-b bg-card px-4 py-3 shadow-sm">
+        <header className="sticky top-0 z-40 flex items-center justify-between border-b bg-card px-4 py-3 shadow-sm">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -383,7 +410,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground hidden sm:block">
                 Admin Panel
               </p>
-              <h1 className="font-semibold text-foreground">{pageTitle}</h1>
+              <h1 className="font-semibold text-foreground text-sm sm:text-base">{pageTitle}</h1>
             </div>
           </div>
 
@@ -404,7 +431,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main className="flex-1 p-3 sm:p-6">{children}</main>
       </div>
     </div>
   );
