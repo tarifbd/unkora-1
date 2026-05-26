@@ -163,6 +163,9 @@ model User {
   referralCode         ReferralCode?
   referrals            Referral[]            @relation("Referrer")
   referredBy           Referral?             @relation("ReferredUser")
+  posSessions          PosSession[]
+  posOrders            PosOrder[]            @relation("PosCustomer")
+  seller               Seller?
 
   @@index([email])
   @@index([phone])
@@ -305,6 +308,7 @@ model Product {
   wholesalePrices WholesalePrice[]
   smartBars       SmartBar[]
   auctions        Auction[]
+  posOrderItems   PosOrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -436,8 +440,9 @@ model Order {
   items       OrderItem[]
   payment     Payment?
   timeline    OrderTimeline[]
-  shipment    Shipment?
-  refunds     Refund[]
+  shipment         Shipment?
+  courierShipment  CourierShipment?
+  refunds          Refund[]
   couponUsages     CouponUsage[]
   pointTransactions PointTransaction[]
 
@@ -1143,4 +1148,227 @@ model Referral {
 
   @@index([referrerId])
   @@map("referrals")
+}
+
+// ─────────────────────────────────────────────────────────────
+// POS - POINT OF SALE (MODULE 8)
+// ─────────────────────────────────────────────────────────────
+
+enum PosOrderStatus {
+  OPEN
+  COMPLETED
+  VOIDED
+}
+
+enum PosPaymentMethod {
+  CASH
+  CARD
+  BKASH
+  NAGAD
+  SPLIT
+}
+
+model PosSession {
+  id           String   @id @default(cuid())
+  cashierId    String
+  openingCash  Decimal  @db.Decimal(10, 2) @default(0)
+  closingCash  Decimal? @db.Decimal(10, 2)
+  totalSales   Decimal  @db.Decimal(10, 2) @default(0)
+  totalOrders  Int      @default(0)
+  isOpen       Boolean  @default(true)
+  openedAt     DateTime @default(now())
+  closedAt     DateTime?
+  notes        String?
+
+  cashier User      @relation(fields: [cashierId], references: [id])
+  orders  PosOrder[]
+
+  @@index([cashierId])
+  @@index([isOpen])
+  @@map("pos_sessions")
+}
+
+model PosOrder {
+  id            String           @id @default(cuid())
+  sessionId     String
+  customerId    String?
+  orderNumber   String           @unique
+  status        PosOrderStatus   @default(OPEN)
+  paymentMethod PosPaymentMethod @default(CASH)
+  subtotal      Decimal          @db.Decimal(10, 2)
+  discount      Decimal          @db.Decimal(10, 2) @default(0)
+  tax           Decimal          @db.Decimal(10, 2) @default(0)
+  total         Decimal          @db.Decimal(10, 2)
+  amountPaid    Decimal          @db.Decimal(10, 2)
+  change        Decimal          @db.Decimal(10, 2) @default(0)
+  notes         String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  session  PosSession   @relation(fields: [sessionId], references: [id])
+  customer User?        @relation("PosCustomer", fields: [customerId], references: [id])
+  items    PosOrderItem[]
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("pos_orders")
+}
+
+model PosOrderItem {
+  id          String  @id @default(cuid())
+  posOrderId  String
+  productId   String
+  productName String
+  sku         String
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(10, 2)
+  discount    Decimal @db.Decimal(10, 2) @default(0)
+  totalPrice  Decimal @db.Decimal(10, 2)
+
+  posOrder PosOrder @relation(fields: [posOrderId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id])
+
+  @@index([posOrderId])
+  @@map("pos_order_items")
+}
+
+// ─────────────────────────────────────────────────────────────
+// SELLER / VENDOR MANAGEMENT (MODULE 9)
+// ─────────────────────────────────────────────────────────────
+
+enum SellerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+model Seller {
+  id            String       @id @default(cuid())
+  userId        String       @unique
+  shopName      String
+  shopSlug      String       @unique
+  description   String?
+  logoUrl       String?
+  bannerUrl     String?
+  phone         String?
+  address       String?
+  nidNumber     String?
+  bankAccount   String?
+  bankName      String?
+  commissionRate Decimal     @db.Decimal(5, 2) @default(10)
+  status        SellerStatus @default(PENDING)
+  isVerified    Boolean      @default(false)
+  totalSales    Decimal      @db.Decimal(12, 2) @default(0)
+  totalOrders   Int          @default(0)
+  rating        Decimal      @db.Decimal(3, 2) @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  user       User             @relation(fields: [userId], references: [id])
+  withdrawals SellerWithdrawal[]
+
+  @@index([shopSlug])
+  @@index([status])
+  @@map("sellers")
+}
+
+model SellerWithdrawal {
+  id          String   @id @default(cuid())
+  sellerId    String
+  amount      Decimal  @db.Decimal(10, 2)
+  method      String   @default("bank")
+  status      String   @default("PENDING")
+  note        String?
+  processedAt DateTime?
+  createdAt   DateTime @default(now())
+
+  seller Seller @relation(fields: [sellerId], references: [id])
+
+  @@index([sellerId])
+  @@map("seller_withdrawals")
+}
+
+// ─────────────────────────────────────────────────────────────
+// COURIER INTEGRATION (MODULE 10)
+// ─────────────────────────────────────────────────────────────
+
+enum CourierProvider {
+  PATHAO
+  STEADFAST
+  REDX
+  PAPERFLY
+  SUNDARBAN
+  SA_PORIBAHAN
+}
+
+enum CourierShipmentStatus {
+  PENDING
+  CREATED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  RETURNED
+  CANCELLED
+}
+
+model CourierShipment {
+  id              String                @id @default(cuid())
+  orderId         String                @unique
+  provider        CourierProvider
+  consignmentId   String?
+  trackingCode    String?
+  status          CourierShipmentStatus @default(PENDING)
+  weight          Decimal?              @db.Decimal(6, 3)
+  codAmount       Decimal?              @db.Decimal(10, 2)
+  charge          Decimal?              @db.Decimal(10, 2)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  deliveredAt     DateTime?
+  rawResponse     Json?
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([provider, status])
+  @@index([trackingCode])
+  @@map("courier_shipments")
+}
+
+// ─────────────────────────────────────────────────────────────
+// SMS NOTIFICATIONS (MODULE 11)
+// ─────────────────────────────────────────────────────────────
+
+enum SmsStatus {
+  PENDING
+  SENT
+  FAILED
+  DELIVERED
+}
+
+model SmsLog {
+  id          String    @id @default(cuid())
+  phone       String
+  message     String
+  status      SmsStatus @default(PENDING)
+  provider    String    @default("ssl_wireless")
+  messageId   String?
+  cost        Decimal?  @db.Decimal(6, 4)
+  sentAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([phone])
+  @@index([status])
+  @@map("sms_logs")
+}
+
+model SmsTemplate {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  content   String
+  variables String[]
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sms_templates")
 }

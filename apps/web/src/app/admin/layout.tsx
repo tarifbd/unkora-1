@@ -8,7 +8,7 @@ import {
   ExternalLink, Bell, Settings, Target, Globe, TrendingUp, Zap,
   ShieldAlert, Plus, ChevronDown, ChevronRight,
   RotateCcw, Bike, FileText, User, Sliders, Gavel, Layers,
-  CreditCard, Star, Share2,
+  CreditCard, Star, Share2, Monitor, Store, MessageCircle,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -52,6 +52,14 @@ const NAV: NavItem[] = [
     ],
   },
   {
+    label: 'Operations', icon: Monitor,
+    children: [
+      { href: '/admin/pos',      label: 'POS Terminal', icon: Monitor },
+      { href: '/admin/sellers',  label: 'Sellers',      icon: Store },
+      { href: '/admin/courier',  label: 'Courier',      icon: Truck },
+    ],
+  },
+  {
     label: 'Delivery', icon: Bike,
     children: [
       { href: '/admin/delivery-boys', label: 'Delivery Boys', icon: User },
@@ -75,6 +83,7 @@ const NAV: NavItem[] = [
       { href: '/admin/analytics/google-analytics',       label: 'Google Analytics', icon: BarChart3 },
       { href: '/admin/analytics/google-tag-manager',     label: 'Tag Manager',      icon: Tag },
       { href: '/admin/analytics/google-search-console',  label: 'Search Console',   icon: Globe },
+      { href: '/admin/sms',                              label: 'SMS',              icon: MessageCircle },
     ],
   },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
@@ -196,6 +205,10 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/analytics/google-analytics': 'Google Analytics 4',
   '/admin/analytics/google-tag-manager': 'Google Tag Manager',
   '/admin/analytics/google-search-console': 'Search Console',
+  '/admin/pos': 'Point of Sale',
+  '/admin/sellers': 'Seller Management',
+  '/admin/courier': 'Courier Integration',
+  '/admin/sms': 'SMS Notifications',
 };
 
 /* ─── Sidebar content ────────────────────────────────────────── */

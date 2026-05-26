@@ -19,6 +19,10 @@ import { ProductNotesModule } from './modules/product-notes/product-notes.module
 import { SmartBarModule } from './modules/smart-bar/smart-bar.module';
 import { AuctionsModule } from './modules/auctions/auctions.module';
 import { GiftCardsModule } from './modules/gift-cards/gift-cards.module';
+import { PosModule } from './modules/pos/pos.module';
+import { SellersModule } from './modules/sellers/sellers.module';
+import { CourierModule } from './modules/courier/courier.module';
+import { SmsModule } from './modules/sms/sms.module';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
 import { BookSubmissionsModule } from './modules/book-submissions/book-submissions.module';
@@ -94,6 +98,10 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     GiftCardsModule,
     LoyaltyModule,
     ReferralsModule,
+    PosModule,
+    SellersModule,
+    CourierModule,
+    SmsModule,
   ],
 })
 export class AppModule {}
