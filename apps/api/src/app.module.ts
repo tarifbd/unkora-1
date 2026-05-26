@@ -23,6 +23,11 @@ import { PosModule } from './modules/pos/pos.module';
 import { SellersModule } from './modules/sellers/sellers.module';
 import { CourierModule } from './modules/courier/courier.module';
 import { SmsModule } from './modules/sms/sms.module';
+import { CodReconciliationModule } from './modules/cod-reconciliation/cod-reconciliation.module';
+import { ReturnsModule } from './modules/returns/returns.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { EmailCampaignsModule } from './modules/email-campaigns/email-campaigns.module';
+import { SeoModule } from './modules/seo/seo.module';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
 import { BookSubmissionsModule } from './modules/book-submissions/book-submissions.module';
@@ -102,6 +107,11 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     SellersModule,
     CourierModule,
     SmsModule,
+    CodReconciliationModule,
+    ReturnsModule,
+    NotificationsModule,
+    EmailCampaignsModule,
+    SeoModule,
   ],
 })
 export class AppModule {}

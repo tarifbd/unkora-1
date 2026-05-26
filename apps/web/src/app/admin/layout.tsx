@@ -9,6 +9,7 @@ import {
   ShieldAlert, Plus, ChevronDown, ChevronRight,
   RotateCcw, Bike, FileText, User, Sliders, Gavel, Layers,
   CreditCard, Star, Share2, Monitor, Store, MessageCircle,
+  DollarSign, RefreshCw, Bell as BellIcon, Mail, Search,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -54,9 +55,11 @@ const NAV: NavItem[] = [
   {
     label: 'Operations', icon: Monitor,
     children: [
-      { href: '/admin/pos',      label: 'POS Terminal', icon: Monitor },
-      { href: '/admin/sellers',  label: 'Sellers',      icon: Store },
-      { href: '/admin/courier',  label: 'Courier',      icon: Truck },
+      { href: '/admin/pos',                 label: 'POS Terminal',     icon: Monitor },
+      { href: '/admin/sellers',             label: 'Sellers',          icon: Store },
+      { href: '/admin/courier',             label: 'Courier',          icon: Truck },
+      { href: '/admin/cod-reconciliation',  label: 'COD Reconciliation', icon: DollarSign },
+      { href: '/admin/returns',             label: 'Returns',          icon: RefreshCw },
     ],
   },
   {
@@ -84,6 +87,14 @@ const NAV: NavItem[] = [
       { href: '/admin/analytics/google-tag-manager',     label: 'Tag Manager',      icon: Tag },
       { href: '/admin/analytics/google-search-console',  label: 'Search Console',   icon: Globe },
       { href: '/admin/sms',                              label: 'SMS',              icon: MessageCircle },
+      { href: '/admin/notifications',                    label: 'Push Notifications', icon: BellIcon },
+      { href: '/admin/email-campaigns',                  label: 'Email Campaigns',  icon: Mail },
+    ],
+  },
+  {
+    label: 'SEO', icon: Search,
+    children: [
+      { href: '/admin/seo', label: 'SEO Tools', icon: Search },
     ],
   },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
@@ -209,6 +220,11 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/sellers': 'Seller Management',
   '/admin/courier': 'Courier Integration',
   '/admin/sms': 'SMS Notifications',
+  '/admin/cod-reconciliation': 'COD Reconciliation',
+  '/admin/returns': 'Returns & Exchanges',
+  '/admin/notifications': 'Push Notifications',
+  '/admin/email-campaigns': 'Email Campaigns',
+  '/admin/seo': 'SEO Tools',
 };
 
 /* ─── Sidebar content ────────────────────────────────────────── */
