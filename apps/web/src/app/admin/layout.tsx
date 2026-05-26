@@ -10,7 +10,7 @@ import {
   RotateCcw, Bike, FileText, User, Sliders, Gavel, Layers,
   CreditCard, Star, Share2, Monitor, Store, MessageCircle,
   DollarSign, RefreshCw, Bell as BellIcon, Mail, Search,
-  Globe, Users2, PieChart, UserCog, Palette,
+  Users2, PieChart, UserCog, Palette,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
