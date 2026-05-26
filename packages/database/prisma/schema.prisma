@@ -155,6 +155,14 @@ model User {
   deliveryBoy     DeliveryBoy?
   auctionBids     AuctionBid[]
   wonAuctions     Auction[]       @relation("AuctionWinner")
+  couponUsages    CouponUsage[]
+  giftCards            GiftCard[]            @relation("GiftCardPurchaser")
+  giftCardRedemptions  GiftCardRedemption[]
+  pointTransactions    PointTransaction[]
+  pointBalance         Int                   @default(0)
+  referralCode         ReferralCode?
+  referrals            Referral[]            @relation("Referrer")
+  referredBy           Referral?             @relation("ReferredUser")
 
   @@index([email])
   @@index([phone])
@@ -430,6 +438,8 @@ model Order {
   timeline    OrderTimeline[]
   shipment    Shipment?
   refunds     Refund[]
+  couponUsages     CouponUsage[]
+  pointTransactions PointTransaction[]
 
   @@index([userId])
   @@index([orderNumber])
@@ -545,14 +555,38 @@ model Coupon {
   maxDiscount   Decimal?     @db.Decimal(10, 2)
   usageLimit    Int?
   usedCount     Int          @default(0)
+  userLimit     Int?
+  minimumItems  Int?
+  firstOrderOnly Boolean     @default(false)
+  categoryId    String?
+  productId     String?
   isActive      Boolean      @default(true)
   startsAt      DateTime     @default(now())
   expiresAt     DateTime?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
+  usages        CouponUsage[]
+
   @@index([code])
   @@map("coupons")
+}
+
+model CouponUsage {
+  id       String   @id @default(cuid())
+  couponId String
+  userId   String
+  orderId  String
+  usedAt   DateTime @default(now())
+
+  coupon Coupon @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+  order  Order  @relation(fields: [orderId], references: [id])
+
+  @@unique([couponId, orderId])
+  @@index([couponId])
+  @@index([userId])
+  @@map("coupon_usages")
 }
 
 model FlashDeal {
@@ -979,4 +1013,134 @@ model SmartBar {
 
   @@index([productId])
   @@map("smart_bars")
+}
+
+// ─────────────────────────────────────────────────────────────
+// GIFT CARDS (MODULE 5)
+// ─────────────────────────────────────────────────────────────
+
+enum GiftCardStatus {
+  ACTIVE
+  USED
+  EXPIRED
+  DISABLED
+}
+
+model GiftCard {
+  id          String         @id @default(cuid())
+  code        String         @unique
+  amount      Decimal        @db.Decimal(10, 2)
+  balance     Decimal        @db.Decimal(10, 2)
+  status      GiftCardStatus @default(ACTIVE)
+  purchasedBy String?
+  purchasedAt DateTime?
+  expiresAt   DateTime?
+  note        String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  purchaser   User?                @relation("GiftCardPurchaser", fields: [purchasedBy], references: [id])
+  redemptions GiftCardRedemption[]
+
+  @@index([code])
+  @@index([status])
+  @@map("gift_cards")
+}
+
+model GiftCardRedemption {
+  id         String   @id @default(cuid())
+  giftCardId String
+  userId     String
+  orderId    String?
+  amount     Decimal  @db.Decimal(10, 2)
+  redeemedAt DateTime @default(now())
+
+  giftCard GiftCard @relation(fields: [giftCardId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@index([giftCardId])
+  @@map("gift_card_redemptions")
+}
+
+// ─────────────────────────────────────────────────────────────
+// LOYALTY / CLUB POINTS (MODULE 6)
+// ─────────────────────────────────────────────────────────────
+
+enum PointTransactionType {
+  EARNED
+  REDEEMED
+  EXPIRED
+  BONUS
+  REFERRAL
+  ADJUSTED
+}
+
+model LoyaltyConfig {
+  id               String   @id @default(cuid())
+  pointsPerTaka    Int      @default(1)
+  pointValue       Decimal  @db.Decimal(6, 4) @default(0.01)
+  minRedeemPoints  Int      @default(100)
+  maxRedeemPercent Int      @default(20)
+  expiryDays       Int?
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("loyalty_config")
+}
+
+model PointTransaction {
+  id          String               @id @default(cuid())
+  userId      String
+  type        PointTransactionType
+  points      Int
+  balance     Int
+  description String?
+  orderId     String?
+  expiresAt   DateTime?
+  createdAt   DateTime             @default(now())
+
+  user  User   @relation(fields: [userId], references: [id])
+  order Order? @relation(fields: [orderId], references: [id])
+
+  @@index([userId])
+  @@index([type])
+  @@map("point_transactions")
+}
+
+// ─────────────────────────────────────────────────────────────
+// REFERRAL SYSTEM (MODULE 7)
+// ─────────────────────────────────────────────────────────────
+
+model ReferralCode {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  code        String   @unique
+  usageCount  Int      @default(0)
+  totalEarned Decimal  @db.Decimal(10, 2) @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  user      User       @relation(fields: [userId], references: [id])
+  referrals Referral[]
+
+  @@map("referral_codes")
+}
+
+model Referral {
+  id             String   @id @default(cuid())
+  referralCodeId String
+  referredUserId String   @unique
+  referrerId     String
+  rewardAmount   Decimal  @db.Decimal(10, 2) @default(0)
+  isPaid         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  paidAt         DateTime?
+
+  referralCode ReferralCode @relation(fields: [referralCodeId], references: [id])
+  referredUser User         @relation("ReferredUser", fields: [referredUserId], references: [id])
+  referrer     User         @relation("Referrer", fields: [referrerId], references: [id])
+
+  @@index([referrerId])
+  @@map("referrals")
 }

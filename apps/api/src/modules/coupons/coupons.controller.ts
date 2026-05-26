@@ -21,13 +21,31 @@ export class CouponsController {
     return this.couponsService.validate(dto.code, dto.orderTotal);
   }
 
+  @Get('admin/stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin: coupon stats' })
+  adminStats() {
+    return this.couponsService.adminStats();
+  }
+
   @Get('admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPER_ADMIN')
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Admin: list all coupons' })
+  @ApiOperation({ summary: 'Admin: list all coupons with usage count' })
   adminGetAll() {
     return this.couponsService.adminGetAll();
+  }
+
+  @Get('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Admin: get coupon details with usage history' })
+  adminGetOne(@Param('id') id: string) {
+    return this.couponsService.adminGetOne(id);
   }
 
   @Post('admin')

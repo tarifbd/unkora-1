@@ -72,9 +72,42 @@ export class CouponsService {
   }
 
   async adminGetAll() {
-    return this.prisma.coupon.findMany({
+    const coupons = await this.prisma.coupon.findMany({
       orderBy: { createdAt: 'desc' },
+      include: { _count: { select: { usages: true } } },
     });
+    return coupons.map(({ _count, ...c }) => ({ ...c, usageCount: _count.usages }));
+  }
+
+  async adminGetOne(id: string) {
+    const coupon = await this.prisma.coupon.findUnique({
+      where: { id },
+      include: {
+        usages: {
+          include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } },
+          orderBy: { usedAt: 'desc' },
+          take: 50,
+        },
+        _count: { select: { usages: true } },
+      },
+    });
+    if (!coupon) throw new NotFoundException('Coupon not found');
+    const { _count, ...rest } = coupon;
+    return { ...rest, usageCount: _count.usages };
+  }
+
+  async adminStats() {
+    const [totalActive, usages] = await Promise.all([
+      this.prisma.coupon.count({ where: { isActive: true } }),
+      this.prisma.couponUsage.findMany({
+        include: {
+          order: { select: { discount: true } },
+        },
+      }),
+    ]);
+    const totalUsed = usages.length;
+    const revenueSaved = usages.reduce((sum, u) => sum + Number(u.order.discount), 0);
+    return { totalActive, totalUsed, revenueSaved };
   }
 
   async adminToggle(id: string) {
