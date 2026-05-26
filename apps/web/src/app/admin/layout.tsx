@@ -349,6 +349,123 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   );
 }
 
+/* ─── Context-aware Quick Nav Bar ───────────────────────────── */
+const QUICK_NAV_GROUPS: Record<string, { label: string; href: string }[]> = {
+  '/admin/products': [
+    { label: 'All Products',   href: '/admin/products' },
+    { label: 'Add New',        href: '/admin/products/new' },
+    { label: 'Inventory',      href: '/admin/inventory' },
+    { label: 'Setup',          href: '/admin/products/setup' },
+    { label: 'Auctions',       href: '/admin/auctions' },
+  ],
+  '/admin/orders': [
+    { label: 'All Orders',     href: '/admin/orders' },
+    { label: 'Shipments',      href: '/admin/shipments' },
+    { label: 'Refunds',        href: '/admin/refunds' },
+    { label: 'Returns',        href: '/admin/returns' },
+    { label: 'COD Recon',      href: '/admin/cod-reconciliation' },
+  ],
+  '/admin/sellers': [
+    { label: 'Sellers',        href: '/admin/sellers' },
+    { label: 'Courier',        href: '/admin/courier' },
+    { label: 'COD Recon',      href: '/admin/cod-reconciliation' },
+    { label: 'POS',            href: '/admin/pos' },
+  ],
+  '/admin/analytics': [
+    { label: 'Hub',            href: '/admin/analytics' },
+    { label: 'Meta Pixel',     href: '/admin/analytics/meta-pixel' },
+    { label: 'Google Analytics',href: '/admin/analytics/google-analytics' },
+    { label: 'Tag Manager',    href: '/admin/analytics/google-tag-manager' },
+    { label: 'Search Console', href: '/admin/analytics/google-search-console' },
+  ],
+  '/admin/users': [
+    { label: 'All Users',      href: '/admin/users' },
+    { label: 'Segments',       href: '/admin/segments' },
+    { label: 'Loyalty',        href: '/admin/loyalty' },
+    { label: 'Referrals',      href: '/admin/referrals' },
+  ],
+  '/admin/settings': [
+    { label: 'General',        href: '/admin/settings' },
+    { label: 'Design',         href: '/admin/design' },
+    { label: 'Localization',   href: '/admin/localization' },
+    { label: 'Staff',          href: '/admin/staff' },
+    { label: 'SEO',            href: '/admin/seo' },
+  ],
+};
+
+// ADD_NEW map: what "+ Add New" should link to per section
+const ADD_NEW_MAP: Record<string, string> = {
+  '/admin/products':  '/admin/products/new',
+  '/admin/blog':      '/admin/blog/new',
+  '/admin/coupons':   '/admin/coupons',
+  '/admin/gift-cards':'/admin/gift-cards',
+  '/admin/auctions':  '/admin/auctions',
+};
+
+function QuickNavBar() {
+  const pathname = usePathname();
+
+  // Find matching group by prefix
+  const groupKey = Object.keys(QUICK_NAV_GROUPS).find(k => pathname.startsWith(k));
+  const tabs = groupKey ? QUICK_NAV_GROUPS[groupKey] : null;
+
+  const addNewHref = Object.entries(ADD_NEW_MAP).find(([k]) => pathname.startsWith(k))?.[1];
+
+  if (!tabs) return null;
+
+  return (
+    <div className="sticky top-[57px] z-30 border-b bg-background/95 backdrop-blur-sm shadow-sm">
+      <div className="flex items-center gap-1 px-3 sm:px-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* Icon shortcuts */}
+        <div className="flex items-center gap-1 pr-2 mr-1 border-r border-border flex-shrink-0">
+          <Link href="/" target="_blank"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            title="View Store">
+            <Globe className="h-3.5 w-3.5" />
+          </Link>
+          <Link href="/admin/pos"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            title="POS Terminal">
+            <Monitor className="h-3.5 w-3.5" />
+          </Link>
+          <Link href="/admin/advanced-reports"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            title="Reports">
+            <PieChart className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        {/* Context tabs */}
+        <nav className="flex items-center gap-0.5 flex-1 overflow-x-auto [scrollbar-width:none]">
+          {tabs.map(tab => {
+            const active = pathname === tab.href || (tab.href !== groupKey && pathname.startsWith(tab.href));
+            return (
+              <Link key={tab.href} href={tab.href}
+                className={`flex-shrink-0 px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap
+                  ${active
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                  }`}>
+                {tab.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Add New button */}
+        {addNewHref && (
+          <Link href={addNewHref}
+            className="flex-shrink-0 ml-2 flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-colors">
+            <Plus className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Add New</span>
+            <span className="sm:hidden">+</span>
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Layout ─────────────────────────────────────────────────── */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -431,6 +548,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
+        <QuickNavBar />
         <main className="flex-1 p-3 sm:p-6">{children}</main>
       </div>
     </div>
