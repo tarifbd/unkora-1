@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { LoginForm } from '@/components/auth/login-form';
+import { SocialLoginButtons } from '@/components/auth/social-login-buttons';
 
 export default function LoginPage() {
   return (
@@ -14,6 +15,7 @@ export default function LoginPage() {
 
         <div className="rounded-lg border bg-card p-6 shadow-sm">
           <LoginForm />
+          <SocialLoginButtons />
         </div>
 
         <p className="text-center text-sm text-muted-foreground">

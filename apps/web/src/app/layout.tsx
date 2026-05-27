@@ -5,6 +5,7 @@ import '@/styles/globals.css';
 
 import { Providers } from './providers';
 import { AnalyticsScripts } from '@/components/analytics/analytics-scripts';
+import { PopupRenderer } from '@/components/ui/popup-renderer';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -44,7 +45,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="bn" suppressHydrationWarning>
       <body className={`${inter.variable} ${lora.variable} font-sans antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers><PopupRenderer />{children}</Providers>
         <AnalyticsScripts />
       </body>
     </html>
