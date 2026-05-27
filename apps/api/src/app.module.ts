@@ -67,6 +67,7 @@ import { ShippingZonesModule } from './modules/shipping-zones/shipping-zones.mod
 import { PreordersModule } from './modules/preorders/preorders.module';
 import { ClassifiedsModule } from './modules/classifieds/classifieds.module';
 import { AddonsModule } from './modules/addons/addons.module';
+import { PopupsModule } from './modules/popups/popups.module';
 
 @Module({
   imports: [
@@ -142,6 +143,7 @@ import { AddonsModule } from './modules/addons/addons.module';
     PreordersModule,
     ClassifiedsModule,
     AddonsModule,
+    PopupsModule,
   ],
 })
 export class AppModule {}

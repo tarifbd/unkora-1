@@ -1969,3 +1969,31 @@ model Addon {
 
   @@map("addons")
 }
+
+// ─────────────────────────────────────────────────────────────
+// DYNAMIC POPUPS
+// ─────────────────────────────────────────────────────────────
+
+model Popup {
+  id          String   @id @default(cuid())
+  name        String
+  title       String
+  content     String   @db.Text
+  imageUrl    String?
+  buttonText  String?
+  buttonUrl   String?
+  type        String   @default("modal") // modal | banner | corner
+  trigger     String   @default("on_load") // on_load | on_exit | on_scroll | after_delay
+  delayMs     Int      @default(3000)
+  showOnce    Boolean  @default(true)
+  pages       Json     @default("[]") // empty = all pages
+  startDate   DateTime?
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  views       Int      @default(0)
+  clicks      Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("popups")
+}
