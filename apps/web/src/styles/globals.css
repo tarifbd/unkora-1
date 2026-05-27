@@ -86,3 +86,34 @@
 
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Sell Your Book CTA animations ── */
+@keyframes sell-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes sell-glow {
+  0%, 100% { box-shadow: 0 0 6px 1px rgba(251,146,60,0.5), 0 0 12px 2px rgba(251,146,60,0.25); }
+  50%       { box-shadow: 0 0 12px 3px rgba(251,146,60,0.8), 0 0 24px 6px rgba(251,146,60,0.4); }
+}
+@keyframes sell-border-spin {
+  0%   { --border-angle: 0deg; }
+  100% { --border-angle: 360deg; }
+}
+@keyframes text-flicker {
+  0%, 90%, 100% { opacity: 1; }
+  95%           { opacity: 0.7; }
+}
+
+.sell-cta {
+  background: linear-gradient(90deg,
+    #1e293b 0%, #1e293b 20%,
+    #f97316 40%, #fbbf24 50%, #f97316 60%,
+    #1e293b 80%, #1e293b 100%
+  );
+  background-size: 300% 100%;
+  animation: sell-shimmer 3s linear infinite, sell-glow 2s ease-in-out infinite;
+}
+.sell-cta-text-bn {
+  animation: text-flicker 4s ease-in-out infinite;
+}

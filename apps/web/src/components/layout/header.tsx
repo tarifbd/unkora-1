@@ -613,11 +613,17 @@ export function Header() {
                 <HelpCircle className="w-3 h-3" /> {t.header.support}
               </a>
               <a href="#" className="hover:text-primary transition-colors">{t.header.trackOrder}</a>
-              <Link href="/publish" className="flex items-center gap-2 ml-2 bg-primary/15 hover:bg-primary/25 border border-primary/30 rounded-full px-3 py-0.5 transition-colors normal-case">
-                <span className="text-[10px]">📝</span>
-                <span className="text-white font-bold text-[10px]">Sell Your Book</span>
-                <span className="text-gray-400 text-[10px]">/</span>
-                <span className="text-primary font-bold text-[10px]">বই বিক্রি করুন</span>
+              <Link href="/publish" className="sell-cta relative flex items-center gap-2 ml-2 rounded-full px-3 py-1 normal-case overflow-hidden group hover:scale-105 transition-transform duration-200">
+                {/* Ping dot */}
+                <span className="relative flex h-2 w-2 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
+                </span>
+                <span className="text-white font-black text-[10px] tracking-wide">Sell Your Book</span>
+                <span className="text-white/40 text-[10px]">/</span>
+                <span className="sell-cta-text-bn text-yellow-300 font-black text-[10px] tracking-wide">বই বিক্রি করুন</span>
+                {/* Shine sweep on hover */}
+                <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
               </Link>
             </div>
           </div>
