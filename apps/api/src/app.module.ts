@@ -60,6 +60,7 @@ import { UploadModule } from './modules/upload/upload.module';
 import { UsersModule } from './modules/users/users.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { SupportModule } from './modules/support/support.module';
+import { FraudModule } from './modules/fraud/fraud.module';
 import { OtpModule } from './modules/otp/otp.module';
 import { ShiprocketModule } from './modules/shiprocket/shiprocket.module';
 import { PickupPointsModule } from './modules/pickup-points/pickup-points.module';
@@ -136,6 +137,7 @@ import { PopupsModule } from './modules/popups/popups.module';
     DesignModule,
     AiStudioModule,
     SupportModule,
+    FraudModule,
     OtpModule,
     ShiprocketModule,
     PickupPointsModule,

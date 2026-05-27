@@ -150,7 +150,7 @@ export class OrdersService {
     return order;
   }
 
-  async createGuestOrder(dto: CreateGuestOrderDto) {
+  async createGuestOrder(dto: CreateGuestOrderDto, requestMeta?: { ip?: string; userAgent?: string }) {
     // Look up all products
     const productIds = dto.items.map(i => i.productId);
     const products = await this.prisma.product.findMany({
@@ -214,6 +214,14 @@ export class OrdersService {
           total,
           notes: dto.notes,
           shippingAddress: { ...dto.shippingAddress },
+          metadata: {
+            ip: requestMeta?.ip ?? null,
+            userAgent: requestMeta?.userAgent ?? null,
+            deviceFingerprint: dto.deviceFingerprint ?? null,
+            geoLat: dto.geoLat ?? null,
+            geoLng: dto.geoLng ?? null,
+            capturedAt: new Date().toISOString(),
+          },
           items: {
             create: dto.items.map((orderItem) => {
               const product = products.find(p => p.id === orderItem.productId)!;

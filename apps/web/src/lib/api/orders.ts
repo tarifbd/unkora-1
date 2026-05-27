@@ -35,6 +35,9 @@ export const ordersApi = {
     guestPhone: string;
     guestEmail?: string;
     notes?: string;
+    deviceFingerprint?: string;
+    geoLat?: number;
+    geoLng?: number;
   }) => api.post('/orders/guest', data).then(r => r.data.data as Order),
 
   getMyOrders: (params: { page?: number; limit?: number } = {}) =>

@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { FastifyRequest } from 'fastify';
 import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 import { OrdersService } from './orders.service';
 
@@ -10,8 +11,13 @@ export class OrdersGuestController {
 
   @Post('guest')
   @ApiOperation({ summary: 'Place order as guest (no auth required)' })
-  createGuest(@Body() dto: CreateGuestOrderDto) {
-    return this.ordersService.createGuestOrder(dto);
+  createGuest(@Body() dto: CreateGuestOrderDto, @Req() req: FastifyRequest) {
+    const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
+      ?? (req as any).ip
+      ?? req.socket?.remoteAddress
+      ?? 'unknown';
+    const userAgent = req.headers['user-agent'] ?? 'unknown';
+    return this.ordersService.createGuestOrder(dto, { ip, userAgent });
   }
 
   @Get('track')

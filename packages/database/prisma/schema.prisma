@@ -460,6 +460,7 @@ model Order {
   notes           String?
   cancelReason    String?
   deliveredAt     DateTime?
+  metadata        Json?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -2008,4 +2009,16 @@ model Popup {
   updatedAt   DateTime @updatedAt
 
   @@map("popups")
+}
+
+model BlockedEntity {
+  id        String   @id @default(cuid())
+  type      String   // 'ip' | 'phone' | 'device' | 'email'
+  value     String
+  reason    String?
+  blockedBy String?
+  createdAt DateTime @default(now())
+
+  @@unique([type, value])
+  @@map("blocked_entities")
 }

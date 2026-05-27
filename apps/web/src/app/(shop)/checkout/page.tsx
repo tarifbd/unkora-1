@@ -82,9 +82,37 @@ function CheckoutContent() {
   const [quickBuyItem, setQuickBuyItem] = useState<{ productId: string; name: string; price: number; quantity: number; image?: string } | null>(null);
   const [quickBuyLoading, setQuickBuyLoading] = useState(false);
   const [addressFilled, setAddressFilled] = useState(false);
+  const [geoCoords, setGeoCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [deviceFingerprint] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    const nav = window.navigator;
+    const parts = [
+      nav.userAgent, nav.language, nav.hardwareConcurrency,
+      screen.width, screen.height, screen.colorDepth,
+      new Date().getTimezoneOffset(),
+      nav.platform ?? '',
+    ];
+    let hash = 0;
+    const str = parts.join('|');
+    for (let i = 0; i < str.length; i++) {
+      hash = (Math.imul(31, hash) + str.charCodeAt(i)) | 0;
+    }
+    return Math.abs(hash).toString(36);
+  });
 
   const productId = searchParams.get('productId');
   const qty = searchParams.get('qty');
+
+  // Silently request geolocation for fraud detection
+  useEffect(() => {
+    if (typeof window !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => setGeoCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {},
+        { timeout: 5000, enableHighAccuracy: false },
+      );
+    }
+  }, []);
 
   // Fetch saved addresses for logged-in users
   const { data: savedAddresses } = useQuery({
@@ -168,6 +196,9 @@ function CheckoutContent() {
         guestPhone: data.phone,
         guestEmail: data.guestEmail || undefined,
         notes: data.notes,
+        deviceFingerprint,
+        geoLat: geoCoords?.lat,
+        geoLng: geoCoords?.lng,
       });
 
       if (!isAuthenticated) guestCart.clearCart();

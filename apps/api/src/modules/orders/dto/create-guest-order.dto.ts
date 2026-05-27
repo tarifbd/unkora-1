@@ -83,4 +83,16 @@ export class CreateGuestOrderDto {
   @IsOptional()
   @IsString()
   couponCode?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  deviceFingerprint?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  geoLat?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  geoLng?: number;
 }
