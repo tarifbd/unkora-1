@@ -11,6 +11,7 @@ import {
 import { productsApi, categoriesApi, type Product } from '@/lib/api/products';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useCart } from '@/lib/hooks/use-cart';
+import { WishlistButton } from '@/components/product/wishlist-button';
 
 /* ─────────────────────── static data ─────────────────────────────── */
 
@@ -151,23 +152,35 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
+      className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-orange-200 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
     >
-      {/* Image — aspect ratio keeps all images same size */}
+      {/* ── Image ── */}
       <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden flex-shrink-0">
         {img ? (
           <Image src={img} alt={product.name} fill
             className="object-cover group-hover:scale-110 transition-transform duration-500"
-            sizes="(max-width:640px) 50vw, (max-width:1024px) 25vw, 180px"
+            sizes="(max-width:640px) 50vw, (max-width:1024px) 25vw, 200px"
             unoptimized={img.includes('unsplash')} />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-4xl">📚</div>
         )}
+
+        {/* Discount badge */}
         {hasDiscount && (
-          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm">
+          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm">
             -{discountPct}%
           </span>
         )}
+
+        {/* Wishlist — top right */}
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <WishlistButton
+            productId={product.id}
+            className="w-7 h-7 bg-white/90 backdrop-blur-sm shadow-md hover:bg-red-50 rounded-full"
+          />
+        </div>
+
+        {/* Out of stock overlay */}
         {!inStock && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
             <span className="bg-gray-800 text-white text-[10px] font-bold px-3 py-1 rounded-full">
@@ -177,22 +190,25 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
         )}
       </div>
 
-      {/* Info */}
-      <div className="p-2.5 flex flex-col flex-1">
-        {/* Title — fixed min-height so cards align even with short names */}
-        <p className="text-[11px] font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors min-h-[2.5rem]">
+      {/* ── Info ── */}
+      <div className="p-3 flex flex-col flex-1 gap-1">
+
+        {/* Title — min 2 lines height so all cards align */}
+        <p className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors min-h-[2.75rem]">
           {product.name}
         </p>
-        {/* Author — always same height slot */}
-        <p className="text-[10px] text-gray-400 truncate mt-0.5 min-h-[1rem]">
-          {product.bookDetail?.author ?? ''}
+
+        {/* Author — fixed height slot */}
+        <p className="text-[10px] text-gray-400 truncate min-h-[1.1rem]">
+          {product.bookDetail?.author ?? ' '}
         </p>
+
         {/* Stars */}
         {reviewCount > 0 && (
-          <div className="flex items-center gap-1 mt-1">
-            <div className="flex">
+          <div className="flex items-center gap-1">
+            <div className="flex gap-px">
               {[1,2,3,4,5].map(i => (
-                <svg key={i} className={`w-2.5 h-2.5 ${i <= 4 ? 'text-yellow-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
+                <svg key={i} className={`w-3 h-3 ${i <= 4 ? 'text-yellow-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
               ))}
@@ -200,29 +216,43 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
             <span className="text-[9px] text-gray-400">({reviewCount})</span>
           </div>
         )}
-        {/* Price */}
-        <div className="flex items-baseline gap-1.5 mt-auto pt-1.5">
+
+        {/* Price — pushed to bottom */}
+        <div className="flex items-baseline gap-1.5 mt-auto pt-1">
           <span className="text-sm font-black text-primary">৳{salePrice.toLocaleString('en-BD')}</span>
           {hasDiscount && <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
         </div>
-        {/* Buttons — always grid-cols-2, never flex-1 */}
-        <div className="grid grid-cols-2 gap-1.5 mt-2">
+
+        {/* ── Buttons — always 2 columns, equal width ── */}
+        <div className="grid grid-cols-2 gap-2 mt-2">
+          {/* Add to Cart */}
           <button
-            onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
+            onClick={e => {
+              e.preventDefault(); e.stopPropagation();
+              if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } });
+            }}
             disabled={!inStock}
-            className={`flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-bold transition-all whitespace-nowrap ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white active:scale-95' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+            className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-bold transition-all
+              ${inStock
+                ? 'border-2 border-primary/20 text-primary hover:bg-primary hover:text-white hover:border-primary active:scale-95'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
           >
-            <ShoppingCart className="w-3 h-3 flex-shrink-0" />
+            <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
             <span>{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
           </button>
+
+          {/* Buy Now */}
           {inStock ? (
-            <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
-              className="flex items-center justify-center gap-1 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold hover:bg-orange-600 active:scale-95 transition-all whitespace-nowrap">
-              <Zap className="w-3 h-3 flex-shrink-0" />
+            <Link
+              href={`/checkout?productId=${product.id}&qty=1`}
+              onClick={e => e.stopPropagation()}
+              className="flex items-center justify-center gap-1.5 py-2 bg-orange-500 text-white rounded-xl text-[11px] font-bold hover:bg-orange-600 active:scale-95 transition-all"
+            >
+              <Zap className="w-3.5 h-3.5 flex-shrink-0" />
               <span>{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
             </Link>
           ) : (
-            <div className="flex items-center justify-center py-1.5 rounded-xl bg-gray-100 text-gray-400 text-[10px] font-bold">
+            <div className="flex items-center justify-center py-2 rounded-xl bg-gray-100 text-gray-400 text-[11px] font-bold">
               {lang === 'bn' ? 'নেই' : 'N/A'}
             </div>
           )}
@@ -598,9 +628,9 @@ export default function HomePage() {
           </div>
           <div ref={shelfRef} className="flex items-stretch gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
             {shelfBooks.length > 0 ? shelfBooks.map(p => (
-              <div key={p.id} className="flex-shrink-0 w-[150px] flex flex-col"><MiniCard product={p} lang={lang} /></div>
+              <div key={p.id} className="flex-shrink-0 w-[185px] flex flex-col"><MiniCard product={p} lang={lang} /></div>
             )) : Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[150px]"><SkeletonCard /></div>
+              <div key={i} className="flex-shrink-0 w-[185px]"><SkeletonCard /></div>
             ))}
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100 flex justify-center">
