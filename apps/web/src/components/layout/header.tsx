@@ -841,8 +841,8 @@ export function Header() {
                         { icon: Package,       label: 'My Orders',       labelBn: 'আমার অর্ডার',     href: '/account/orders' },
                         { icon: CalendarClock, label: 'My Pre-orders',   labelBn: 'প্রি-অর্ডার',      href: '/account/preorders' },
                         { icon: Heart,         label: 'My Wishlist',      labelBn: 'উইশলিস্ট',        href: '/account/wishlist' },
-                        { icon: Truck,         label: 'Track Order',      labelBn: 'অর্ডার ট্র্যাক',  href: '/account/orders' },
-                        { icon: CreditCard,    label: 'Payment',          labelBn: 'পেমেন্ট',          href: '/account' },
+                        { icon: Truck,         label: 'Track Order',      labelBn: 'অর্ডার ট্র্যাক',  href: '/track-order' },
+                        { icon: CreditCard,    label: 'Payment',          labelBn: 'পেমেন্ট',          href: '/account/orders' },
                         { icon: Gift,          label: 'My Coupons',       labelBn: 'কুপন',             href: '/account' },
                         { icon: Store,         label: 'Seller Panel',     labelBn: 'সেলার প্যানেল',    href: '/seller/dashboard' },
                       ].map(item => (
@@ -864,10 +864,10 @@ export function Header() {
                     <div className="py-1 pb-2">
                       {[
                         { label: 'Settings',              labelBn: 'সেটিংস',             href: '/account', authOnly: true },
-                        { label: 'Seller Login',          labelBn: 'সেলার লগইন',          href: '/admin', adminOnly: true },
-                        { label: 'Return & Refund Policy',labelBn: 'রিটার্ন ও রিফান্ড',   href: '#' },
-                        { label: 'Help Center',           labelBn: 'সাহায্য কেন্দ্র',     href: '#' },
-                        { label: 'Contact Us',            labelBn: 'যোগাযোগ করুন',        href: '#' },
+                        { label: 'Seller Login',          labelBn: 'সেলার লগইন',          href: '/seller/dashboard', adminOnly: true },
+                        { label: 'Return & Refund Policy',labelBn: 'রিটার্ন ও রিফান্ড',   href: '/refund-policy' },
+                        { label: 'Help Center',           labelBn: 'সাহায্য কেন্দ্র',     href: '/help' },
+                        { label: 'Contact Us',            labelBn: 'যোগাযোগ করুন',        href: '/support' },
                       ].filter(item => {
                         if ('authOnly' in item && item.authOnly && !isAuthenticated) return false;
                         if ('adminOnly' in item && item.adminOnly && user?.role === 'CUSTOMER') return false;
@@ -1302,10 +1302,10 @@ export function Header() {
           <Link href="/seller/dashboard" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-primary hover:text-primary/80 flex items-center gap-2 font-semibold">
             <Store className="w-4 h-4" /> {lang === 'bn' ? 'সেলার প্যানেল' : 'Seller Panel'}
           </Link>
-          <Link href="#" className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
+          <Link href={isAuthenticated ? '/account/addresses' : '/login'} onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
             <MapPin className="w-4 h-4" /> {t.header.deliverTo}
           </Link>
-          <Link href="#" className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
+          <Link href="/support" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
             <HelpCircle className="w-4 h-4" /> {t.header.customerService}
           </Link>
           {isAuthenticated && (
