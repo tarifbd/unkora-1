@@ -6,7 +6,7 @@ import {
   Book, Baby, Briefcase, Leaf, Palette, Zap, ShoppingBag,
   Menu, X, Search, User, ShoppingCart, ChevronDown,
   MapPin, Phone, Download, HelpCircle,
-  Package, Heart, CreditCard, Settings, LogOut, Gift, Truck, CalendarClock,
+  Package, Heart, CreditCard, Settings, LogOut, Gift, Truck, CalendarClock, Store,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
@@ -757,6 +757,7 @@ export function Header() {
                         { icon: Truck,         label: 'Track Order',      labelBn: 'অর্ডার ট্র্যাক',  href: '/account/orders' },
                         { icon: CreditCard,    label: 'Payment',          labelBn: 'পেমেন্ট',          href: '/account' },
                         { icon: Gift,          label: 'My Coupons',       labelBn: 'কুপন',             href: '/account' },
+                        { icon: Store,         label: 'Seller Panel',     labelBn: 'সেলার প্যানেল',    href: '/seller/dashboard' },
                       ].map(item => (
                         <Link
                           key={item.href + item.label}
@@ -1210,6 +1211,9 @@ export function Header() {
           <Link href="/account/orders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary block">{t.header.yourOrders}</Link>
           <Link href="/account/preorders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
             <CalendarClock className="w-4 h-4" /> {lang === 'bn' ? 'প্রি-অর্ডার' : 'My Pre-orders'}
+          </Link>
+          <Link href="/seller/dashboard" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-primary hover:text-primary/80 flex items-center gap-2 font-semibold">
+            <Store className="w-4 h-4" /> {lang === 'bn' ? 'সেলার প্যানেল' : 'Seller Panel'}
           </Link>
           <Link href="#" className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
             <MapPin className="w-4 h-4" /> {t.header.deliverTo}

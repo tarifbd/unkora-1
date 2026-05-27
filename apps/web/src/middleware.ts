@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PROTECTED_ROUTES = ['/account']; // checkout & cart handle their own auth gracefully
+const PROTECTED_ROUTES = ['/account', '/seller']; // checkout & cart handle their own auth gracefully
 const ADMIN_ROUTES = ['/admin'];
 const AUTH_ROUTES = ['/login', '/register'];
 
