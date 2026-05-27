@@ -7,6 +7,7 @@ import { EmailModule } from '../email/email.module';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { RecaptchaService } from './recaptcha.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
 @Module({
@@ -23,7 +24,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     EmailModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy, RecaptchaService],
+  exports: [AuthService, RecaptchaService],
 })
 export class AuthModule {}

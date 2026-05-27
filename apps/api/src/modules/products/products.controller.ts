@@ -9,12 +9,16 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { ProductQueryDto } from './dto/product-query.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { SetWholesaleDto } from './dto/wholesale.dto';
+import { CsvImportService } from './csv-import.service';
 import { ProductsService } from './products.service';
 
 @ApiTags('products')
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly csvImportService: CsvImportService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List products with filtering & pagination' })
@@ -39,6 +43,32 @@ export class ProductsController {
       .header('Content-Type', 'text/csv')
       .header('Content-Disposition', `attachment; filename="products-${new Date().toISOString().slice(0, 10)}.csv"`)
       .send(csv);
+  }
+
+  @Get('import/template')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Download CSV import template' })
+  async getCsvTemplate(@Res() res?: FastifyReply) {
+    const csv = `name,sku,basePrice,salePrice,stockQuantity,categoryName,brandName,description,shortDesc,tags,weight,isActive
+"Sample Product 1",SKU-001,999,849,50,Electronics,Samsung,"Full product description here","Short desc",smartphone|mobile,0.3,true
+"Sample Product 2",SKU-002,1999,,100,Clothing,,"Another description","Short",shirt|fashion,0.2,true`;
+    (res as FastifyReply)
+      .header('Content-Type', 'text/csv')
+      .header('Content-Disposition', 'attachment; filename="unkora-import-template.csv"')
+      .send(csv);
+  }
+
+  @Post('import/csv')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Import products from CSV text (admin)' })
+  async importCsv(
+    @Body() dto: { csvContent: string; dryRun?: boolean; updateExisting?: boolean },
+  ) {
+    return this.csvImportService.importProducts(dto.csvContent, { dryRun: dto.dryRun, updateExisting: dto.updateExisting });
   }
 
   @Get('admin/:id')
