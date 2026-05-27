@@ -55,6 +55,9 @@ export const ordersApi = {
   adminUpdateStatus: (id: string, status: string, note?: string) =>
     api.patch(`/orders/admin/${id}/status`, { status, note }).then(r => r.data.data as Order),
 
+  trackPublic: (orderNumber: string, phone: string) =>
+    api.get('/orders/track', { params: { orderNumber, phone } }).then(r => r.data.data),
+
   initiateBkash: (orderId: string) => api.post(`/payments/${orderId}/bkash`),
   initiateNagad: (orderId: string) => api.post(`/payments/${orderId}/nagad`),
   confirmCOD: (orderId: string) => api.post(`/payments/${orderId}/cod`),

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   Book, Baby, Briefcase, Leaf, Palette, Zap, ShoppingBag, Moon,
   Menu, X, Search, User, ShoppingCart, ChevronDown,
-  MapPin, Phone, Download, HelpCircle,
+  MapPin, Phone, HelpCircle,
   Package, Heart, CreditCard, Settings, LogOut, Gift, Truck, CalendarClock, Store,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
@@ -667,14 +667,14 @@ export function Header() {
               </Link>
 
               <div className="h-3 w-px bg-gray-600" />
-              <span className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors">
+              <Link href={isAuthenticated ? '/account/addresses' : '/login'} className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors">
                 <MapPin className="w-3 h-3 text-primary" />
                 {t.header.deliverTo} <span className="font-bold text-white ml-0.5">{t.header.selectAddress}</span>
-              </span>
+              </Link>
               <div className="h-3 w-px bg-gray-600" />
-              <a href="tel:+8801708166233" className="flex items-center gap-1 hover:text-white transition-colors">
+              <a href="tel:+8801911369686" className="flex items-center gap-1 hover:text-white transition-colors">
                 <Phone className="w-3 h-3 text-primary" />
-                <span>+880 1708-166233</span>
+                <span>+880 1911-369686</span>
               </a>
               <div className="h-3 w-px bg-gray-600" />
               {/* Language toggle */}
@@ -696,13 +696,10 @@ export function Header() {
               </div>
             </div>
             <div className="flex items-center gap-5 uppercase tracking-wide">
-              <a href="#" className="hover:text-primary transition-colors flex items-center gap-1">
-                <Download className="w-3 h-3" /> {t.header.downloadApp}
-              </a>
-              <a href="#" className="hover:text-primary transition-colors flex items-center gap-1">
+              <Link href="/support" className="hover:text-primary transition-colors flex items-center gap-1">
                 <HelpCircle className="w-3 h-3" /> {t.header.support}
-              </a>
-              <a href="#" className="hover:text-primary transition-colors">{t.header.trackOrder}</a>
+              </Link>
+              <Link href="/track-order" className="hover:text-primary transition-colors">{t.header.trackOrder}</Link>
               <Link href="/publish" className="sell-border-wrapper ml-2 normal-case hover:scale-110 transition-transform duration-200 group">
                 {/* Floating sparkles */}
                 <span className="sell-spark sell-spark-1" />

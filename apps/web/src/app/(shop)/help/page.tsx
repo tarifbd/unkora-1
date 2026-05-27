@@ -34,7 +34,7 @@ export default function HelpPage() {
             <div className="p-2 bg-green-50 rounded-lg"><Phone className="w-5 h-5 text-primary" /></div>
             <div>
               <p className="text-xs text-gray-500 font-medium">ফোন (সকাল ৯টা – রাত ৯টা)</p>
-              <p className="font-bold text-gray-900">+880 1708-166233</p>
+              <p className="font-bold text-gray-900">+880 1911-369686</p>
             </div>
           </a>
           <a href="mailto:support@unkora.shop" className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:border-primary transition-colors">

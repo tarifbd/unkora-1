@@ -326,6 +326,25 @@ export class OrdersService {
     return order;
   }
 
+  async trackPublic(orderNumber: string, phone: string) {
+    const order = await this.prisma.order.findFirst({
+      where: { orderNumber },
+      select: {
+        orderNumber: true, status: true, createdAt: true,
+        total: true, shippingCost: true, shippingAddress: true,
+        items: { select: { productName: true, quantity: true, unitPrice: true, productImage: true } },
+        timeline: { orderBy: { createdAt: 'asc' }, select: { status: true, note: true, createdAt: true } },
+      },
+    });
+    if (!order) throw new NotFoundException('Order not found');
+    const addr = order.shippingAddress as Record<string, string>;
+    const clean = (n: string) => n.replace(/\D/g, '').slice(-10);
+    if (!addr.phone || clean(addr.phone) !== clean(phone)) {
+      throw new NotFoundException('Order not found');
+    }
+    return order;
+  }
+
   async cancel(id: string, userId: string, reason?: string) {
     const order = await this.findById(id, userId);
     const cancellable: OrderStatus[] = [OrderStatus.PENDING, OrderStatus.CONFIRMED];
