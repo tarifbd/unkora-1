@@ -1947,3 +1947,25 @@ model ShippingRate {
   @@index([zoneId])
   @@map("shipping_rates")
 }
+
+// ─────────────────────────────────────────────────────────────
+// ADDON MANAGER
+// ─────────────────────────────────────────────────────────────
+
+model Addon {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  version     String   @default("1.0.0")
+  icon        String?
+  category    String   @default("general")
+  isCore      Boolean  @default(false)
+  isEnabled   Boolean  @default(false)
+  config      Json     @default("{}")
+  author      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("addons")
+}

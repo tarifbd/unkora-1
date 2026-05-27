@@ -64,6 +64,9 @@ import { OtpModule } from './modules/otp/otp.module';
 import { ShiprocketModule } from './modules/shiprocket/shiprocket.module';
 import { PickupPointsModule } from './modules/pickup-points/pickup-points.module';
 import { ShippingZonesModule } from './modules/shipping-zones/shipping-zones.module';
+import { PreordersModule } from './modules/preorders/preorders.module';
+import { ClassifiedsModule } from './modules/classifieds/classifieds.module';
+import { AddonsModule } from './modules/addons/addons.module';
 
 @Module({
   imports: [
@@ -136,6 +139,9 @@ import { ShippingZonesModule } from './modules/shipping-zones/shipping-zones.mod
     ShiprocketModule,
     PickupPointsModule,
     ShippingZonesModule,
+    PreordersModule,
+    ClassifiedsModule,
+    AddonsModule,
   ],
 })
 export class AppModule {}
