@@ -768,6 +768,68 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
+          ISLAMIC LIFESTYLE BANNER
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="py-4 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto">
+          <Link href="/islamic-lifestyle"
+            className="group relative overflow-hidden rounded-3xl flex flex-col sm:flex-row items-center gap-0 min-h-[180px] block"
+            style={{ background: 'linear-gradient(135deg, #052e16, #064e3b, #065f46)' }}
+          >
+            {/* Islamic geometric overlay */}
+            <svg className="absolute inset-0 w-full h-full opacity-[0.06] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <pattern id="il-geo-home" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+                  <g fill="none" stroke="white" strokeWidth="0.4">
+                    <polygon points="30,3 37,22 57,22 42,34 48,54 30,42 12,54 18,34 3,22 23,22" />
+                    <circle cx="30" cy="30" r="12" />
+                  </g>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#il-geo-home)" />
+            </svg>
+            {/* Glow blobs */}
+            <div className="absolute top-0 right-1/4 w-64 h-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-1/3 w-40 h-40 rounded-full bg-teal-400/8 blur-2xl pointer-events-none" />
+            {/* Gold top line */}
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
+
+            {/* Content */}
+            <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-5 p-7 sm:p-10 w-full">
+              {/* Icon */}
+              <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-white/10 border border-white/15 flex items-center justify-center text-4xl sm:text-5xl shadow-lg group-hover:scale-110 transition-transform duration-500">
+                🕌
+              </div>
+              {/* Text */}
+              <div className="text-center sm:text-left flex-1">
+                <div className="inline-flex items-center gap-1.5 bg-amber-500/20 border border-amber-400/30 rounded-full px-3 py-0.5 mb-2">
+                  <span className="text-[9px] font-black uppercase tracking-[0.15em] text-amber-300">New Category</span>
+                </div>
+                <div className="text-white/60 text-xs font-medium mb-1 tracking-wide" style={{ direction: 'rtl', fontFamily: 'serif' }}>بِسْمِ اللَّهِ</div>
+                <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-2">
+                  Islamic Lifestyle
+                  <span className="block text-base sm:text-lg font-bold mt-0.5" style={{ background: 'linear-gradient(90deg,#34d399,#6ee7b7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                    ইসলামিক লাইফস্টাইল কালেকশন
+                  </span>
+                </h2>
+                <p className="text-white/50 text-xs sm:text-sm leading-relaxed max-w-md">
+                  তাসবিহ · জায়নামাজ · আতর · কুরআন · ইসলামিক পোশাক ও আরও অনেক কিছু
+                </p>
+              </div>
+              {/* CTA */}
+              <div className="flex-shrink-0 sm:self-center">
+                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm text-white transition-all group-hover:scale-105"
+                  style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}>
+                  দেখুন
+                  <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
           RANKINGS — 3 column
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
@@ -895,68 +957,6 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          ISLAMIC LIFESTYLE BANNER
-      ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-4 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto">
-          <Link href="/islamic-lifestyle"
-            className="group relative overflow-hidden rounded-3xl flex flex-col sm:flex-row items-center gap-0 min-h-[180px] block"
-            style={{ background: 'linear-gradient(135deg, #052e16, #064e3b, #065f46)' }}
-          >
-            {/* Islamic geometric overlay */}
-            <svg className="absolute inset-0 w-full h-full opacity-[0.06] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="il-geo-home" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-                  <g fill="none" stroke="white" strokeWidth="0.4">
-                    <polygon points="30,3 37,22 57,22 42,34 48,54 30,42 12,54 18,34 3,22 23,22" />
-                    <circle cx="30" cy="30" r="12" />
-                  </g>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#il-geo-home)" />
-            </svg>
-            {/* Glow blobs */}
-            <div className="absolute top-0 right-1/4 w-64 h-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-1/3 w-40 h-40 rounded-full bg-teal-400/8 blur-2xl pointer-events-none" />
-            {/* Gold top line */}
-            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
-
-            {/* Content */}
-            <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-5 p-7 sm:p-10 w-full">
-              {/* Icon */}
-              <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-white/10 border border-white/15 flex items-center justify-center text-4xl sm:text-5xl shadow-lg group-hover:scale-110 transition-transform duration-500">
-                🕌
-              </div>
-              {/* Text */}
-              <div className="text-center sm:text-left flex-1">
-                <div className="inline-flex items-center gap-1.5 bg-amber-500/20 border border-amber-400/30 rounded-full px-3 py-0.5 mb-2">
-                  <span className="text-[9px] font-black uppercase tracking-[0.15em] text-amber-300">New Category</span>
-                </div>
-                <div className="text-white/60 text-xs font-medium mb-1 tracking-wide" style={{ direction: 'rtl', fontFamily: 'serif' }}>بِسْمِ اللَّهِ</div>
-                <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-2">
-                  Islamic Lifestyle
-                  <span className="block text-base sm:text-lg font-bold mt-0.5" style={{ background: 'linear-gradient(90deg,#34d399,#6ee7b7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    ইসলামিক লাইফস্টাইল কালেকশন
-                  </span>
-                </h2>
-                <p className="text-white/50 text-xs sm:text-sm leading-relaxed max-w-md">
-                  তাসবিহ · জায়নামাজ · আতর · কুরআন · ইসলামিক পোশাক ও আরও অনেক কিছু
-                </p>
-              </div>
-              {/* CTA */}
-              <div className="flex-shrink-0 sm:self-center">
-                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm text-white transition-all group-hover:scale-105"
-                  style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}>
-                  দেখুন
-                  <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
-                </div>
-              </div>
-            </div>
-          </Link>
         </div>
       </section>
 
