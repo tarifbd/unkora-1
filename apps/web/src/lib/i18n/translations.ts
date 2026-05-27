@@ -51,6 +51,7 @@ export const translations = {
       handicrafts: 'হস্তশিল্প',
       electronics: 'ইলেকট্রনিক্স',
       dailyNeeds: 'দৈনন্দিন প্রয়োজন',
+      islamicLifestyle: 'ইসলামিক লাইফস্টাইল',
     },
     booksSubnav: {
       Authors: 'লেখক',
@@ -323,6 +324,7 @@ export const translations = {
       handicrafts: 'Handicrafts',
       electronics: 'Electronics',
       dailyNeeds: 'Daily Needs',
+      islamicLifestyle: 'Islamic Lifestyle',
     },
     booksSubnav: {
       Authors: 'Authors',

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Book, Baby, Briefcase, Leaf, Palette, Zap, ShoppingBag,
+  Book, Baby, Briefcase, Leaf, Palette, Zap, ShoppingBag, Moon,
   Menu, X, Search, User, ShoppingCart, ChevronDown,
   MapPin, Phone, Download, HelpCircle,
   Package, Heart, CreditCard, Settings, LogOut, Gift, Truck, CalendarClock, Store,
@@ -32,7 +32,8 @@ const NAV_CATEGORIES: NavCategory[] = [
   { nameKey: 'organicFoods',    displayName: 'Organic Foods',    icon: Leaf,        slug: 'organic-foods',    subnav: ['Nuts & Seeds', 'Honey & Sweeteners', 'Spices & Herbs', 'Healthy Snacks', 'Tea & Beverages'] },
   { nameKey: 'handicrafts',     displayName: 'Handicrafts',      icon: Palette,     slug: 'handicrafts',      subnav: ['Wall Art', 'Showpieces', 'Lamps & Lighting', 'Rugs & Carpets', 'Traditional Crafts'] },
   { nameKey: 'electronics',     displayName: 'Electronics',      icon: Zap,         slug: 'electronics',      subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances', 'Gadgets'] },
-  { nameKey: 'dailyNeeds',      displayName: 'Daily Needs',      icon: ShoppingBag, slug: 'daily-needs',      subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery', 'Pet Care'] },
+  { nameKey: 'dailyNeeds',        displayName: 'Daily Needs',        icon: ShoppingBag, slug: 'daily-needs',        subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery', 'Pet Care'] },
+  { nameKey: 'islamicLifestyle',  displayName: 'Islamic Lifestyle',  icon: Moon,        slug: 'islamic-lifestyle',  subnav: ['Prayer Essentials', 'Islamic Books (Lifestyle)', 'Quran Accessories', 'Islamic Clothing', 'Perfumes & Oud', 'Tasbih & Decor'] },
 ];
 
 function getSubnavHref(catSlug: string, sub: string): string {
@@ -225,6 +226,40 @@ const SUBNAV_DROPDOWNS: Record<string, { label: string; labelBn: string; href: s
     { label: 'Pet Food',         labelBn: 'পোষা প্রাণীর খাবার',   href: '/categories/daily-needs?tag=pet-food' },
     { label: 'Pet Accessories',  labelBn: 'পোষা প্রাণীর সামগ্রী', href: '/categories/daily-needs?tag=pet-accessories' },
   ],
+  'Prayer Essentials': [
+    { label: 'Prayer Mats',      labelBn: 'জায়নামাজ',             href: '/islamic-lifestyle?tag=prayer-mat' },
+    { label: 'Prayer Caps',      labelBn: 'টুপি',                  href: '/islamic-lifestyle?tag=prayer-cap' },
+    { label: 'Prayer Beads',     labelBn: 'তাসবিহ',               href: '/islamic-lifestyle?tag=tasbih' },
+    { label: 'Miswak',           labelBn: 'মিসওয়াক',              href: '/islamic-lifestyle?tag=miswak' },
+  ],
+  'Islamic Books (Lifestyle)': [
+    { label: 'Quran',            labelBn: 'কুরআন',                href: '/islamic-lifestyle?tag=quran' },
+    { label: 'Hadith',           labelBn: 'হাদিস',                href: '/islamic-lifestyle?tag=hadith' },
+    { label: 'Islamic Fiction',  labelBn: 'ইসলামি উপন্যাস',        href: '/islamic-lifestyle?tag=islamic-fiction' },
+    { label: 'All Islamic Books →', labelBn: 'সব ইসলামিক বই →',   href: '/islamic-lifestyle' },
+  ],
+  'Quran Accessories': [
+    { label: 'Quran Stands',     labelBn: 'কুরআন স্ট্যান্ড',       href: '/islamic-lifestyle?tag=quran-stand' },
+    { label: 'Quran Covers',     labelBn: 'কুরআন কভার',            href: '/islamic-lifestyle?tag=quran-cover' },
+    { label: 'Reading Lamps',    labelBn: 'পড়ার বাতি',             href: '/islamic-lifestyle?tag=reading-lamp' },
+  ],
+  'Islamic Clothing': [
+    { label: 'Panjabi',          labelBn: 'পাঞ্জাবি',              href: '/islamic-lifestyle?tag=panjabi' },
+    { label: 'Hijab',            labelBn: 'হিজাব',                 href: '/islamic-lifestyle?tag=hijab' },
+    { label: 'Abaya',            labelBn: 'আবায়া',                 href: '/islamic-lifestyle?tag=abaya' },
+    { label: 'All Clothing →',   labelBn: 'সব পোশাক →',            href: '/islamic-lifestyle?tag=clothing' },
+  ],
+  'Perfumes & Oud': [
+    { label: 'Attar',            labelBn: 'আতর',                  href: '/islamic-lifestyle?tag=attar' },
+    { label: 'Oud',              labelBn: 'আউড',                  href: '/islamic-lifestyle?tag=oud' },
+    { label: 'Room Fragrance',   labelBn: 'রুম ফ্রেগ্রেন্স',       href: '/islamic-lifestyle?tag=fragrance' },
+  ],
+  'Tasbih & Decor': [
+    { label: 'Tasbih Beads',     labelBn: 'তাসবিহ দানা',           href: '/islamic-lifestyle?tag=tasbih' },
+    { label: 'Calligraphy Art',  labelBn: 'ক্যালিগ্রাফি শিল্প',    href: '/islamic-lifestyle?tag=calligraphy' },
+    { label: 'Islamic Wall Art', labelBn: 'ইসলামিক ওয়াল আর্ট',    href: '/islamic-lifestyle?tag=wall-art' },
+    { label: 'All Decor →',      labelBn: 'সব ডেকোর →',           href: '/islamic-lifestyle?tag=decor' },
+  ],
 };
 
 const BN_SUBNAV: Record<string, Record<string, string>> = {
@@ -233,7 +268,8 @@ const BN_SUBNAV: Record<string, Record<string, string>> = {
   'organic-foods':    { 'Nuts & Seeds': 'বাদাম ও বীজ', 'Honey & Sweeteners': 'মধু', 'Spices & Herbs': 'মশলা', 'Healthy Snacks': 'স্বাস্থ্যকর স্ন্যাকস', 'Tea & Beverages': 'চা ও পানীয়' },
   'handicrafts':      { 'Wall Art': 'দেওয়াল শিল্প', 'Showpieces': 'শোপিস', 'Lamps & Lighting': 'প্রদীপ', 'Rugs & Carpets': 'কার্পেট', 'Traditional Crafts': 'ঐতিহ্যবাহী শিল্প' },
   'electronics':      { 'Mobiles': 'মোবাইল', 'Laptops': 'ল্যাপটপ', 'Accessories': 'আনুষাঙ্গিক', 'Home Appliances': 'হোম অ্যাপ্লায়েন্স', 'Gadgets': 'গ্যাজেট' },
-  'daily-needs':      { 'Grocery': 'মুদি', 'Personal Care': 'ব্যক্তিগত যত্ন', 'Household': 'গৃহস্থালি', 'Stationery': 'স্টেশনারি', 'Pet Care': 'পোষা প্রাণীর যত্ন' },
+  'daily-needs':        { 'Grocery': 'মুদি', 'Personal Care': 'ব্যক্তিগত যত্ন', 'Household': 'গৃহস্থালি', 'Stationery': 'স্টেশনারি', 'Pet Care': 'পোষা প্রাণীর যত্ন' },
+  'islamic-lifestyle':  { 'Prayer Essentials': 'নামাজের সরঞ্জাম', 'Islamic Books (Lifestyle)': 'ইসলামিক বই', 'Quran Accessories': 'কুরআন সামগ্রী', 'Islamic Clothing': 'ইসলামিক পোশাক', 'Perfumes & Oud': 'আতর ও আউড', 'Tasbih & Decor': 'তাসবিহ ও ডেকোর' },
 };
 
 const MEGA_CATEGORIES = [
@@ -312,6 +348,17 @@ const MEGA_CATEGORIES = [
       { label: 'Household',      labelBn: 'গৃহস্থালি',           href: '/products?categorySlug=daily-needs' },
       { label: 'Stationery',     labelBn: 'স্টেশনারি',           href: '/products?categorySlug=daily-needs' },
       { label: 'All Daily →',    labelBn: 'সব দৈনন্দিন →',      href: '/products?categorySlug=daily-needs' },
+    ],
+  },
+  {
+    emoji: '🕌', name: 'Islamic Lifestyle', nameBn: 'ইসলামিক লাইফস্টাইল',
+    href: '/islamic-lifestyle',
+    subs: [
+      { label: 'Prayer Essentials', labelBn: 'নামাজের সরঞ্জাম',   href: '/islamic-lifestyle' },
+      { label: 'Quran Accessories', labelBn: 'কুরআন সামগ্রী',      href: '/islamic-lifestyle' },
+      { label: 'Islamic Clothing',  labelBn: 'ইসলামিক পোশাক',      href: '/islamic-lifestyle' },
+      { label: 'Perfumes & Oud',    labelBn: 'আতর ও আউড',          href: '/islamic-lifestyle' },
+      { label: 'All Islamic →',     labelBn: 'সব ইসলামিক পণ্য →', href: '/islamic-lifestyle' },
     ],
   },
 ];
@@ -496,6 +543,30 @@ const MEGA_CONTENT = [
         { label: 'Pens',         labelBn: 'কলম',                href: '/products?categorySlug=daily-needs' },
         { label: 'Pet Food',     labelBn: 'পোষা প্রাণীর খাবার', href: '/products?categorySlug=daily-needs' },
         { label: 'All Daily →',  labelBn: 'সব পণ্য →',          href: '/products?categorySlug=daily-needs' },
+      ]},
+    ],
+  },
+  // 7 — Islamic Lifestyle
+  {
+    columns: [
+      { heading: 'Prayer & Worship', headingBn: 'নামাজ ও ইবাদত', links: [
+        { label: 'Prayer Mats',       labelBn: 'জায়নামাজ',          href: '/islamic-lifestyle' },
+        { label: 'Prayer Caps',       labelBn: 'টুপি',               href: '/islamic-lifestyle' },
+        { label: 'Tasbih Beads',      labelBn: 'তাসবিহ',             href: '/islamic-lifestyle' },
+        { label: 'Miswak',            labelBn: 'মিসওয়াক',            href: '/islamic-lifestyle' },
+        { label: 'Quran Stands',      labelBn: 'কুরআন স্ট্যান্ড',    href: '/islamic-lifestyle' },
+      ]},
+      { heading: 'Islamic Clothing', headingBn: 'ইসলামিক পোশাক', links: [
+        { label: 'Panjabi / Jubbah',  labelBn: 'পাঞ্জাবি / জুব্বা',  href: '/islamic-lifestyle' },
+        { label: 'Hijab',             labelBn: 'হিজাব',               href: '/islamic-lifestyle' },
+        { label: 'Abaya',             labelBn: 'আবায়া',               href: '/islamic-lifestyle' },
+        { label: 'Islamic Kids Wear', labelBn: 'শিশু ইসলামিক পোশাক', href: '/islamic-lifestyle' },
+      ]},
+      { heading: 'Perfumes & Décor', headingBn: 'আতর ও ডেকোর', links: [
+        { label: 'Attar / Oud',       labelBn: 'আতর / আউড',           href: '/islamic-lifestyle' },
+        { label: 'Islamic Wall Art',  labelBn: 'ইসলামিক ওয়াল আর্ট',  href: '/islamic-lifestyle' },
+        { label: 'Calligraphy',       labelBn: 'ক্যালিগ্রাফি',         href: '/islamic-lifestyle' },
+        { label: 'All Islamic →',     labelBn: 'সব পণ্য দেখুন →',     href: '/islamic-lifestyle' },
       ]},
     ],
   },
@@ -1005,7 +1076,7 @@ export function Header() {
                       {/* ── Other categories ── */}
                       {megaHoverCat !== 0 && (() => {
                         const cat = MEGA_CATEGORIES[megaHoverCat]!;
-                        const raw = MEGA_CONTENT[megaHoverCat as 1 | 2 | 3 | 4 | 5 | 6];
+                        const raw = MEGA_CONTENT[megaHoverCat as 1 | 2 | 3 | 4 | 5 | 6 | 7];
                         const content = raw as unknown as { columns: { heading: string; headingBn: string; links: { label: string; labelBn: string; href: string }[] }[] };
                         if (!content?.columns) return null;
                         return (
@@ -1047,7 +1118,7 @@ export function Header() {
                   {/* Footer */}
                   <div className="bg-gray-50 border-t border-gray-100 px-5 py-2.5 flex items-center justify-between flex-shrink-0">
                     <p className="text-[11px] text-gray-400">
-                      {lang === 'bn' ? '৭টি বিভাগে হাজারো পণ্য' : '1000s of products across 7 departments'}
+                      {lang === 'bn' ? '৮টি বিভাগে হাজারো পণ্য' : '1000s of products across 8 departments'}
                     </p>
                     <Link href="/products" onClick={() => setMegaOpen(false)}
                       className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 bg-primary/5 px-3 py-1.5 rounded-full transition-colors hover:bg-primary/10">
