@@ -648,6 +648,22 @@ export function Header() {
         <div className="bg-[#1a1a1a] py-1.5 hidden md:block">
           <div className="max-w-7xl mx-auto px-4 flex justify-between items-center text-[11px] text-gray-300 font-medium">
             <div className="flex items-center gap-4">
+              {/* ── Preorder orbiting comet button — LEFT side ── */}
+              <Link href="/products?preorder=1" className="po-hdr-outer -my-1.5 normal-case">
+                {/* Spinning arm holding the comet */}
+                <span className="po-hdr-spin-arm">
+                  <span className="po-hdr-comet" />
+                </span>
+                {/* Pill */}
+                <span className="po-hdr-pill">
+                  <CalendarClock className="po-hdr-cal w-3 h-3 text-emerald-400" />
+                  <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Pre-Order</span>
+                  <span className="text-white/30 text-[10px]">/</span>
+                  <span className="po-hdr-txt">প্রি-অর্ডার</span>
+                </span>
+              </Link>
+
+              <div className="h-3 w-px bg-gray-600" />
               <span className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors">
                 <MapPin className="w-3 h-3 text-primary" />
                 {t.header.deliverTo} <span className="font-bold text-white ml-0.5">{t.header.selectAddress}</span>
@@ -684,23 +700,6 @@ export function Header() {
                 <HelpCircle className="w-3 h-3" /> {t.header.support}
               </a>
               <a href="#" className="hover:text-primary transition-colors">{t.header.trackOrder}</a>
-              {/* ── Preorder animated button ── */}
-              <Link href="/products?preorder=1" className="po-hdr-wrapper normal-case group">
-                <span className="po-hdr-ring" />
-                <span className="po-hdr-ring-2" />
-                <div className="po-hdr-inner">
-                  <span className="po-hdr-orbit-dot" />
-                  {/* Flicker calendar icon */}
-                  <span className="po-hdr-icon relative flex-shrink-0">
-                    <CalendarClock className="w-3 h-3 text-emerald-400" />
-                  </span>
-                  <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Pre-Order</span>
-                  <span className="text-white/30 text-[10px]">/</span>
-                  <span className="po-hdr-label">প্রি-অর্ডার</span>
-                  <span className="po-hdr-shine" />
-                </div>
-              </Link>
-
               <Link href="/publish" className="sell-border-wrapper ml-2 normal-case hover:scale-110 transition-transform duration-200 group">
                 {/* Floating sparkles */}
                 <span className="sell-spark sell-spark-1" />
