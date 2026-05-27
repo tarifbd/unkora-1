@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PROTECTED_ROUTES = ['/account', '/checkout', '/cart'];
+const PROTECTED_ROUTES = ['/account']; // checkout & cart handle their own auth gracefully
 const ADMIN_ROUTES = ['/admin'];
 const AUTH_ROUTES = ['/login', '/register'];
 
@@ -18,7 +18,9 @@ export function middleware(request: NextRequest) {
   if ((isProtected || isAdmin) && !accessToken) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
-    url.searchParams.set('redirect', pathname);
+    // Preserve full path + query string so user returns to exact page after login
+    const fullPath = request.nextUrl.pathname + request.nextUrl.search;
+    url.searchParams.set('redirect', fullPath);
     return NextResponse.redirect(url);
   }
 
