@@ -684,6 +684,23 @@ export function Header() {
                 <HelpCircle className="w-3 h-3" /> {t.header.support}
               </a>
               <a href="#" className="hover:text-primary transition-colors">{t.header.trackOrder}</a>
+              {/* ── Preorder animated button ── */}
+              <Link href="/products?preorder=1" className="po-hdr-wrapper normal-case group">
+                <span className="po-hdr-ring" />
+                <span className="po-hdr-ring-2" />
+                <div className="po-hdr-inner">
+                  <span className="po-hdr-orbit-dot" />
+                  {/* Flicker calendar icon */}
+                  <span className="po-hdr-icon relative flex-shrink-0">
+                    <CalendarClock className="w-3 h-3 text-emerald-400" />
+                  </span>
+                  <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Pre-Order</span>
+                  <span className="text-white/30 text-[10px]">/</span>
+                  <span className="po-hdr-label">প্রি-অর্ডার</span>
+                  <span className="po-hdr-shine" />
+                </div>
+              </Link>
+
               <Link href="/publish" className="sell-border-wrapper ml-2 normal-case hover:scale-110 transition-transform duration-200 group">
                 {/* Floating sparkles */}
                 <span className="sell-spark sell-spark-1" />
