@@ -613,17 +613,24 @@ export function Header() {
                 <HelpCircle className="w-3 h-3" /> {t.header.support}
               </a>
               <a href="#" className="hover:text-primary transition-colors">{t.header.trackOrder}</a>
-              <Link href="/publish" className="sell-cta relative flex items-center gap-2 ml-2 rounded-full px-3 py-1 normal-case overflow-hidden group hover:scale-105 transition-transform duration-200">
-                {/* Ping dot */}
-                <span className="relative flex h-2 w-2 flex-shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
-                </span>
-                <span className="text-white font-black text-[10px] tracking-wide">Sell Your Book</span>
-                <span className="text-white/40 text-[10px]">/</span>
-                <span className="sell-cta-text-bn text-yellow-300 font-black text-[10px] tracking-wide">বই বিক্রি করুন</span>
-                {/* Shine sweep on hover */}
-                <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              <Link href="/publish" className="sell-border-wrapper ml-2 normal-case hover:scale-110 transition-transform duration-200 group">
+                {/* Floating sparkles */}
+                <span className="sell-spark sell-spark-1" />
+                <span className="sell-spark sell-spark-2" />
+                <span className="sell-spark sell-spark-3" />
+                <span className="sell-spark sell-spark-4" />
+                <div className="sell-cta-inner">
+                  {/* Ping dot */}
+                  <span className="relative flex h-2 w-2 flex-shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
+                  </span>
+                  <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Sell Your Book</span>
+                  <span className="text-white/30 text-[10px]">/</span>
+                  <span className="sell-bn-text whitespace-nowrap">বই বিক্রি করুন</span>
+                  {/* Hover shine sweep */}
+                  <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-full" />
+                </div>
               </Link>
             </div>
           </div>

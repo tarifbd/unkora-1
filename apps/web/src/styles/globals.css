@@ -87,33 +87,126 @@
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* ── Sell Your Book CTA animations ── */
-@keyframes sell-shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-@keyframes sell-glow {
-  0%, 100% { box-shadow: 0 0 6px 1px rgba(251,146,60,0.5), 0 0 12px 2px rgba(251,146,60,0.25); }
-  50%       { box-shadow: 0 0 12px 3px rgba(251,146,60,0.8), 0 0 24px 6px rgba(251,146,60,0.4); }
-}
-@keyframes sell-border-spin {
-  0%   { --border-angle: 0deg; }
-  100% { --border-angle: 360deg; }
-}
-@keyframes text-flicker {
-  0%, 90%, 100% { opacity: 1; }
-  95%           { opacity: 0.7; }
+/* ══════════════════════════════════════════
+   SELL YOUR BOOK — Advanced CTA Animations
+   ══════════════════════════════════════════ */
+
+/* 1. Spinning rainbow conic border */
+@keyframes spin-conic {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
-.sell-cta {
-  background: linear-gradient(90deg,
-    #1e293b 0%, #1e293b 20%,
-    #f97316 40%, #fbbf24 50%, #f97316 60%,
-    #1e293b 80%, #1e293b 100%
+/* 2. Inner background fire pulse */
+@keyframes sell-fire-bg {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+/* 3. Bengali text neon glow pulse */
+@keyframes sell-bn-glow {
+  0%, 100% {
+    text-shadow:
+      0 0 4px  rgba(253,224,71,0.9),
+      0 0 10px rgba(253,224,71,0.6),
+      0 0 20px rgba(253,224,71,0.3);
+  }
+  50% {
+    text-shadow:
+      0 0 8px  rgba(253,224,71,1),
+      0 0 18px rgba(253,224,71,0.9),
+      0 0 32px rgba(251,146,60,0.6),
+      0 0 50px rgba(251,146,60,0.3);
+  }
+}
+
+/* 4. Sparkle particles float up */
+@keyframes spark-1 {
+  0%   { opacity:0; transform:translate(0,0)      scale(0); }
+  25%  { opacity:1; transform:translate(-4px,-7px) scale(1); }
+  100% { opacity:0; transform:translate(-7px,-22px) scale(0.2); }
+}
+@keyframes spark-2 {
+  0%   { opacity:0; transform:translate(0,0)       scale(0); }
+  25%  { opacity:1; transform:translate(3px,-9px)  scale(1); }
+  100% { opacity:0; transform:translate(6px,-24px) scale(0.2); }
+}
+@keyframes spark-3 {
+  0%   { opacity:0; transform:translate(0,0)       scale(0); }
+  25%  { opacity:1; transform:translate(-1px,-8px) scale(1); }
+  100% { opacity:0; transform:translate(-3px,-20px) scale(0.2); }
+}
+@keyframes spark-4 {
+  0%   { opacity:0; transform:translate(0,0)      scale(0); }
+  25%  { opacity:1; transform:translate(5px,-6px) scale(1); }
+  100% { opacity:0; transform:translate(9px,-18px) scale(0.2); }
+}
+
+/* 5. Whole button breathe scale */
+@keyframes sell-breathe {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.04); }
+}
+
+/* ── Wrapper: spinning rainbow border ── */
+.sell-border-wrapper {
+  position: relative;
+  border-radius: 9999px;
+  padding: 2px;
+  overflow: hidden;
+  animation: sell-breathe 3s ease-in-out infinite;
+  cursor: pointer;
+}
+.sell-border-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -80%;
+  background: conic-gradient(
+    #f97316,
+    #fbbf24,
+    #a855f7,
+    #3b82f6,
+    #22d3ee,
+    #10b981,
+    #ec4899,
+    #f97316
   );
-  background-size: 300% 100%;
-  animation: sell-shimmer 3s linear infinite, sell-glow 2s ease-in-out infinite;
+  animation: spin-conic 2s linear infinite;
+  z-index: 0;
 }
-.sell-cta-text-bn {
-  animation: text-flicker 4s ease-in-out infinite;
+
+/* ── Inner button ── */
+.sell-cta-inner {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(135deg, #0f172a, #1e1b4b, #0f172a);
+  background-size: 200% 200%;
+  animation: sell-fire-bg 4s ease infinite;
+  border-radius: 9999px;
+  padding: 5px 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  overflow: hidden;
 }
+
+/* ── Bengali text neon glow ── */
+.sell-bn-text {
+  color: #fde047;
+  font-weight: 900;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  animation: sell-bn-glow 2s ease-in-out infinite;
+}
+
+/* ── Sparkle dots ── */
+.sell-spark {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 10;
+}
+.sell-spark-1 { width:5px; height:5px; background:#fde047; top:0; left:22%; animation: spark-1 2s ease-out infinite; }
+.sell-spark-2 { width:4px; height:4px; background:#fb923c; top:0; left:45%; animation: spark-2 2s ease-out infinite 0.5s; }
+.sell-spark-3 { width:4px; height:4px; background:#e879f9; top:0; left:65%; animation: spark-3 2s ease-out infinite 1s; }
+.sell-spark-4 { width:3px; height:3px; background:#67e8f9; top:0; right:18%; animation: spark-4 2s ease-out infinite 1.5s; }
