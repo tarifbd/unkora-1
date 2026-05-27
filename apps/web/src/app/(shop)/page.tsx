@@ -151,10 +151,10 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
+      className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
     >
-      {/* Image — fixed height for uniform cards */}
-      <div className="relative h-44 bg-gray-50 overflow-hidden flex-shrink-0">
+      {/* Image — aspect ratio keeps all images same size */}
+      <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden flex-shrink-0">
         {img ? (
           <Image src={img} alt={product.name} fill
             className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -179,12 +179,15 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
 
       {/* Info */}
       <div className="p-2.5 flex flex-col flex-1">
-        <p className="text-[11px] font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors flex-1">
+        {/* Title — fixed min-height so cards align even with short names */}
+        <p className="text-[11px] font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors min-h-[2.5rem]">
           {product.name}
         </p>
-        {product.bookDetail?.author && (
-          <p className="text-[10px] text-gray-400 truncate mt-0.5">{product.bookDetail.author}</p>
-        )}
+        {/* Author — always same height slot */}
+        <p className="text-[10px] text-gray-400 truncate mt-0.5 min-h-[1rem]">
+          {product.bookDetail?.author ?? ''}
+        </p>
+        {/* Stars */}
         {reviewCount > 0 && (
           <div className="flex items-center gap-1 mt-1">
             <div className="flex">
@@ -197,26 +200,31 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
             <span className="text-[9px] text-gray-400">({reviewCount})</span>
           </div>
         )}
-        <div className="flex items-baseline gap-1.5 mt-1.5">
+        {/* Price */}
+        <div className="flex items-baseline gap-1.5 mt-auto pt-1.5">
           <span className="text-sm font-black text-primary">৳{salePrice.toLocaleString('en-BD')}</span>
           {hasDiscount && <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
         </div>
-        {/* Both buttons always visible */}
-        <div className="flex gap-1.5 mt-2">
+        {/* Buttons — always grid-cols-2, never flex-1 */}
+        <div className="grid grid-cols-2 gap-1.5 mt-2">
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
             disabled={!inStock}
-            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-bold transition-all ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+            className={`flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-bold transition-all whitespace-nowrap ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white active:scale-95' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
           >
             <ShoppingCart className="w-3 h-3 flex-shrink-0" />
-            <span className="truncate">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
+            <span>{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
           </button>
-          {inStock && (
+          {inStock ? (
             <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
-              className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold hover:bg-orange-600 transition-all">
+              className="flex items-center justify-center gap-1 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold hover:bg-orange-600 active:scale-95 transition-all whitespace-nowrap">
               <Zap className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
+              <span>{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
             </Link>
+          ) : (
+            <div className="flex items-center justify-center py-1.5 rounded-xl bg-gray-100 text-gray-400 text-[10px] font-bold">
+              {lang === 'bn' ? 'নেই' : 'N/A'}
+            </div>
           )}
         </div>
       </div>
@@ -588,9 +596,9 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          <div ref={shelfRef} className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+          <div ref={shelfRef} className="flex items-stretch gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
             {shelfBooks.length > 0 ? shelfBooks.map(p => (
-              <div key={p.id} className="flex-shrink-0 w-[150px]"><MiniCard product={p} lang={lang} /></div>
+              <div key={p.id} className="flex-shrink-0 w-[150px] flex flex-col"><MiniCard product={p} lang={lang} /></div>
             )) : Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="flex-shrink-0 w-[150px]"><SkeletonCard /></div>
             ))}
@@ -632,7 +640,7 @@ export default function HomePage() {
       <section className="py-3 px-3 md:px-4">
         <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="নতুন আগমন" titleEn="New Arrivals" href="/products?sortBy=createdAt&sortOrder=desc" accentColor="#f97316" lang={lang} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 items-stretch">
             {newArrivals.length > 0
               ? newArrivals.slice(0, 12).map(p => <MiniCard key={p.id} product={p} lang={lang} />)
               : Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
@@ -661,7 +669,7 @@ export default function HomePage() {
               <Link href="/products" className="text-[11px] font-bold text-orange-500 hover:underline ml-1">{lang === 'bn' ? 'সব দেখুন' : 'All'}</Link>
             </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 items-stretch">
             {bestProducts.length > 0
               ? bestProducts.slice(0, 12).map(p => <MiniCard key={p.id} product={p} lang={lang} />)
               : Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
