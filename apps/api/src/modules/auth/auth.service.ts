@@ -261,6 +261,79 @@ export class AuthService {
     return { user: this.usersService.toDto(user), tokens };
   }
 
+  async socialLogin(dto: {
+    provider: 'google' | 'facebook';
+    providerId: string;
+    email: string;
+    firstName: string;
+    lastName?: string;
+    avatarUrl?: string;
+  }) {
+    // Find by email or create new user
+    let user = await this.prisma.user.findUnique({ where: { email: dto.email } });
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          email: dto.email,
+          firstName: dto.firstName,
+          lastName: dto.lastName ?? '',
+          avatarUrl: dto.avatarUrl,
+          status: 'ACTIVE',
+          emailVerifiedAt: new Date(), // Social logins are pre-verified
+        },
+      });
+    } else if (!user.emailVerifiedAt) {
+      // Mark existing unverified account as verified
+      await this.prisma.user.update({ where: { id: user.id }, data: { emailVerifiedAt: new Date(), status: 'ACTIVE' } });
+    }
+
+    if (user.status === 'SUSPENDED') throw new UnauthorizedException('Account suspended');
+
+    await this.prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    await this.saveRefreshToken(user.id, tokens.refreshToken);
+    return { user: this.usersService.toDto(user), tokens };
+  }
+
+  async verifyGoogleToken(idToken: string): Promise<{ email: string; firstName: string; lastName: string; avatarUrl: string; providerId: string }> {
+    // Verify Google ID token via Google's tokeninfo endpoint
+    const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+    const data = await res.json() as any;
+    if (data.error || !data.email) throw new UnauthorizedException('Invalid Google token: ' + (data.error_description ?? 'verification failed'));
+    const clientId = this.config.get<string>('GOOGLE_CLIENT_ID');
+    if (clientId && data.aud !== clientId) throw new UnauthorizedException('Google token audience mismatch');
+    return {
+      email: data.email,
+      firstName: data.given_name ?? data.name?.split(' ')[0] ?? '',
+      lastName: data.family_name ?? data.name?.split(' ').slice(1).join(' ') ?? '',
+      avatarUrl: data.picture ?? '',
+      providerId: data.sub,
+    };
+  }
+
+  async verifyFacebookToken(accessToken: string): Promise<{ email: string; firstName: string; lastName: string; avatarUrl: string; providerId: string }> {
+    const appId = this.config.get<string>('FACEBOOK_APP_ID');
+    const appSecret = this.config.get<string>('FACEBOOK_APP_SECRET');
+    if (!appId || !appSecret) throw new BadRequestException('Facebook OAuth not configured');
+
+    // Verify token
+    const verifyRes = await fetch(`https://graph.facebook.com/debug_token?input_token=${accessToken}&access_token=${appId}|${appSecret}`);
+    const verify = await verifyRes.json() as any;
+    if (!verify.data?.is_valid) throw new UnauthorizedException('Invalid Facebook token');
+
+    // Get user profile
+    const profileRes = await fetch(`https://graph.facebook.com/me?fields=id,first_name,last_name,email,picture&access_token=${accessToken}`);
+    const profile = await profileRes.json() as any;
+    return {
+      email: profile.email ?? '',
+      firstName: profile.first_name ?? '',
+      lastName: profile.last_name ?? '',
+      avatarUrl: profile.picture?.data?.url ?? '',
+      providerId: profile.id,
+    };
+  }
+
   // ─── Private helpers ───────────────────────────────────────
 
   private async generateTokens(userId: string, email: string, role: string) {

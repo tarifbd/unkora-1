@@ -81,4 +81,21 @@ export class AuthController {
   loginWithPhone(@Body() dto: { phone: string; code: string }) {
     return this.authService.loginWithPhone(dto.phone, dto.code);
   }
+
+  @Post('social/google')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login/register with Google ID token' })
+  async googleLogin(@Body() dto: { idToken: string }) {
+    const profile = await this.authService.verifyGoogleToken(dto.idToken);
+    return this.authService.socialLogin({ provider: 'google', ...profile });
+  }
+
+  @Post('social/facebook')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login/register with Facebook access token' })
+  async facebookLogin(@Body() dto: { accessToken: string }) {
+    const profile = await this.authService.verifyFacebookToken(dto.accessToken);
+    if (!profile.email) throw new Error('Facebook account has no email — cannot create account');
+    return this.authService.socialLogin({ provider: 'facebook', ...profile });
+  }
 }
