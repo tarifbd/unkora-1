@@ -5,9 +5,11 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { BookSubmissionStatus } from '@prisma/client';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -36,18 +38,30 @@ export class BookSubmissionsController {
     return this.bookSubmissionsService.findMySubmissions(userId);
   }
 
+  @Get('stats')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Admin: book submission statistics' })
+  getStats() {
+    return this.bookSubmissionsService.getStats();
+  }
+
   @Get()
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Admin: list all book submissions' })
-  findAll() {
-    return this.bookSubmissionsService.findAll();
+  findAll(
+    @Query('status') status?: BookSubmissionStatus,
+    @Query('page') page?: number,
+    @Query('search') search?: string,
+  ) {
+    return this.bookSubmissionsService.findAll({ status, page: page ? +page : 1, search });
   }
 
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'SUPER_ADMIN')
-  @ApiOperation({ summary: 'Admin: update a book submission status' })
+  @ApiOperation({ summary: 'Admin: update a book submission (approve/reject/publish)' })
   update(
     @Param('id') id: string,
     @Body() dto: UpdateSubmissionDto,

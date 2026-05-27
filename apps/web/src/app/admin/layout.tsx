@@ -57,7 +57,7 @@ const NAV: NavItem[] = [
     label: 'Operations', icon: Monitor,
     children: [
       { href: '/admin/pos',                 label: 'POS Terminal',       icon: Monitor },
-      { href: '/admin/sellers',             label: 'Sellers',            icon: Store },
+      { href: '/admin/sellers',             label: 'Sellers & Books',    icon: Store },
       { href: '/admin/courier',             label: 'Courier',            icon: Truck },
       { href: '/admin/cod-reconciliation',  label: 'COD Reconciliation', icon: DollarSign },
       { href: '/admin/returns',             label: 'Returns',            icon: RefreshCw },
