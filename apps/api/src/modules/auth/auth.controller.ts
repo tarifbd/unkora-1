@@ -74,4 +74,11 @@ export class AuthController {
   resendVerification(@CurrentUser('id') userId: string) {
     return this.authService.resendVerification(userId);
   }
+
+  @Post('login/phone')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login with phone number + OTP' })
+  loginWithPhone(@Body() dto: { phone: string; code: string }) {
+    return this.authService.loginWithPhone(dto.phone, dto.code);
+  }
 }

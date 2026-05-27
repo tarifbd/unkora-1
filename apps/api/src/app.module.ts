@@ -60,6 +60,7 @@ import { UploadModule } from './modules/upload/upload.module';
 import { UsersModule } from './modules/users/users.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { SupportModule } from './modules/support/support.module';
+import { OtpModule } from './modules/otp/otp.module';
 
 @Module({
   imports: [
@@ -128,6 +129,7 @@ import { SupportModule } from './modules/support/support.module';
     DesignModule,
     AiStudioModule,
     SupportModule,
+    OtpModule,
   ],
 })
 export class AppModule {}
