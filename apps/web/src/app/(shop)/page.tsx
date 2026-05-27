@@ -281,24 +281,49 @@ function SkeletonCard() {
 function FlashCard({ product, lang }: { product: Product; lang: string }) {
   const { addItem } = useCart();
   const [imgErr, setImgErr] = useState(false);
-  const img = product.images?.[0]?.url;
+  const img = (!imgErr && product.images?.[0]?.url) ? product.images[0].url : null;
   const salePrice = Number(product.salePrice ?? product.basePrice);
   const basePrice = Number(product.basePrice);
   const hasDiscount = product.salePrice && salePrice < basePrice;
   const discount = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
   const inStock = product.stockQuantity > 0;
-  if (imgErr || !img) return null;
+
   return (
     <Link href={`/products/${product.slug}`}
-      className="flex-shrink-0 w-[165px] group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
-      <div className="relative h-[200px] bg-gray-50 overflow-hidden flex-shrink-0">
-        <Image src={img} alt={product.name} fill
-          className="object-cover group-hover:scale-110 transition-transform duration-500"
-          unoptimized={img.includes('unsplash') || img.includes('picsum')}
-          sizes="165px" onError={() => setImgErr(true)} />
-        {hasDiscount && (
-          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow">-{discount}%</span>
+      className="flex-shrink-0 w-[200px] group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-orange-200 hover:-translate-y-1 transition-all duration-300 flex flex-col">
+
+      {/* ── Image ── */}
+      <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden flex-shrink-0">
+        {img ? (
+          <Image src={img} alt={product.name} fill
+            className="object-cover group-hover:scale-110 transition-transform duration-500"
+            unoptimized={img.includes('unsplash') || img.includes('picsum')}
+            sizes="200px" onError={() => setImgErr(true)} />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-4xl bg-gradient-to-br from-orange-50 to-red-50">📦</div>
         )}
+
+        {/* Discount badge */}
+        {hasDiscount && (
+          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow">
+            -{discount}%
+          </span>
+        )}
+
+        {/* Flash badge */}
+        <span className="absolute top-2 right-2 bg-orange-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+          <Zap className="w-2.5 h-2.5 fill-white" /> {lang === 'bn' ? 'ডিল' : 'Deal'}
+        </span>
+
+        {/* Wishlist — shows on hover */}
+        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <WishlistButton
+            productId={product.id}
+            className="w-7 h-7 bg-white/90 backdrop-blur-sm shadow-md hover:bg-red-50 rounded-full"
+          />
+        </div>
+
+        {/* Out of stock overlay */}
         {!inStock && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
             <span className="bg-gray-800 text-white text-[10px] font-bold px-3 py-1 rounded-full">
@@ -307,31 +332,54 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
           </div>
         )}
       </div>
-      <div className="p-2.5 flex flex-col flex-1">
-        <p className="text-[11px] font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors flex-1">
+
+      {/* ── Info ── */}
+      <div className="p-3 flex flex-col flex-1 gap-1">
+        {/* Title — fixed 2-line height */}
+        <p className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors min-h-[2.75rem]">
           {product.name}
         </p>
-        {product.bookDetail?.author && (
-          <p className="text-[10px] text-gray-400 truncate mt-0.5">{product.bookDetail.author}</p>
-        )}
-        <div className="flex items-baseline gap-1.5 mt-1.5">
-          <span className="text-sm font-black text-red-600">৳{salePrice.toLocaleString('en-BD')}</span>
-          {hasDiscount && <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
+
+        {/* Author — fixed slot */}
+        <p className="text-[10px] text-gray-400 truncate min-h-[1.1rem]">
+          {product.bookDetail?.author ?? ' '}
+        </p>
+
+        {/* Price */}
+        <div className="flex items-baseline gap-2 mt-auto pt-1">
+          <span className="text-base font-black text-red-600">৳{salePrice.toLocaleString('en-BD')}</span>
+          {hasDiscount && (
+            <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>
+          )}
         </div>
-        <div className="flex gap-1 mt-2">
+
+        {/* ── Buttons — always equal 2 cols ── */}
+        <div className="grid grid-cols-2 gap-2 mt-2">
           <button
-            onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
+            onClick={e => {
+              e.preventDefault(); e.stopPropagation();
+              if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img ?? undefined, slug: product.slug } });
+            }}
             disabled={!inStock}
-            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-bold transition-all ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
-            <ShoppingCart className="w-3 h-3 flex-shrink-0" />
-            <span className="truncate">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
+            className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all
+              ${inStock
+                ? 'border-2 border-primary/20 text-primary hover:bg-primary hover:text-white hover:border-primary active:scale-95'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+          >
+            <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
           </button>
-          {inStock && (
+
+          {inStock ? (
             <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
-              className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold hover:bg-orange-600 transition-all">
-              <Zap className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
+              className="flex items-center justify-center gap-1.5 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 active:scale-95 transition-all">
+              <Zap className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
             </Link>
+          ) : (
+            <div className="flex items-center justify-center py-2 rounded-xl bg-gray-100 text-gray-400 text-xs font-bold">
+              {lang === 'bn' ? 'নেই' : 'N/A'}
+            </div>
           )}
         </div>
       </div>
@@ -585,15 +633,21 @@ export default function HomePage() {
               <button onClick={() => scroll(flashRef, 'r')} className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronRight className="w-4 h-4 text-gray-500" /></button>
             </div>
           </div>
-          <div ref={flashRef} className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+          <div ref={flashRef} className="flex items-stretch gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
             {flashProducts.length > 0
               ? flashProducts.map(p => <FlashCard key={p.id} product={p} lang={lang} />)
               : Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-[165px] animate-pulse">
-                  <div className="w-full h-[200px] rounded-2xl bg-gray-200 mb-2" />
-                  <div className="h-3 bg-gray-200 rounded mb-1 mx-2" />
-                  <div className="h-3 bg-gray-200 rounded w-2/3 mx-2 mb-2" />
-                  <div className="h-7 bg-gray-200 rounded mx-2" />
+                <div key={i} className="flex-shrink-0 w-[200px] animate-pulse rounded-2xl overflow-hidden border border-gray-100">
+                  <div className="w-full aspect-[4/3] bg-gray-200" />
+                  <div className="p-3 space-y-2">
+                    <div className="h-3 bg-gray-200 rounded" />
+                    <div className="h-3 bg-gray-200 rounded w-2/3" />
+                    <div className="h-4 bg-gray-200 rounded w-1/2" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="h-8 bg-gray-200 rounded-xl" />
+                      <div className="h-8 bg-gray-200 rounded-xl" />
+                    </div>
+                  </div>
                 </div>
               ))
             }
