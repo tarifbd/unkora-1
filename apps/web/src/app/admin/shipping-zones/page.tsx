@@ -117,7 +117,7 @@ export default function ShippingZonesPage() {
                       <div className="grid gap-3 sm:grid-cols-3 mb-3">
                         {[['Name*','name'],['Carrier','carrier'],['Base Rate (৳)*','baseRate'],['Per Kg Rate','perKgRate'],['Free Shipping Above','freeAbove'],['Est. Days','estimatedDays']].map(([label,key]) => (
                           <div key={key}><label className="block text-[10px] font-medium text-gray-400 mb-1">{label}</label>
-                          <input value={newRate[key as keyof typeof newRate]} onChange={e => setNewRate(p=>({...p,[key]:e.target.value}))} className="w-full px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-xs" /></div>
+                          <input value={newRate[key as keyof typeof newRate]} onChange={e => setNewRate(p=>({...p,[key as string]:e.target.value}))} className="w-full px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-xs" /></div>
                         ))}
                       </div>
                       <div className="flex gap-2">

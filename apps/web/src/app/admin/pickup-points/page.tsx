@@ -51,7 +51,7 @@ export default function PickupPointsPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             {[['Name*', 'name'], ['Address*', 'address'], ['City*', 'city'], ['District*', 'district'], ['Phone', 'phone'], ['Open Hours', 'openHours'], ['Map URL', 'mapUrl']].map(([label, key]) => (
               <div key={key}><label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
-              <input value={form[key as keyof typeof form] as string} onChange={e => setForm(p => ({...p, [key]: e.target.value}))} className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm" /></div>
+              <input value={form[key as keyof typeof form] as string} onChange={e => setForm(p => ({...p, [key as string]: e.target.value}))} className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm" /></div>
             ))}
           </div>
           <div className="flex gap-3 mt-4">

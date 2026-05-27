@@ -327,7 +327,7 @@ export default function BookSubmissionsAdminPage() {
               <tbody className="divide-y">
                 {submissions.map((sub: any) => {
                   const si = STATUS_INFO[sub.status as Status] ?? STATUS_INFO.PENDING;
-                  const isEbook = sub.bookType === 'EBOOK' || sub.digitalFileUrl;
+                  const isEbook = sub.bookType === 'EBOOK' || sub.bookType === 'BOTH' || sub.digitalFileUrl;
                   return (
                     <tr key={sub.id} className="hover:bg-muted/20 cursor-pointer" onClick={() => setSelected(sub)}>
                       <td className="px-4 py-3">

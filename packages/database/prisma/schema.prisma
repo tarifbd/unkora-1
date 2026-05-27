@@ -74,6 +74,12 @@ enum BookSubmissionStatus {
   PUBLISHED
 }
 
+enum BookType {
+  EBOOK
+  PHYSICAL
+  BOTH
+}
+
 enum ProductSource {
   INHOUSE
   SELLER
@@ -764,33 +770,39 @@ model BlogPost {
 // ─────────────────────────────────────────────────────────────
 
 model BookSubmission {
-  id             String               @id @default(cuid())
-  userId         String
-  title          String
-  authorName     String
-  publisherName  String?
-  isbn           String?
-  language       String               @default("Bengali")
-  pageCount      Int?
-  edition        String?
-  genres         String[]
-  description    String               @db.Text
-  coverImageUrl  String?
-  suggestedPrice Decimal              @db.Decimal(10, 2)
-  royaltyPercent Int                  @default(10)
-  status         BookSubmissionStatus @default(PENDING)
-  adminNote      String?
-  reviewedBy     String?
-  reviewedAt     DateTime?
-  productId      String?              @unique
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
+  id                     String               @id @default(cuid())
+  userId                 String
+  title                  String
+  authorName             String
+  publisherName          String?
+  isbn                   String?
+  language               String               @default("Bengali")
+  pageCount              Int?
+  edition                String?
+  genres                 String[]
+  description            String               @db.Text
+  coverImageUrl          String?
+  suggestedPrice         Decimal              @db.Decimal(10, 2)
+  royaltyPercent         Int                  @default(10)
+  bookType               BookType             @default(PHYSICAL)
+  digitalFileUrl         String?
+  sampleUrl              String?
+  authorBio              String?              @db.Text
+  requestedRoyaltyPercent Int?
+  status                 BookSubmissionStatus @default(PENDING)
+  adminNote              String?
+  reviewedBy             String?
+  reviewedAt             DateTime?
+  productId              String?              @unique
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
 
   user    User     @relation(fields: [userId], references: [id])
   product Product? @relation(fields: [productId], references: [id])
 
   @@index([userId])
   @@index([status])
+  @@index([bookType])
   @@map("book_submissions")
 }
 

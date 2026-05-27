@@ -308,7 +308,7 @@ export default function SellersPage() {
                 <tbody className="divide-y">
                   {submissions.map((sub: any) => {
                     const si = SUB_STATUS[sub.status] ?? { label: 'Pending', cls: 'bg-yellow-100 text-yellow-700' };
-                    const isEbook = sub.bookType === 'EBOOK' || sub.digitalFileUrl;
+                    const isEbook = sub.bookType === 'EBOOK' || sub.bookType === 'BOTH' || sub.digitalFileUrl;
                     return (
                       <tr key={sub.id} className="hover:bg-muted/20">
                         <td className="px-4 py-3">

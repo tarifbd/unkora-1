@@ -96,7 +96,7 @@ export default function ShiprocketPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
             {[['Pickup PIN', 'pickup'], ['Delivery PIN', 'delivery'], ['Weight (kg)', 'weight']].map(([label, key]) => (
               <div key={key}><label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
-              <input value={rateParams[key as keyof typeof rateParams]} onChange={e => setRateParams(p => ({...p, [key]: e.target.value}))} className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm" /></div>
+              <input value={rateParams[key as keyof typeof rateParams]} onChange={e => setRateParams(p => ({...p, [key as string]: e.target.value}))} className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm" /></div>
             ))}
             <div><label className="block text-xs font-medium text-gray-500 mb-1">COD</label>
             <select value={rateParams.cod} onChange={e => setRateParams(p => ({...p, cod: e.target.value}))} className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm"><option value="0">Prepaid</option><option value="1">COD</option></select></div>

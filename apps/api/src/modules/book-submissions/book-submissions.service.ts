@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { BookSubmissionStatus } from '@prisma/client';
+import { BookSubmissionStatus, BookType } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
 import type { SubmitBookDto } from './dto/submit-book.dto';
@@ -38,7 +38,12 @@ export class BookSubmissionsService {
         description: dto.description,
         coverImageUrl: dto.coverImageUrl,
         suggestedPrice: dto.suggestedPrice,
-        royaltyPercent: dto.requestedRoyaltyPercent ?? 10,
+        royaltyPercent: dto.requestedRoyaltyPercent ?? (dto.bookType === 'EBOOK' ? 70 : 10),
+        bookType: (dto.bookType as BookType) ?? BookType.PHYSICAL,
+        digitalFileUrl: dto.digitalFileUrl,
+        sampleUrl: dto.sampleUrl,
+        authorBio: dto.authorBio,
+        requestedRoyaltyPercent: dto.requestedRoyaltyPercent,
       },
     });
   }
@@ -122,7 +127,7 @@ export class BookSubmissionsService {
   }
 
   private async approveAndCreateProduct(submission: any, dto: UpdateSubmissionDto, adminId: string) {
-    const isEbook = (submission as any).bookType === 'EBOOK';
+    const isEbook = submission.bookType === BookType.EBOOK || submission.bookType === BookType.BOTH;
     const finalPrice = dto.finalPrice ?? Number(submission.suggestedPrice);
     const royaltyPercent = dto.royaltyPercent ?? submission.royaltyPercent ?? 10;
 

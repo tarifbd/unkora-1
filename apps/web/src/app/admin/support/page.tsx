@@ -162,8 +162,8 @@ export default function SupportPage() {
               <div className="text-center py-12 text-gray-400">No tickets found</div>
             ) : (
               tickets.map((ticket: any) => {
-                const statusCfg = STATUS_CONFIG[ticket.status] ?? STATUS_CONFIG.OPEN;
-                const priorityCfg = PRIORITY_CONFIG[ticket.priority] ?? PRIORITY_CONFIG.MEDIUM;
+                const statusCfg = STATUS_CONFIG[ticket.status] ?? { label: 'Open', color: 'bg-blue-100 text-blue-700', icon: MessageSquare };
+                const priorityCfg = PRIORITY_CONFIG[ticket.priority] ?? { label: 'Medium', color: 'bg-blue-100 text-blue-700' };
                 const isSelected = selectedTicket?.id === ticket.id;
                 return (
                   <button
@@ -230,8 +230,8 @@ export default function SupportPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-xs font-mono text-gray-400">{selectedTicket.ticketNumber}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${(STATUS_CONFIG[ticketDetail?.status ?? selectedTicket.status] ?? STATUS_CONFIG.OPEN).color}`}>
-                        {(STATUS_CONFIG[ticketDetail?.status ?? selectedTicket.status] ?? STATUS_CONFIG.OPEN).label}
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${(STATUS_CONFIG[ticketDetail?.status ?? selectedTicket.status] ?? { color: 'bg-blue-100 text-blue-700', label: 'Open' }).color}`}>
+                        {(STATUS_CONFIG[ticketDetail?.status ?? selectedTicket.status] ?? { color: 'bg-blue-100 text-blue-700', label: 'Open' }).label}
                       </span>
                     </div>
                     <h2 className="font-bold text-gray-900 dark:text-white">{selectedTicket.subject}</h2>

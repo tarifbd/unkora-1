@@ -10,7 +10,9 @@ import {
   RotateCcw, Bike, FileText, User, Sliders, Gavel, Layers,
   CreditCard, Star, Share2, Monitor, Store, MessageCircle,
   DollarSign, RefreshCw, Bell as BellIcon, Mail, Search,
-  Users2, PieChart, UserCog, Palette,
+  Users2, PieChart, UserCog, Palette, MapPin, Map, Rocket,
+  Puzzle, Sparkles, Newspaper, CalendarClock, LifeBuoy, LayoutGrid,
+  Bot,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -43,6 +45,7 @@ const NAV: NavItem[] = [
     label: 'Sales', icon: ShoppingBag,
     children: [
       { href: '/admin/orders',       label: 'Orders',          icon: ShoppingBag },
+      { href: '/admin/preorders',    label: 'Preorders',       icon: CalendarClock },
       { href: '/admin/shipments',    label: 'Shipments',       icon: Truck },
       { href: '/admin/coupons',      label: 'Coupons',         icon: Ticket },
       { href: '/admin/promotions',   label: 'Promotions',      icon: Zap },
@@ -50,6 +53,7 @@ const NAV: NavItem[] = [
       { href: '/admin/flash-deals',  label: 'Flash Deals',     icon: Zap },
       { href: '/admin/wholesale',    label: 'Wholesale',       icon: Layers },
       { href: '/admin/gift-cards',   label: 'Gift Cards',      icon: CreditCard },
+      { href: '/admin/classifieds',  label: 'Classifieds',     icon: Newspaper },
       { href: '/admin/fraud',        label: 'Fraud Detection', icon: ShieldAlert },
     ],
   },
@@ -59,6 +63,9 @@ const NAV: NavItem[] = [
       { href: '/admin/pos',                 label: 'POS Terminal',       icon: Monitor },
       { href: '/admin/sellers',             label: 'Sellers & Books',    icon: Store },
       { href: '/admin/courier',             label: 'Courier',            icon: Truck },
+      { href: '/admin/shiprocket',          label: 'Shiprocket',         icon: Rocket },
+      { href: '/admin/pickup-points',       label: 'Pickup Points',      icon: MapPin },
+      { href: '/admin/shipping-zones',      label: 'Shipping Zones',     icon: Map },
       { href: '/admin/cod-reconciliation',  label: 'COD Reconciliation', icon: DollarSign },
       { href: '/admin/returns',             label: 'Returns',            icon: RefreshCw },
     ],
@@ -72,11 +79,12 @@ const NAV: NavItem[] = [
   {
     label: 'Community', icon: Users,
     children: [
-      { href: '/admin/users',     label: 'Users',         icon: Users },
-      { href: '/admin/reviews',   label: 'Reviews',       icon: MessageSquare },
-      { href: '/admin/blog',      label: 'Blog',          icon: FileText },
-      { href: '/admin/loyalty',   label: 'Club Points',   icon: Star },
-      { href: '/admin/referrals', label: 'Referrals',     icon: Share2 },
+      { href: '/admin/users',     label: 'Users',            icon: Users },
+      { href: '/admin/reviews',   label: 'Reviews',          icon: MessageSquare },
+      { href: '/admin/support',   label: 'Support Tickets',  icon: LifeBuoy },
+      { href: '/admin/blog',      label: 'Blog',             icon: FileText },
+      { href: '/admin/loyalty',   label: 'Club Points',      icon: Star },
+      { href: '/admin/referrals', label: 'Referrals',        icon: Share2 },
     ],
   },
   {
@@ -87,6 +95,7 @@ const NAV: NavItem[] = [
       { href: '/admin/analytics/google-analytics',       label: 'Google Analytics',   icon: BarChart3 },
       { href: '/admin/analytics/google-tag-manager',     label: 'Tag Manager',        icon: Tag },
       { href: '/admin/analytics/google-search-console',  label: 'Search Console',     icon: Globe },
+      { href: '/admin/popups',                           label: 'Popups & Banners',   icon: LayoutGrid },
       { href: '/admin/sms',                              label: 'SMS',                icon: MessageCircle },
       { href: '/admin/notifications',                    label: 'Push Notifications', icon: BellIcon },
       { href: '/admin/email-campaigns',                  label: 'Email Campaigns',    icon: Mail },
@@ -109,6 +118,8 @@ const NAV: NavItem[] = [
   {
     label: 'Configuration', icon: Settings,
     children: [
+      { href: '/admin/addons',       label: 'Add-ons',             icon: Puzzle },
+      { href: '/admin/ai-studio',    label: 'AI Studio',           icon: Bot },
       { href: '/admin/localization', label: 'Multi-Currency/Lang', icon: Globe },
       { href: '/admin/design',       label: 'Design Studio',       icon: Palette },
       { href: '/admin/staff',        label: 'Staff & Permissions', icon: UserCog },
@@ -242,6 +253,15 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/advanced-reports': 'Advanced Reports',
   '/admin/staff': 'Staff & Permissions',
   '/admin/design': 'Design Studio',
+  '/admin/preorders': 'Preorders',
+  '/admin/classifieds': 'Classifieds',
+  '/admin/shiprocket': 'Shiprocket Integration',
+  '/admin/pickup-points': 'Pickup Points',
+  '/admin/shipping-zones': 'Shipping Zones',
+  '/admin/support': 'Customer Support',
+  '/admin/popups': 'Popups & Banners',
+  '/admin/addons': 'Add-ons & Plugins',
+  '/admin/ai-studio': 'AI Studio',
 };
 
 /* ─── Sidebar content ────────────────────────────────────────── */
