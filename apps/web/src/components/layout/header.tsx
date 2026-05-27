@@ -1152,11 +1152,11 @@ export function Header() {
                   href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
                   onMouseEnter={() => setActiveCategoryIndex(idx)}
                   className={cn(
-                    'px-2.5 h-full flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative',
+                    'px-2 h-full flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative',
                     activeCategoryIndex === idx ? 'text-primary' : 'hover:text-primary',
                   )}
                 >
-                  <cat.icon className={cn('w-3.5 h-3.5 hidden xl:block', activeCategoryIndex === idx ? 'text-primary' : 'opacity-70')} />
+                  <cat.icon className={cn('w-3.5 h-3.5 hidden', activeCategoryIndex === idx ? 'text-primary' : 'opacity-70')} />
                   {getCatName(cat)}
                   {activeCategoryIndex === idx && (
                     <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
