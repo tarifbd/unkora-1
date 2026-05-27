@@ -27,7 +27,7 @@ export class CsvImportService {
     const lines = content.split('\n').filter(l => l.trim());
     if (!lines.length) throw new BadRequestException('CSV file is empty');
 
-    const rawHeaders = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase().replace(/\s+/g, '_'));
+    const rawHeaders = (lines[0] ?? '').split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase().replace(/\s+/g, '_'));
 
     // Map common header aliases
     const headerMap: Record<string, string> = {
@@ -90,6 +90,7 @@ export class CsvImportService {
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
+      if (!row) continue;
       const rowNum = i + 2;
 
       try {
@@ -142,15 +143,15 @@ export class CsvImportService {
           }
         }
 
-        const slug = ((row as any).slug?.trim() || this.slugify(row.name));
+        const slug = ((row as any).slug?.trim() || this.slugify(row.name!));
         const isActiveRaw = (row as any).isactive ?? '';
         const isActive = !isActiveRaw || ['true', '1', 'yes', 'active', 'published'].includes(isActiveRaw.toLowerCase());
 
         const productData: any = {
-          name: row.name.trim(),
+          name: row.name!.trim(),
           description: row.description?.trim() || null,
           shortDesc: (row as any).shortdesc?.trim() || row.shortDesc?.trim() || null,
-          sku: row.sku.trim(),
+          sku: row.sku!.trim(),
           basePrice,
           salePrice: (row as any).saleprice && !isNaN(parseFloat((row as any).saleprice)) ? parseFloat((row as any).saleprice) : null,
           stockQuantity: (row as any).stockquantity ? parseInt((row as any).stockquantity, 10) : 0,
@@ -164,10 +165,10 @@ export class CsvImportService {
         };
 
         // Upsert by SKU
-        const existing = await this.prisma.product.findUnique({ where: { sku: row.sku.trim() } });
+        const existing = await this.prisma.product.findUnique({ where: { sku: row.sku!.trim() } });
         if (existing) {
           if (opts.updateExisting) {
-            await this.prisma.product.update({ where: { sku: row.sku.trim() }, data: productData });
+            await this.prisma.product.update({ where: { sku: row.sku!.trim() }, data: productData });
             stats.updated++;
           } else {
             stats.failed++;
