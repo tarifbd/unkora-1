@@ -138,7 +138,6 @@ function CheckoutContent() {
           district: data.district,
           division: data.division,
           postalCode: data.postalCode ?? '',
-          country: 'Bangladesh',
         },
         paymentMethod: data.paymentMethod,
         guestName: data.fullName,
