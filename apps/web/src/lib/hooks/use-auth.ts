@@ -18,7 +18,19 @@ export function useAuth() {
       setUser(u);
       saveUserRole(u.role);
       void qc.invalidateQueries({ queryKey: ['cart'] });
-      router.push(u.role === 'ADMIN' || u.role === 'SUPER_ADMIN' ? '/admin' : '/');
+
+      // Check for ?redirect= param in current URL
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get('redirect');
+
+      if (redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('/admin')) {
+        // Customer clicked Buy Now / Checkout while logged out → go there
+        router.push(redirectTo);
+      } else if (u.role === 'ADMIN' || u.role === 'SUPER_ADMIN') {
+        router.push(redirectTo ?? '/admin');
+      } else {
+        router.push(redirectTo ?? '/');
+      }
     },
   });
 
