@@ -23,6 +23,12 @@ export class PreordersController {
     return this.svc.placePreorder(userId, productId, orderId);
   }
 
+  @Get('my')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get my preorders' })
+  myPreorders(@CurrentUser('id') userId: string) { return this.svc.myPreorders(userId); }
+
   @Get('admin')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPER_ADMIN')

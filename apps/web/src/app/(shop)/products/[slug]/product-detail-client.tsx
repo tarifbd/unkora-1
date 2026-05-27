@@ -13,6 +13,7 @@ import { formatCurrency } from '@/lib/utils';
 import { ProductReviews } from '@/components/product/product-reviews';
 import { ProductCard } from '@/components/product/product-card';
 import { WishlistButton } from '@/components/product/wishlist-button';
+import { PreorderCTA } from '@/components/product/preorder-cta';
 import { trackViewProduct, trackAddToCart } from '@/lib/analytics';
 import { useLanguage } from '@/lib/i18n/language-context';
 
@@ -191,6 +192,15 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
               />
             </div>
           )}
+
+          {/* Preorder CTA — shows if product has active preorder config */}
+          <PreorderCTA
+            productId={product.id}
+            productName={product.name}
+            basePrice={Number(product.basePrice)}
+            salePrice={product.salePrice ? Number(product.salePrice) : undefined}
+            qty={qty}
+          />
 
           {product.description && (
             <div className="border-t pt-4">

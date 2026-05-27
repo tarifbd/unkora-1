@@ -80,6 +80,31 @@ export class PreordersService {
     });
   }
 
+  async myPreorders(userId: string) {
+    // Get all orders by this user that have preorder records
+    const orders = await this.prisma.order.findMany({
+      where: { userId },
+      select: { id: true },
+    });
+    const orderIds = orders.map(o => o.id);
+
+    const preorderOrders = await (this.prisma as any).preorderOrder.findMany({
+      where: { orderId: { in: orderIds } },
+      include: {
+        preorder: {
+          include: {
+            product: {
+              select: { id: true, name: true, slug: true, basePrice: true, salePrice: true, images: { take: 1 } }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return { data: preorderOrders };
+  }
+
   async markPrepaymentPaid(preorderOrderId: string) {
     return (this.prisma as any).preorderOrder.update({
       where: { id: preorderOrderId },

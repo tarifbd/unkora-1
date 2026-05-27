@@ -6,7 +6,7 @@ import {
   Book, Baby, Briefcase, Leaf, Palette, Zap, ShoppingBag,
   Menu, X, Search, User, ShoppingCart, ChevronDown,
   MapPin, Phone, Download, HelpCircle,
-  Package, Heart, CreditCard, Settings, LogOut, Gift, Truck,
+  Package, Heart, CreditCard, Settings, LogOut, Gift, Truck, CalendarClock,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
