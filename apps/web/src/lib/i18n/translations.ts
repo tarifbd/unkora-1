@@ -296,7 +296,7 @@ export const translations = {
       searchPlaceholderMobile: 'Search products...',
       deliverTo: 'Deliver to',
       selectAddress: 'Select your address',
-      callHours: '+880 1708-166233',
+      callHours: '+880 1911-369686',
       downloadApp: 'App',
       support: 'Support',
       trackOrder: 'Track Order',

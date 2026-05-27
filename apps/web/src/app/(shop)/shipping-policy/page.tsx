@@ -23,7 +23,7 @@ export default function ShippingPolicyPage() {
         </section>
         <section>
           <h2 className="text-xl font-bold text-gray-900 mb-3">যোগাযোগ</h2>
-          <p><a href="tel:+8801708166233" className="text-primary font-medium hover:underline">+880 1708-166233</a></p>
+          <p><a href="tel:+8801911369686" className="text-primary font-medium hover:underline">+880 1911-369686</a></p>
         </section>
       </div>
     </div>

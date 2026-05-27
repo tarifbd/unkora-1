@@ -30,7 +30,7 @@ export default function HelpPage() {
       <div className="bg-gray-50 rounded-2xl p-8">
         <h2 className="text-xl font-black text-gray-900 mb-6">সরাসরি যোগাযোগ করুন</h2>
         <div className="space-y-4">
-          <a href="tel:+8801708166233" className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:border-primary transition-colors">
+          <a href="tel:+8801911369686" className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:border-primary transition-colors">
             <div className="p-2 bg-green-50 rounded-lg"><Phone className="w-5 h-5 text-primary" /></div>
             <div>
               <p className="text-xs text-gray-500 font-medium">ফোন (সকাল ৯টা – রাত ৯টা)</p>
@@ -44,7 +44,7 @@ export default function HelpPage() {
               <p className="font-bold text-gray-900">support@unkora.shop</p>
             </div>
           </a>
-          <a href="https://wa.me/8801708166233" target="_blank" rel="noopener noreferrer"
+          <a href="https://wa.me/8801911369686" target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-100 hover:border-primary transition-colors">
             <div className="p-2 bg-green-50 rounded-lg"><MessageSquare className="w-5 h-5 text-primary" /></div>
             <div>

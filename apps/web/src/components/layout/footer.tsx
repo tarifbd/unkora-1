@@ -186,11 +186,11 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-5">{f.contactUs}</h4>
             <div className="space-y-3.5">
-              <a href="tel:+8801708166233" className="flex items-center gap-3 group">
+              <a href="tel:+8801911369686" className="flex items-center gap-3 group">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary group-hover:text-white transition-all duration-150">
                   <Phone className="w-3.5 h-3.5 text-primary group-hover:text-white transition-colors" />
                 </div>
-                <span className="text-gray-600 text-sm group-hover:text-primary transition-colors">+880 1708-166233</span>
+                <span className="text-gray-600 text-sm group-hover:text-primary transition-colors">+880 1911-369686</span>
               </a>
               <a href="mailto:support@unkora.shop" className="flex items-center gap-3 group">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary group-hover:text-white transition-all duration-150">
@@ -202,9 +202,9 @@ export function Footer() {
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <MapPin className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <span className="text-gray-600 text-sm leading-relaxed">2/1, RK Mission Road,<br />Motijheel, Dhaka-1203</span>
+                <span className="text-gray-600 text-sm leading-relaxed">160, Hasan Nagar,<br />Dhaka-1211</span>
               </div>
-              <a href="https://wa.me/8801708166233" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 group">
+              <a href="https://wa.me/8801911369686" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 group">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary group-hover:text-white transition-all duration-150">
                   <MessageSquare className="w-3.5 h-3.5 text-primary group-hover:text-white transition-colors" />
                 </div>
