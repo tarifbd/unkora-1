@@ -751,11 +751,12 @@ export function Header() {
                     {/* Primary menu items */}
                     <div className="py-1">
                       {[
-                        { icon: Package,     label: 'My Orders',          labelBn: 'আমার অর্ডার',        href: '/account/orders' },
-                        { icon: Heart,       label: 'My Wishlist',         labelBn: 'উইশলিস্ট',           href: '/account/wishlist' },
-                        { icon: Truck,       label: 'Track Order',         labelBn: 'অর্ডার ট্র্যাক',     href: '/account/orders' },
-                        { icon: CreditCard,  label: 'Payment',             labelBn: 'পেমেন্ট',             href: '/account' },
-                        { icon: Gift,        label: 'My Coupons',          labelBn: 'কুপন',                href: '/account' },
+                        { icon: Package,       label: 'My Orders',       labelBn: 'আমার অর্ডার',     href: '/account/orders' },
+                        { icon: CalendarClock, label: 'My Pre-orders',   labelBn: 'প্রি-অর্ডার',      href: '/account/preorders' },
+                        { icon: Heart,         label: 'My Wishlist',      labelBn: 'উইশলিস্ট',        href: '/account/wishlist' },
+                        { icon: Truck,         label: 'Track Order',      labelBn: 'অর্ডার ট্র্যাক',  href: '/account/orders' },
+                        { icon: CreditCard,    label: 'Payment',          labelBn: 'পেমেন্ট',          href: '/account' },
+                        { icon: Gift,          label: 'My Coupons',       labelBn: 'কুপন',             href: '/account' },
                       ].map(item => (
                         <Link
                           key={item.href + item.label}
@@ -1207,6 +1208,9 @@ export function Header() {
         <div className="border-t">
           <p className="px-5 pt-4 pb-2 text-lg font-black text-gray-900 tracking-tight">{t.header.helpSettings}</p>
           <Link href="/account/orders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary block">{t.header.yourOrders}</Link>
+          <Link href="/account/preorders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
+            <CalendarClock className="w-4 h-4" /> {lang === 'bn' ? 'প্রি-অর্ডার' : 'My Pre-orders'}
+          </Link>
           <Link href="#" className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
             <MapPin className="w-4 h-4" /> {t.header.deliverTo}
           </Link>
