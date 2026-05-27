@@ -8,6 +8,7 @@ import type { Product } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { WishlistButton } from './wishlist-button';
+import { PreorderBadge } from './preorder-cta';
 import { trackAddToCart } from '@/lib/analytics';
 
 interface ProductCardProps {
@@ -231,6 +232,13 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
             </div>
           )}
         </div>
+
+        {/* Pre-order badge — only renders when product has active preorder */}
+        <PreorderBadge
+          productId={product.id}
+          basePrice={Number(product.basePrice)}
+          salePrice={product.salePrice ? Number(product.salePrice) : undefined}
+        />
       </div>
     </Link>
   );
