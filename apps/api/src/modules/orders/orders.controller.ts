@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { OrderStatus } from '@prisma/client';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
+import type { FastifyReply } from 'fastify';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -10,6 +11,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrdersService } from './orders.service';
+import { InvoiceService } from './invoice.service';
 
 class UpdateOrderStatusDto {
   @ApiPropertyOptional({ enum: OrderStatus })
@@ -27,7 +29,10 @@ class UpdateOrderStatusDto {
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    private readonly ordersService: OrdersService,
+    private readonly invoiceService: InvoiceService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Place order from cart' })
@@ -88,5 +93,47 @@ export class OrdersController {
   @ApiOperation({ summary: 'Update order status (admin)' })
   updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
     return this.ordersService.updateStatus(id, dto.status, dto.note);
+  }
+
+  @Get('admin/export/csv')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Export orders as CSV (admin)' })
+  async exportCsv(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Res() res?: FastifyReply,
+  ) {
+    const csv = await this.ordersService.exportCsv(startDate, endDate);
+    (res as FastifyReply)
+      .header('Content-Type', 'text/csv')
+      .header('Content-Disposition', `attachment; filename="orders-${new Date().toISOString().slice(0, 10)}.csv"`)
+      .send(csv);
+  }
+
+  @Get('admin/:id/invoice')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Get order invoice HTML (admin)' })
+  async getInvoiceAdmin(@Param('id') id: string, @Res() res?: FastifyReply) {
+    const html = await this.invoiceService.generateInvoiceHtml(id);
+    (res as FastifyReply)
+      .header('Content-Type', 'text/html; charset=utf-8')
+      .send(html);
+  }
+
+  @Get('my/:id/invoice')
+  @ApiOperation({ summary: 'Get invoice HTML for own order' })
+  async getInvoiceMy(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+    @Res() res?: FastifyReply,
+  ) {
+    // Verify user owns the order before generating invoice
+    await this.ordersService.findById(id, userId);
+    const html = await this.invoiceService.generateInvoiceHtml(id);
+    (res as FastifyReply)
+      .header('Content-Type', 'text/html; charset=utf-8')
+      .send(html);
   }
 }

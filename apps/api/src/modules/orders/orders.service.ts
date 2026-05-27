@@ -368,6 +368,44 @@ export class OrdersService {
     return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
+  async exportCsv(startDate?: string, endDate?: string): Promise<string> {
+    const where: any = {};
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt.gte = new Date(startDate);
+      if (endDate) where.createdAt.lte = new Date(endDate);
+    }
+
+    const orders = await this.prisma.order.findMany({
+      where,
+      include: {
+        user: { select: { email: true, firstName: true, lastName: true, phone: true } },
+        items: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10000,
+    });
+
+    const headers = ['Order Number', 'Date', 'Customer Name', 'Email', 'Phone', 'Items', 'Subtotal', 'Shipping', 'Discount', 'Total', 'Status', 'Payment Method', 'Payment Status'];
+    const rows = orders.map((o: any) => [
+      o.orderNumber,
+      o.createdAt.toISOString().slice(0, 10),
+      `"${o.user.firstName} ${o.user.lastName}"`,
+      o.user.email,
+      o.user.phone ?? '',
+      o.items.length,
+      Number(o.subtotal),
+      Number(o.shippingCost),
+      Number(o.discount),
+      Number(o.total),
+      o.status,
+      o.paymentMethod,
+      o.paymentStatus,
+    ].join(','));
+
+    return [headers.join(','), ...rows].join('\n');
+  }
+
   async updateStatus(id: string, status: OrderStatus, note?: string) {
     const order = await this.findById(id);
     const updated = await this.prisma.$transaction(async (tx) => {

@@ -36,6 +36,7 @@ import { StaffModule } from './modules/staff/staff.module';
 import { DesignModule } from './modules/design/design.module';
 import { LoyaltyModule } from './modules/loyalty/loyalty.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
+import { AiStudioModule } from './modules/ai-studio/ai-studio.module';
 import { BookSubmissionsModule } from './modules/book-submissions/book-submissions.module';
 import { BooksModule } from './modules/books/books.module';
 import { AppCacheModule } from './modules/cache/cache.module';
@@ -58,6 +59,7 @@ import { ShipmentsModule } from './modules/shipments/shipments.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { UsersModule } from './modules/users/users.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
+import { SupportModule } from './modules/support/support.module';
 
 @Module({
   imports: [
@@ -124,6 +126,8 @@ import { WishlistModule } from './modules/wishlist/wishlist.module';
     AdvancedReportsModule,
     StaffModule,
     DesignModule,
+    AiStudioModule,
+    SupportModule,
   ],
 })
 export class AppModule {}

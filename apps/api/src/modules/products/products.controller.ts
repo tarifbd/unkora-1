@@ -1,5 +1,6 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, Query, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { FastifyReply } from 'fastify';
 
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -25,6 +26,19 @@ export class ProductsController {
   @ApiOperation({ summary: 'Get featured products' })
   findFeatured(@Query('limit') limit?: string) {
     return this.productsService.findFeatured(limit ? parseInt(limit, 10) : 8);
+  }
+
+  @Get('export/csv')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Export products as CSV (admin)' })
+  async exportCsv(@Res() res?: FastifyReply) {
+    const csv = await this.productsService.exportCsv();
+    (res as FastifyReply)
+      .header('Content-Type', 'text/csv')
+      .header('Content-Disposition', `attachment; filename="products-${new Date().toISOString().slice(0, 10)}.csv"`)
+      .send(csv);
   }
 
   @Get('admin/:id')

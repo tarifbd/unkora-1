@@ -320,6 +320,29 @@ export class ProductsService {
     });
   }
 
+  async exportCsv(): Promise<string> {
+    const products = await this.prisma.product.findMany({
+      include: { category: true, brand: true, images: { take: 1 } },
+      take: 10000,
+    });
+
+    const headers = ['ID', 'Name', 'Slug', 'Category', 'Brand', 'Base Price', 'Sale Price', 'Stock', 'Status', 'Created At'];
+    const rows = products.map((p: any) => [
+      p.id,
+      `"${p.name.replace(/"/g, '""')}"`,
+      p.slug,
+      p.category?.name ?? '',
+      p.brand?.name ?? '',
+      Number(p.basePrice),
+      Number(p.salePrice ?? 0),
+      p.stockQuantity,
+      p.status ?? (p.isActive ? 'ACTIVE' : 'INACTIVE'),
+      p.createdAt.toISOString(),
+    ].join(','));
+
+    return [headers.join(','), ...rows].join('\n');
+  }
+
   async getWholesaleTiers(productId: string) {
     await this.findById(productId);
     return this.prisma.wholesalePrice.findMany({
