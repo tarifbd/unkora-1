@@ -397,63 +397,75 @@
 @keyframes po-icon-pulse { 0%,100%{filter:drop-shadow(0 0 3px rgba(52,211,153,.6))} 50%{filter:drop-shadow(0 0 8px rgba(52,211,153,1)) drop-shadow(0 0 16px rgba(52,211,153,.6))} }
 @keyframes po-shimmer-sw { 0%,45%{transform:translateX(-100%)} 70%,100%{transform:translateX(200%)} }
 
-/* Outer container — gives room for orbit to extend outside pill */
+/* Outer flex wrapper — comet badge + text pill side by side */
 .po-hdr-outer {
   position:relative;
   display:inline-flex;
   align-items:center;
-  padding:10px 10px;     /* space above/below for comet to orbit outside */
+  gap:6px;
   cursor:pointer;
 }
 
-/* The spinning arm — center of pill, rotates full circle */
+/* Small circular badge — the comet orbits around this */
+.po-hdr-badge {
+  position:relative;
+  width:28px; height:28px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#022c22,#064e3b);
+  border:1px solid rgba(52,211,153,.4);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  box-shadow:0 0 10px rgba(52,211,153,.15), inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+/* Faint dashed orbit track ring — shows the circular path */
+.po-hdr-badge::before {
+  content:'';
+  position:absolute;
+  width:36px; height:36px;
+  border-radius:50%;
+  border:1px dashed rgba(52,211,153,.22);
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+}
+
+/* Spinning arm — anchored at badge center, rotates full 360° */
 .po-hdr-spin-arm {
   position:absolute;
   top:50%; left:50%;
   width:0; height:0;
-  animation:po-spin 3s linear infinite;
+  animation:po-spin 2s linear infinite;
   pointer-events:none;
-  z-index:30;
+  z-index:10;
 }
 
-/* The comet dot — offset from center = orbit radius */
+/* Comet dot: orbit radius=18px, size=8×8
+   translate(-4px,-22px) puts comet center at (0,-18) = top of circle */
 .po-hdr-comet {
   position:absolute;
-  width:9px; height:9px;
+  width:8px; height:8px;
   border-radius:50%;
   background:radial-gradient(circle at 30% 30%, #a7f3d0, #10b981);
-  box-shadow:0 0 8px rgba(52,211,153,1), 0 0 16px rgba(52,211,153,.7), 0 0 28px rgba(52,211,153,.3);
-  /* orbit radius 22px — goes 8-10px outside the pill top/bottom */
-  transform:translate(22px,-4.5px);
+  box-shadow:0 0 6px rgba(52,211,153,1), 0 0 14px rgba(52,211,153,.85), 0 0 24px rgba(52,211,153,.45);
+  transform:translate(-4px,-22px);
 }
 
-/* Comet tail — trails behind the dot */
-.po-hdr-comet::after {
-  content:'';
-  position:absolute;
-  top:50%; right:100%;
-  transform:translateY(-50%);
-  width:18px; height:2px;
-  background:linear-gradient(to left, rgba(52,211,153,.75), transparent);
-  border-radius:1px;
-}
-
-/* The pill button itself */
+/* Text pill */
 .po-hdr-pill {
   position:relative;
   border-radius:9999px;
-  padding:5px 13px;
+  padding:5px 11px;
   background:linear-gradient(135deg,#022c22,#064e3b,#022c22);
   background-size:200% 200%;
   animation:po-bg-shift 5s ease infinite;
-  border:1px solid rgba(52,211,153,.3);
-  display:flex; align-items:center; gap:7px;
+  border:1px solid rgba(52,211,153,.25);
+  display:flex; align-items:center; gap:6px;
   overflow:hidden;
-  box-shadow:0 0 14px rgba(52,211,153,.12), inset 0 1px 0 rgba(255,255,255,.05);
-  z-index:1;
+  box-shadow:0 0 10px rgba(52,211,153,.1), inset 0 1px 0 rgba(255,255,255,.05);
 }
 
-/* Shimmer on hover */
+/* Shimmer sweep */
 .po-hdr-pill::after {
   content:'';
   position:absolute; inset:0;

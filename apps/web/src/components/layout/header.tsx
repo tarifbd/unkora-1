@@ -650,13 +650,16 @@ export function Header() {
             <div className="flex items-center gap-4">
               {/* ── Preorder orbiting comet button — LEFT side ── */}
               <Link href="/products?preorder=1" className="po-hdr-outer -my-1.5 normal-case">
-                {/* Spinning arm holding the comet */}
-                <span className="po-hdr-spin-arm">
-                  <span className="po-hdr-comet" />
+                {/* Circular badge — comet orbits this */}
+                <span className="po-hdr-badge">
+                  <CalendarClock className="po-hdr-cal w-3.5 h-3.5 text-emerald-400" />
+                  {/* Spin arm AFTER icon so comet renders on top */}
+                  <span className="po-hdr-spin-arm">
+                    <span className="po-hdr-comet" />
+                  </span>
                 </span>
-                {/* Pill */}
+                {/* Text pill */}
                 <span className="po-hdr-pill">
-                  <CalendarClock className="po-hdr-cal w-3 h-3 text-emerald-400" />
                   <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Pre-Order</span>
                   <span className="text-white/30 text-[10px]">/</span>
                   <span className="po-hdr-txt">প্রি-অর্ডার</span>
