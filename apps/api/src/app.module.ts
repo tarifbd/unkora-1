@@ -61,6 +61,9 @@ import { UsersModule } from './modules/users/users.module';
 import { WishlistModule } from './modules/wishlist/wishlist.module';
 import { SupportModule } from './modules/support/support.module';
 import { OtpModule } from './modules/otp/otp.module';
+import { ShiprocketModule } from './modules/shiprocket/shiprocket.module';
+import { PickupPointsModule } from './modules/pickup-points/pickup-points.module';
+import { ShippingZonesModule } from './modules/shipping-zones/shipping-zones.module';
 
 @Module({
   imports: [
@@ -130,6 +133,9 @@ import { OtpModule } from './modules/otp/otp.module';
     AiStudioModule,
     SupportModule,
     OtpModule,
+    ShiprocketModule,
+    PickupPointsModule,
+    ShippingZonesModule,
   ],
 })
 export class AppModule {}
