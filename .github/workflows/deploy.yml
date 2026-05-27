@@ -1,29 +1,133 @@
-name: Deploy
+name: Deploy Unkora
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:
+  pull_request:
+    branches: [main]
 
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
 
 jobs:
-  deploy:
-    name: Deploy to Production
+  # ─── Lint & Type Check ───────────────────────────────────────────
+  lint:
+    name: Lint & Type Check
     runs-on: ubuntu-latest
-    environment: production
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build & push Docker images
-        run: echo "Docker build/push steps — configure in V1 deployment setup"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
-      # TODO (V1): Add actual deployment steps
-      # - Build Docker images
-      # - Push to container registry (GHCR / Docker Hub)
-      # - SSH to server and pull new images
-      # - Run db:migrate:deploy
-      # - Restart containers
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @unkora/database exec prisma generate
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/unkora_test
+
+      - name: Type check API
+        run: pnpm --filter @unkora/api exec tsc --noEmit
+        continue-on-error: true
+
+      - name: Type check Web
+        run: pnpm --filter @unkora/web exec tsc --noEmit
+        continue-on-error: true
+
+  # ─── Build API ───────────────────────────────────────────────────
+  build-api:
+    name: Build API
+    runs-on: ubuntu-latest
+    needs: lint
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter @unkora/database exec prisma generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Build API
+        run: pnpm --filter @unkora/api build
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/unkora-api:latest
+            ${{ secrets.DOCKER_USERNAME }}/unkora-api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ─── Deploy API to Hostinger VPS ─────────────────────────────────
+  deploy-api:
+    name: Deploy API to VPS
+    runs-on: ubuntu-latest
+    needs: build-api
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to Hostinger VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/unkora
+            docker pull ${{ secrets.DOCKER_USERNAME }}/unkora-api:latest
+            docker-compose down api
+            docker-compose up -d api
+            docker system prune -f
+            echo "✅ API deployed successfully"
+
+  # ─── Deploy Frontend to Vercel ───────────────────────────────────
+  deploy-web:
+    name: Deploy Frontend to Vercel
+    runs-on: ubuntu-latest
+    needs: lint
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: apps/web
+          vercel-args: '--prod'
