@@ -66,7 +66,7 @@ export class OrdersController {
     return this.ordersService.cancel(id, userId, reason);
   }
 
-  // Admin
+  // Admin — specific routes must come before parameterized ones
   @Get('admin/all')
   @UseGuards(RolesGuard)
   @Roles('ADMIN', 'SUPER_ADMIN')
@@ -77,22 +77,6 @@ export class OrdersController {
     @Query('status') status?: OrderStatus,
   ) {
     return this.ordersService.findAll(page ? +page : 1, limit ? +limit : 20, status);
-  }
-
-  @Get('admin/:id')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN', 'SUPER_ADMIN')
-  @ApiOperation({ summary: 'Get single order (admin)' })
-  adminFindOne(@Param('id') id: string) {
-    return this.ordersService.adminFindById(id);
-  }
-
-  @Patch('admin/:id/status')
-  @UseGuards(RolesGuard)
-  @Roles('ADMIN', 'SUPER_ADMIN')
-  @ApiOperation({ summary: 'Update order status (admin)' })
-  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
-    return this.ordersService.updateStatus(id, dto.status, dto.note);
   }
 
   @Get('admin/export/csv')
@@ -109,6 +93,22 @@ export class OrdersController {
       .header('Content-Type', 'text/csv')
       .header('Content-Disposition', `attachment; filename="orders-${new Date().toISOString().slice(0, 10)}.csv"`)
       .send(csv);
+  }
+
+  @Get('admin/:id')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Get single order (admin)' })
+  adminFindOne(@Param('id') id: string) {
+    return this.ordersService.adminFindById(id);
+  }
+
+  @Patch('admin/:id/status')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Update order status (admin)' })
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto) {
+    return this.ordersService.updateStatus(id, dto.status, dto.note);
   }
 
   @Get('admin/:id/invoice')
