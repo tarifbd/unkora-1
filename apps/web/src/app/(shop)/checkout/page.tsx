@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   Loader2, MapPin, CheckCircle, ChevronDown, Truck, Smartphone, Banknote,
-  ShieldCheck, Tag, Package, Store, Clock, Phone,
+  ShieldCheck, Tag, Package, Store, Clock, Phone, LogIn, UserCheck, ShoppingBag,
 } from 'lucide-react';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useAuthStore } from '@/store/auth.store';
@@ -80,6 +80,7 @@ function CheckoutContent() {
   const { lang } = useLanguage();
   const queryClient = useQueryClient();
 
+  const [showAuthChoice, setShowAuthChoice] = useState(!isAuthenticated);
   const [deliveryMode, setDeliveryMode] = useState<'HOME' | 'PICKUP'>('HOME');
   const [selectedPickup, setSelectedPickup] = useState<PickupPoint | null>(null);
   const [pickupError, setPickupError] = useState<string | null>(null);
@@ -301,6 +302,50 @@ function CheckoutContent() {
 
   const field = (cls = '') =>
     `w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors ${cls}`;
+
+  // Auth choice modal — shown to unauthenticated users before checkout form
+  if (showAuthChoice) {
+    const currentUrl = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '/checkout';
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center px-4">
+        <div className="w-full max-w-sm bg-white rounded-3xl border border-gray-100 shadow-xl p-8 flex flex-col items-center gap-6">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <ShoppingBag className="w-7 h-7 text-primary" />
+          </div>
+          <div className="text-center">
+            <h2 className="text-xl font-black text-gray-900 mb-1">
+              {lang === 'bn' ? 'অর্ডার করতে চান?' : 'Ready to order?'}
+            </h2>
+            <p className="text-sm text-gray-400">
+              {lang === 'bn' ? 'লগইন করুন অথবা গেস্ট হিসেবে চালিয়ে যান' : 'Sign in or continue as guest'}
+            </p>
+          </div>
+          <div className="w-full space-y-3">
+            <Link
+              href={`/login?redirect=${encodeURIComponent(currentUrl)}`}
+              className="flex w-full items-center justify-center gap-2 py-3.5 bg-primary text-white rounded-2xl font-black text-sm hover:bg-primary/90 active:scale-[.98] transition-all shadow-md shadow-primary/20"
+            >
+              <LogIn className="w-4 h-4" />
+              {lang === 'bn' ? 'লগইন করুন' : 'Sign In'}
+            </Link>
+            <button
+              type="button"
+              onClick={() => setShowAuthChoice(false)}
+              className="flex w-full items-center justify-center gap-2 py-3.5 border-2 border-gray-200 rounded-2xl font-black text-sm text-gray-700 hover:border-primary hover:text-primary active:scale-[.98] transition-all"
+            >
+              <UserCheck className="w-4 h-4" />
+              {lang === 'bn' ? 'গেস্ট হিসেবে চালিয়ে যান' : 'Continue as Guest'}
+            </button>
+          </div>
+          <p className="text-[11px] text-gray-400 text-center">
+            {lang === 'bn'
+              ? 'লগইন করলে অর্ডার ট্র্যাক করতে এবং পরবর্তীতে দ্রুত কিনতে পারবেন'
+              : 'Sign in to track orders and checkout faster next time'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
