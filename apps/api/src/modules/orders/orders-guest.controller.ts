@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { FastifyRequest } from 'fastify';
 import { CreateGuestOrderDto } from './dto/create-guest-order.dto';
 import { OrdersService } from './orders.service';
@@ -10,6 +11,7 @@ export class OrdersGuestController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post('guest')
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: 'Place order as guest (no auth required)' })
   createGuest(@Body() dto: CreateGuestOrderDto, @Req() req: FastifyRequest) {
     const ip = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
@@ -21,6 +23,7 @@ export class OrdersGuestController {
   }
 
   @Get('track')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'Track order by order number + phone (public)' })
   track(@Query('orderNumber') orderNumber: string, @Query('phone') phone: string) {
     return this.ordersService.trackPublic(orderNumber, phone);

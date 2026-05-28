@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 import appConfig from './config/app.config';
@@ -82,6 +83,7 @@ import { PopupsModule } from './modules/popups/popups.module';
       { name: 'medium', ttl: 10000, limit: 50 },
       { name: 'long', ttl: 60000, limit: 200 },
     ]),
+    ScheduleModule.forRoot(),
     DatabaseModule,
     EmailModule,
     AppCacheModule,

@@ -117,9 +117,19 @@ export class OrdersController {
   @ApiOperation({ summary: 'Get order invoice HTML (admin)' })
   async getInvoiceAdmin(@Param('id') id: string, @Res() res?: FastifyReply) {
     const html = await this.invoiceService.generateInvoiceHtml(id);
+    (res as FastifyReply).header('Content-Type', 'text/html; charset=utf-8').send(html);
+  }
+
+  @Get('admin/:id/invoice/pdf')
+  @UseGuards(RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Download order invoice as PDF (admin)' })
+  async downloadInvoiceAdminPdf(@Param('id') id: string, @Res() res?: FastifyReply) {
+    const pdf = await this.invoiceService.generateInvoicePdf(id);
     (res as FastifyReply)
-      .header('Content-Type', 'text/html; charset=utf-8')
-      .send(html);
+      .header('Content-Type', 'application/pdf')
+      .header('Content-Disposition', `attachment; filename="invoice-${id}.pdf"`)
+      .send(pdf);
   }
 
   @Get('my/:id/invoice')
@@ -129,11 +139,23 @@ export class OrdersController {
     @CurrentUser('id') userId: string,
     @Res() res?: FastifyReply,
   ) {
-    // Verify user owns the order before generating invoice
     await this.ordersService.findById(id, userId);
     const html = await this.invoiceService.generateInvoiceHtml(id);
+    (res as FastifyReply).header('Content-Type', 'text/html; charset=utf-8').send(html);
+  }
+
+  @Get('my/:id/invoice/pdf')
+  @ApiOperation({ summary: 'Download invoice as PDF for own order' })
+  async downloadInvoiceMePdf(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+    @Res() res?: FastifyReply,
+  ) {
+    await this.ordersService.findById(id, userId);
+    const pdf = await this.invoiceService.generateInvoicePdf(id);
     (res as FastifyReply)
-      .header('Content-Type', 'text/html; charset=utf-8')
-      .send(html);
+      .header('Content-Type', 'application/pdf')
+      .header('Content-Disposition', `attachment; filename="invoice-${id}.pdf"`)
+      .send(pdf);
   }
 }

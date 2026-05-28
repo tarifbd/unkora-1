@@ -2,29 +2,68 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { OrderStatus, PaymentMethod, PaymentStatus } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
+import { BkashService } from './bkash.service';
+import { NagadService } from './nagad.service';
 
 @Injectable()
 export class PaymentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly bkash: BkashService,
+    private readonly nagad: NagadService,
+  ) {}
 
   async initiateBkash(orderId: string, userId: string) {
     const order = await this.prisma.order.findFirst({ where: { id: orderId, userId } });
     if (!order) throw new NotFoundException('Order not found');
     if (order.paymentStatus === PaymentStatus.PAID) throw new BadRequestException('Order already paid');
 
-    // Placeholder — wire real bKash Payment Gateway API in V2
-    const payment = await this.prisma.payment.upsert({
+    await this.prisma.payment.upsert({
       where: { orderId },
       create: { orderId, method: PaymentMethod.BKASH, amount: order.total, status: PaymentStatus.PENDING },
       update: { status: PaymentStatus.PENDING },
     });
 
-    return {
-      paymentId: payment.id,
-      amount: order.total,
-      currency: 'BDT',
-      message: 'bKash payment gateway — integrate SDK in V2',
-    };
+    const apiBase = process.env['API_BASE_URL'] ?? 'http://localhost:4000/api/v1';
+    const callbackUrl = `${apiBase}/payments/bkash/callback`;
+
+    const { paymentID, bkashURL } = await this.bkash.createPayment(
+      orderId,
+      userId,
+      Number(order.total),
+      order.orderNumber,
+      callbackUrl,
+    );
+
+    // Store paymentID in payment record for callback lookup
+    await this.prisma.payment.update({
+      where: { orderId },
+      data: { transactionId: paymentID },
+    });
+
+    return { paymentID, redirectUrl: bkashURL, amount: order.total, currency: 'BDT' };
+  }
+
+  async executeBkash(paymentID: string) {
+    // Verify paymentID belongs to a known pending payment — prevents forged callbacks
+    const payment = await this.prisma.payment.findFirst({
+      where: { transactionId: paymentID, status: PaymentStatus.PENDING },
+    });
+    if (!payment) throw new NotFoundException('Payment not found or already processed');
+
+    const result = await this.bkash.executePayment(paymentID);
+
+    // Validate returned amount matches the expected order amount (prevents partial-payment attacks)
+    if (Number(result.amount) < Number(payment.amount)) {
+      throw new BadRequestException('bKash returned amount does not match order total');
+    }
+
+    if (result.status === 'Completed') {
+      await this.handleWebhook(paymentID, result.trxID, PaymentStatus.PAID);
+    } else {
+      await this.handleWebhook(paymentID, '', PaymentStatus.FAILED);
+    }
+    return result;
   }
 
   async initiateNagad(orderId: string, userId: string) {
@@ -32,18 +71,44 @@ export class PaymentsService {
     if (!order) throw new NotFoundException('Order not found');
     if (order.paymentStatus === PaymentStatus.PAID) throw new BadRequestException('Order already paid');
 
-    const payment = await this.prisma.payment.upsert({
+    await this.prisma.payment.upsert({
       where: { orderId },
       create: { orderId, method: PaymentMethod.NAGAD, amount: order.total, status: PaymentStatus.PENDING },
       update: { status: PaymentStatus.PENDING },
     });
 
-    return {
-      paymentId: payment.id,
-      amount: order.total,
-      currency: 'BDT',
-      message: 'Nagad payment gateway — integrate SDK in V2',
-    };
+    const apiBase = process.env['API_BASE_URL'] ?? 'http://localhost:4000/api/v1';
+    const callbackUrl = `${apiBase}/payments/nagad/callback`;
+
+    const { paymentReferenceId, redirectURL } = await this.nagad.initializePayment(
+      orderId,
+      userId,
+      Number(order.total),
+      callbackUrl,
+    );
+
+    await this.prisma.payment.update({
+      where: { orderId },
+      data: { transactionId: paymentReferenceId },
+    });
+
+    return { paymentReferenceId, redirectURL, amount: order.total, currency: 'BDT' };
+  }
+
+  async verifyNagad(paymentReferenceId: string) {
+    // Verify paymentReferenceId belongs to a known pending payment — prevents forged callbacks
+    const payment = await this.prisma.payment.findFirst({
+      where: { transactionId: paymentReferenceId, status: PaymentStatus.PENDING },
+    });
+    if (!payment) throw new NotFoundException('Payment not found or already processed');
+
+    const result = await this.nagad.verifyPayment(paymentReferenceId);
+    if (result.status === 'Success') {
+      await this.handleWebhook(paymentReferenceId, result.trxId, PaymentStatus.PAID);
+    } else {
+      await this.handleWebhook(paymentReferenceId, '', PaymentStatus.FAILED);
+    }
+    return result;
   }
 
   async confirmCOD(orderId: string, userId: string) {
@@ -67,7 +132,6 @@ export class PaymentsService {
     return { message: 'COD order confirmed. Payment collected on delivery.' };
   }
 
-  // Called by payment gateway webhook
   async handleWebhook(transactionId: string, gatewayRef: string, status: PaymentStatus) {
     const payment = await this.prisma.payment.findFirst({ where: { transactionId } });
     if (!payment) return;

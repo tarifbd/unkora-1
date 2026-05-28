@@ -1,9 +1,110 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import PDFDocument from 'pdfkit';
 import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
 export class InvoiceService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async generateInvoicePdf(orderId: string): Promise<Buffer> {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { user: true, items: { include: { product: true } }, payment: true },
+    });
+    if (!order) throw new NotFoundException('Order not found');
+
+    const addr = order.shippingAddress as any;
+    const orange = '#f97316';
+    const gray = '#666666';
+
+    return new Promise<Buffer>((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      const chunks: Buffer[] = [];
+      doc.on('data', (c) => chunks.push(c));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      // ── Header ──────────────────────────────────────────────
+      doc.fontSize(28).fillColor(orange).text('UNKORA', 50, 50, { continued: false });
+      doc.fontSize(10).fillColor(gray).text("Bangladesh's Book & Lifestyle Store", 50, 85);
+
+      doc.fontSize(20).fillColor('#111111').text('INVOICE', 400, 50, { align: 'right' });
+      doc.fontSize(11).fillColor(gray)
+        .text(`#${order.orderNumber}`, 400, 78, { align: 'right' })
+        .text(new Date(order.createdAt).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' }), 400, 93, { align: 'right' })
+        .text(`Status: ${order.paymentStatus}`, 400, 108, { align: 'right' });
+
+      doc.moveTo(50, 130).lineTo(545, 130).strokeColor('#dddddd').lineWidth(1).stroke();
+
+      // ── Bill To / Ship To ────────────────────────────────────
+      doc.fontSize(9).fillColor(gray).text('BILL TO', 50, 145);
+      doc.fontSize(11).fillColor('#333333')
+        .text(`${order.user.firstName ?? ''} ${order.user.lastName ?? ''}`.trim() || order.user.email, 50, 158)
+        .text(order.user.email, 50, 172)
+        .text(order.user.phone ?? '', 50, 186);
+
+      doc.fontSize(9).fillColor(gray).text('SHIP TO', 300, 145);
+      doc.fontSize(11).fillColor('#333333')
+        .text(addr?.addressLine1 ?? addr?.address ?? '', 300, 158)
+        .text(`${addr?.city ?? ''}, ${addr?.district ?? addr?.state ?? ''}`.replace(/^,\s*/, ''), 300, 172)
+        .text(addr?.country ?? 'Bangladesh', 300, 186);
+
+      // ── Items Table ──────────────────────────────────────────
+      let y = 220;
+      doc.rect(50, y, 495, 20).fill(orange);
+      doc.fontSize(10).fillColor('#ffffff')
+        .text('Item', 55, y + 5)
+        .text('Qty', 370, y + 5, { width: 40, align: 'center' })
+        .text('Unit Price', 410, y + 5, { width: 70, align: 'right' })
+        .text('Total', 480, y + 5, { width: 65, align: 'right' });
+      y += 22;
+
+      order.items.forEach((item, idx) => {
+        if (idx % 2 === 0) doc.rect(50, y, 495, 20).fill('#fafafa');
+        doc.fontSize(10).fillColor('#333333')
+          .text(item.productName.slice(0, 48), 55, y + 4)
+          .text(String(item.quantity), 370, y + 4, { width: 40, align: 'center' })
+          .text(`BDT ${Number(item.unitPrice).toLocaleString()}`, 410, y + 4, { width: 70, align: 'right' })
+          .text(`BDT ${Number(item.totalPrice).toLocaleString()}`, 480, y + 4, { width: 65, align: 'right' });
+        y += 22;
+      });
+
+      doc.moveTo(50, y).lineTo(545, y).strokeColor('#dddddd').lineWidth(0.5).stroke();
+      y += 10;
+
+      // ── Totals ───────────────────────────────────────────────
+      const totals: Array<[string, number, string?]> = [
+        ['Subtotal', Number(order.subtotal)],
+        ['Shipping', Number(order.shippingCost)],
+      ];
+      if (Number(order.discount) > 0) totals.push(['Discount', -Number(order.discount), '#16a34a']);
+
+      totals.forEach(([label, val, color]) => {
+        doc.fontSize(11).fillColor(color ?? gray)
+          .text(label, 380, y)
+          .text(`BDT ${Math.abs(val).toLocaleString()}`, 480, y, { width: 65, align: 'right' });
+        y += 18;
+      });
+
+      doc.moveTo(380, y).lineTo(545, y).strokeColor('#333333').lineWidth(1).stroke();
+      y += 6;
+      doc.fontSize(13).fillColor('#111111').font('Helvetica-Bold')
+        .text('Total', 380, y)
+        .text(`BDT ${Number(order.total).toLocaleString()}`, 480, y, { width: 65, align: 'right' });
+
+      y += 30;
+      doc.font('Helvetica').fontSize(10).fillColor(gray)
+        .text(`Payment Method: ${order.paymentMethod}`, 50, y);
+
+      // ── Footer — positioned dynamically below content ────────
+      const footerY = Math.max(y + 40, doc.page.height - 60);
+      doc.fontSize(9).fillColor('#999999')
+        .text('Thank you for shopping with UNKORA!', 50, footerY, { align: 'center', width: 495 })
+        .text('unkora.com  |  support@unkora.com  |  +880-XXXX-XXXX', 50, footerY + 13, { align: 'center', width: 495 });
+
+      doc.end();
+    });
+  }
 
   async generateInvoiceHtml(orderId: string): Promise<string> {
     const order = await this.prisma.order.findUnique({

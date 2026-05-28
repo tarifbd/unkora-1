@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { OrdersCronService } from './orders-cron.service';
 import { OrdersController } from './orders.controller';
 import { OrdersGuestController } from './orders-guest.controller';
 import { OrdersService } from './orders.service';
@@ -9,7 +10,7 @@ import { CouponsModule } from '../coupons/coupons.module';
 @Module({
   imports: [SettingsModule, CouponsModule],
   controllers: [OrdersController, OrdersGuestController],
-  providers: [OrdersService, InvoiceService],
+  providers: [OrdersService, InvoiceService, OrdersCronService],
   exports: [OrdersService, InvoiceService],
 })
 export class OrdersModule {}
