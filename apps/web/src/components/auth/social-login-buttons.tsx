@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuthStore } from '@/store/auth.store';
+import { saveAuthTokens, saveUserRole } from '@/lib/api';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
@@ -21,10 +23,37 @@ interface SocialLoginButtonsProps {
   redirectTo?: string;
 }
 
+function mapApiUser(u: any) {
+  return {
+    id: u.id,
+    email: u.email,
+    firstName: u.firstName,
+    lastName: u.lastName,
+    name: `${u.firstName} ${u.lastName}`.trim(),
+    role: u.role,
+    phone: u.phone,
+    avatarUrl: u.avatarUrl,
+  };
+}
+
 export function SocialLoginButtons({ onSuccess, redirectTo = '/account' }: SocialLoginButtonsProps) {
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [loadingFacebook, setLoadingFacebook] = useState(false);
   const router = useRouter();
+  const { setUser } = useAuthStore();
+
+  const handleSocialResponse = (data: any, providerName: string) => {
+    const tokens = data.data?.tokens ?? data.tokens;
+    const apiUser = data.data?.user ?? data.user;
+    if (!tokens?.accessToken) throw new Error(`${providerName} login failed`);
+    saveAuthTokens(tokens.accessToken, tokens.refreshToken);
+    if (apiUser) {
+      const user = mapApiUser(apiUser);
+      setUser(user);
+      saveUserRole(user.role);
+    }
+    return tokens;
+  };
 
   const handleGoogleLogin = async () => {
     if (!GOOGLE_CLIENT_ID) { toast.error('Google login not configured'); return; }
@@ -45,7 +74,6 @@ export function SocialLoginButtons({ onSuccess, redirectTo = '/account' }: Socia
         });
         window.google.accounts.id.prompt((notification: any) => {
           if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-            // Fallback: use popup
             window.google.accounts.id.renderButton(document.createElement('div'), { type: 'standard' });
           }
         });
@@ -58,9 +86,9 @@ export function SocialLoginButtons({ onSuccess, redirectTo = '/account' }: Socia
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Google login failed');
-      localStorage.setItem('access_token', data.data?.tokens?.accessToken ?? data.tokens?.accessToken);
-      toast.success('Logged in with Google!');
-      onSuccess?.(data.data?.tokens ?? data.tokens);
+      const tokens = handleSocialResponse(data, 'Google');
+      toast.success('Google দিয়ে লগইন সফল!');
+      onSuccess?.(tokens);
       router.push(redirectTo);
     } catch (e: any) {
       toast.error(e.message ?? 'Google login failed');
@@ -98,9 +126,9 @@ export function SocialLoginButtons({ onSuccess, redirectTo = '/account' }: Socia
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? 'Facebook login failed');
-      localStorage.setItem('access_token', data.data?.tokens?.accessToken ?? data.tokens?.accessToken);
-      toast.success('Logged in with Facebook!');
-      onSuccess?.(data.data?.tokens ?? data.tokens);
+      const tokens = handleSocialResponse(data, 'Facebook');
+      toast.success('Facebook দিয়ে লগইন সফল!');
+      onSuccess?.(tokens);
       router.push(redirectTo);
     } catch (e: any) {
       toast.error(e.message ?? 'Facebook login failed');

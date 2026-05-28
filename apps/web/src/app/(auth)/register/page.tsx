@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { SocialLoginButtons } from '@/components/auth/social-login-buttons';
 
 const schema = z.object({
   firstName: z.string().min(2, 'Min 2 chars'),
@@ -171,6 +172,10 @@ export default function RegisterPage() {
               {registerUser.isPending ? (lang === 'bn' ? 'তৈরি হচ্ছে...' : 'Creating...') : t.submit}
             </button>
           </form>
+
+          <div className="mt-6">
+            <SocialLoginButtons redirectTo="/" />
+          </div>
 
           <div className="mt-6 text-center">
             <span className="text-sm text-gray-500">{t.hasAccount} </span>

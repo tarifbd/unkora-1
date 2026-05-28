@@ -7,6 +7,9 @@ import { useAuth } from '@/lib/hooks/use-auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { SocialLoginButtons } from '@/components/auth/social-login-buttons';
+import { useAuthStore } from '@/store/auth.store';
 
 const schema = z.object({
   email: z.string().email('Valid email required'),
@@ -18,6 +21,22 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [showPw, setShowPw] = useState(false);
   const [lang, setLang] = useState<'bn' | 'en'>('bn');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const redirectParam = searchParams.get('redirect');
+
+  const handleSocialSuccess = () => {
+    const u = useAuthStore.getState().user;
+    if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('/admin')) {
+      router.push(redirectParam);
+    } else if (u?.role === 'ADMIN' || u?.role === 'SUPER_ADMIN') {
+      router.push('/admin');
+    } else if (u?.role === 'SELLER') {
+      router.push('/seller/dashboard');
+    } else {
+      router.push(redirectParam ?? '/');
+    }
+  };
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -150,6 +169,10 @@ export default function LoginPage() {
               {login.isPending ? (lang === 'bn' ? 'লোড হচ্ছে...' : 'Signing in...') : t.signIn}
             </button>
           </form>
+
+          <div className="mt-6">
+            <SocialLoginButtons onSuccess={handleSocialSuccess} />
+          </div>
 
           <div className="mt-6 text-center">
             <span className="text-sm text-gray-500">{t.noAccount} </span>
