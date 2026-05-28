@@ -80,8 +80,6 @@ function CheckoutContent() {
   const { lang } = useLanguage();
   const queryClient = useQueryClient();
 
-  const guestMode = searchParams.get('guest') === '1';
-  const [showAuthChoice, setShowAuthChoice] = useState(!isAuthenticated && !guestMode);
   const [deliveryMode, setDeliveryMode] = useState<'HOME' | 'PICKUP'>('HOME');
   const [selectedPickup, setSelectedPickup] = useState<PickupPoint | null>(null);
   const [pickupError, setPickupError] = useState<string | null>(null);
@@ -111,6 +109,8 @@ function CheckoutContent() {
 
   const productSlug = searchParams.get('productSlug') ?? searchParams.get('productId');
   const qty = searchParams.get('qty');
+  // Derived — re-evaluates whenever searchParams changes (no useState needed)
+  const showAuthChoice = !isAuthenticated && searchParams.get('guest') !== '1';
 
   // Silently request geolocation for fraud detection
   useEffect(() => {
