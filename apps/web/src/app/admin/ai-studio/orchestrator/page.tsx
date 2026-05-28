@@ -5,7 +5,7 @@ import {
   Cpu, Play, CheckCircle2, Clock, Zap, ArrowRight, Plus,
   MessageSquare, Search, BookOpen, Star, TrendingUp, Globe,
   ShoppingBag, RefreshCw, AlertCircle, Copy, ExternalLink,
-  Settings, ChevronDown, ChevronRight, Boxes,
+  Settings, ChevronDown, ChevronRight, Boxes, X, Save,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -216,13 +216,228 @@ const PIPELINES: Pipeline[] = [
   },
 ];
 
+/* ─── Provider / model catalogue (for settings modal) ───────────── */
+const PROVIDER_MODELS: Record<string, { label: string; models: string[] }> = {
+  openai:    { label: 'OpenAI',              models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'o1-mini'] },
+  anthropic: { label: 'Anthropic (Claude)',  models: ['claude-sonnet-4-6', 'claude-haiku-4-5', 'claude-opus-4-7'] },
+  gemini:    { label: 'Google Gemini',       models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'] },
+  deepseek:  { label: 'DeepSeek',           models: ['deepseek-v3', 'deepseek-r1', 'deepseek-coder-v2'] },
+  xai:       { label: 'xAI (Grok)',         models: ['grok-2', 'grok-beta', 'grok-vision-beta'] },
+  qwen:      { label: 'Alibaba Qwen',       models: ['qwen-max', 'qwen-plus', 'qwen-turbo', 'qwen-vl-max'] },
+  mistral:   { label: 'Mistral',            models: ['mistral-large-latest', 'mistral-nemo', 'codestral-latest'] },
+  cohere:    { label: 'Cohere',             models: ['command-r-plus', 'command-r'] },
+  groq:      { label: 'Groq',              models: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it'] },
+  openrouter:{ label: 'OpenRouter',         models: ['auto', 'openrouter/auto'] },
+  internal:  { label: 'Internal / Built-in',models: ['api', 'queue', 'heuristic', 'scraper'] },
+};
+
+/* ─── Settings Modal ─────────────────────────────────────────────── */
+function PipelineSettingsModal({ pipeline, onClose, onSave }: {
+  pipeline: Pipeline;
+  onClose: () => void;
+  onSave: (updated: Partial<Pipeline>) => void;
+}) {
+  const [name, setName] = useState(pipeline.name);
+  const [steps, setSteps] = useState<PipelineStep[]>(pipeline.steps.map(s => ({ ...s })));
+  const [triggers, setTriggers] = useState<string[]>(pipeline.triggers as string[]);
+  const [temperature, setTemperature] = useState(0.7);
+  const [maxTokens, setMaxTokens] = useState(2000);
+  const [timeout, setTimeout_] = useState(30);
+  const [webhookSecret, setWebhookSecret] = useState('');
+  const [tab, setTab] = useState<'steps' | 'triggers' | 'advanced'>('steps');
+
+  const updateStep = (idx: number, field: keyof PipelineStep, val: string) =>
+    setSteps(ss => ss.map((s, i) => i === idx ? { ...s, [field]: val } : s));
+
+  const handleSave = () => {
+    onSave({ name, steps, triggers });
+    toast.success('Pipeline settings saved');
+    onClose();
+  };
+
+  const inp = 'w-full bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary transition-colors';
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-lg rounded-2xl bg-white dark:bg-gray-800 shadow-2xl flex flex-col max-h-[90vh]">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${pipeline.color} flex items-center justify-center`}>
+              <pipeline.icon className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="font-bold text-sm text-gray-900 dark:text-white">Pipeline Settings</span>
+          </div>
+          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Pipeline name */}
+        <div className="px-6 pt-4 flex-shrink-0">
+          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Pipeline Name</label>
+          <input value={name} onChange={e => setName(e.target.value)} className={inp} />
+        </div>
+
+        {/* Sub-tabs */}
+        <div className="flex gap-1 px-6 pt-4 flex-shrink-0">
+          {(['steps', 'triggers', 'advanced'] as const).map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg capitalize transition-colors ${tab === t ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-gray-700'}`}
+            >
+              {t === 'steps' ? `Steps (${steps.length})` : t === 'triggers' ? `Triggers (${triggers.length})` : 'Advanced'}
+            </button>
+          ))}
+        </div>
+
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+          {/* Steps tab */}
+          {tab === 'steps' && steps.map((step, i) => (
+            <div key={step.id} className="rounded-xl border border-gray-200 dark:border-gray-600 p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                <p className="font-semibold text-sm text-gray-900 dark:text-white">{step.label}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Provider</label>
+                  <select
+                    value={Object.entries(PROVIDER_MODELS).find(([, v]) => v.models.includes(step.model))?.[0] ?? 'internal'}
+                    onChange={e => {
+                      const firstModel = PROVIDER_MODELS[e.target.value]?.models[0] ?? '';
+                      updateStep(i, 'provider', PROVIDER_MODELS[e.target.value]?.label ?? e.target.value);
+                      updateStep(i, 'model', firstModel);
+                    }}
+                    className={inp}
+                  >
+                    {Object.entries(PROVIDER_MODELS).map(([id, { label }]) => (
+                      <option key={id} value={id}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Model</label>
+                  <select
+                    value={step.model}
+                    onChange={e => updateStep(i, 'model', e.target.value)}
+                    className={inp}
+                  >
+                    {(PROVIDER_MODELS[
+                      Object.entries(PROVIDER_MODELS).find(([, v]) => v.models.includes(step.model))?.[0] ?? 'internal'
+                    ]?.models ?? []).map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Step Label</label>
+                <input
+                  value={step.label}
+                  onChange={e => updateStep(i, 'label', e.target.value)}
+                  className={inp}
+                  placeholder="e.g. Router Agent"
+                />
+              </div>
+            </div>
+          ))}
+
+          {/* Triggers tab */}
+          {tab === 'triggers' && (
+            <div className="space-y-3">
+              <p className="text-xs text-gray-500">Select what events trigger this pipeline:</p>
+              {[
+                'New product added', 'Product updated', 'New order placed', 'Order status changed',
+                'New customer review', 'Customer support message', 'Scheduled (daily 6AM)',
+                'Scheduled (weekly Monday)', 'Manual run', 'API webhook', 'Bulk CSV import',
+                'Email received', 'WhatsApp message',
+              ].map(t => (
+                <label key={t} className="flex items-center gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={triggers.includes(t)}
+                    onChange={e => setTriggers(ts => e.target.checked ? [...ts, t] : ts.filter(x => x !== t))}
+                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <span className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">{t}</span>
+                </label>
+              ))}
+            </div>
+          )}
+
+          {/* Advanced tab */}
+          {tab === 'advanced' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Temperature</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="range" min="0" max="1" step="0.1"
+                      value={temperature}
+                      onChange={e => setTemperature(parseFloat(e.target.value))}
+                      className="flex-1"
+                    />
+                    <span className="text-xs font-bold text-gray-600 w-6">{temperature}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">Max Tokens</label>
+                  <input type="number" value={maxTokens} onChange={e => setMaxTokens(Number(e.target.value))} className={inp} />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Timeout (seconds)</label>
+                <input type="number" value={timeout} onChange={e => setTimeout_(Number(e.target.value))} className={inp} />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Webhook Secret (optional)</label>
+                <input
+                  type="password"
+                  value={webhookSecret}
+                  onChange={e => setWebhookSecret(e.target.value)}
+                  placeholder="Used to verify incoming requests"
+                  className={inp}
+                />
+              </div>
+              <div className="rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-3">
+                <p className="text-xs text-yellow-700 dark:text-yellow-300">
+                  <strong>Note:</strong> If the pipeline is currently live, saving settings will automatically redeploy it.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 px-6 py-4 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
+          <button onClick={onClose} className="flex-1 py-2.5 text-sm font-semibold border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="flex-1 py-2.5 text-sm font-bold bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+          >
+            <Save className="w-4 h-4" /> Save Settings
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Pipeline Card ──────────────────────────────────────────────── */
-function PipelineCard({ pipeline, onDeploy, onPause }: {
+function PipelineCard({ pipeline, onDeploy, onPause, onUpdate }: {
   pipeline: Pipeline;
   onDeploy: (id: string) => void;
   onPause: (id: string) => void;
+  onUpdate: (id: string, changes: Partial<Pipeline>) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const statusEl = {
     idle:      <span className="text-xs text-gray-400 flex items-center gap-1"><Clock className="w-3 h-3" /> Not deployed</span>,
@@ -369,11 +584,23 @@ function PipelineCard({ pipeline, onDeploy, onPause }: {
               <Zap className="w-3.5 h-3.5" /> 1-Click Deploy
             </button>
           )}
-          <button className="px-3 py-2 text-xs border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <Settings className="w-3.5 h-3.5 text-gray-400" />
+          <button
+            onClick={() => setSettingsOpen(true)}
+            className="px-3 py-2 text-xs border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-primary/40 transition-colors"
+            title="Configure pipeline"
+          >
+            <Settings className="w-3.5 h-3.5 text-gray-400 hover:text-primary" />
           </button>
         </div>
       </div>
+
+      {settingsOpen && (
+        <PipelineSettingsModal
+          pipeline={pipeline}
+          onClose={() => setSettingsOpen(false)}
+          onSave={changes => onUpdate(pipeline.id, changes)}
+        />
+      )}
     </div>
   );
 }
@@ -400,6 +627,10 @@ export default function OrchestratorPage() {
   const pause = (id: string) => {
     setPipelines(ps => ps.map(p => p.id === id ? { ...p, status: 'paused' } : p));
     toast('Pipeline paused');
+  };
+
+  const update = (id: string, changes: Partial<Pipeline>) => {
+    setPipelines(ps => ps.map(p => p.id === id ? { ...p, ...changes } : p));
   };
 
   return (
@@ -461,7 +692,7 @@ export default function OrchestratorPage() {
       {/* Pipeline grid */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {filtered.map(pipeline => (
-          <PipelineCard key={pipeline.id} pipeline={pipeline} onDeploy={deploy} onPause={pause} />
+          <PipelineCard key={pipeline.id} pipeline={pipeline} onDeploy={deploy} onPause={pause} onUpdate={update} />
         ))}
       </div>
 
