@@ -1,59 +1,173 @@
 'use client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Clock, ToggleLeft, ToggleRight, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
+import {
+  Clock, Package, ShoppingBag, CheckCircle, TruckIcon,
+  ArrowRightCircle, XCircle, DollarSign, Loader2, AlertCircle,
+} from 'lucide-react';
 import Link from 'next/link';
-import { useAdminAuth } from '@/lib/hooks/use-admin-auth';
+import { preordersApi, PreorderOrder } from '@/lib/api/preorders';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
+function StatCard({ label, value, sub, icon: Icon, color }: {
+  label: string; value: string | number; sub?: string;
+  icon: React.ElementType; color: string;
+}) {
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 flex items-center gap-4">
+      <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${color}`}>
+        <Icon className="h-6 w-6 text-white" />
+      </div>
+      <div>
+        <p className="text-2xl font-bold text-gray-900 dark:text-white">{value}</p>
+        <p className="text-sm text-gray-500">{label}</p>
+        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      </div>
+    </div>
+  );
+}
 
-export default function PreordersPage() {
-  const { token } = useAdminAuth();
-  const qc = useQueryClient();
-  const apiFetch = (path: string, opts: RequestInit = {}) =>
-    fetch(`${API}${path}`, { ...opts, headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(opts.headers ?? {}) } }).then(r => r.json());
+const ORDER_STATUS_COLOR: Record<string, string> = {
+  PENDING_PAYMENT: 'bg-yellow-100 text-yellow-800',
+  CONFIRMED: 'bg-blue-100 text-blue-800',
+  WAITING_FOR_STOCK: 'bg-orange-100 text-orange-800',
+  READY_TO_FULFILL: 'bg-green-100 text-green-800',
+  CONVERTED_TO_ORDER: 'bg-purple-100 text-purple-800',
+  CANCELLED: 'bg-red-100 text-red-800',
+  REFUNDED: 'bg-gray-100 text-gray-700',
+  COMPLETED: 'bg-emerald-100 text-emerald-800',
+};
 
-  const { data, isLoading } = useQuery({ queryKey: ['preorders-admin'], queryFn: () => apiFetch('/preorders/admin'), enabled: !!token, select: r => r.data ?? r });
-
-  const toggleMutation = useMutation({
-    mutationFn: ({ productId, isActive }: any) => apiFetch(`/preorders/admin/product/${productId}`, { method: 'PUT', body: JSON.stringify({ isActive }) }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['preorders-admin'] }); toast.success('Updated'); },
+export default function PreordersDashboard() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['preorders-dashboard'],
+    queryFn: preordersApi.getDashboard,
   });
 
-  const items = data?.data ?? (Array.isArray(data) ? data : []);
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="p-6 flex items-center gap-2 text-red-500">
+        <AlertCircle className="h-5 w-5" />
+        <span>Failed to load dashboard data</span>
+      </div>
+    );
+  }
+
+  const { stats, recentOrders } = data;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="h-10 w-10 rounded-xl bg-amber-500 flex items-center justify-center"><Clock className="h-5 w-5 text-white" /></div>
-        <div><h1 className="text-2xl font-bold text-gray-900 dark:text-white">Preorders</h1><p className="text-sm text-gray-500">Manage product preorder configurations</p></div>
+    <div className="p-6 space-y-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-orange-500 flex items-center justify-center">
+            <Clock className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Preorders</h1>
+            <p className="text-sm text-gray-500">Overview of all preorder activity</p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Link
+            href="/admin/preorders/configurations"
+            className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-orange-600"
+          >
+            Configurations
+          </Link>
+          <Link
+            href="/admin/preorders/orders"
+            className="px-4 py-2 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            All Orders
+          </Link>
+        </div>
       </div>
 
-      {isLoading ? <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin" /></div> : (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 dark:bg-gray-700/50"><tr>{['Product','Prepayment','Expected Delivery','Stock Limit','Orders','Status',''].map(h=><th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">{h}</th>)}</tr></thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {items.map((p: any) => (
-                <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                  <td className="px-4 py-3"><p className="font-semibold text-gray-900 dark:text-white line-clamp-1">{p.product?.name}</p></td>
-                  <td className="px-4 py-3">{p.prepaymentPct}%</td>
-                  <td className="px-4 py-3 text-gray-500">{p.expectedDelivery ? new Date(p.expectedDelivery).toLocaleDateString() : '-'}</td>
-                  <td className="px-4 py-3">{p.stockLimit ?? '∞'}</td>
-                  <td className="px-4 py-3"><span className="font-bold text-orange-600">{p._count?.orders ?? 0}</span></td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => toggleMutation.mutate({ productId: p.productId, isActive: !p.isActive })}>
-                      {p.isActive ? <ToggleRight className="h-5 w-5 text-green-500" /> : <ToggleLeft className="h-5 w-5 text-gray-300" />}
-                    </button>
-                  </td>
-                  <td className="px-4 py-3"><Link href={`/admin/products/edit/${p.productId}`} className="text-xs text-blue-500 hover:underline">Edit Product</Link></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {!items.length && <p className="text-center py-10 text-gray-400">No preorders configured. Configure a preorder via the product edit page.</p>}
+      {/* Stats grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatCard label="Active Configs" value={`${stats.activeConfigs}/${stats.totalConfigs}`} icon={Package} color="bg-blue-500" />
+        <StatCard label="Total Preorders" value={stats.totalOrders} icon={ShoppingBag} color="bg-orange-500" />
+        <StatCard label="Total Revenue" value={`৳${stats.totalRevenue.toLocaleString()}`} sub="excl. cancelled" icon={DollarSign} color="bg-emerald-500" />
+        <StatCard label="Prepaid Collected" value={`৳${stats.prepaidRevenue.toLocaleString()}`} icon={CheckCircle} color="bg-purple-500" />
+      </div>
+
+      {/* Status breakdown */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {[
+          { label: 'Pending Payment', val: stats.pendingPayment, color: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20', icon: AlertCircle },
+          { label: 'Confirmed', val: stats.confirmed, color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20', icon: CheckCircle },
+          { label: 'Ready to Fulfill', val: stats.readyToFulfill, color: 'text-green-600 bg-green-50 dark:bg-green-900/20', icon: TruckIcon },
+          { label: 'Converted', val: stats.converted, color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20', icon: ArrowRightCircle },
+          { label: 'Cancelled', val: stats.cancelled, color: 'text-red-600 bg-red-50 dark:bg-red-900/20', icon: XCircle },
+        ].map(({ label, val, color, icon: Icon }) => (
+          <div key={label} className={`rounded-xl p-4 ${color}`}>
+            <Icon className="h-5 w-5 mb-1 opacity-70" />
+            <p className="text-2xl font-bold">{val}</p>
+            <p className="text-xs font-medium opacity-80">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Quick nav cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Link
+          href="/admin/preorders/configurations"
+          className="block bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:border-orange-300 transition-colors group"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <Package className="h-6 w-6 text-orange-500" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-orange-600">Configurations</h2>
+          </div>
+          <p className="text-sm text-gray-500">Manage preorder settings for your products — enable, disable, set limits and prepayment rules.</p>
+        </Link>
+        <Link
+          href="/admin/preorders/orders"
+          className="block bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:border-orange-300 transition-colors group"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <ShoppingBag className="h-6 w-6 text-orange-500" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-orange-600">Orders</h2>
+          </div>
+          <p className="text-sm text-gray-500">View and manage all preorder orders, record payments, and convert to regular orders.</p>
+        </Link>
+      </div>
+
+      {/* Recent orders */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">Recent Preorders</h2>
+          <Link href="/admin/preorders/orders" className="text-sm text-orange-500 hover:underline">View all</Link>
         </div>
-      )}
+        <div className="divide-y divide-gray-100 dark:divide-gray-700">
+          {recentOrders.length === 0 && (
+            <p className="text-center py-8 text-gray-400 text-sm">No preorders yet</p>
+          )}
+          {recentOrders.map((order: PreorderOrder) => (
+            <div key={order.id} className="flex items-center gap-4 px-6 py-4">
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm text-gray-900 dark:text-white truncate">
+                  {order.preorderNumber}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {order.config?.product.name} — {order.customerName}
+                </p>
+              </div>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ORDER_STATUS_COLOR[order.preorderStatus] ?? 'bg-gray-100 text-gray-700'}`}>
+                {order.preorderStatus.replace(/_/g, ' ')}
+              </span>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">৳{Number(order.totalAmount).toLocaleString()}</p>
+              <Link href={`/admin/preorders/orders/${order.id}`} className="text-xs text-orange-500 hover:underline shrink-0">View</Link>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

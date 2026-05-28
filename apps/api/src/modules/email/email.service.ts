@@ -161,4 +161,37 @@ export class EmailService {
   </div>`;
   await this.send(to, 'Verify your UNKORA email address', html);
 }
+
+async sendPreorderConfirmation(to: string, data: {
+  preorderNumber: string;
+  customerName: string;
+  productName: string;
+  quantity: number;
+  totalAmount: number;
+  prepaymentAmount: number;
+  expectedDelivery: string;
+}) {
+  const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">
+    <h2 style="color:#111827">Preorder Confirmed — ${data.preorderNumber}</h2>
+    <p>Hi ${data.customerName}, your preorder has been received!</p>
+    <table style="width:100%;border-collapse:collapse;margin:16px 0">
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb;color:#6b7280">Product</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">${data.productName}</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb;color:#6b7280">Quantity</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">${data.quantity}</td></tr>
+      <tr><td style="padding:8px;border-bottom:1px solid #e5e7eb;color:#6b7280">Total</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">৳${data.totalAmount.toFixed(2)}</td></tr>
+      ${data.prepaymentAmount > 0 ? `<tr><td style="padding:8px;border-bottom:1px solid #e5e7eb;color:#6b7280">Prepayment Due</td><td style="padding:8px;border-bottom:1px solid #e5e7eb">৳${data.prepaymentAmount.toFixed(2)}</td></tr>` : ''}
+      <tr><td style="padding:8px;color:#6b7280">Expected Delivery</td><td style="padding:8px">${data.expectedDelivery}</td></tr>
+    </table>
+    <p style="color:#6b7280;font-size:13px">We will notify you when your item is ready.</p>
+  </div>`;
+  await this.send(to, `Preorder Confirmed: ${data.preorderNumber}`, html);
+}
+
+async sendPreorderStockAvailable(to: string, customerName: string) {
+  const html = `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px">
+    <h2 style="color:#111827">Great news, ${customerName}!</h2>
+    <p>Your preordered item is now in stock and ready to be fulfilled. Our team will process your order shortly.</p>
+    <p style="color:#6b7280;font-size:13px">Thank you for your patience.</p>
+  </div>`;
+  await this.send(to, 'Your preorder is ready!', html);
+}
 }

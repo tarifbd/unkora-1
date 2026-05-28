@@ -53,6 +53,8 @@ const NAV: NavItem[] = [
     children: [
       { href: '/admin/orders',       label: 'Orders',          icon: ShoppingBag },
       { href: '/admin/preorders',    label: 'Preorders',       icon: CalendarClock },
+      { href: '/admin/preorders/configurations', label: '— Configurations', icon: Boxes },
+      { href: '/admin/preorders/orders',         label: '— Orders',          icon: ShoppingBag },
       { href: '/admin/shipments',    label: 'Shipments',       icon: Truck },
       { href: '/admin/coupons',      label: 'Coupons',         icon: Ticket },
       { href: '/admin/promotions',   label: 'Promotions',      icon: Zap },

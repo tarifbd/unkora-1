@@ -340,7 +340,7 @@ model Product {
   auctions        Auction[]
   posOrderItems   PosOrderItem[]
   returnItems     ReturnItem[]
-  preorder        Preorder?
+  preorderConfig  PreorderConfig?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1847,41 +1847,180 @@ model ClassifiedAd {
 }
 
 // ─────────────────────────────────────────────────────────────
-// MODULE 6: PREORDER
+// MODULE 6: PREORDER V2
 // ─────────────────────────────────────────────────────────────
 
-model Preorder {
-  id                  String   @id @default(cuid())
-  productId           String   @unique
-  prepaymentPct       Int      @default(30)
-  finalPaymentDueDate DateTime?
-  expectedDelivery    DateTime?
-  stockLimit          Int?
-  isActive            Boolean  @default(true)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+enum PrepaymentType {
+  NONE
+  FIXED_AMOUNT
+  PERCENTAGE
+  FULL_PAYMENT
+}
+
+enum PreorderConfigStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  CLOSED
+  COMPLETED
+  CANCELLED
+}
+
+enum PreorderOrderStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  WAITING_FOR_STOCK
+  READY_TO_FULFILL
+  CONVERTED_TO_ORDER
+  CANCELLED
+  REFUNDED
+  COMPLETED
+}
+
+enum PreorderPaymentStatus {
+  UNPAID
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
+}
+
+enum PreorderEventType {
+  CREATED
+  PAYMENT_RECEIVED
+  PAYMENT_FAILED
+  CONFIRMED
+  STOCK_AVAILABLE
+  READY_TO_FULFILL
+  CONVERTED_TO_ORDER
+  CANCELLED
+  REFUNDED
+  CUSTOMER_NOTIFIED
+  ADMIN_NOTE_ADDED
+  STATUS_CHANGED
+}
+
+enum PreorderNotifChannel {
+  EMAIL
+  SMS
+  IN_APP
+}
+
+enum PreorderNotifType {
+  PREORDER_CONFIRMED
+  PAYMENT_REMINDER
+  STOCK_AVAILABLE
+  DELIVERY_UPDATE
+  CANCELLATION
+  REFUND
+  ORDER_CONVERTED
+}
+
+enum PreorderNotifStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model PreorderConfig {
+  id                    String               @id @default(cuid())
+  productId             String               @unique
+  variantId             String?
+  isEnabled             Boolean              @default(true)
+  preorderTitle         String?
+  preorderDescription   String?              @db.Text
+  expectedReleaseDate   DateTime?
+  expectedDeliveryStart DateTime?
+  expectedDeliveryEnd   DateTime?
+  preorderStartDate     DateTime?
+  preorderEndDate       DateTime?
+  stockLimit            Int?
+  maxQtyPerCustomer     Int?
+  prepaymentRequired    Boolean              @default(false)
+  prepaymentType        PrepaymentType       @default(NONE)
+  prepaymentAmount      Decimal?             @db.Decimal(10, 2)
+  preorderPrice         Decimal?             @db.Decimal(10, 2)
+  allowCancellation     Boolean              @default(true)
+  cancellationDeadline  DateTime?
+  autoConvertToOrder    Boolean              @default(false)
+  status                PreorderConfigStatus @default(DRAFT)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
 
   product        Product         @relation(fields: [productId], references: [id])
-  orders         PreorderOrder[]
+  preorderOrders PreorderOrder[]
 
-  @@map("preorders")
+  @@index([productId])
+  @@index([status])
+  @@map("preorder_configurations")
 }
 
 model PreorderOrder {
-  id              String   @id @default(cuid())
-  preorderId      String
-  orderId         String
-  prepaymentPaid  Boolean  @default(false)
-  finalPaid       Boolean  @default(false)
-  prepaymentAt    DateTime?
-  finalPaymentAt  DateTime?
-  createdAt       DateTime @default(now())
+  id                   String                @id @default(cuid())
+  preorderNumber       String                @unique
+  customerId           String?
+  productId            String
+  variantId            String?
+  configId             String
+  orderId              String?
+  quantity             Int
+  unitPrice            Decimal               @db.Decimal(10, 2)
+  totalAmount          Decimal               @db.Decimal(10, 2)
+  prepaymentAmount     Decimal               @default(0) @db.Decimal(10, 2)
+  remainingAmount      Decimal               @default(0) @db.Decimal(10, 2)
+  paymentStatus        PreorderPaymentStatus @default(UNPAID)
+  preorderStatus       PreorderOrderStatus   @default(PENDING_PAYMENT)
+  customerName         String
+  customerEmail        String?
+  customerPhone        String
+  shippingAddress      Json?
+  note                 String?
+  expectedDeliveryDate DateTime?
+  convertedAt          DateTime?
+  cancelledAt          DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
 
-  preorder Preorder @relation(fields: [preorderId], references: [id])
+  config        PreorderConfig         @relation(fields: [configId], references: [id])
+  events        PreorderEvent[]
+  notifications PreorderNotification[]
 
-  @@index([preorderId])
-  @@index([orderId])
+  @@index([customerId])
+  @@index([preorderStatus])
+  @@index([paymentStatus])
+  @@index([configId])
   @@map("preorder_orders")
+}
+
+model PreorderEvent {
+  id              String            @id @default(cuid())
+  preorderOrderId String
+  eventType       PreorderEventType
+  message         String
+  metadata        Json?
+  createdBy       String?
+  createdAt       DateTime          @default(now())
+
+  preorderOrder PreorderOrder @relation(fields: [preorderOrderId], references: [id])
+
+  @@index([preorderOrderId])
+  @@map("preorder_events")
+}
+
+model PreorderNotification {
+  id              String               @id @default(cuid())
+  preorderOrderId String
+  channel         PreorderNotifChannel
+  notifType       PreorderNotifType
+  status          PreorderNotifStatus  @default(PENDING)
+  sentAt          DateTime?
+  errorMessage    String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  preorderOrder PreorderOrder @relation(fields: [preorderOrderId], references: [id])
+
+  @@index([preorderOrderId])
+  @@map("preorder_notifications")
 }
 
 // ─────────────────────────────────────────────────────────────
