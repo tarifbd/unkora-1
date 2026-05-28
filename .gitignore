@@ -67,3 +67,8 @@ docker-compose.override.yml
 *.tsbuildinfo
 .cache
 apps/api/typesense-server-27.1-linux-amd64.tar.gz
+
+# Accidental root-level artifacts (from bat/shell command failures)
+FETCH_HEAD
+npx
+(
