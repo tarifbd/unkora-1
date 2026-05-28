@@ -10,6 +10,18 @@ import { SettingsService } from './settings.service';
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
 
+  @Get('public')
+  @ApiOperation({ summary: 'Public store settings (no auth required)' })
+  async getPublicSettings() {
+    const settings = await this.settingsService.getMany([
+      'store.maintenanceMode',
+      'store.flashSale',
+      'store.flashSaleDiscount',
+      'store.name',
+    ]);
+    return { data: settings };
+  }
+
   @Get('store')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPER_ADMIN')
