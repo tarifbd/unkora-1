@@ -102,14 +102,14 @@ cd packages\database
 call npx prisma migrate deploy >nul 2>&1
 call npx prisma generate >nul 2>&1
 
-:: Seed only if admin user doesn't exist
-docker exec unkora_postgres_dev psql -U unkora -d unkora -c ^
-  "SELECT 1 FROM users WHERE email='admin@unkora.com' LIMIT 1;" 2>nul | findstr "(1 row)" >nul
-if %errorlevel% neq 0 (
-  echo  First run — seeding database...
+:: Seed if less than 5 products exist (catches missing seed even when admin exists)
+for /f %%n in ('docker exec unkora_postgres_dev psql -U unkora -d unkora -tAc "SELECT COUNT(*) FROM products;" 2^>nul') do set PROD_COUNT=%%n
+if "!PROD_COUNT!"=="" set PROD_COUNT=0
+if !PROD_COUNT! lss 5 (
+  echo  Only !PROD_COUNT! products found — seeding database...
   call npx prisma db seed
 ) else (
-  echo  Database already seeded — skipping.
+  echo  !PROD_COUNT! products in DB — seed skipped.
 )
 
 cd ..\..

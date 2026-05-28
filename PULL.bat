@@ -120,7 +120,7 @@ if %errorlevel% neq 0 (
 echo  Prisma ready.
 
 :: ════════════════════════════════════════════════════════
-::  STEP 6 — Seed data (skip if admin already exists)
+::  STEP 6 — Seed data (check product count, not just admin)
 :: ════════════════════════════════════════════════════════
 echo.
 echo  [6/6] Checking seed data...
@@ -129,25 +129,27 @@ echo  [6/6] Checking seed data...
 docker exec unkora_postgres_dev pg_isready -U unkora -d unkora >nul 2>&1
 if %errorlevel% neq 0 (
   echo  [SKIP] Postgres container not running — skipping seed check.
-  echo         Start it first with START.bat or MAIN.bat, then re-run PULL.bat to seed.
+  echo         Run MAIN.bat first, then RESEED.bat if products are missing.
   cd ..\..
   goto DONE
 )
 
-:: Check if admin user exists
-docker exec unkora_postgres_dev psql -U unkora -d unkora -c ^
-  "SELECT 1 FROM users WHERE email='admin@unkora.com' LIMIT 1;" 2>nul | findstr "(1 row)" >nul
-if %errorlevel% neq 0 (
-  echo   Admin user not found — seeding database...
+:: Check product count — seed if less than 5 products exist
+for /f %%n in ('docker exec unkora_postgres_dev psql -U unkora -d unkora -tAc "SELECT COUNT(*) FROM products;" 2^>nul') do set PROD_COUNT=%%n
+if "!PROD_COUNT!"=="" set PROD_COUNT=0
+
+if !PROD_COUNT! lss 5 (
+  echo   Only !PROD_COUNT! products found — running seed...
   call npx prisma db seed
   if %errorlevel% neq 0 (
-    echo  [ERROR] Seed failed. Check the output above.
+    echo  [ERROR] Seed failed. Run RESEED.bat manually after starting the app.
     cd ..\..
     pause & exit /b 1
   )
   echo  Seed complete!
 ) else (
-  echo  Admin user exists — seed skipped  (use FRESH-START.bat to reseed from scratch^)
+  echo  !PROD_COUNT! products already in database — seed skipped.
+  echo  ^(Run RESEED.bat to force re-seed without data loss^)
 )
 
 cd ..\..
