@@ -377,7 +377,7 @@
   letter-spacing: 0.05em;
 }
 .sell-spark { position: absolute; border-radius: 50%; pointer-events: none; z-index: 10; }
-.sell-spark-1 { display:none }
+.sell-spark-1 { width:5px;height:5px;background:#fde047;top:0;left:22%;animation:spark-1 2s ease-out infinite }
 .sell-spark-2 { width:4px;height:4px;background:#fb923c;top:0;left:45%;animation:spark-2 2s ease-out infinite 0.5s }
 .sell-spark-3 { width:4px;height:4px;background:#e879f9;top:0;left:65%;animation:spark-3 2s ease-out infinite 1s }
 .sell-spark-4 { width:3px;height:3px;background:#67e8f9;top:0;right:18%;animation:spark-4 2s ease-out infinite 1.5s }
