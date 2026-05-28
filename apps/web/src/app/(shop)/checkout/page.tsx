@@ -80,7 +80,8 @@ function CheckoutContent() {
   const { lang } = useLanguage();
   const queryClient = useQueryClient();
 
-  const [showAuthChoice, setShowAuthChoice] = useState(!isAuthenticated);
+  const guestMode = searchParams.get('guest') === '1';
+  const [showAuthChoice, setShowAuthChoice] = useState(!isAuthenticated && !guestMode);
   const [deliveryMode, setDeliveryMode] = useState<'HOME' | 'PICKUP'>('HOME');
   const [selectedPickup, setSelectedPickup] = useState<PickupPoint | null>(null);
   const [pickupError, setPickupError] = useState<string | null>(null);
@@ -330,7 +331,11 @@ function CheckoutContent() {
             </Link>
             <button
               type="button"
-              onClick={() => setShowAuthChoice(false)}
+              onClick={() => {
+                const url = new URL(window.location.href);
+                url.searchParams.set('guest', '1');
+                router.push(url.pathname + url.search);
+              }}
               className="flex w-full items-center justify-center gap-2 py-3.5 border-2 border-gray-200 rounded-2xl font-black text-sm text-gray-700 hover:border-primary hover:text-primary active:scale-[.98] transition-all"
             >
               <UserCheck className="w-4 h-4" />
