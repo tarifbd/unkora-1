@@ -707,11 +707,6 @@ export function Header() {
                 <span className="sell-spark sell-spark-3" />
                 <span className="sell-spark sell-spark-4" />
                 <div className="sell-cta-inner">
-                  {/* Ping dot */}
-                  <span className="relative flex h-2 w-2 flex-shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
-                  </span>
                   <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Sell Your Book</span>
                   <span className="text-white/30 text-[10px]">/</span>
                   <span className="sell-bn-text whitespace-nowrap">বই বিক্রি করুন</span>

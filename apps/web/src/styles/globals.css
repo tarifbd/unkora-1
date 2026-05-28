@@ -350,14 +350,6 @@
   0%, 100% { background-position: 0% 50%; }
   50%       { background-position: 100% 50%; }
 }
-@keyframes sell-bn-glow {
-  0%, 100% {
-    text-shadow: 0 0 3px rgba(253,224,71,0.6), 0 0 7px rgba(253,224,71,0.3);
-  }
-  50% {
-    text-shadow: 0 0 5px rgba(253,224,71,0.8), 0 0 12px rgba(253,224,71,0.5), 0 0 20px rgba(251,146,60,0.25);
-  }
-}
 @keyframes spark-1 { 0%{opacity:0;transform:translate(0,0) scale(0)} 25%{opacity:1;transform:translate(-4px,-7px) scale(1)} 100%{opacity:0;transform:translate(-7px,-22px) scale(0.2)} }
 @keyframes spark-2 { 0%{opacity:0;transform:translate(0,0) scale(0)} 25%{opacity:1;transform:translate(3px,-9px) scale(1)} 100%{opacity:0;transform:translate(6px,-24px) scale(0.2)} }
 @keyframes spark-3 { 0%{opacity:0;transform:translate(0,0) scale(0)} 25%{opacity:1;transform:translate(-1px,-8px) scale(1)} 100%{opacity:0;transform:translate(-3px,-20px) scale(0.2)} }
@@ -382,10 +374,10 @@
 }
 .sell-bn-text {
   color: #fde047; font-weight: 900; font-size: 10px;
-  letter-spacing: 0.05em; animation: sell-bn-glow 2s ease-in-out infinite;
+  letter-spacing: 0.05em;
 }
 .sell-spark { position: absolute; border-radius: 50%; pointer-events: none; z-index: 10; }
-.sell-spark-1 { width:5px;height:5px;background:#fde047;top:0;left:22%;animation:spark-1 2s ease-out infinite }
+.sell-spark-1 { display:none }
 .sell-spark-2 { width:4px;height:4px;background:#fb923c;top:0;left:45%;animation:spark-2 2s ease-out infinite 0.5s }
 .sell-spark-3 { width:4px;height:4px;background:#e879f9;top:0;left:65%;animation:spark-3 2s ease-out infinite 1s }
 .sell-spark-4 { width:3px;height:3px;background:#67e8f9;top:0;right:18%;animation:spark-4 2s ease-out infinite 1.5s }
