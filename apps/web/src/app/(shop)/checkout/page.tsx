@@ -13,9 +13,11 @@ import { useCart } from '@/lib/hooks/use-cart';
 import { useAuthStore } from '@/store/auth.store';
 import { useGuestCart } from '@/store/guest-cart.store';
 import { ordersApi } from '@/lib/api/orders';
+import { cartApi } from '@/lib/api/cart';
 import { authApi } from '@/lib/api/auth';
+import { productsApi } from '@/lib/api/products';
 import { formatCurrency } from '@/lib/utils';
-import api from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
 import { CouponInput } from '@/components/checkout/coupon-input';
@@ -75,6 +77,7 @@ function CheckoutContent() {
   const { isAuthenticated } = useAuthStore();
   const guestCart = useGuestCart();
   const { lang } = useLanguage();
+  const queryClient = useQueryClient();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -100,7 +103,7 @@ function CheckoutContent() {
     return Math.abs(hash).toString(36);
   });
 
-  const productId = searchParams.get('productId');
+  const productSlug = searchParams.get('productSlug') ?? searchParams.get('productId');
   const qty = searchParams.get('qty');
 
   // Silently request geolocation for fraud detection
@@ -143,12 +146,11 @@ function CheckoutContent() {
     }
   }, [savedAddresses, isAuthenticated, addressFilled, setValue]);
 
-  // Fetch quick-buy product
+  // Fetch quick-buy product (by slug — supports both /checkout?productSlug=xxx and legacy ?productId=xxx)
   useEffect(() => {
-    if (!productId) return;
+    if (!productSlug) return;
     setQuickBuyLoading(true);
-    api.get(`/products/${productId}`).then(r => {
-      const p = r.data.data;
+    productsApi.getBySlug(productSlug).then(p => {
       const price = Number(p.salePrice ?? p.basePrice);
       setQuickBuyItem({
         productId: p.id,
@@ -158,7 +160,7 @@ function CheckoutContent() {
         image: p.images?.[0]?.url,
       });
     }).catch(() => {}).finally(() => setQuickBuyLoading(false));
-  }, [productId, qty]);
+  }, [productSlug, qty]);
 
   const displayItems = quickBuyItem
     ? [{ id: quickBuyItem.productId, name: quickBuyItem.name, price: quickBuyItem.price, quantity: quickBuyItem.quantity, image: quickBuyItem.image }]
@@ -201,7 +203,13 @@ function CheckoutContent() {
         geoLng: geoCoords?.lng,
       });
 
-      if (!isAuthenticated) guestCart.clearCart();
+      if (!isAuthenticated) {
+        guestCart.clearCart();
+      } else if (!quickBuyItem) {
+        // Clear API cart after authenticated cart-based checkout
+        try { await cartApi.clear(); } catch { /* ignore */ }
+        void queryClient.invalidateQueries({ queryKey: ['cart'] });
+      }
       router.push(`/checkout/success?orderId=${order.id}&orderNumber=${encodeURIComponent(order.orderNumber)}`);
     } catch (err: unknown) {
       setIsSubmitting(false);

@@ -219,7 +219,7 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
           {/* Buy Now */}
           {inStock ? (
             <Link
-              href={`/checkout?productId=${product.id}&qty=1`}
+              href={`/checkout?productSlug=${product.slug}&qty=1`}
               onClick={e => e.stopPropagation()}
               className="flex items-center justify-center gap-1.5 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 active:scale-95 transition-all whitespace-nowrap"
             >

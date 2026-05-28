@@ -1,6 +1,6 @@
 import api from '@/lib/api';
 
-export type PaymentMethod = 'BKASH' | 'NAGAD' | 'ROCKET' | 'COD' | 'CARD';
+export type PaymentMethod = 'BKASH' | 'NAGAD' | 'COD' | 'CARD' | 'BANK_TRANSFER';
 export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'PROCESSING' | 'SHIPPED' | 'OUT_FOR_DELIVERY' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
 
 export interface OrderItem {
@@ -24,7 +24,7 @@ export interface PaginatedOrders {
 }
 
 export const ordersApi = {
-  create: (data: { shippingAddress: Record<string, unknown>; paymentMethod: PaymentMethod; notes?: string }) =>
+  create: (data: { addressId: string; paymentMethod: PaymentMethod; notes?: string; couponCode?: string }) =>
     api.post('/orders', data).then(r => r.data.data as Order),
 
   createGuest: (data: {

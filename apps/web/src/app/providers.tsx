@@ -2,9 +2,20 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from 'sonner';
 import { LanguageProvider } from '@/lib/i18n/language-context';
+import { useAuthStore } from '@/store/auth.store';
+
+function AuthLogoutHandler() {
+  const { clearAuth } = useAuthStore();
+  useEffect(() => {
+    const handler = () => clearAuth();
+    window.addEventListener('auth:logout', handler);
+    return () => window.removeEventListener('auth:logout', handler);
+  }, [clearAuth]);
+  return null;
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -23,6 +34,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <LanguageProvider>
       <QueryClientProvider client={queryClient}>
+        <AuthLogoutHandler />
         {children}
         <Toaster
           position="top-right"

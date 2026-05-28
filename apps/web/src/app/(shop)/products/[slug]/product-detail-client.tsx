@@ -177,7 +177,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 />
               </div>
               <Link
-                href={`/checkout?productId=${product.id}&qty=${qty}`}
+                href={`/checkout?productSlug=${product.slug}&qty=${qty}`}
                 className="flex items-center justify-center gap-2 w-full py-3.5 bg-orange-500 text-white rounded-xl font-bold text-sm hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-200"
               >
                 <Zap className="h-4 w-4" /> এখনই কিনুন
@@ -239,7 +239,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 <span className="hidden xs:inline">কার্ট</span>
               </button>
               <Link
-                href={`/checkout?productId=${product.id}&qty=${qty}`}
+                href={`/checkout?productSlug=${product.slug}&qty=${qty}`}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-orange-500 text-white text-xs font-black hover:bg-orange-600 active:scale-95 transition-all"
               >
                 <Zap className="h-3.5 w-3.5" />

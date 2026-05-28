@@ -88,8 +88,8 @@ export function CartDrawer() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => updateItem.mutate({ itemId: item.id, quantity: item.quantity - 1 })}
-                        className="flex h-6 w-6 items-center justify-center rounded border hover:bg-accent transition-colors"
-                        disabled={updateItem.isPending}
+                        className="flex h-6 w-6 items-center justify-center rounded border hover:bg-accent transition-colors disabled:opacity-30"
+                        disabled={updateItem.isPending || item.quantity <= 1}
                       >
                         <Minus className="h-3 w-3" />
                       </button>
@@ -145,7 +145,8 @@ export function CartDrawer() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => guestCart.updateQty(item.productId, item.quantity - 1)}
-                        className="flex h-6 w-6 items-center justify-center rounded border hover:bg-accent transition-colors"
+                        disabled={item.quantity <= 1}
+                        className="flex h-6 w-6 items-center justify-center rounded border hover:bg-accent transition-colors disabled:opacity-30"
                       >
                         <Minus className="h-3 w-3" />
                       </button>
