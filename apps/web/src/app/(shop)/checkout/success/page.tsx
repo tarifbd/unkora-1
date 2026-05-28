@@ -1,17 +1,24 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { CheckCircle, Package, Truck, ArrowRight, Loader2, Phone } from 'lucide-react';
-import { useAuthStore } from '@/store/auth.store';
+import { CheckCircle, Package, Truck, ArrowRight, Loader2, Phone, Copy, Check } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
 
 function SuccessContent() {
   const searchParams = useSearchParams();
-  const orderId = searchParams.get('orderId');
-  const { isAuthenticated } = useAuthStore();
+  const orderNumber = searchParams.get('orderNumber') ?? '';
   const { lang } = useLanguage();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (!orderNumber) return;
+    navigator.clipboard.writeText(orderNumber).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   return (
     <div className="max-w-md mx-auto text-center px-4 py-12">
@@ -34,13 +41,41 @@ function SuccessContent() {
           : 'We received your order and will deliver it soon.'}
       </p>
 
+      {/* Order number box */}
+      {orderNumber && (
+        <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-5 mb-6 text-left">
+          <p className="text-xs font-bold text-green-700 uppercase tracking-wider mb-2">
+            {lang === 'bn' ? 'আপনার অর্ডার নম্বর' : 'Your Order Number'}
+          </p>
+          <div className="flex items-center gap-3">
+            <span className="font-black text-xl text-gray-900 flex-1 font-mono tracking-wide">
+              {orderNumber}
+            </span>
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-colors"
+            >
+              {copied
+                ? <><Check className="w-3.5 h-3.5" /> {lang === 'bn' ? 'কপি হয়েছে' : 'Copied!'}</>
+                : <><Copy className="w-3.5 h-3.5" /> {lang === 'bn' ? 'কপি করুন' : 'Copy'}</>
+              }
+            </button>
+          </div>
+          <p className="text-xs text-green-600 mt-2">
+            {lang === 'bn'
+              ? 'এই নম্বর দিয়ে অর্ডার ট্র্যাক করুন। সংরক্ষণ করে রাখুন।'
+              : 'Use this number to track your order. Please save it.'}
+          </p>
+        </div>
+      )}
+
       {/* Next steps */}
       <div className="bg-white border border-gray-100 rounded-2xl p-5 text-left space-y-4 mb-6 shadow-sm">
         <h3 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'পরবর্তী ধাপ' : 'What happens next'}</h3>
         {[
-          { icon: Phone,   label: lang === 'bn' ? 'আমরা শীঘ্রই কনফার্ম করার জন্য ফোন করব' : 'We\'ll call to confirm your order shortly' },
+          { icon: Phone,   label: lang === 'bn' ? 'আমরা শীঘ্রই কনফার্ম করার জন্য ফোন করব' : "We'll call to confirm your order shortly" },
           { icon: Package, label: lang === 'bn' ? 'পণ্য প্যাকেজিং ও পাঠানো হবে' : 'Your order will be packed and shipped' },
-          { icon: Truck,   label: lang === 'bn' ? 'ডেলিভারি হওয়ার সময় ফোন করা হবে' : 'We\'ll call when your order is out for delivery' },
+          { icon: Truck,   label: lang === 'bn' ? 'ডেলিভারি হওয়ার সময় ফোন করা হবে' : "We'll call when your order is out for delivery" },
         ].map(({ icon: Icon, label }) => (
           <div key={label} className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -54,7 +89,7 @@ function SuccessContent() {
       {/* CTA buttons */}
       <div className="flex flex-col gap-3">
         <Link
-          href="/track-order"
+          href={orderNumber ? `/track-order?orderNumber=${encodeURIComponent(orderNumber)}` : '/track-order'}
           className="flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors"
         >
           <Truck className="w-4 h-4" />

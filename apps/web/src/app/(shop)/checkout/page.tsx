@@ -202,7 +202,7 @@ function CheckoutContent() {
       });
 
       if (!isAuthenticated) guestCart.clearCart();
-      router.push(`/checkout/success?orderId=${order.id}`);
+      router.push(`/checkout/success?orderId=${order.id}&orderNumber=${encodeURIComponent(order.orderNumber)}`);
     } catch (err: unknown) {
       setIsSubmitting(false);
       setSubmitError(lang === 'bn' ? 'অর্ডার করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।' : 'Failed to place order. Please try again.');

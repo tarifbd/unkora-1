@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Search, Package, Truck, CheckCircle, Clock, XCircle, AlertTriangle, ChevronRight } from 'lucide-react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { Search, Package, Truck, CheckCircle, Clock, XCircle, AlertTriangle } from 'lucide-react';
 import { ordersApi } from '@/lib/api/orders';
 import { useLanguage } from '@/lib/i18n/language-context';
 import Link from 'next/link';
@@ -19,10 +20,16 @@ const STATUS_LABELS: Record<string, { en: string; bn: string; icon: any; color: 
   REFUNDED:          { en: 'Refunded',           bn: 'ফেরত দেওয়া হয়েছে', icon: AlertTriangle, color: 'text-gray-500' },
 };
 
-export default function TrackOrderPage() {
+function TrackOrderContent() {
   const { lang } = useLanguage();
+  const searchParams = useSearchParams();
   const [orderNumber, setOrderNumber] = useState('');
   const [phone, setPhone] = useState('');
+
+  useEffect(() => {
+    const pre = searchParams.get('orderNumber');
+    if (pre) setOrderNumber(decodeURIComponent(pre));
+  }, [searchParams]);
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -195,5 +202,13 @@ export default function TrackOrderPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function TrackOrderPage() {
+  return (
+    <Suspense fallback={<div className="max-w-2xl mx-auto px-4 py-10" />}>
+      <TrackOrderContent />
+    </Suspense>
   );
 }
