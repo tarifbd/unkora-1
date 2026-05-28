@@ -38,6 +38,7 @@ async function bootstrap() {
     reply.header('X-XSS-Protection', '1; mode=block');
     reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');
     reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    reply.header('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
     if (isProd) reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     done();
   });

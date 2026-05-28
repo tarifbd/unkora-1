@@ -482,7 +482,7 @@ export default function HomePage() {
   const { data: flashData } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]) });
   const flashProducts = (flashData?.data ?? []).filter(p => p.salePrice && Number(p.salePrice) < Number(p.basePrice) && p.images?.[0]?.url).slice(0, 12);
 
-  const slide = HERO_SLIDES[slideIndex];
+  const slide = HERO_SLIDES[slideIndex] ?? HERO_SLIDES[0];
 
   return (
     <div style={{ backgroundColor: '#f5f5f5' }}>

@@ -1,5 +1,6 @@
-import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Headers, Param, Post, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -36,7 +37,26 @@ export class PaymentsController {
 
   @Post('webhook')
   @ApiOperation({ summary: 'Payment gateway webhook (internal)' })
-  webhook(@Body() body: { transactionId: string; gatewayRef: string; status: string }) {
+  webhook(
+    @Body() body: { transactionId: string; gatewayRef: string; status: string },
+    @Headers('x-webhook-signature') signature: string,
+  ) {
+    const secret = process.env['WEBHOOK_SECRET'];
+    if (secret) {
+      if (!signature) throw new UnauthorizedException('Missing webhook signature');
+      const expected = createHmac('sha256', secret)
+        .update(JSON.stringify(body))
+        .digest('hex');
+      try {
+        const sigBuf = Buffer.from(signature, 'hex');
+        const expBuf = Buffer.from(expected, 'hex');
+        if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
+          throw new UnauthorizedException('Invalid webhook signature');
+        }
+      } catch {
+        throw new UnauthorizedException('Invalid webhook signature');
+      }
+    }
     return this.paymentsService.handleWebhook(body.transactionId, body.gatewayRef, body.status as any);
   }
 }

@@ -21,8 +21,10 @@ export class EmailService {
           pass: this.config.get('SMTP_PASS'),
         },
       });
+    } else if (process.env['NODE_ENV'] === 'production') {
+      this.logger.error('SMTP_HOST is not set — emails will NOT be sent in production. Set SMTP_HOST, SMTP_USER, SMTP_PASS in env.');
     } else {
-      // Auto-create Ethereal test account
+      // Auto-create Ethereal test account (dev only)
       nodemailer.createTestAccount().then(account => {
         this.transporter = nodemailer.createTransport({
           host: 'smtp.ethereal.email',

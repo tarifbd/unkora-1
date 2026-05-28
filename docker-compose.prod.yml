@@ -9,6 +9,10 @@ services:
       - "3001:3001"
     environment:
       NODE_ENV: production
+      API_PORT: 3001
+      API_PREFIX: api
+      CORS_ORIGINS: ${FRONTEND_URL}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET}
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
