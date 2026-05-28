@@ -1,11 +1,36 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PROTECTED_ROUTES = ['/account', '/seller']; // checkout & cart handle their own auth gracefully
+const PROTECTED_ROUTES = ['/account', '/seller'];
 const ADMIN_ROUTES = ['/admin'];
 const AUTH_ROUTES = ['/login', '/register'];
+const BYPASS_MAINTENANCE = ['/maintenance', '/admin', '/login', '/register', '/api'];
 
-export function middleware(request: NextRequest) {
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
+
+// Module-level cache so we don't hit the API on every single request
+let maintenanceCache: { value: boolean; ts: number } | null = null;
+
+async function isMaintenanceMode(): Promise<boolean> {
+  const now = Date.now();
+  if (maintenanceCache && now - maintenanceCache.ts < 30_000) {
+    return maintenanceCache.value;
+  }
+  try {
+    const res = await fetch(`${API}/settings/public`, {
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!res.ok) return maintenanceCache?.value ?? false;
+    const data = await res.json();
+    const value = data?.data?.['store.maintenanceMode'] === 'true';
+    maintenanceCache = { value, ts: now };
+    return value;
+  } catch {
+    return maintenanceCache?.value ?? false;
+  }
+}
+
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const accessToken = request.cookies.get('access_token')?.value;
   const userRole = request.cookies.get('user_role')?.value;
@@ -18,7 +43,6 @@ export function middleware(request: NextRequest) {
   if ((isProtected || isAdmin) && !accessToken) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
-    // Preserve full path + query string so user returns to exact page after login
     const fullPath = request.nextUrl.pathname + request.nextUrl.search;
     url.searchParams.set('redirect', fullPath);
     return NextResponse.redirect(url);
@@ -32,6 +56,19 @@ export function middleware(request: NextRequest) {
   // Redirect authenticated users away from login/register
   if (isAuthRoute && accessToken) {
     return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  // Maintenance mode — skip for admin, auth, API, and maintenance page itself
+  const shouldBypass =
+    BYPASS_MAINTENANCE.some((r) => pathname.startsWith(r)) ||
+    userRole === 'ADMIN' ||
+    userRole === 'SUPER_ADMIN';
+
+  if (!shouldBypass) {
+    const maintenance = await isMaintenanceMode();
+    if (maintenance) {
+      return NextResponse.redirect(new URL('/maintenance', request.url));
+    }
   }
 
   // Security headers on all responses
