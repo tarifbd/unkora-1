@@ -30,12 +30,15 @@ export class InventoryService {
     const newStock = product.stockQuantity + dto.quantity;
     if (newStock < 0) throw new BadRequestException('Insufficient stock');
 
-    const [updated] = await this.prisma.$transaction([
-      this.prisma.product.update({
+    const updated = await this.prisma.$transaction(async (tx) => {
+      // Update legacy product.stockQuantity
+      const p = await tx.product.update({
         where: { id: dto.productId },
         data: { stockQuantity: newStock },
-      }),
-      this.prisma.stockMovement.create({
+      });
+
+      // Create legacy StockMovement (v1 audit trail)
+      await tx.stockMovement.create({
         data: {
           productId: dto.productId,
           type: dto.type,
@@ -43,8 +46,51 @@ export class InventoryService {
           note: dto.note,
           createdBy: userId,
         },
-      }),
-    ]);
+      });
+
+      // Always write to the v2 immutable movement ledger
+      const defaultWh = await tx.warehouse.findFirst({ where: { isDefault: true } });
+      if (defaultWh) {
+        const movType = dto.quantity >= 0
+          ? InventoryMovementType.ADJUSTMENT_IN
+          : InventoryMovementType.ADJUSTMENT_OUT;
+
+        await tx.inventoryMovement.create({
+          data: {
+            warehouseId: defaultWh.id,
+            productId: dto.productId,
+            type: movType,
+            quantity: dto.quantity,
+            note: dto.note,
+            createdBy: userId,
+          },
+        });
+
+        // Sync InventoryStock if the record exists
+        const stock = await tx.inventoryStock.findUnique({
+          where: {
+            warehouseId_productId_variantId: {
+              warehouseId: defaultWh.id,
+              productId: dto.productId,
+              variantId: null as unknown as string,
+            },
+          },
+        });
+        if (stock) {
+          const newQty = Math.max(0, stock.quantityOnHand + dto.quantity);
+          const available = newQty - stock.quantityReserved - stock.quantityDamaged;
+          await tx.inventoryStock.update({
+            where: { id: stock.id },
+            data: {
+              quantityOnHand: newQty,
+              status: this.resolveStatus(available, stock.lowStockThreshold),
+            },
+          });
+        }
+      }
+
+      return p;
+    });
 
     if (newStock <= LOW_STOCK_THRESHOLD && newStock > 0) {
       await this.email.sendLowStockAlert(product.name, newStock).catch(() => {});
@@ -311,15 +357,16 @@ export class InventoryService {
       // Sync legacy field
       await tx.product.update({ where: { id: dto.productId }, data: { stockQuantity: dto.quantity } });
 
+      // Always write a movement — new record = INITIAL_STOCK, existing change = CORRECTION
       if (diff !== 0) {
         await tx.inventoryMovement.create({
           data: {
             warehouseId: dto.warehouseId,
             productId: dto.productId,
             variantId: dto.variantId ?? undefined,
-            type: InventoryMovementType.CORRECTION,
+            type: existing ? InventoryMovementType.CORRECTION : InventoryMovementType.INITIAL_STOCK,
             quantity: diff,
-            note: dto.note ?? 'Stock set via admin',
+            note: dto.note ?? (existing ? 'Stock corrected via admin' : 'Initial stock entry'),
             createdBy: userId,
           },
         });

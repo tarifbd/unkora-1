@@ -48,6 +48,7 @@ export default function InventoryPage() {
   const [adjProduct, setAdjProduct] = useState<InventoryProduct | null>(null);
   const [adjDelta, setAdjDelta] = useState(0);
   const [adjNote, setAdjNote] = useState('');
+  const [adjReason, setAdjReason] = useState('CORRECTION');
 
   const { data: overview, isLoading } = useQuery({
     queryKey: ['inventory', filter],
@@ -59,15 +60,35 @@ export default function InventoryPage() {
     queryFn: () => inventoryApi.getDashboard(),
   });
 
+  // Fetch warehouses to get the default warehouse id for v2 adjustment
+  const { data: warehouses } = useQuery({
+    queryKey: ['warehouses'],
+    queryFn: inventoryApi.getWarehouses,
+  });
+  const defaultWarehouseId = warehouses?.find(w => w.isDefault)?.id ?? warehouses?.[0]?.id;
+
   const adjustMutation = useMutation({
-    mutationFn: (v: { productId: string; delta: number; note: string }) =>
-      inventoryApi.adjust({ productId: v.productId, type: v.delta >= 0 ? 'PURCHASE' : 'ADJUSTMENT', quantity: v.delta, note: v.note }),
+    mutationFn: (v: { productId: string; delta: number; note: string; reason: string }) => {
+      if (defaultWarehouseId) {
+        // v2 path — creates immutable movement record
+        return inventoryApi.createAdjustment({
+          productId: v.productId,
+          warehouseId: defaultWarehouseId,
+          quantity: v.delta,
+          reason: v.reason,
+          note: v.note,
+        });
+      }
+      // Fallback to v1 if no warehouse configured yet
+      return inventoryApi.adjust({ productId: v.productId, type: v.delta >= 0 ? 'PURCHASE' : 'ADJUSTMENT', quantity: v.delta, note: v.note });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['inventory'] });
       qc.invalidateQueries({ queryKey: ['inventory-dashboard'] });
       setAdjProduct(null);
       setAdjDelta(0);
       setAdjNote('');
+      setAdjReason('CORRECTION');
     },
   });
 
@@ -244,7 +265,7 @@ export default function InventoryPage() {
                       <td className="px-4 py-3 text-right font-bold text-gray-700">{fmtMoney(stockValue(p))}</td>
                       <td className="px-4 py-3 text-right">
                         <button
-                          onClick={() => { setAdjProduct(p); setAdjDelta(0); setAdjNote(''); }}
+                          onClick={() => { setAdjProduct(p); setAdjDelta(0); setAdjNote(''); setAdjReason('CORRECTION'); }}
                           className="flex items-center gap-1 text-xs font-bold text-primary hover:underline ml-auto"
                         >
                           Adjust
@@ -285,18 +306,32 @@ export default function InventoryPage() {
                 <Plus className="w-4 h-4" />
               </button>
             </div>
+            <select
+              value={adjReason}
+              onChange={e => setAdjReason(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-primary/30"
+            >
+              {['CORRECTION','RECEIVED_GOODS','DAMAGED','EXPIRED','THEFT','RETURN_TO_SUPPLIER','WRITE_OFF','OTHER'].map(r => (
+                <option key={r} value={r}>{r.replace(/_/g, ' ')}</option>
+              ))}
+            </select>
             <input
               value={adjNote}
               onChange={e => setAdjNote(e.target.value)}
               placeholder="Note (optional)"
               className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
+            {!defaultWarehouseId && (
+              <p className="text-xs text-yellow-600 bg-yellow-50 rounded-lg px-3 py-2 mb-3">
+                No warehouse configured — set up a warehouse first for full audit trail.
+              </p>
+            )}
             <div className="flex gap-2">
               <button onClick={() => setAdjProduct(null)} className="flex-1 py-2 rounded-xl border border-gray-200 text-sm font-bold text-gray-600 hover:bg-gray-50">
                 Cancel
               </button>
               <button
-                onClick={() => adjustMutation.mutate({ productId: adjProduct.id, delta: adjDelta, note: adjNote })}
+                onClick={() => adjustMutation.mutate({ productId: adjProduct.id, delta: adjDelta, note: adjNote, reason: adjReason })}
                 disabled={adjDelta === 0 || adjustMutation.isPending}
                 className="flex-1 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 disabled:opacity-50"
               >
