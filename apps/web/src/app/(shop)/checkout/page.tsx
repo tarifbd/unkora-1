@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
   Loader2, MapPin, CheckCircle, ChevronDown, Truck, Smartphone, Banknote,
-  ShieldCheck, Tag, Package,
+  ShieldCheck, Tag, Package, Store, Clock, Phone,
 } from 'lucide-react';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useAuthStore } from '@/store/auth.store';
@@ -23,14 +23,15 @@ import Link from 'next/link';
 import { CouponInput } from '@/components/checkout/coupon-input';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useQuery } from '@tanstack/react-query';
+import { pickupPointsApi, type PickupPoint } from '@/lib/api/pickup-points';
 
 const schema = z.object({
   fullName:    z.string().min(2, 'নাম দিন'),
   phone:       z.string().min(11, 'সঠিক ফোন নম্বর দিন'),
-  addressLine1:z.string().min(5, 'ঠিকানা দিন'),
-  city:        z.string().min(2, 'শহর দিন'),
-  district:    z.string().min(2, 'জেলা দিন'),
-  division:    z.string().min(2, 'বিভাগ বেছে নিন'),
+  addressLine1:z.string().optional(),
+  city:        z.string().optional(),
+  district:    z.string().optional(),
+  division:    z.string().optional(),
   postalCode:  z.string().optional(),
   paymentMethod: z.enum(['COD', 'BKASH', 'NAGAD']),
   guestEmail:  z.string().email().optional().or(z.literal('')),
@@ -79,6 +80,9 @@ function CheckoutContent() {
   const { lang } = useLanguage();
   const queryClient = useQueryClient();
 
+  const [deliveryMode, setDeliveryMode] = useState<'HOME' | 'PICKUP'>('HOME');
+  const [selectedPickup, setSelectedPickup] = useState<PickupPoint | null>(null);
+  const [pickupError, setPickupError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
@@ -117,6 +121,14 @@ function CheckoutContent() {
     }
   }, []);
 
+  // Fetch active pickup points
+  const { data: pickupPoints = [] } = useQuery({
+    queryKey: ['pickup-points'],
+    queryFn: pickupPointsApi.getActive,
+    staleTime: 5 * 60 * 1000,
+  });
+  const hasPickupPoints = pickupPoints.length > 0;
+
   // Fetch saved addresses for logged-in users
   const { data: savedAddresses } = useQuery({
     queryKey: ['addresses'],
@@ -124,7 +136,7 @@ function CheckoutContent() {
     enabled: isAuthenticated,
   });
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, setValue, setError, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { paymentMethod: 'COD' },
   });
@@ -169,13 +181,40 @@ function CheckoutContent() {
     : guestCart.items.map(i => ({ id: i.productId, name: i.name, price: i.price, quantity: i.quantity, image: i.image }));
 
   const subtotal = displayItems.reduce((s, i) => s + i.price * i.quantity, 0);
-  const shipping = subtotal >= 1000 ? 0 : 80;
+  const shipping = deliveryMode === 'PICKUP' ? 0 : (subtotal >= 1000 ? 0 : 80);
   const couponDiscount = appliedCoupon?.discount ?? 0;
   const total = subtotal + shipping - couponDiscount;
 
   const isPageLoading = cartLoading || quickBuyLoading;
 
   const onSubmit = async (data: FormData) => {
+    // Validate delivery-specific requirements before submitting
+    if (deliveryMode === 'PICKUP') {
+      if (!selectedPickup) {
+        setPickupError(lang === 'bn' ? 'একটি পিকআপ পয়েন্ট বেছে নিন' : 'Please select a pickup point');
+        return;
+      }
+    } else {
+      let hasError = false;
+      if (!data.addressLine1 || data.addressLine1.length < 5) {
+        setError('addressLine1', { message: lang === 'bn' ? 'ঠিকানা দিন' : 'Enter address' });
+        hasError = true;
+      }
+      if (!data.city || data.city.length < 2) {
+        setError('city', { message: lang === 'bn' ? 'শহর দিন' : 'Enter city' });
+        hasError = true;
+      }
+      if (!data.district || data.district.length < 2) {
+        setError('district', { message: lang === 'bn' ? 'জেলা দিন' : 'Enter district' });
+        hasError = true;
+      }
+      if (!data.division || data.division.length < 2) {
+        setError('division', { message: lang === 'bn' ? 'বিভাগ বেছে নিন' : 'Select division' });
+        hasError = true;
+      }
+      if (hasError) return;
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
     try {
@@ -185,19 +224,42 @@ function CheckoutContent() {
         ? cart.items.map(i => ({ productId: i.productId, quantity: i.quantity }))
         : guestCart.items.map(i => ({ productId: i.productId, quantity: i.quantity }));
 
+      const shippingAddress = deliveryMode === 'PICKUP' && selectedPickup
+        ? {
+            fullName: data.fullName,
+            phone: data.phone,
+            addressLine1: selectedPickup.address,
+            city: selectedPickup.city,
+            district: selectedPickup.district,
+            division: 'Dhaka',
+            postalCode: '',
+            pickupPoint: selectedPickup.name,
+          }
+        : {
+            fullName: data.fullName,
+            phone: data.phone,
+            addressLine1: data.addressLine1 ?? '',
+            city: data.city ?? '',
+            district: data.district ?? '',
+            division: data.division ?? '',
+            postalCode: data.postalCode ?? '',
+          };
+
+      const pickupNote = deliveryMode === 'PICKUP' && selectedPickup
+        ? `[পিকআপ: ${selectedPickup.name}, ${selectedPickup.address}, ${selectedPickup.city}]`
+        : '';
+      const notes = pickupNote
+        ? (data.notes ? `${pickupNote} ${data.notes}` : pickupNote)
+        : data.notes;
+
       const order = await ordersApi.createGuest({
         items,
-        shippingAddress: {
-          fullName: data.fullName, phone: data.phone,
-          addressLine1: data.addressLine1, city: data.city,
-          district: data.district, division: data.division,
-          postalCode: data.postalCode ?? '',
-        },
+        shippingAddress,
         paymentMethod: data.paymentMethod,
         guestName: data.fullName,
         guestPhone: data.phone,
         guestEmail: data.guestEmail || undefined,
-        notes: data.notes,
+        notes,
         deviceFingerprint,
         geoLat: geoCoords?.lat,
         geoLng: geoCoords?.lng,
@@ -295,15 +357,15 @@ function CheckoutContent() {
               </div>
             </div>
 
-            {/* Delivery address */}
+            {/* Delivery address / pickup */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-black text-gray-900 flex items-center gap-2">
                   <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-black">২</span>
                   <MapPin className="w-4 h-4 text-primary" />
-                  {lang === 'bn' ? 'ডেলিভারি ঠিকানা' : 'Delivery Address'}
+                  {lang === 'bn' ? 'ডেলিভারি পদ্ধতি' : 'Delivery Method'}
                 </h2>
-                {isAuthenticated && savedAddresses?.length > 1 && (
+                {isAuthenticated && savedAddresses?.length > 1 && deliveryMode === 'HOME' && (
                   <select
                     onChange={e => {
                       const addr = savedAddresses[parseInt(e.target.value)];
@@ -323,6 +385,86 @@ function CheckoutContent() {
                   </select>
                 )}
               </div>
+              {/* Delivery method toggle */}
+              {hasPickupPoints && (
+                <div className="flex gap-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => { setDeliveryMode('HOME'); setPickupError(null); }}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${
+                      deliveryMode === 'HOME'
+                        ? 'border-primary bg-primary/5 text-primary'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                    }`}
+                  >
+                    <Truck className="w-4 h-4" />
+                    {lang === 'bn' ? 'হোম ডেলিভারি' : 'Home Delivery'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setDeliveryMode('PICKUP'); setPickupError(null); }}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 text-sm font-bold transition-all ${
+                      deliveryMode === 'PICKUP'
+                        ? 'border-primary bg-primary/5 text-primary'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                    }`}
+                  >
+                    <Store className="w-4 h-4" />
+                    {lang === 'bn' ? 'স্টোর পিকআপ' : 'Store Pickup'}
+                  </button>
+                </div>
+              )}
+
+              {/* Pickup point list */}
+              {deliveryMode === 'PICKUP' && (
+                <div className="space-y-2">
+                  {pickupPoints.map(pt => (
+                    <button
+                      key={pt.id}
+                      type="button"
+                      onClick={() => { setSelectedPickup(pt); setPickupError(null); }}
+                      className={`w-full text-left rounded-xl border-2 p-3.5 transition-all ${
+                        selectedPickup?.id === pt.id
+                          ? 'border-primary bg-primary/5'
+                          : 'border-gray-100 hover:border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                          selectedPickup?.id === pt.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          <Store className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-black text-sm text-gray-900">{pt.name}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">{pt.address}, {pt.city}, {pt.district}</p>
+                          <div className="flex items-center gap-3 mt-1">
+                            {pt.phone && (
+                              <span className="flex items-center gap-1 text-[11px] text-gray-400">
+                                <Phone className="w-3 h-3" />{pt.phone}
+                              </span>
+                            )}
+                            {pt.openHours && (
+                              <span className="flex items-center gap-1 text-[11px] text-gray-400">
+                                <Clock className="w-3 h-3" />{pt.openHours}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-1 flex items-center justify-center ${
+                          selectedPickup?.id === pt.id ? 'border-primary' : 'border-gray-300'
+                        }`}>
+                          {selectedPickup?.id === pt.id && <div className="w-2 h-2 rounded-full bg-primary" />}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                  {pickupError && <p className="text-xs text-red-500 mt-1">{pickupError}</p>}
+                </div>
+              )}
+
+              {/* Address form — only for home delivery */}
+              {deliveryMode === 'HOME' && (
               <div className="space-y-3">
                 <div>
                   <label className="block text-xs font-bold text-gray-600 mb-1.5">
@@ -362,12 +504,13 @@ function CheckoutContent() {
                   <textarea {...register('notes')} rows={2} placeholder={lang === 'bn' ? 'কোনো বিশেষ নির্দেশনা থাকলে লিখুন...' : 'Any special instructions...'} className={field() + ' resize-none'} />
                 </div>
               </div>
+              )}
             </div>
 
             {/* Payment */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <h2 className="font-black text-gray-900 mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-black">৩</span>
+                <span className="w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-black">{lang === 'bn' ? '৩' : '3'}</span>
                 {lang === 'bn' ? 'পেমেন্ট পদ্ধতি' : 'Payment Method'}
               </h2>
               <div className="space-y-2.5">
@@ -456,7 +599,12 @@ function CheckoutContent() {
                       <span>-৳{couponDiscount}</span>
                     </div>
                   )}
-                  {subtotal < 1000 && (
+                  {deliveryMode === 'PICKUP' && (
+                    <p className="text-[10px] text-green-600 bg-green-50 px-2 py-1 rounded-lg font-bold">
+                      {lang === 'bn' ? '🎉 পিকআপে ডেলিভারি চার্জ নেই!' : '🎉 No delivery charge for store pickup!'}
+                    </p>
+                  )}
+                  {deliveryMode === 'HOME' && subtotal < 1000 && (
                     <p className="text-[10px] text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">
                       {lang === 'bn' ? `আরও ৳${1000 - subtotal} কিনলে ফ্রি ডেলিভারি!` : `Add ৳${1000 - subtotal} more for free delivery!`}
                     </p>
