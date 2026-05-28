@@ -12,7 +12,7 @@ import {
   DollarSign, RefreshCw, Bell as BellIcon, Mail, Search,
   Users2, PieChart, UserCog, Palette, MapPin, Map, Rocket,
   Puzzle, Sparkles, Newspaper, CalendarClock, LifeBuoy, LayoutGrid,
-  Bot,
+  Bot, Boxes, Activity, Warehouse, ShoppingCart,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -36,7 +36,14 @@ const NAV: NavItem[] = [
     children: [
       { href: '/admin/products',             label: 'All Products',    icon: Package },
       { href: '/admin/products/new',         label: 'Add New Product', icon: Plus },
-      { href: '/admin/inventory',            label: 'Inventory',       icon: Archive },
+      { href: '/admin/inventory',            label: 'Inventory',        icon: Archive },
+      { href: '/admin/inventory/stocks',     label: '— Stocks',         icon: Boxes },
+      { href: '/admin/inventory/movements',  label: '— Movements',      icon: Activity },
+      { href: '/admin/inventory/adjustments',label: '— Adjustments',    icon: RefreshCw },
+      { href: '/admin/inventory/alerts',     label: '— Alerts',         icon: Bell },
+      { href: '/admin/inventory/warehouses', label: '— Warehouses',     icon: Warehouse },
+      { href: '/admin/inventory/suppliers',  label: '— Suppliers',      icon: Users },
+      { href: '/admin/inventory/purchase-orders', label: '— Purchase Orders', icon: ShoppingCart },
       { href: '/admin/products/setup',       label: 'Product Setup',   icon: Sliders },
       { href: '/admin/auctions',             label: 'Auctions',        icon: Gavel },
     ],
@@ -220,6 +227,13 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/referrals': 'Referral Program',
   '/admin/categories': 'Categories',
   '/admin/inventory': 'Inventory',
+  '/admin/inventory/stocks': 'Stocks',
+  '/admin/inventory/movements': 'Movements',
+  '/admin/inventory/adjustments': 'Adjustments',
+  '/admin/inventory/alerts': 'Alerts',
+  '/admin/inventory/warehouses': 'Warehouses',
+  '/admin/inventory/suppliers': 'Suppliers',
+  '/admin/inventory/purchase-orders': 'Purchase Orders',
   '/admin/orders': 'Orders',
   '/admin/shipments': 'Shipments',
   '/admin/coupons': 'Coupons',
