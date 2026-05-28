@@ -22,6 +22,7 @@ interface PreorderData {
 
 interface PreorderCTAProps {
   productId: string;
+  productSlug: string;
   productName: string;
   basePrice: number;
   salePrice?: number;
@@ -84,7 +85,7 @@ function CountdownDigit({ value, label }: { value: number; label: string }) {
 }
 
 /* ── Main PreorderCTA ───────────────────────────────────── */
-export function PreorderCTA({ productId, productName, basePrice, salePrice, qty = 1 }: PreorderCTAProps) {
+export function PreorderCTA({ productId, productSlug, productName, basePrice, salePrice, qty = 1 }: PreorderCTAProps) {
   const { isAuthenticated } = useAuthStore();
   const price = Number(salePrice ?? basePrice);
   const [hovered, setHovered] = useState(false);
@@ -108,8 +109,8 @@ export function PreorderCTA({ productId, productName, basePrice, salePrice, qty 
   const isSoldOut   = remaining !== null && remaining <= 0;
   const urgency     = remaining !== null && remaining <= 10;
   const checkoutHref = isAuthenticated
-    ? `/checkout?productId=${productId}&qty=${qty}&preorder=1`
-    : `/login?redirect=/products/${productId}`;
+    ? `/checkout?productSlug=${productSlug}&qty=${qty}&preorder=1`
+    : `/login?redirect=/products/${productSlug}`;
 
   return (
     <div className="preorder-cta-root">
@@ -280,8 +281,8 @@ export function PreorderCTA({ productId, productName, basePrice, salePrice, qty 
 /* ──────────────────────────────────────────────────────────
    COMPACT inline preorder badge — for product cards / grids
 ──────────────────────────────────────────────────────────── */
-export function PreorderBadge({ productId, basePrice, salePrice }: {
-  productId: string; basePrice: number; salePrice?: number;
+export function PreorderBadge({ productId, productSlug, basePrice, salePrice }: {
+  productId: string; productSlug: string; basePrice: number; salePrice?: number;
 }) {
   const { data: preorder } = useQuery<PreorderData>({
     queryKey: ['preorder', productId],
@@ -295,7 +296,7 @@ export function PreorderBadge({ productId, basePrice, salePrice }: {
 
   return (
     <Link
-      href={`/checkout?productId=${productId}&qty=1&preorder=1`}
+      href={`/checkout?productSlug=${productSlug}&qty=1&preorder=1`}
       onClick={e => e.stopPropagation()}
       className="group relative flex items-center justify-center gap-1.5 w-full py-2 rounded-xl overflow-hidden font-black text-xs text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
       style={{ background: 'linear-gradient(135deg, #047857, #0d9488)', boxShadow: '0 4px 12px rgba(4,120,87,0.35)' }}

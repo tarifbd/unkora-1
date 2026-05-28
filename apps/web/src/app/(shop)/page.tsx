@@ -244,7 +244,7 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
           {/* Buy Now */}
           {inStock ? (
             <Link
-              href={`/checkout?productId=${product.id}&qty=1`}
+              href={`/checkout?productSlug=${product.slug}&qty=1`}
               onClick={e => e.stopPropagation()}
               className="flex items-center justify-center gap-1.5 py-2 bg-orange-500 text-white rounded-xl text-[11px] font-bold hover:bg-orange-600 active:scale-95 transition-all"
             >
@@ -371,7 +371,7 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
           </button>
 
           {inStock ? (
-            <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
+            <Link href={`/checkout?productSlug=${product.slug}&qty=1`} onClick={e => e.stopPropagation()}
               className="flex items-center justify-center gap-1.5 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 active:scale-95 transition-all">
               <Zap className="w-3.5 h-3.5 flex-shrink-0" />
               <span>{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>

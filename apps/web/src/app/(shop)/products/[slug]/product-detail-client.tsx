@@ -196,6 +196,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           {/* Preorder CTA — shows if product has active preorder config */}
           <PreorderCTA
             productId={product.id}
+            productSlug={product.slug}
             productName={product.name}
             basePrice={Number(product.basePrice)}
             salePrice={product.salePrice ? Number(product.salePrice) : undefined}

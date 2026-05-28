@@ -236,6 +236,7 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
         {/* Pre-order badge — only renders when product has active preorder */}
         <PreorderBadge
           productId={product.id}
+          productSlug={product.slug}
           basePrice={Number(product.basePrice)}
           salePrice={product.salePrice ? Number(product.salePrice) : undefined}
         />
