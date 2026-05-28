@@ -2423,3 +2423,339 @@ model InventoryAlert {
   @@index([isResolved])
   @@map("inventory_alerts")
 }
+
+// ─── AI STUDIO MODULE ─────────────────────────────────────────────────────────
+
+enum AiFeatureType {
+  PRODUCT_CONTENT
+  PRODUCT_SEO
+  CATEGORY_SEO
+  LANDING_PAGE
+  BLOG_ARTICLE
+  AD_COPY
+  EMAIL_COPY
+  FAQ
+  IMAGE_ALT_TEXT
+  META_DESCRIPTION
+  SCHEMA_MARKUP
+  AGENT_TASK
+  CUSTOM_PROMPT
+}
+
+enum AiGenerationStatus {
+  SUCCESS
+  FAILED
+}
+
+enum AiContentStatus {
+  DRAFT
+  APPROVED
+  APPLIED
+  ARCHIVED
+}
+
+enum AiRelatedEntityType {
+  PRODUCT
+  CATEGORY
+  BLOG
+  LANDING_PAGE
+  SEO
+  EMAIL
+  AD
+  CUSTOM
+}
+
+enum AiAgentType {
+  SEO_AGENT
+  CONTENT_AGENT
+  PRODUCT_AGENT
+  LANDING_PAGE_AGENT
+  CUSTOMER_SUPPORT_AGENT
+  INVENTORY_AGENT
+  MARKETING_AGENT
+  CUSTOM_AGENT
+}
+
+enum AiAgentTaskStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model AiSettings {
+  id                String   @id @default(cuid())
+  provider          String   @default("openai")
+  defaultModel      String?
+  isEnabled         Boolean  @default(true)
+  temperature       Float    @default(0.7)
+  maxTokens         Int      @default(1000)
+  systemPrompt      String?  @db.Text
+  safetyMode        Boolean  @default(true)
+  monthlyTokenLimit Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("ai_settings")
+}
+
+model AiGenerationLog {
+  id            String             @id @default(cuid())
+  userId        String?
+  provider      String
+  model         String?
+  featureType   AiFeatureType
+  inputSummary  String?            @db.Text
+  outputSummary String?            @db.Text
+  tokenInput    Int?
+  tokenOutput   Int?
+  estimatedCost Float?
+  status        AiGenerationStatus
+  errorMessage  String?            @db.Text
+  createdAt     DateTime           @default(now())
+
+  @@index([featureType])
+  @@index([status])
+  @@index([createdAt])
+  @@map("ai_generation_logs")
+}
+
+model AiTemplate {
+  id               String        @id @default(cuid())
+  name             String
+  featureType      AiFeatureType
+  promptTemplate   String        @db.Text
+  outputSchemaJson Json?
+  isActive         Boolean       @default(true)
+  createdBy        String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@map("ai_templates")
+}
+
+model AiGeneratedContent {
+  id                String               @id @default(cuid())
+  featureType       AiFeatureType
+  relatedEntityType AiRelatedEntityType?
+  relatedEntityId   String?
+  title             String
+  contentJson       Json
+  contentText       String               @db.Text
+  status            AiContentStatus      @default(DRAFT)
+  generatedBy       String?
+  approvedBy        String?
+  appliedAt         DateTime?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  @@index([featureType])
+  @@index([status])
+  @@index([relatedEntityId])
+  @@map("ai_generated_contents")
+}
+
+model AiAgentIntegration {
+  id            String      @id @default(cuid())
+  name          String
+  provider      String
+  agentType     AiAgentType
+  description   String?     @db.Text
+  endpointUrl   String?
+  apiKeyEnvName String?
+  isEnabled     Boolean     @default(false)
+  configJson    Json?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  tasks AiAgentTask[]
+
+  @@map("ai_agent_integrations")
+}
+
+model AiAgentTask {
+  id                 String            @id @default(cuid())
+  agentIntegrationId String?
+  taskType           String
+  status             AiAgentTaskStatus @default(PENDING)
+  inputJson          Json
+  outputJson         Json?
+  errorMessage       String?           @db.Text
+  startedAt          DateTime?
+  completedAt        DateTime?
+  createdBy          String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  agent AiAgentIntegration? @relation(fields: [agentIntegrationId], references: [id])
+
+  @@index([status])
+  @@index([agentIntegrationId])
+  @@map("ai_agent_tasks")
+}
+
+// ─── ADVANCED SEO MODULE ──────────────────────────────────────────────────────
+
+enum SeoEntityType {
+  PRODUCT
+  CATEGORY
+  BRAND
+  PAGE
+  BLOG
+  LANDING_PAGE
+  HOME
+  CUSTOM
+}
+
+enum SeoAuditStatus {
+  GOOD
+  NEEDS_IMPROVEMENT
+  POOR
+}
+
+enum SeoRedirectCode {
+  R301
+  R302
+  R307
+  R308
+}
+
+enum SeoChangeFrequency {
+  always
+  hourly
+  daily
+  weekly
+  monthly
+  yearly
+  never
+}
+
+model SeoMetadata {
+  id                    String        @id @default(cuid())
+  entityType            SeoEntityType
+  entityId              String?
+  seoTitle              String?
+  metaDescription       String?       @db.Text
+  metaKeywords          String?
+  slug                  String?
+  canonicalUrl          String?
+  robotsIndex           Boolean       @default(true)
+  robotsFollow          Boolean       @default(true)
+  ogTitle               String?
+  ogDescription         String?       @db.Text
+  ogImage               String?
+  twitterTitle          String?
+  twitterDescription    String?       @db.Text
+  twitterImage          String?
+  focusKeyword          String?
+  secondaryKeywordsJson Json?
+  schemaType            String?
+  schemaJson            Json?
+  hreflangJson          Json?
+  seoScore              Int?
+  lastAuditedAt         DateTime?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@unique([entityType, entityId])
+  @@index([entityType])
+  @@index([slug])
+  @@map("seo_metadata")
+}
+
+model SeoAudit {
+  id              String         @id @default(cuid())
+  entityType      SeoEntityType
+  entityId        String?
+  url             String?
+  score           Int
+  status          SeoAuditStatus
+  issuesJson      Json
+  suggestionsJson Json
+  auditedBy       String?
+  createdAt       DateTime       @default(now())
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("seo_audits")
+}
+
+model SeoRedirect {
+  id         String          @id @default(cuid())
+  sourcePath String          @unique
+  targetPath String
+  statusCode SeoRedirectCode @default(R301)
+  isActive   Boolean         @default(true)
+  hitCount   Int             @default(0)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([sourcePath])
+  @@index([isActive])
+  @@map("seo_redirects")
+}
+
+model SeoInternalLink {
+  id               String        @id @default(cuid())
+  sourceEntityType SeoEntityType
+  sourceEntityId   String
+  targetEntityType SeoEntityType
+  targetEntityId   String
+  anchorText       String
+  isActive         Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([sourceEntityId])
+  @@map("seo_internal_links")
+}
+
+model SeoImageAlt {
+  id         String        @id @default(cuid())
+  entityType SeoEntityType
+  entityId   String
+  imageUrl   String
+  altText    String
+  titleText  String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([entityId])
+  @@map("seo_image_alts")
+}
+
+model SeoSitemapEntry {
+  id               String             @id @default(cuid())
+  url              String             @unique
+  entityType       SeoEntityType?
+  entityId         String?
+  priority         Float              @default(0.5)
+  changeFrequency  SeoChangeFrequency @default(weekly)
+  includeInSitemap Boolean            @default(true)
+  lastModified     DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([includeInSitemap])
+  @@map("seo_sitemap_entries")
+}
+
+model SeoSettings {
+  id                     String   @id @default(cuid())
+  siteName               String   @default("UNKORA")
+  defaultTitle           String?
+  titleTemplate          String   @default("%s | UNKORA")
+  defaultMetaDescription String?  @db.Text
+  defaultOgImage         String?
+  robotsTxt              String?  @db.Text
+  enableAutoSitemap      Boolean  @default(true)
+  enableSchemaMarkup     Boolean  @default(true)
+  enableOpenGraph        Boolean  @default(true)
+  enableTwitterCards     Boolean  @default(true)
+  enableCanonicalUrls    Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@map("seo_settings")
+}

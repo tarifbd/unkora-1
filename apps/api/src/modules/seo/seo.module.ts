@@ -1,10 +1,11 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { DatabaseModule } from '../../database/database.module';
+import { AiStudioModule } from '../ai-studio/ai-studio.module';
 import { SeoController } from './seo.controller';
 import { SeoService } from './seo.service';
 
 @Module({
-  imports: [DatabaseModule],
+  imports: [DatabaseModule, forwardRef(() => AiStudioModule)],
   controllers: [SeoController],
   providers: [SeoService],
   exports: [SeoService],

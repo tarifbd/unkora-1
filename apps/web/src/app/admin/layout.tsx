@@ -12,7 +12,8 @@ import {
   DollarSign, RefreshCw, Bell as BellIcon, Mail, Search,
   Users2, PieChart, UserCog, Palette, MapPin, Map, Rocket,
   Puzzle, Sparkles, Newspaper, CalendarClock, LifeBuoy, LayoutGrid,
-  Bot, Boxes, Activity, Warehouse, ShoppingCart,
+  Bot, Boxes, Activity, Warehouse, ShoppingCart, ArrowRight,
+  BookOpen, Cpu, Shield,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -113,7 +114,13 @@ const NAV: NavItem[] = [
   {
     label: 'SEO', icon: Search,
     children: [
-      { href: '/admin/seo', label: 'SEO Tools', icon: Search },
+      { href: '/admin/seo',             label: 'SEO Dashboard',  icon: Search },
+      { href: '/admin/seo/products',    label: '— Product SEO',  icon: Package },
+      { href: '/admin/seo/categories',  label: '— Category SEO', icon: Tag },
+      { href: '/admin/seo/redirects',   label: '— Redirects',    icon: ArrowRight },
+      { href: '/admin/seo/sitemap',     label: '— Sitemap',      icon: Globe },
+      { href: '/admin/seo/robots',      label: '— Robots.txt',   icon: Shield },
+      { href: '/admin/seo/settings',    label: '— SEO Settings', icon: Sliders },
     ],
   },
   {
@@ -127,8 +134,11 @@ const NAV: NavItem[] = [
   {
     label: 'Configuration', icon: Settings,
     children: [
-      { href: '/admin/addons',       label: 'Add-ons',             icon: Puzzle },
-      { href: '/admin/ai-studio',    label: 'AI Studio',           icon: Bot },
+      { href: '/admin/addons',              label: 'Add-ons',             icon: Puzzle },
+      { href: '/admin/ai-studio',          label: 'AI Studio',           icon: Bot },
+      { href: '/admin/ai-studio/logs',     label: '— AI Logs',           icon: Activity },
+      { href: '/admin/ai-studio/library',  label: '— AI Library',        icon: BookOpen },
+      { href: '/admin/ai-studio/agents',   label: '— AI Agents',         icon: Cpu },
       { href: '/admin/localization', label: 'Multi-Currency/Lang', icon: Globe },
       { href: '/admin/design',       label: 'Design Studio',       icon: Palette },
       { href: '/admin/staff',        label: 'Staff & Permissions', icon: UserCog },
@@ -262,7 +272,13 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/returns': 'Returns & Exchanges',
   '/admin/notifications': 'Push Notifications',
   '/admin/email-campaigns': 'Email Campaigns',
-  '/admin/seo': 'SEO Tools',
+  '/admin/seo': 'Advanced SEO',
+  '/admin/seo/products': 'Product SEO',
+  '/admin/seo/categories': 'Category SEO',
+  '/admin/seo/redirects': 'Redirect Manager',
+  '/admin/seo/sitemap': 'Sitemap Manager',
+  '/admin/seo/robots': 'Robots.txt',
+  '/admin/seo/settings': 'SEO Settings',
   '/admin/localization': 'Multi-Currency & Languages',
   '/admin/affiliates': 'Affiliate Marketing',
   '/admin/segments': 'Customer Segments',
@@ -278,6 +294,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/popups': 'Popups & Banners',
   '/admin/addons': 'Add-ons & Plugins',
   '/admin/ai-studio': 'AI Studio',
+  '/admin/ai-studio/logs': 'AI Generation Logs',
+  '/admin/ai-studio/library': 'AI Content Library',
+  '/admin/ai-studio/agents': 'AI Agents',
 };
 
 /* ─── Sidebar content ────────────────────────────────────────── */
