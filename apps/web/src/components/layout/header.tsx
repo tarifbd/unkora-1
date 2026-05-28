@@ -781,7 +781,17 @@ export function Header() {
                 </div>
                 <div className="hidden lg:block text-left">
                   <p className="text-[10px] text-gray-500 font-bold uppercase leading-tight">
-                    {isAuthenticated ? `${lang === 'bn' ? 'হ্যালো,' : 'Hello,'} ${user?.firstName ?? user?.name ?? ''}` : t.header.helloSignIn}
+                    {isAuthenticated
+                      ? `${lang === 'bn' ? 'হ্যালো,' : 'Hello,'} ${
+                          user?.firstName
+                            || user?.name
+                            || (user?.role === 'ADMIN'
+                                ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')
+                                : user?.role === 'SELLER'
+                                ? (lang === 'bn' ? 'সেলার' : 'Seller')
+                                : (lang === 'bn' ? 'গ্রাহক' : 'Customer'))
+                        }`
+                      : t.header.helloSignIn}
                   </p>
                   <span className={`text-sm font-bold leading-tight flex items-center transition-colors ${accountOpen ? 'text-secondary' : 'text-gray-800'}`}>
                     {isAuthenticated ? t.header.accountOrders : t.header.accountsLists}
@@ -825,7 +835,12 @@ export function Header() {
                           <User className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-gray-900 leading-tight">{user?.firstName ?? user?.name ?? 'User'}</p>
+                          <p className="text-sm font-bold text-gray-900 leading-tight">
+                            {user?.firstName || user?.name ||
+                              (user?.role === 'ADMIN' ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')
+                              : user?.role === 'SELLER' ? (lang === 'bn' ? 'সেলার' : 'Seller')
+                              : (lang === 'bn' ? 'গ্রাহক' : 'Customer'))}
+                          </p>
                           <Link href="/account" onClick={() => setAccountOpen(false)} className="text-[11px] text-primary hover:underline font-medium">
                             {lang === 'bn' ? 'প্রোফাইল দেখুন' : 'View profile'}
                           </Link>
@@ -1251,7 +1266,14 @@ export function Header() {
             <User className="w-6 h-6" />
           </div>
           <div>
-            <p className="font-bold text-lg">{isAuthenticated ? (user?.firstName ?? user?.name) : t.header.helloSignIn}</p>
+            <p className="font-bold text-lg">
+              {isAuthenticated
+                ? (user?.firstName || user?.name ||
+                    (user?.role === 'ADMIN' ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')
+                    : user?.role === 'SELLER' ? (lang === 'bn' ? 'সেলার' : 'Seller')
+                    : (lang === 'bn' ? 'গ্রাহক' : 'Customer')))
+                : t.header.helloSignIn}
+            </p>
             <Link href={isAuthenticated ? '/account' : '/login'} onClick={() => setSidebarOpen(false)} className="text-[13px] font-medium opacity-80 underline decoration-white/60">
               {isAuthenticated ? t.header.viewAccount : t.header.yourAccount}
             </Link>
