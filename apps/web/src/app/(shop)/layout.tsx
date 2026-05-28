@@ -4,7 +4,7 @@ import { CartDrawer } from '@/components/layout/cart-drawer';
 import { ThemeProvider } from '@/components/theme-provider';
 import { ScrollToTop } from '@/components/ui/scroll-to-top';
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
 
 async function getPublicSettings(): Promise<Record<string, string>> {
   try {
