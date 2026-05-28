@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { Eye, EyeOff, Loader2, BookOpen, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Loader2, BookOpen, ArrowRight, Phone, Mail } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,22 +10,36 @@ import { z } from 'zod';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SocialLoginButtons } from '@/components/auth/social-login-buttons';
 import { useAuthStore } from '@/store/auth.store';
+import { saveAuthTokens, saveUserRole } from '@/lib/api';
+import { toast } from 'sonner';
 
-const schema = z.object({
+const API = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
+
+const emailSchema = z.object({
   email: z.string().email('Valid email required'),
   password: z.string().min(1, 'Password required'),
 });
-type FormData = z.infer<typeof schema>;
+type EmailFormData = z.infer<typeof emailSchema>;
 
 export default function LoginPage() {
   const { login } = useAuth();
   const [showPw, setShowPw] = useState(false);
   const [lang, setLang] = useState<'bn' | 'en'>('bn');
+  const [tab, setTab] = useState<'email' | 'phone'>('email');
   const searchParams = useSearchParams();
   const router = useRouter();
   const redirectParam = searchParams.get('redirect');
 
-  const handleSocialSuccess = () => {
+  // Phone OTP state
+  const [phone, setPhone] = useState('');
+  const [otp, setOtp] = useState('');
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [loggingIn, setLoggingIn] = useState(false);
+
+  const { setUser } = useAuthStore();
+
+  const doRedirect = () => {
     const u = useAuthStore.getState().user;
     if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('/admin')) {
       router.push(redirectParam);
@@ -38,11 +52,64 @@ export default function LoginPage() {
     }
   };
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+  const { register, handleSubmit, formState: { errors } } = useForm<EmailFormData>({
+    resolver: zodResolver(emailSchema),
   });
 
-  const onSubmit = (data: FormData) => login.mutate(data);
+  const onEmailSubmit = (data: EmailFormData) => login.mutate(data);
+
+  const handleSendOtp = async () => {
+    if (!phone.trim()) { toast.error(lang === 'bn' ? 'ফোন নম্বর দিন' : 'Enter phone number'); return; }
+    setSendingOtp(true);
+    try {
+      const res = await fetch(`${API}/otp/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message ?? 'Failed to send OTP');
+      setOtpSent(true);
+      toast.success(lang === 'bn' ? 'OTP পাঠানো হয়েছে' : 'OTP sent');
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handlePhoneLogin = async () => {
+    if (!otp.trim()) { toast.error(lang === 'bn' ? 'OTP কোড দিন' : 'Enter OTP code'); return; }
+    setLoggingIn(true);
+    try {
+      const res = await fetch(`${API}/auth/login/phone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone.trim(), code: otp.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message ?? 'Login failed');
+      const tokens = data.data?.tokens ?? data.tokens;
+      const apiUser = data.data?.user ?? data.user;
+      saveAuthTokens(tokens.accessToken, tokens.refreshToken);
+      if (apiUser) {
+        const u = {
+          id: apiUser.id, email: apiUser.email,
+          firstName: apiUser.firstName, lastName: apiUser.lastName,
+          name: `${apiUser.firstName} ${apiUser.lastName}`.trim(),
+          role: apiUser.role, phone: apiUser.phone, avatarUrl: apiUser.avatarUrl,
+        };
+        setUser(u);
+        saveUserRole(u.role);
+      }
+      toast.success(lang === 'bn' ? 'লগইন সফল!' : 'Logged in!');
+      doRedirect();
+    } catch (e: any) {
+      toast.error(e.message ?? 'Login failed');
+    } finally {
+      setLoggingIn(false);
+    }
+  };
 
   const t = {
     title:       lang === 'bn' ? 'স্বাগতম!' : 'Welcome back!',
@@ -117,61 +184,143 @@ export default function LoginPage() {
           </div>
 
           <h1 className="text-2xl font-black text-gray-900 mb-1">{t.title}</h1>
-          <p className="text-sm text-gray-500 mb-8">{t.subtitle}</p>
+          <p className="text-sm text-gray-500 mb-6">{t.subtitle}</p>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.email}</label>
-              <input
-                {...register('email')}
-                type="email"
-                placeholder="you@example.com"
-                className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
-              />
-              {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
-            </div>
+          {/* Tabs */}
+          <div className="flex rounded-xl bg-gray-100 p-1 mb-6">
+            <button
+              onClick={() => setTab('email')}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'email' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              <Mail className="w-3.5 h-3.5" />
+              {lang === 'bn' ? 'ইমেইল' : 'Email'}
+            </button>
+            <button
+              onClick={() => setTab('phone')}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-semibold transition-colors ${tab === 'phone' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            >
+              <Phone className="w-3.5 h-3.5" />
+              {lang === 'bn' ? 'মোবাইল' : 'Phone'}
+            </button>
+          </div>
 
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm font-semibold text-gray-700">{t.password}</label>
-                <span className="text-xs text-primary cursor-pointer hover:underline">{t.forgot}</span>
-              </div>
-              <div className="relative">
+          {tab === 'email' ? (
+            <form onSubmit={handleSubmit(onEmailSubmit)} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.email}</label>
                 <input
-                  {...register('password')}
-                  type={showPw ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:border-primary transition-colors"
+                  {...register('email')}
+                  type="email"
+                  placeholder="you@example.com"
+                  className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors"
                 />
+                {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-sm font-semibold text-gray-700">{t.password}</label>
+                  <span className="text-xs text-primary cursor-pointer hover:underline">{t.forgot}</span>
+                </div>
+                <div className="relative">
+                  <input
+                    {...register('password')}
+                    type={showPw ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 pr-11 text-sm focus:outline-none focus:border-primary transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
+              </div>
+
+              {login.error && (
+                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">
+                  {t.invalidCred}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={login.isPending}
+                className="w-full bg-primary text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-60 text-sm"
+              >
+                {login.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                {login.isPending ? (lang === 'bn' ? 'লোড হচ্ছে...' : 'Signing in...') : t.signIn}
+              </button>
+            </form>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  {lang === 'bn' ? 'মোবাইল নম্বর' : 'Phone Number'}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    placeholder="01700000000"
+                    disabled={otpSent}
+                    className="flex-1 border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors disabled:bg-gray-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    disabled={sendingOtp || otpSent}
+                    className="px-4 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary/90 transition-colors disabled:opacity-60 whitespace-nowrap"
+                  >
+                    {sendingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : (lang === 'bn' ? 'OTP পাঠান' : 'Send OTP')}
+                  </button>
+                </div>
+              </div>
+
+              {otpSent && (
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    {lang === 'bn' ? 'OTP কোড' : 'OTP Code'}
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={otp}
+                    onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
+                    placeholder="123456"
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors tracking-widest text-center font-bold text-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => { setOtpSent(false); setOtp(''); }}
+                    className="text-xs text-gray-400 hover:text-primary mt-1 underline"
+                  >
+                    {lang === 'bn' ? 'আবার পাঠান' : 'Resend OTP'}
+                  </button>
+                </div>
+              )}
+
+              {otpSent && (
                 <button
                   type="button"
-                  onClick={() => setShowPw(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  onClick={handlePhoneLogin}
+                  disabled={loggingIn || otp.length < 4}
+                  className="w-full bg-primary text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-60 text-sm"
                 >
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {loggingIn ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                  {loggingIn ? (lang === 'bn' ? 'লোড হচ্ছে...' : 'Signing in...') : t.signIn}
                 </button>
-              </div>
-              {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
+              )}
             </div>
-
-            {login.error && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">
-                {t.invalidCred}
-              </p>
-            )}
-
-            <button
-              type="submit"
-              disabled={login.isPending}
-              className="w-full bg-primary text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-60 text-sm"
-            >
-              {login.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
-              {login.isPending ? (lang === 'bn' ? 'লোড হচ্ছে...' : 'Signing in...') : t.signIn}
-            </button>
-          </form>
+          )}
 
           <div className="mt-6">
-            <SocialLoginButtons onSuccess={handleSocialSuccess} />
+            <SocialLoginButtons onSuccess={doRedirect} />
           </div>
 
           <div className="mt-6 text-center">

@@ -14,6 +14,7 @@ import * as crypto from 'crypto';
 
 import { PrismaService } from '../../database/prisma.service';
 import { EmailService } from '../email/email.service';
+import { OtpService } from '../otp/otp.service';
 import { UsersService } from '../users/users.service';
 import type { LoginDto } from './dto/login.dto';
 import type { RegisterDto } from './dto/register.dto';
@@ -26,6 +27,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
     private readonly emailService: EmailService,
+    private readonly otpService: OtpService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -231,9 +233,11 @@ export class AuthService {
   }
 
   async loginWithPhone(phone: string, otpCode: string) {
-    // Import OtpService dynamically to avoid circular deps
-    // OTP verification is done by trusting the OTP module result
-    // The controller handles this — here we just look up the user
+    const result = await this.otpService.verifyOtp(phone, otpCode);
+    if (!result.valid) {
+      throw new UnauthorizedException(result.message);
+    }
+
     const user = await this.prisma.user.findUnique({ where: { phone } });
     if (!user) {
       throw new UnauthorizedException('No account found with this phone number. Please register first.');
@@ -241,14 +245,6 @@ export class AuthService {
     if (user.status === 'SUSPENDED') {
       throw new UnauthorizedException('Account suspended');
     }
-
-    // OTP code must be pre-verified by calling /otp/verify first
-    // For direct login flow: verify OTP inline using the in-memory store
-    // Since we can't import OtpService here (circular), we use a simple approach:
-    // The code passed here is compared against what was generated
-    // This is handled by the OTP service's verify method called from the controller
-    // For now, we trust the frontend to call /otp/verify first and then proceed
-    // OR: add OtpModule as import to AuthModule
 
     await this.prisma.user.update({
       where: { id: user.id },
@@ -258,7 +254,7 @@ export class AuthService {
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
 
-    return { user: this.usersService.toDto(user), tokens };
+    return { data: { user: this.usersService.toDto(user), tokens } };
   }
 
   async socialLogin(dto: {
