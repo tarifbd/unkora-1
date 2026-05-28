@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import {
   Cpu, Loader2, AlertCircle, Plus, Trash2, Edit2, Play, Zap,
   CheckCircle2, XCircle, X, ChevronDown, ChevronUp,
+  MessageSquare, Search, Globe, Star, TrendingUp, BookOpen, ShoppingBag,
+  Rocket, ChevronRight,
 } from 'lucide-react';
 import { aiApi, type AiAgentIntegration, type AiAgentType, type AiAgentTask } from '@/lib/api/ai-studio';
 
@@ -226,6 +228,57 @@ function TasksSection({ tasks }: { tasks: AiAgentTask[] }) {
   );
 }
 
+/* ─── Quick-deploy templates ──────────────────────────────────────── */
+const AGENT_TEMPLATES = [
+  { name: 'BookBot Support',     type: 'CUSTOMER_SUPPORT_AGENT', provider: 'anthropic', icon: MessageSquare, color: 'bg-blue-100 text-blue-700',   endpoint: '/ai/hooks/bookbot',    desc: 'Handles Bengali + English support queries' },
+  { name: 'SEO Auto-Writer',     type: 'SEO_AGENT',              provider: 'openai',    icon: Search,        color: 'bg-green-100 text-green-700', endpoint: '/ai/hooks/seo-writer', desc: 'Generates optimized meta, titles, schema' },
+  { name: 'BanglaWriter',        type: 'CONTENT_AGENT',          provider: 'qwen',      icon: Globe,         color: 'bg-red-100 text-red-700',     endpoint: '/ai/hooks/bangla',     desc: 'Bengali product descriptions + blog' },
+  { name: 'Review Analyzer',     type: 'CUSTOM_AGENT',           provider: 'deepseek',  icon: Star,          color: 'bg-yellow-100 text-yellow-700',endpoint: '/ai/hooks/reviews',    desc: 'Sentiment + topic extraction from reviews' },
+  { name: 'Price Intelligence',  type: 'CUSTOM_AGENT',           provider: 'xai',       icon: TrendingUp,    color: 'bg-cyan-100 text-cyan-700',   endpoint: '/ai/hooks/prices',     desc: 'Competitor pricing + market analysis' },
+  { name: 'Reco Engine',         type: 'PRODUCT_AGENT',          provider: 'gemini',    icon: BookOpen,      color: 'bg-purple-100 text-purple-700',endpoint: '/ai/hooks/reco',       desc: 'Personalized book recommendations' },
+  { name: 'Order Assistant',     type: 'CUSTOMER_SUPPORT_AGENT', provider: 'openai',    icon: ShoppingBag,   color: 'bg-indigo-100 text-indigo-700',endpoint: '/ai/hooks/orders',     desc: 'Auto-handles order queries & returns' },
+  { name: 'Content Factory',     type: 'CONTENT_AGENT',          provider: 'deepseek',  icon: Cpu,           color: 'bg-gray-100 text-gray-700',   endpoint: '/ai/hooks/bulk',       desc: 'Bulk content generation at ultra-low cost' },
+] as const;
+
+function TemplatesSection({ onInstall }: { onInstall: (t: typeof AGENT_TEMPLATES[number]) => void }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="rounded-2xl border border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-900/10">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between px-6 py-4"
+      >
+        <div className="flex items-center gap-2">
+          <Rocket className="h-4 w-4 text-purple-600" />
+          <span className="font-bold text-sm text-purple-900 dark:text-purple-200">Pre-built Agent Templates</span>
+          <span className="text-xs bg-purple-200 dark:bg-purple-800 text-purple-700 dark:text-purple-300 px-2 py-0.5 rounded-full">{AGENT_TEMPLATES.length}</span>
+        </div>
+        {open ? <ChevronDown className="h-4 w-4 text-purple-400" /> : <ChevronRight className="h-4 w-4 text-purple-400" />}
+      </button>
+      {open && (
+        <div className="px-6 pb-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {AGENT_TEMPLATES.map(t => (
+            <div key={t.name} className="rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${t.color}`}>
+                <t.icon className="w-4 h-4" />
+              </div>
+              <p className="font-bold text-xs text-gray-900 dark:text-white">{t.name}</p>
+              <p className="text-[10px] text-gray-500 mt-0.5 leading-relaxed">{t.desc}</p>
+              <p className="text-[10px] text-gray-400 mt-1">Provider: <span className="font-medium capitalize">{t.provider}</span></p>
+              <button
+                onClick={() => onInstall(t)}
+                className="mt-3 w-full py-1.5 text-[10px] font-bold bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center gap-1"
+              >
+                <Zap className="w-2.5 h-2.5" /> 1-Click Install
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AiAgentsPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editAgent, setEditAgent] = useState<AiAgentIntegration | null>(null);
@@ -281,6 +334,18 @@ export default function AiAgentsPage() {
     else { createMutation.mutate(data); }
   };
 
+  const handleInstallTemplate = (t: typeof AGENT_TEMPLATES[number]) => {
+    createMutation.mutate({
+      name: t.name,
+      agentType: t.type as AiAgentType,
+      provider: t.provider,
+      description: t.desc,
+      endpointUrl: `https://api.unkora.com${t.endpoint}`,
+      isEnabled: true,
+      configJson: {},
+    });
+  };
+
   return (
     <div className="space-y-5">
       {/* Header */}
@@ -291,7 +356,7 @@ export default function AiAgentsPage() {
           </div>
           <div>
             <h1 className="font-serif text-xl font-bold">AI Agents</h1>
-            <p className="text-sm text-muted-foreground">Manage external AI agent integrations</p>
+            <p className="text-sm text-muted-foreground">Manage and deploy AI agent integrations</p>
           </div>
         </div>
         <button
@@ -302,12 +367,8 @@ export default function AiAgentsPage() {
         </button>
       </div>
 
-      {/* Info box */}
-      <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-4">
-        <p className="text-sm text-blue-800 dark:text-blue-300">
-          <strong>Agent Integration System</strong> — This is a future-ready framework. Connect any AI agent including Hermes, AutoGPT, or custom agents. Each agent runs as a microservice with its own API endpoint and configuration.
-        </p>
-      </div>
+      {/* Templates */}
+      <TemplatesSection onInstall={handleInstallTemplate} />
 
       {/* Content */}
       {isLoading ? (
