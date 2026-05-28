@@ -864,7 +864,8 @@ export function Header() {
                     <div className="py-1 pb-2">
                       {[
                         { label: 'Settings',              labelBn: 'সেটিংস',             href: '/account', authOnly: true },
-                        { label: 'Seller Login',          labelBn: 'সেলার লগইন',          href: '/seller/dashboard', adminOnly: true },
+                        { label: 'Seller Login',          labelBn: 'সেলার লগইন',          href: '/seller/login' },
+                        { label: 'Become a Seller',      labelBn: 'সেলার হিসেবে যোগ দিন', href: '/seller/apply' },
                         { label: 'Return & Refund Policy',labelBn: 'রিটার্ন ও রিফান্ড',   href: '/refund-policy' },
                         { label: 'Help Center',           labelBn: 'সাহায্য কেন্দ্র',     href: '/help' },
                         { label: 'Contact Us',            labelBn: 'যোগাযোগ করুন',        href: '/support' },

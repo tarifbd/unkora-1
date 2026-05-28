@@ -24,10 +24,11 @@ export function useAuth() {
       const redirectTo = params.get('redirect');
 
       if (redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('/admin')) {
-        // Customer clicked Buy Now / Checkout while logged out → go there
         router.push(redirectTo);
       } else if (u.role === 'ADMIN' || u.role === 'SUPER_ADMIN') {
         router.push(redirectTo ?? '/admin');
+      } else if (u.role === 'SELLER') {
+        router.push('/seller/dashboard');
       } else {
         router.push(redirectTo ?? '/');
       }
