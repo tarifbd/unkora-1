@@ -17,7 +17,9 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 /* ─── Nav tree structure ─────────────────────────────────────── */
 type NavLeaf = { href: string; label: string; icon: React.ElementType; exact?: boolean };
@@ -408,6 +410,124 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   );
 }
 
+/* ─── Persistent Admin Top Bar ──────────────────────────────── */
+const TOP_NAV = [
+  { label: 'Dashboard',          href: '/admin' },
+  { label: 'Orders',             href: '/admin/orders' },
+  { label: 'Preorders',          href: '/admin/preorders' },
+  { label: 'Earnings',           href: '/admin/advanced-reports' },
+  { label: 'Homepage Settings',  href: '/admin/design' },
+];
+
+const ADD_NEW_ITEMS = [
+  { label: 'New Product',    href: '/admin/products/new',  icon: Package },
+  { label: 'New Coupon',     href: '/admin/coupons',        icon: Ticket },
+  { label: 'New Blog Post',  href: '/admin/blog/new',       icon: FileText },
+  { label: 'New Popup',      href: '/admin/popups',         icon: Layers },
+  { label: 'New Category',   href: '/admin/categories',     icon: Tag },
+];
+
+function AdminTopBar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const qc = useQueryClient();
+  const [clearing, setClearing] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const dropRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropRef.current && !dropRef.current.contains(e.target as Node)) setAddOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleClearCache = async () => {
+    setClearing(true);
+    try {
+      qc.clear();
+      router.refresh();
+      toast.success('Cache cleared!');
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  return (
+    <div className="sticky top-[57px] z-30 border-b bg-white dark:bg-gray-900 shadow-sm">
+      <div className="flex items-center gap-1 px-3 sm:px-4 h-11 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+
+        {/* Icon shortcuts */}
+        <div className="flex items-center gap-1 pr-2 mr-1 border-r border-border flex-shrink-0">
+          <Link href="/" target="_blank"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            title="View Store">
+            <Globe className="h-3.5 w-3.5" />
+          </Link>
+          <Link href="/admin/pos"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+            title="POS Terminal">
+            <Monitor className="h-3.5 w-3.5" />
+          </Link>
+          <button
+            onClick={handleClearCache}
+            disabled={clearing}
+            title="Clear Cache"
+            className="flex h-7 w-7 items-center justify-center rounded-md bg-sky-500 text-white hover:bg-sky-600 transition-colors disabled:opacity-60"
+          >
+            {clearing
+              ? <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+              : <RefreshCw className="h-3.5 w-3.5" />}
+          </button>
+        </div>
+
+        {/* Persistent nav links */}
+        <nav className="flex items-center gap-0.5 flex-1 overflow-x-auto [scrollbar-width:none]">
+          {TOP_NAV.map(({ label, href }) => {
+            const active = href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
+            return (
+              <Link key={href} href={href}
+                className={`flex-shrink-0 px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap
+                  ${active
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                  }`}>
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Add New + dropdown */}
+        <div className="flex-shrink-0 ml-2 relative" ref={dropRef}>
+          <button
+            onClick={() => setAddOpen(v => !v)}
+            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Add New</span>
+            <span className="sm:hidden">+</span>
+            <ChevronDown className={`h-3 w-3 transition-transform ${addOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {addOpen && (
+            <div className="absolute right-0 top-full mt-1 w-44 rounded-xl border border-border bg-card shadow-lg z-50 py-1 overflow-hidden">
+              {ADD_NEW_ITEMS.map(({ label, href, icon: Icon }) => (
+                <Link key={href} href={href}
+                  onClick={() => setAddOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-colors">
+                  <Icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                  {label}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Context-aware Quick Nav Bar ───────────────────────────── */
 const QUICK_NAV_GROUPS: Record<string, { label: string; href: string }[]> = {
   '/admin/products': [
@@ -473,7 +593,7 @@ function QuickNavBar() {
   if (!tabs) return null;
 
   return (
-    <div className="sticky top-[57px] z-30 border-b bg-background/95 backdrop-blur-sm shadow-sm">
+    <div className="sticky top-[101px] z-20 border-b bg-background/95 backdrop-blur-sm shadow-sm">
       <div className="flex items-center gap-1 px-3 sm:px-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {/* Icon shortcuts */}
         <div className="flex items-center gap-1 pr-2 mr-1 border-r border-border flex-shrink-0">
@@ -609,6 +729,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
+        <AdminTopBar />
         <QuickNavBar />
         <main className="flex-1 p-3 sm:p-6">{children}</main>
       </div>
