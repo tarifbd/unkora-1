@@ -1,78 +1,155 @@
 @echo off
 setlocal EnableDelayedExpansion
-title UNKORA — Pull Latest Code
+title UNKORA — Pull + Update
 color 0B
 
 echo.
-echo  ============================================
-echo    UNKORA Pull Latest from GitHub
-echo  ============================================
+echo  ╔══════════════════════════════════════════════════╗
+echo  ║         UNKORA  —  Pull Latest + Update          ║
+echo  ║  Git pull · npm install · Prisma · Seed data     ║
+echo  ╚══════════════════════════════════════════════════╝
 echo.
 
-:: ─── 1. Show current branch ────────────────────────────────────
+:: ════════════════════════════════════════════════════════
+::  STEP 1 — Show current branch
+:: ════════════════════════════════════════════════════════
 for /f "delims=" %%b in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set BRANCH=%%b
-echo  Current branch: %BRANCH%
+if "!BRANCH!"=="" (
+  echo  [ERROR] Not a git repository or git not installed.
+  pause & exit /b 1
+)
+echo  [1/6] Current branch: !BRANCH!
+echo.
 
-:: ─── 2. Stash any local uncommitted changes ────────────────────
-git status --short >nul 2>&1
+:: ════════════════════════════════════════════════════════
+::  STEP 2 — Stash any local uncommitted changes
+:: ════════════════════════════════════════════════════════
+set STASHED=0
 for /f %%c in ('git status --porcelain 2^>nul ^| find /c /v ""') do set DIRTY=%%c
 if !DIRTY! gtr 0 (
-  echo.
-  echo  [!] You have uncommitted local changes — stashing them...
+  echo  [2/6] Local changes detected — stashing them first...
   git stash push -m "auto-stash before PULL %date% %time%"
   set STASHED=1
 ) else (
-  set STASHED=0
+  echo  [2/6] Working tree clean — no stash needed.
 )
 
-:: ─── 3. Pull latest ────────────────────────────────────────────
+:: ════════════════════════════════════════════════════════
+::  STEP 3 — Git pull
+:: ════════════════════════════════════════════════════════
 echo.
-echo  Pulling from origin/%BRANCH%...
-git pull origin %BRANCH%
+echo  [3/6] Pulling from origin/!BRANCH!...
+git pull origin !BRANCH!
 if %errorlevel% neq 0 (
   echo.
-  echo  [ERROR] git pull failed. Possible reasons:
+  echo  [ERROR] git pull failed. Possible causes:
   echo    - No internet connection
-  echo    - Branch doesn't exist on remote
+  echo    - Branch does not exist on remote
   echo    - Merge conflict
   echo.
   if !STASHED!==1 (
-    echo  Restoring your stashed changes...
+    echo  Restoring stashed changes...
     git stash pop
   )
-  pause
-  exit /b 1
+  pause & exit /b 1
 )
+echo  Pull successful!
 
-:: ─── 4. Restore stash if we stashed ───────────────────────────
+:: Restore stash after successful pull
 if !STASHED!==1 (
   echo.
-  echo  Restoring your stashed local changes...
+  echo  Restoring your local stashed changes...
   git stash pop
+  if %errorlevel% neq 0 (
+    echo  [WARN] Stash pop had a conflict — check manually with: git stash show
+  )
 )
 
-:: ─── 5. npm install (if package-lock.json changed) ─────────────
+:: ════════════════════════════════════════════════════════
+::  STEP 4 — npm install (always run to pick up new packages)
+:: ════════════════════════════════════════════════════════
 echo.
-echo  Syncing npm dependencies...
+echo  [4/6] Installing / updating npm dependencies...
 call npm install
 if %errorlevel% neq 0 (
-  echo  [ERROR] npm install failed.
-  pause
-  exit /b 1
+  echo  [ERROR] npm install failed. Check the output above.
+  pause & exit /b 1
+)
+echo  Dependencies up to date.
+
+:: ════════════════════════════════════════════════════════
+::  STEP 5 — Prisma: generate + migrate deploy
+:: ════════════════════════════════════════════════════════
+echo.
+echo  [5/6] Running Prisma generate + migrate deploy...
+cd packages\database
+
+echo   • Generating Prisma client...
+call npx prisma generate
+if %errorlevel% neq 0 (
+  echo  [ERROR] prisma generate failed.
+  cd ..\..
+  pause & exit /b 1
 )
 
-:: ─── 6. Prisma generate (in case schema changed) ───────────────
+echo   • Applying pending migrations (prisma migrate deploy)...
+call npx prisma migrate deploy
+if %errorlevel% neq 0 (
+  echo.
+  echo  [WARN] prisma migrate deploy had issues.
+  echo  If the database is out of sync, run FRESH-START.bat to wipe and rebuild.
+  echo.
+  cd ..\..
+  pause & exit /b 1
+)
+echo  Prisma ready.
+
+:: ════════════════════════════════════════════════════════
+::  STEP 6 — Seed data (skip if admin already exists)
+:: ════════════════════════════════════════════════════════
 echo.
-echo  Regenerating Prisma client...
-cd packages\database
-call npx prisma generate
+echo  [6/6] Checking seed data...
+
+:: Check if Docker / Postgres is running before trying to seed
+docker exec unkora_postgres_dev pg_isready -U unkora -d unkora >nul 2>&1
+if %errorlevel% neq 0 (
+  echo  [SKIP] Postgres container not running — skipping seed check.
+  echo         Start it first with START.bat or MAIN.bat, then re-run PULL.bat to seed.
+  cd ..\..
+  goto DONE
+)
+
+:: Check if admin user exists
+docker exec unkora_postgres_dev psql -U unkora -d unkora -c ^
+  "SELECT 1 FROM users WHERE email='admin@unkora.com' LIMIT 1;" 2>nul | findstr "(1 row)" >nul
+if %errorlevel% neq 0 (
+  echo   Admin user not found — seeding database...
+  call npx prisma db seed
+  if %errorlevel% neq 0 (
+    echo  [ERROR] Seed failed. Check the output above.
+    cd ..\..
+    pause & exit /b 1
+  )
+  echo  Seed complete!
+) else (
+  echo  Admin user exists — seed skipped  (use FRESH-START.bat to reseed from scratch^)
+)
+
 cd ..\..
 
-:: ─── 7. Done ───────────────────────────────────────────────────
+:DONE
 echo.
-echo  ============================================
-echo    Pull complete! Latest code is ready.
-echo    Now run START.bat to launch the app.
-echo  ============================================
+echo  ╔══════════════════════════════════════════════════╗
+echo  ║            Pull + Update  COMPLETE!              ║
+echo  ║                                                  ║
+echo  ║  Everything is up to date:                       ║
+echo  ║    ✓ Latest code from GitHub                     ║
+echo  ║    ✓ npm dependencies installed                  ║
+echo  ║    ✓ Prisma client generated                     ║
+echo  ║    ✓ Database migrations applied                 ║
+echo  ║    ✓ Seed data checked                           ║
+echo  ║                                                  ║
+echo  ║  Now run  MAIN.bat  to start the app.            ║
+echo  ╚══════════════════════════════════════════════════╝
 echo.
 pause
