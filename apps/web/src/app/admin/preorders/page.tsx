@@ -52,14 +52,18 @@ export default function PreordersDashboard() {
 
   if (error || !data) {
     return (
-      <div className="p-6 flex items-center gap-2 text-red-500">
-        <AlertCircle className="h-5 w-5" />
-        <span>Failed to load dashboard data</span>
+      <div className="p-6 flex items-center gap-3 rounded-xl bg-red-50 border border-red-200 text-red-600 max-w-md mx-auto mt-8">
+        <AlertCircle className="h-5 w-5 flex-shrink-0" />
+        <div>
+          <p className="font-semibold text-sm">Failed to load preorders dashboard</p>
+          <p className="text-xs text-red-400 mt-0.5">Check that the API server is running and you are logged in as admin.</p>
+        </div>
       </div>
     );
   }
 
   const { stats, recentOrders } = data;
+  if (!stats) return null;
 
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
@@ -156,7 +160,7 @@ export default function PreordersDashboard() {
                   {order.preorderNumber}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
-                  {order.config?.product.name} — {order.customerName}
+                  {order.config?.product?.name} — {order.customerName}
                 </p>
               </div>
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${ORDER_STATUS_COLOR[order.preorderStatus] ?? 'bg-gray-100 text-gray-700'}`}>
