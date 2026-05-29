@@ -40,6 +40,7 @@ export function useAuth() {
       authApi.register(data),
     onSuccess: ({ user: u }) => {
       setUser(u);
+      saveUserRole(u.role);
       router.push('/');
     },
   });

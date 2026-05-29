@@ -127,6 +127,9 @@ export default function AdminOrdersPage() {
       page,
       limit: 20,
       status: statusFilter === 'ALL' ? undefined : statusFilter,
+      search: debouncedSearch || undefined,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
     }),
   });
 

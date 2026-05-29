@@ -97,9 +97,16 @@ function GeneralTab({ settings, onSave }: { settings: Record<string, string>; on
 
   const handleSave = async () => {
     setPending(true);
-    await onSave(form);
-    setDirty(false); setSuccess(true); setPending(false);
-    setTimeout(() => setSuccess(false), 3000);
+    try {
+      await onSave(form);
+      setDirty(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      // error visible in the UI via mutation state
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -181,9 +188,16 @@ function StoreTab({ settings, onSave }: { settings: Record<string, string>; onSa
 
   const handleSave = async () => {
     setPending(true);
-    await onSave(form);
-    setDirty(false); setSuccess(true); setPending(false);
-    setTimeout(() => setSuccess(false), 3000);
+    try {
+      await onSave(form);
+      setDirty(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      // error visible in the UI via mutation state
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -271,9 +285,16 @@ function PaymentTab({ settings, onSave }: { settings: Record<string, string>; on
 
   const handleSave = async () => {
     setPending(true);
-    await onSave(form);
-    setDirty(false); setSuccess(true); setPending(false);
-    setTimeout(() => setSuccess(false), 3000);
+    try {
+      await onSave(form);
+      setDirty(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      // error visible in the UI via mutation state
+    } finally {
+      setPending(false);
+    }
   };
 
   const METHODS = [
@@ -341,9 +362,16 @@ function ShippingTab({ settings, onSave }: { settings: Record<string, string>; o
 
   const handleSave = async () => {
     setPending(true);
-    await onSave(form);
-    setDirty(false); setSuccess(true); setPending(false);
-    setTimeout(() => setSuccess(false), 3000);
+    try {
+      await onSave(form);
+      setDirty(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      // error visible in the UI via mutation state
+    } finally {
+      setPending(false);
+    }
   };
 
   const rates = [
@@ -415,9 +443,16 @@ function SeoTab({ settings, onSave }: { settings: Record<string, string>; onSave
 
   const handleSave = async () => {
     setPending(true);
-    await onSave(form);
-    setDirty(false); setSuccess(true); setPending(false);
-    setTimeout(() => setSuccess(false), 3000);
+    try {
+      await onSave(form);
+      setDirty(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      // error visible in the UI via mutation state
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -509,9 +544,16 @@ function SocialTab({ settings, onSave }: { settings: Record<string, string>; onS
 
   const handleSave = async () => {
     setPending(true);
-    await onSave(form);
-    setDirty(false); setSuccess(true); setPending(false);
-    setTimeout(() => setSuccess(false), 3000);
+    try {
+      await onSave(form);
+      setDirty(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      // error visible in the UI via mutation state
+    } finally {
+      setPending(false);
+    }
   };
 
   const PLATFORMS = [

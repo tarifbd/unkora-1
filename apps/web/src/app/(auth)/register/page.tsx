@@ -29,7 +29,8 @@ export default function RegisterPage() {
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = ({ confirmPassword: _, ...data }: FormData) => registerUser.mutate(data);
+  const onSubmit = ({ confirmPassword: _, phone, ...data }: FormData) =>
+    registerUser.mutate({ ...data, phone: phone || undefined });
 
   const t = {
     title:    lang === 'bn' ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account',

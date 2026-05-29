@@ -49,7 +49,7 @@ export const ordersApi = {
   cancel: (id: string, reason?: string) =>
     api.patch(`/orders/my/${id}/cancel`, { reason }).then(r => r.data.data as Order),
 
-  adminGetAll: (params: { page?: number; limit?: number; status?: string } = {}) =>
+  adminGetAll: (params: { page?: number; limit?: number; status?: string; search?: string; dateFrom?: string; dateTo?: string } = {}) =>
     api.get('/orders/admin/all', { params }).then(r => r.data.data as PaginatedOrders),
 
   adminGetById: (id: string) =>
