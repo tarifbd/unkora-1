@@ -6,17 +6,18 @@ import { useAuthStore } from '@/store/auth.store';
 import { useEffect } from 'react';
 import {
   LayoutDashboard, Package, Heart, MapPin, User, LogOut,
-  ChevronRight, ShoppingBag, CalendarClock, Search, ArrowLeft,
+  ChevronRight, ShoppingBag, CalendarClock, Search, ArrowLeft, BookOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { href: '/account',           icon: LayoutDashboard, label: 'ড্যাশবোর্ড',   en: 'Dashboard',  exact: true },
-  { href: '/account/orders',    icon: Package,          label: 'আমার অর্ডার',  en: 'My Orders' },
-  { href: '/account/preorders', icon: CalendarClock,    label: 'প্রি-অর্ডার',   en: 'Pre-orders' },
-  { href: '/account/wishlist',  icon: Heart,            label: 'উইশলিস্ট',      en: 'Wishlist' },
-  { href: '/account/addresses', icon: MapPin,           label: 'ঠিকানা',         en: 'Addresses' },
-  { href: '/account/profile',   icon: User,             label: 'প্রোফাইল',       en: 'Profile' },
+  { href: '/account',            icon: LayoutDashboard, label: 'ড্যাশবোর্ড',   en: 'Dashboard',  exact: true },
+  { href: '/account/orders',     icon: Package,          label: 'আমার অর্ডার',  en: 'My Orders' },
+  { href: '/account/preorders',  icon: CalendarClock,    label: 'প্রি-অর্ডার',   en: 'Pre-orders' },
+  { href: '/account/my-books',   icon: BookOpen,         label: 'আমার বই',       en: 'My Books' },
+  { href: '/account/wishlist',   icon: Heart,            label: 'উইশলিস্ট',      en: 'Wishlist' },
+  { href: '/account/addresses',  icon: MapPin,           label: 'ঠিকানা',         en: 'Addresses' },
+  { href: '/account/profile',    icon: User,             label: 'প্রোফাইল',       en: 'Profile' },
 ];
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
