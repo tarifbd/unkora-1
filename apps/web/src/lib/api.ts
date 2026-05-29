@@ -80,26 +80,28 @@ apiClient.interceptors.response.use(
   },
 );
 
+const SECURE = typeof window !== 'undefined' && window.location.protocol === 'https:' ? '; Secure' : '';
+
 export function saveAuthTokens(accessToken: string, refreshToken: string) {
   localStorage.setItem('access_token', accessToken);
   localStorage.setItem('refresh_token', refreshToken);
   const accessExp = new Date(Date.now() + 15 * 60 * 1000).toUTCString();
   const refreshExp = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
-  document.cookie = `access_token=${accessToken}; path=/; expires=${accessExp}; SameSite=Lax`;
-  document.cookie = `refresh_token=${refreshToken}; path=/; expires=${refreshExp}; SameSite=Lax`;
+  document.cookie = `access_token=${accessToken}; path=/; expires=${accessExp}; SameSite=Lax${SECURE}`;
+  document.cookie = `refresh_token=${refreshToken}; path=/; expires=${refreshExp}; SameSite=Lax${SECURE}`;
 }
 
 export function saveUserRole(role: string) {
   const exp = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
-  document.cookie = `user_role=${role}; path=/; expires=${exp}; SameSite=Lax`;
+  document.cookie = `user_role=${role}; path=/; expires=${exp}; SameSite=Lax${SECURE}`;
 }
 
 export function clearAuthTokens() {
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
-  document.cookie = 'access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-  document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-  document.cookie = 'user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  document.cookie = `access_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT${SECURE}`;
+  document.cookie = `refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT${SECURE}`;
+  document.cookie = `user_role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT${SECURE}`;
 }
 
 export default apiClient;
