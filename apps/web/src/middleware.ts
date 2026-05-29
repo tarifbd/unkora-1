@@ -1,4 +1,3 @@
-import { jwtVerify } from 'jose';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -31,13 +30,34 @@ async function isMaintenanceMode(): Promise<boolean> {
   }
 }
 
+// Verify HS256 JWT using native Web Crypto API (Edge Runtime compatible — no jose needed)
 async function getRoleFromToken(token: string): Promise<string | null> {
   const secret = process.env.JWT_SECRET;
   if (!secret) return null;
   try {
-    const key = new TextEncoder().encode(secret);
-    const { payload } = await jwtVerify(token, key);
-    return (payload as { role?: string }).role ?? null;
+    const [header, payloadB64, signature] = token.split('.');
+    if (!header || !payloadB64 || !signature) return null;
+
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify'],
+    );
+
+    const b64 = (s: string) => s.replace(/-/g, '+').replace(/_/g, '/');
+    const sigBytes = Uint8Array.from(atob(b64(signature)), (c) => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify(
+      'HMAC',
+      key,
+      sigBytes,
+      new TextEncoder().encode(`${header}.${payloadB64}`),
+    );
+    if (!valid) return null;
+
+    const payload = JSON.parse(atob(b64(payloadB64))) as { role?: string };
+    return payload.role ?? null;
   } catch {
     return null;
   }
