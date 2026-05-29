@@ -43,6 +43,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           duration={3500}
           toastOptions={{
             style: { fontFamily: 'var(--font-sans)' },
+            classNames: {
+              toast: 'group',
+            },
           }}
         />
         {process.env.NODE_ENV === 'development' && (

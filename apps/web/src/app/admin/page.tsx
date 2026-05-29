@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { adminApi } from '@/lib/api/admin';
 import { formatCurrency } from '@/lib/utils';
+import { createProgressToast } from '@/components/ui/progress-toast';
 
 // ─── Sparkline ────────────────────────────────────────────────────────────────
 function Sparkline({ data }: { data: { label: string; value: number }[] }) {
@@ -561,6 +562,26 @@ export default function AdminDashboard() {
                 {a.icon}{a.label}
               </Link>
             ))}
+          </div>
+          <div className="px-4 pb-4">
+            <button
+              onClick={() => {
+                const pt = createProgressToast('Processing...', 'Syncing data with server');
+                let p = 0;
+                const iv = setInterval(() => {
+                  p += Math.random() * 18 + 5;
+                  if (p >= 100) {
+                    clearInterval(iv);
+                    pt.success('সব কিছু sync হয়ে গেছে!');
+                  } else {
+                    pt.update(p, `${Math.round(p)}% complete`);
+                  }
+                }, 350);
+              }}
+              className="w-full py-2 rounded-xl border-2 border-dashed border-green-200 text-xs font-semibold text-green-600 hover:bg-green-50 transition-colors"
+            >
+              ▶ Progress Toast Demo
+            </button>
           </div>
         </div>
 
