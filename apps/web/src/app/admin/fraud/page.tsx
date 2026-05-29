@@ -1133,7 +1133,7 @@ export default function FraudDetectionPage() {
     refetchInterval: 60000,
   });
 
-  const allOrders = data ?? [];
+  const allOrders = useMemo(() => data ?? [], [data]);
 
   const analyzed = useMemo(() => {
     return allOrders

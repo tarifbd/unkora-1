@@ -1,4 +1,4 @@
-import { IsBoolean, IsDateString, IsDecimal, IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { IsBoolean, IsDateString, IsEnum, IsInt, IsOptional, IsString, Min } from 'class-validator';
 import { PrepaymentType, PreorderConfigStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface CountdownTimerProps {
   endDate: string | Date;
@@ -11,11 +11,10 @@ interface CountdownTimerProps {
 }
 
 function useCountdown(endDate: string | Date) {
-  const end = typeof endDate === 'string' ? new Date(endDate) : endDate;
+  const endTime = (typeof endDate === 'string' ? new Date(endDate) : endDate).getTime();
 
-  const getTimeLeft = () => {
-    const now = Date.now();
-    const diff = end.getTime() - now;
+  const getTimeLeft = useCallback(() => {
+    const diff = endTime - Date.now();
     if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
     return {
       days: Math.floor(diff / (1000 * 60 * 60 * 24)),
@@ -24,7 +23,7 @@ function useCountdown(endDate: string | Date) {
       seconds: Math.floor((diff % (1000 * 60)) / 1000),
       expired: false,
     };
-  };
+  }, [endTime]);
 
   const [timeLeft, setTimeLeft] = useState(getTimeLeft);
 
@@ -35,7 +34,7 @@ function useCountdown(endDate: string | Date) {
       if (t.expired) clearInterval(interval);
     }, 1000);
     return () => clearInterval(interval);
-  }, [end.getTime()]);
+  }, [getTimeLeft]);
 
   return timeLeft;
 }

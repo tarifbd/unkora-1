@@ -230,7 +230,6 @@ export default function AdminFlashDealsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           {img ? (
-                            // eslint-disable-next-line @next/next/no-img-element
                             <img src={img} alt={name} className="h-8 w-8 rounded object-cover flex-shrink-0" />
                           ) : (
                             <div className="h-8 w-8 rounded bg-muted flex-shrink-0" />

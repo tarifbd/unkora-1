@@ -829,7 +829,7 @@ function ImageAltTab() {
     <div className="space-y-5">
       <form onSubmit={handle} className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 space-y-4">
         <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <Image className="h-4 w-4 text-pink-500" /> Image Alt Text Generator
+          <Image className="h-4 w-4 text-pink-500" aria-hidden="true" /> Image Alt Text Generator
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">

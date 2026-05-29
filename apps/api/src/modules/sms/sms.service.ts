@@ -61,7 +61,7 @@ export class SmsService {
         where: { id: log.id },
         data: { status: 'SENT', sentAt: new Date(), messageId: result?.messageId },
       });
-    } catch (err: any) {
+    } catch {
       await this.prisma.smsLog.update({
         where: { id: log.id },
         data: { status: 'FAILED' },

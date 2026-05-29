@@ -48,7 +48,7 @@ export class SupplierService {
   }
 
   async remove(id: string) {
-    const s = await this.findOne(id);
+    await this.findOne(id);
     const poCount = await this.prisma.purchaseOrder.count({ where: { supplierId: id } });
     if (poCount > 0) throw new BadRequestException('Cannot delete supplier with existing purchase orders');
     return this.prisma.supplier.delete({ where: { id } });

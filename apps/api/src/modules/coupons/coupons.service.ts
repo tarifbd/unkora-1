@@ -3,7 +3,6 @@ import { DiscountType } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
 import type { CreateCouponDto } from './dto/create-coupon.dto';
-import type { ValidateCouponDto } from './dto/validate-coupon.dto';
 
 @Injectable()
 export class CouponsService {

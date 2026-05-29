@@ -230,7 +230,6 @@ export default function ProductSeoEditorPage() {
                     <p className="text-xs font-semibold text-gray-500 px-3 py-2 bg-gray-50 dark:bg-gray-700/50">Facebook Preview</p>
                     {Boolean(f.ogImage) && (
                       <div className="aspect-[1.91/1] bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={String(f.ogImage)} alt="OG preview" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                       </div>
                     )}
@@ -266,7 +265,6 @@ export default function ProductSeoEditorPage() {
                   <div className="mt-4 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden max-w-sm">
                     {Boolean(f.twitterImage) && (
                       <div className="aspect-[2/1] bg-gray-100 overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={String(f.twitterImage)} alt="Twitter preview" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                       </div>
                     )}

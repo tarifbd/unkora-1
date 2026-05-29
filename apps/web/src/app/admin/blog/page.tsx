@@ -185,7 +185,6 @@ export default function AdminBlogPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           {post.coverImage ? (
-                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={post.coverImage}
                               alt={post.title}

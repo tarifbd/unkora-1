@@ -40,7 +40,7 @@ export class AttributesService {
   async update(id: string, dto: UpdateAttributeDto) {
     await this.findOne(id);
     const { values, ...data } = dto;
-    const attr = await this.prisma.attribute.update({ where: { id }, data });
+    await this.prisma.attribute.update({ where: { id }, data });
     if (values !== undefined) {
       await this.prisma.attributeValue.deleteMany({ where: { attributeId: id } });
       if (values.length) {

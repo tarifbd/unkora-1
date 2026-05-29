@@ -413,7 +413,6 @@ function BannerModal({ initial, onSave, onClose }: { initial?: Banner; onSave: (
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">Image URL</label>
             <input type="url" value={form.imageUrl} onChange={set('imageUrl')} className={inp} placeholder="https://..." />
             {form.imageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
               <img src={form.imageUrl} alt="preview" className="mt-2 h-20 w-full object-cover rounded-lg bg-muted"
                 onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             )}
@@ -535,7 +534,6 @@ function BannersTab() {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {b.imageUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
                         <img src={b.imageUrl} alt={b.title}
                           className="h-10 w-16 rounded object-cover flex-shrink-0 bg-muted"
                           onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -579,7 +577,7 @@ function BannersTab() {
               ))}
               {banners.length === 0 && (
                 <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
-                  <Image className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                  <Image className="h-8 w-8 mx-auto mb-2 opacity-30" aria-hidden="true" />
                   No banners yet
                 </td></tr>
               )}

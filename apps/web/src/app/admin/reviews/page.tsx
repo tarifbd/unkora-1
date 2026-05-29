@@ -145,7 +145,6 @@ export default function ReviewsPage() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           {productImg ? (
-                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={productImg}
                               alt={productName}
