@@ -357,6 +357,9 @@ export class AuthService {
   }
 
   private parseExpiresIn(value: string): number {
+    if (!/^\d+[smhd]$/.test(value)) {
+      throw new Error(`Invalid expiresIn format: ${value}. Expected format: <number>[s|m|h|d]`);
+    }
     const unit = value.slice(-1);
     const amount = parseInt(value.slice(0, -1), 10);
     const multipliers: Record<string, number> = {

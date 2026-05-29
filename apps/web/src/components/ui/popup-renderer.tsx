@@ -8,6 +8,18 @@ import Image from 'next/image';
 const API = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 const SEEN_KEY = 'unkora_seen_popups';
 
+function sanitizeHtml(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<iframe[\s\S]*?>/gi, '')
+    .replace(/<object[\s\S]*?>/gi, '')
+    .replace(/<embed[\s\S]*?>/gi, '')
+    .replace(/<link[^>]*>/gi, '')
+    .replace(/<base[^>]*>/gi, '')
+    .replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
+    .replace(/javascript\s*:/gi, 'javascript_:');
+}
+
 function getSeenPopups(): string[] {
   try { return JSON.parse(localStorage.getItem(SEEN_KEY) ?? '[]'); } catch { return []; }
 }
@@ -71,7 +83,7 @@ export function PopupRenderer() {
             <h3 className="text-xl font-black text-gray-900 dark:text-white">{popup.title}</h3>
             <button onClick={close} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 flex-shrink-0"><X className="h-5 w-5" /></button>
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4" dangerouslySetInnerHTML={{ __html: popup.content }} />
+          <div className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-4" dangerouslySetInnerHTML={{ __html: sanitizeHtml(popup.content ?? '') }} />
           {popup.buttonText && (
             <button onClick={handleClick} className="flex items-center gap-2 w-full justify-center py-3 px-6 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 transition-colors">
               {popup.buttonText}
