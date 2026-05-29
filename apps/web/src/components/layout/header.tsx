@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   Book, Baby, Briefcase, Leaf, Palette, Zap, ShoppingBag, Moon,
   Menu, X, Search, User, ShoppingCart, ChevronDown,
@@ -574,6 +574,7 @@ const MEGA_CONTENT = [
 
 export function Header() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
   const { cart, toggleCart } = useCartStore();
@@ -1303,7 +1304,7 @@ export function Header() {
               onClick={() => setSidebarOpen(false)}
               className={cn(
                 'py-3.5 px-5 hover:bg-orange-50 font-semibold text-gray-700 flex items-center gap-3 border-b border-gray-100 transition-colors',
-                pathname === '/products' && new URLSearchParams(window.location.search).get('categorySlug') === cat.slug ? 'text-primary bg-accent' : '',
+                pathname === '/products' && searchParams.get('categorySlug') === cat.slug ? 'text-primary bg-accent' : '',
               )}
             >
               <span className="text-primary"><cat.icon className="w-4 h-4" /></span>
