@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   ChevronLeft, ChevronRight, Truck, RotateCcw, ShieldCheck, Headphones,
@@ -139,7 +139,7 @@ function SectionHeader({ titleBn, titleEn, href, accentColor = '#f97316', lang }
 }
 
 /* ── Compact marketplace card (Rokomari-inspired) ── */
-function MiniCard({ product, lang }: { product: Product; lang: string }) {
+const MiniCard = memo(function MiniCard({ product, lang }: { product: Product; lang: string }) {
   const { addItem } = useCart();
   const img = product.images?.[0]?.url;
   const salePrice = Number(product.salePrice ?? product.basePrice);
@@ -260,7 +260,7 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
       </div>
     </Link>
   );
-}
+});
 
 /* ── Skeleton card ── */
 function SkeletonCard() {
@@ -277,8 +277,111 @@ function SkeletonCard() {
   );
 }
 
+/* ── Portrait card — tall book-cover style for Budget Corner ── */
+const PortraitCard = memo(function PortraitCard({ product, lang }: { product: Product; lang: string }) {
+  const img = product.images?.[0]?.url;
+  const salePrice = Number(product.salePrice ?? product.basePrice);
+  const basePrice = Number(product.basePrice);
+  const hasDiscount = product.salePrice && salePrice < basePrice;
+  const discountPct = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
+
+  return (
+    <Link href={`/products/${product.slug}`}
+      className="flex-shrink-0 w-[110px] group">
+      <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-gray-100 shadow-sm">
+        {img ? (
+          <Image src={img} alt={product.name} fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="110px" unoptimized={img.includes('unsplash')} />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-3xl bg-gradient-to-br from-blue-50 to-indigo-100">📚</div>
+        )}
+        {hasDiscount && (
+          <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow">
+            -{discountPct}%
+          </span>
+        )}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-6">
+          <span className="text-white text-xs font-black drop-shadow">৳{salePrice.toLocaleString('en-BD')}</span>
+        </div>
+      </div>
+      <p className="mt-1.5 text-[10px] font-semibold text-gray-700 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+        {product.name}
+      </p>
+    </Link>
+  );
+});
+
+/* ── Editorial card — dark overlay style for Editor's Picks ── */
+const EditorialCard = memo(function EditorialCard({ product, lang }: { product: Product; lang: string }) {
+  const { addItem } = useCart();
+  const img = product.images?.[0]?.url;
+  const salePrice = Number(product.salePrice ?? product.basePrice);
+  const basePrice = Number(product.basePrice);
+  const hasDiscount = product.salePrice && salePrice < basePrice;
+  const discountPct = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
+  const inStock = product.stockQuantity > 0;
+
+  return (
+    <Link href={`/products/${product.slug}`}
+      className="group relative rounded-2xl overflow-hidden bg-gray-900 aspect-[3/4] block">
+      {img ? (
+        <Image src={img} alt={product.name} fill
+          className="object-cover opacity-75 group-hover:opacity-55 group-hover:scale-105 transition-all duration-500"
+          sizes="(max-width:640px) 50vw, (max-width:1024px) 25vw, 220px"
+          unoptimized={img.includes('unsplash')} />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-5xl bg-gradient-to-br from-blue-900 to-purple-900">📚</div>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
+      {hasDiscount && (
+        <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow">
+          -{discountPct}%
+        </span>
+      )}
+      {product.isFeatured && (
+        <span className="absolute top-3 left-3 bg-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded-lg flex items-center gap-0.5">
+          <Star className="w-2.5 h-2.5 fill-white" />{lang === 'bn' ? 'ফিচার্ড' : 'Featured'}
+        </span>
+      )}
+      <div className="absolute bottom-0 left-0 right-0 p-3">
+        <p className="text-white font-bold text-xs line-clamp-2 leading-snug mb-0.5">{product.name}</p>
+        {product.bookDetail?.author && (
+          <p className="text-white/55 text-[9px] truncate mb-2">{product.bookDetail.author}</p>
+        )}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-baseline gap-1">
+            <span className="text-orange-400 font-black text-sm">৳{salePrice.toLocaleString('en-BD')}</span>
+            {hasDiscount && <span className="text-white/40 text-[9px] line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
+          </div>
+          <div className="flex gap-1 flex-shrink-0">
+            <button
+              onClick={e => {
+                e.preventDefault(); e.stopPropagation();
+                if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } });
+              }}
+              disabled={!inStock}
+              className="flex items-center gap-1 px-2 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded-lg text-[10px] font-bold hover:bg-white/30 transition-colors disabled:opacity-40"
+            >
+              <ShoppingCart className="w-3 h-3" />
+              {lang === 'bn' ? 'কার্ট' : 'Cart'}
+            </button>
+            {inStock && (
+              <Link href={`/checkout?productSlug=${product.slug}&qty=1`} onClick={e => e.stopPropagation()}
+                className="flex items-center gap-1 px-2 py-1.5 bg-orange-500 text-white rounded-lg text-[10px] font-bold hover:bg-orange-600 transition-colors">
+                <Zap className="w-3 h-3" />
+                {lang === 'bn' ? 'কিনুন' : 'Buy'}
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+});
+
 /* ── Flash deal card — uses real Product data with cart buttons ── */
-function FlashCard({ product, lang }: { product: Product; lang: string }) {
+const FlashCard = memo(function FlashCard({ product, lang }: { product: Product; lang: string }) {
   const { addItem } = useCart();
   const [imgErr, setImgErr] = useState(false);
   const img = (!imgErr && product.images?.[0]?.url) ? product.images[0].url : null;
@@ -385,7 +488,7 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
       </div>
     </Link>
   );
-}
+});
 
 /* ── Ranking row ── */
 function RankRow({ item, index, lang }: { item: typeof RANK_DATA['Fiction'][number]; index: number; lang: string }) {
@@ -469,18 +572,20 @@ export default function HomePage() {
   ] as const;
 
   /* API data */
-  const { data: featuredProducts = [] } = useQuery({ queryKey: ['products', 'featured'], queryFn: () => productsApi.getFeatured(12) });
-  const { data: allCategories = [] }    = useQuery({ queryKey: ['categories-roots'],    queryFn: () => categoriesApi.getRoots() });
-  const { data: newArrivalData }        = useQuery({ queryKey: ['products', 'new-arrivals'], queryFn: () => productsApi.getAll({ limit: 12, sortBy: 'createdAt', sortOrder: 'desc' } as Parameters<typeof productsApi.getAll>[0]) });
+  const { data: featuredProducts = [] } = useQuery({ queryKey: ['products', 'featured'], queryFn: () => productsApi.getFeatured(12), staleTime: 5 * 60 * 1000 });
+  const { data: allCategories = [] }    = useQuery({ queryKey: ['categories-roots'],    queryFn: () => categoriesApi.getRoots(), staleTime: 5 * 60 * 1000 });
+  const { data: newArrivalData }        = useQuery({ queryKey: ['products', 'new-arrivals'], queryFn: () => productsApi.getAll({ limit: 12, sortBy: 'createdAt', sortOrder: 'desc' } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
   const newArrivals = newArrivalData?.data ?? [];
-  const { data: bestData } = useQuery({ queryKey: ['products', 'bestsellers', bestTab], queryFn: () => productsApi.getAll({ limit: 12, ...(bestTab !== 'all' ? { categorySlug: BEST_TABS.find(t => t.key === bestTab)?.category } : {}) } as Parameters<typeof productsApi.getAll>[0]) });
+  const { data: bestData } = useQuery({ queryKey: ['products', 'bestsellers', bestTab], queryFn: () => productsApi.getAll({ limit: 12, ...(bestTab !== 'all' ? { categorySlug: BEST_TABS.find(t => t.key === bestTab)?.category } : {}) } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
   const bestProducts = bestData?.data ?? [];
-  const { data: shelfData } = useQuery({ queryKey: ['products', 'shelf', bookShelfTab], queryFn: () => productsApi.getAll({ categorySlug: bookShelfTab, limit: 12 } as Parameters<typeof productsApi.getAll>[0]) });
+  const { data: shelfData } = useQuery({ queryKey: ['products', 'shelf', bookShelfTab], queryFn: () => productsApi.getAll({ categorySlug: bookShelfTab, limit: 12 } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
   const shelfBooks = shelfData?.data ?? [];
-  const { data: organicData } = useQuery({ queryKey: ['products', 'organic'], queryFn: () => productsApi.getAll({ categorySlug: 'organic-foods', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
+  const { data: organicData } = useQuery({ queryKey: ['products', 'organic'], queryFn: () => productsApi.getAll({ categorySlug: 'organic-foods', limit: 6 } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
   const organicProducts = organicData?.data ?? [];
-  const { data: flashData } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]) });
+  const { data: flashData } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
   const flashProducts = (flashData?.data ?? []).filter(p => p.salePrice && Number(p.salePrice) < Number(p.basePrice) && p.images?.[0]?.url).slice(0, 12);
+  const { data: budgetData } = useQuery({ queryKey: ['products', 'budget'], queryFn: () => productsApi.getAll({ limit: 20, maxPrice: 500 } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
+  const budgetProducts = (budgetData?.data ?? []).filter(p => p.images?.[0]?.url).slice(0, 16);
 
   const slide = HERO_SLIDES[slideIndex] ?? HERO_SLIDES[0];
 
@@ -768,6 +873,21 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
+          EDITOR'S PICKS — dark overlay grid
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="সম্পাদকের পছন্দ" titleEn="Editor's Picks" href="/products?isFeatured=true" accentColor="#8b5cf6" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {featuredProducts.length > 0
+              ? featuredProducts.slice(0, 10).map(p => <EditorialCard key={p.id} product={p} lang={lang} />)
+              : Array.from({ length: 10 }).map((_, i) => <div key={i} className="aspect-[3/4] animate-pulse rounded-2xl bg-gray-200" />)
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
           ISLAMIC LIFESTYLE BANNER
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-4 px-3 md:px-4">
@@ -858,6 +978,40 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          BUDGET CORNER — portrait book covers under ৳500
+      ═══════════════════════════════════════════════════════════════ */}
+      {(budgetProducts.length > 0 || true) && (
+        <section className="py-3 px-3 md:px-4">
+          <div className="max-w-7xl mx-auto bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-base flex-shrink-0">💰</div>
+                <div>
+                  <h2 className="text-base font-black text-gray-900">{lang === 'bn' ? 'বাজেট কর্নার' : 'Budget Corner'}</h2>
+                  <p className="text-[10px] text-blue-600 font-semibold">{lang === 'bn' ? '৫০০ টাকার নিচে সেরা বই' : 'Best books under ৳500'}</p>
+                </div>
+              </div>
+              <Link href="/products?maxPrice=500" className="text-[11px] font-bold text-blue-600 flex items-center gap-0.5 hover:underline">
+                {lang === 'bn' ? 'সব দেখুন' : 'View All'} <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+              {budgetProducts.length > 0
+                ? budgetProducts.map(p => <PortraitCard key={p.id} product={p} lang={lang} />)
+                : Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-[110px] animate-pulse">
+                    <div className="w-full aspect-[2/3] bg-blue-200/50 rounded-xl mb-1.5" />
+                    <div className="h-3 bg-blue-200/50 rounded mb-1" />
+                    <div className="h-3 bg-blue-200/50 rounded w-2/3" />
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           ORGANIC PRODUCTS (only if data available)
