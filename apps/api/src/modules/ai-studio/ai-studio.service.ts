@@ -685,4 +685,42 @@ Return JSON with:
     const provider = this.providerFactory.getProvider();
     return provider.generateText(prompt);
   }
+
+  // ─── Public customer chat ─────────────────────────────────────────────────────
+
+  async chatWithCustomer(query: string, context?: string): Promise<string> {
+    try {
+      const provider = this.providerFactory.getProvider();
+      if (!provider.isConfigured()) {
+        return 'দুঃখিত, AI সহায়তা এই মুহূর্তে উপলব্ধ নেই।';
+      }
+      const systemPrompt = [
+        'আপনি UNKORA-র AI সহায়তাকারী। UNKORA বাংলাদেশের একটি অনলাইন বইয়ের দোকান।',
+        'বই, অর্ডার, ডেলিভারি এবং পেমেন্ট সংক্রান্ত প্রশ্নের উত্তর দিন।',
+        'ব্যবহারকারী যে ভাষায় প্রশ্ন করবেন সেই ভাষায় উত্তর দিন (বাংলা বা ইংরেজি)।',
+        'সংক্ষিপ্ত, সহায়ক এবং বন্ধুত্বপূর্ণ উত্তর দিন। সর্বোচ্চ ৩-৪ বাক্য।',
+        context ? `বর্তমান পেজ: ${context}` : '',
+      ].filter(Boolean).join('\n');
+      return await provider.generateText(query, { systemPrompt, maxTokens: 400 });
+    } catch (err: unknown) {
+      this.logger.error('Chat error:', err);
+      return 'দুঃখিত, একটি ত্রুটি ঘটেছে। পরে আবার চেষ্টা করুন।';
+    }
+  }
+
+  async summarizeProductReviews(reviews: { rating: number; comment: string }[]): Promise<string> {
+    try {
+      const provider = this.providerFactory.getProvider();
+      if (!provider.isConfigured() || reviews.length < 3) return '';
+      const reviewText = reviews
+        .map((r) => `রেটিং: ${r.rating}/5 — "${r.comment}"`)
+        .join('\n');
+      const prompt =
+        `নিম্নলিখিত পণ্য রিভিউগুলো পড়ে ২-৩ বাক্যে বাংলায় একটি সংক্ষিপ্ত সারসংক্ষেপ লিখুন:\n\n${reviewText}`;
+      return await provider.generateText(prompt, { maxTokens: 200 });
+    } catch (err: unknown) {
+      this.logger.error('Review summary error:', err);
+      return '';
+    }
+  }
 }

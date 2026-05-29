@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Star, Loader2, Pencil, Trash2, MessageSquare } from 'lucide-react';
 import { reviewsApi } from '@/lib/api/reviews';
 import { useAuthStore } from '@/store/auth.store';
+import { AiReviewSummary } from '@/components/product/ai-review-summary';
 
 interface ProductReviewsProps {
   productId: string;
@@ -234,6 +235,13 @@ export function ProductReviews({ productId }: ProductReviewsProps) {
         <div className="mb-6 rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
           <a href="/login" className="text-brand-600 font-medium hover:underline">Sign in</a> to leave a review
         </div>
+      )}
+
+      {/* AI Review Summary — non-blocking, shows only when ≥3 reviews exist */}
+      {!isLoading && summary && summary.reviews.length >= 3 && (
+        <AiReviewSummary
+          reviews={summary.reviews.map((r) => ({ rating: r.rating, comment: r.body ?? '' })).filter((r) => r.comment)}
+        />
       )}
 
       {/* Reviews List */}
