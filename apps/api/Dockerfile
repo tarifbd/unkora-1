@@ -1,40 +1,43 @@
-# Build stage
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS base
 WORKDIR /app
+RUN apk add --no-cache libc6-compat
 
-# Install pnpm
-RUN npm install -g pnpm@9
+# ── deps ──────────────────────────────────────────────────────────
+FROM base AS deps
+COPY package.json package-lock.json turbo.json ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/database/package.json ./packages/database/
+COPY packages/types/package.json ./packages/types/
+COPY packages/config/tsconfig/package.json ./packages/config/tsconfig/
+COPY packages/config/eslint-config/package.json ./packages/config/eslint-config/
+COPY packages/config/tailwind-config/package.json ./packages/config/tailwind-config/
+RUN npm ci --ignore-scripts
 
-# Copy workspace files
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
-COPY packages/ packages/
-COPY apps/api/ apps/api/
+# ── builder ───────────────────────────────────────────────────────
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
+RUN npx turbo build --filter=@unkora/api
 
-# Install all dependencies
-RUN pnpm install --frozen-lockfile
-
-# Generate Prisma client
-RUN pnpm --filter @unkora/database exec prisma generate
-
-# Build API
-RUN pnpm --filter @unkora/api build
-
-# Production stage
-FROM node:20-alpine AS production
+# ── runner ────────────────────────────────────────────────────────
+FROM node:22-alpine AS runner
 WORKDIR /app
-
-RUN npm install -g pnpm@9
-
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
-COPY packages/ packages/
-COPY apps/api/ apps/api/
-
-RUN pnpm install --frozen-lockfile --prod
-RUN pnpm --filter @unkora/database exec prisma generate
-
-COPY --from=builder /app/apps/api/dist ./apps/api/dist
-
-EXPOSE 3001
 ENV NODE_ENV=production
 
-CMD ["node", "apps/api/dist/main.js"]
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nestjs
+
+COPY --from=builder --chown=nestjs:nodejs /app/apps/api/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/packages/database/prisma ./prisma
+COPY --chown=nestjs:nodejs apps/api/docker/start.sh ./start.sh
+RUN chmod +x ./start.sh
+
+USER nestjs
+EXPOSE 4000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \
+  CMD wget --quiet --tries=1 --spider http://localhost:4000/api/v1/health || exit 1
+
+CMD ["./start.sh"]
