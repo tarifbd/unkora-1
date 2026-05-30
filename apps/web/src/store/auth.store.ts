@@ -30,6 +30,17 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'unkora-auth',
       partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+      onRehydrateStorage: () => (state) => {
+        // If localStorage says "logged in" but the access_token cookie is gone
+        // (e.g. after a DB wipe or server restart), clear the stale auth state
+        // synchronously before the first render so no "logged in" flash occurs.
+        if (state?.isAuthenticated && typeof document !== 'undefined') {
+          const hasCookie = document.cookie.split(';').some((c) => c.trim().startsWith('access_token='));
+          if (!hasCookie) {
+            state.clearAuth();
+          }
+        }
+      },
     },
   ),
 );

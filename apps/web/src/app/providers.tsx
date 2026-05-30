@@ -2,8 +2,20 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Toaster } from 'sonner';
 import { LanguageProvider } from '@/lib/i18n/language-context';
+import { useAuthStore } from '@/store/auth.store';
+
+function AuthLogoutHandler() {
+  const { clearAuth } = useAuthStore();
+  useEffect(() => {
+    const handler = () => clearAuth();
+    window.addEventListener('auth:logout', handler);
+    return () => window.removeEventListener('auth:logout', handler);
+  }, [clearAuth]);
+  return null;
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -12,7 +24,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
         defaultOptions: {
           queries: {
             staleTime: 60 * 1000,
-            retry: 1,
+            // Don't retry client errors (4xx) — only retry server/network errors
+            retry: (failureCount, error) => {
+              const status = (error as { response?: { status?: number } })?.response?.status;
+              if (status && status >= 400 && status < 500) return false;
+              return failureCount < 2;
+            },
+            refetchOnWindowFocus: false,
           },
         },
       }),
@@ -21,8 +39,18 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <LanguageProvider>
       <QueryClientProvider client={queryClient}>
+        <AuthLogoutHandler />
         {children}
-        <ReactQueryDevtools initialIsOpen={false} />
+        <Toaster
+          position="top-right"
+          richColors
+          closeButton
+          duration={3500}
+          toastOptions={{ style: { fontFamily: 'var(--font-sans)' } }}
+        />
+        {process.env.NODE_ENV === 'development' && (
+          <ReactQueryDevtools initialIsOpen={false} />
+        )}
       </QueryClientProvider>
     </LanguageProvider>
   );

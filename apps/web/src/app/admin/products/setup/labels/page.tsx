@@ -88,7 +88,6 @@ function LabelModal({ label, onClose, onSave }: {
             <label className="text-sm font-medium mb-2 block">Preview</label>
             <div className="flex items-center gap-2">
               <span
-                style={{ color: form.color, backgroundColor: form.bgColor }}
                 className="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold border"
                 style={{ color: form.color, backgroundColor: form.bgColor, borderColor: form.color + '40' } as React.CSSProperties}>
                 {form.name || 'Label Preview'}

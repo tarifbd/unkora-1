@@ -383,23 +383,33 @@ export default function HomePage() {
   ] as const;
 
   /* API data */
-  const { data: featuredProducts = [] } = useQuery({ queryKey: ['products', 'featured'], queryFn: () => productsApi.getFeatured(12) });
+  const { data: featuredProducts = [], isError: featuredError } = useQuery({ queryKey: ['products', 'featured'], queryFn: () => productsApi.getFeatured(12) });
   const { data: allCategories = [] }    = useQuery({ queryKey: ['categories-roots'],    queryFn: () => categoriesApi.getRoots() });
-  const { data: newArrivalData }        = useQuery({ queryKey: ['products', 'new-arrivals'], queryFn: () => productsApi.getAll({ limit: 12, sortBy: 'createdAt', sortOrder: 'desc' } as Parameters<typeof productsApi.getAll>[0]) });
+  const { data: newArrivalData, isError: newArrivalsError } = useQuery({ queryKey: ['products', 'new-arrivals'], queryFn: () => productsApi.getAll({ limit: 12, sortBy: 'createdAt', sortOrder: 'desc' } as Parameters<typeof productsApi.getAll>[0]) });
   const newArrivals = newArrivalData?.data ?? [];
-  const { data: bestData } = useQuery({ queryKey: ['products', 'bestsellers', bestTab], queryFn: () => productsApi.getAll({ limit: 12, ...(bestTab !== 'all' ? { categorySlug: BEST_TABS.find(t => t.key === bestTab)?.category } : {}) } as Parameters<typeof productsApi.getAll>[0]) });
+  const { data: bestData, isError: bestError } = useQuery({ queryKey: ['products', 'bestsellers', bestTab], queryFn: () => productsApi.getAll({ limit: 12, ...(bestTab !== 'all' ? { categorySlug: BEST_TABS.find(t => t.key === bestTab)?.category } : {}) } as Parameters<typeof productsApi.getAll>[0]) });
   const bestProducts = bestData?.data ?? [];
-  const { data: shelfData } = useQuery({ queryKey: ['products', 'shelf', bookShelfTab], queryFn: () => productsApi.getAll({ categorySlug: bookShelfTab, limit: 12 } as Parameters<typeof productsApi.getAll>[0]) });
+  const { data: shelfData, isError: shelfError } = useQuery({ queryKey: ['products', 'shelf', bookShelfTab], queryFn: () => productsApi.getAll({ categorySlug: bookShelfTab, limit: 12 } as Parameters<typeof productsApi.getAll>[0]) });
   const shelfBooks = shelfData?.data ?? [];
   const { data: organicData } = useQuery({ queryKey: ['products', 'organic'], queryFn: () => productsApi.getAll({ categorySlug: 'organic-foods', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
   const organicProducts = organicData?.data ?? [];
-  const { data: flashData } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]) });
+  const { data: flashData, isError: flashError } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]) });
   const flashProducts = (flashData?.data ?? []).filter(p => p.salePrice && Number(p.salePrice) < Number(p.basePrice) && p.images?.[0]?.url).slice(0, 12);
 
-  const slide = HERO_SLIDES[slideIndex];
+  // Show a banner when all main product queries fail (API unreachable)
+  const apiDown = newArrivalsError && bestError && flashError && featuredError && shelfError;
+
+  const slide = HERO_SLIDES[slideIndex] ?? HERO_SLIDES[0];
 
   return (
     <div style={{ backgroundColor: '#f5f5f5' }}>
+      {/* API unreachable banner */}
+      {apiDown && (
+        <div className="w-full bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-center gap-2 text-sm text-amber-800">
+          <span>⚠️</span>
+          <span>{lang === 'bn' ? 'API সংযোগ সমস্যা — সার্ভার চালু আছে কিনা দেখুন।' : 'API connection error — please check if the server is running.'}</span>
+        </div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           HERO SECTION — keep as is
