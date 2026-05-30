@@ -49,14 +49,14 @@ async function main() {
 
   await prisma.seller.upsert({
     where: { userId: sellerUser.id },
-    update: { status: 'APPROVED', isVerified: true },
+    update: { status: 'ACTIVE', isVerified: true },
     create: {
       userId: sellerUser.id,
       shopName: 'করিম বুকস',
       shopSlug: 'karim-books',
       description: 'সেরা বাংলা বইয়ের দোকান',
       phone: '01755000099',
-      status: 'APPROVED',
+      status: 'ACTIVE',
       isVerified: true,
       commissionRate: 10,
     },
