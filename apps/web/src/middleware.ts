@@ -72,7 +72,12 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r));
 
   // Redirect unauthenticated users away from protected routes
-  if ((isProtected || isAdmin) && !accessToken) {
+  if (isAdmin && !accessToken) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/admin/login';
+    return NextResponse.redirect(url);
+  }
+  if (isProtected && !accessToken) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     const fullPath = request.nextUrl.pathname + request.nextUrl.search;

@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
+import * as argon2 from 'argon2';
 
 import { PrismaService } from '../../database/prisma.service';
 
@@ -163,6 +164,26 @@ export class AdminService {
       where: { id },
       data: dto as any,
       select: { id: true, email: true, role: true, status: true },
+    });
+  }
+
+  async createUser(dto: { email: string; firstName: string; lastName: string; phone?: string; password: string; role?: string }) {
+    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (existing) throw new ConflictException('Email already registered');
+
+    const passwordHash = await argon2.hash(dto.password);
+    return this.prisma.user.create({
+      data: {
+        email: dto.email,
+        passwordHash,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        phone: dto.phone ?? null,
+        role: (dto.role as any) ?? 'CUSTOMER',
+        status: 'ACTIVE',
+        emailVerifiedAt: new Date(),
+      },
+      select: { id: true, email: true, firstName: true, lastName: true, role: true, status: true, createdAt: true },
     });
   }
 

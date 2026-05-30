@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Query, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { FastifyReply } from 'fastify';
 
@@ -6,6 +6,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { AdminService } from './admin.service';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('admin')
@@ -50,6 +51,12 @@ export class AdminController {
   @ApiOperation({ summary: 'Get single user detail' })
   getUserById(@Param('id') id: string) {
     return this.adminService.getUserById(id);
+  }
+
+  @Post('users')
+  @ApiOperation({ summary: 'Create a new user' })
+  createUser(@Body() dto: CreateUserDto) {
+    return this.adminService.createUser(dto);
   }
 
   @Patch('users/:id')

@@ -7,7 +7,9 @@ import {
   Calendar, Phone, Mail, Shield, ShieldAlert, ShieldCheck,
   ChevronRight, UserCheck, UserX, Crown, Ban, CheckCircle2,
   AlertTriangle, Clock, TrendingUp, Package, MoreVertical,
+  Plus, Trash2, Eye, EyeOff,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { adminApi } from '@/lib/api/admin';
 import api from '@/lib/api';
 
@@ -99,6 +101,175 @@ function RiskBadge({ level }: { level: RiskLevel }) {
     <span className="flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
       <ShieldCheck className="w-3 h-3" /> Low
     </span>
+  );
+}
+
+interface CreateUserForm {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: string;
+}
+
+const defaultCreateForm: CreateUserForm = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  password: '',
+  role: 'CUSTOMER',
+};
+
+function CreateUserModal({ onClose }: { onClose: () => void }) {
+  const qc = useQueryClient();
+  const [form, setForm] = useState<CreateUserForm>(defaultCreateForm);
+  const [showPassword, setShowPassword] = useState(false);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  const createMutation = useMutation({
+    mutationFn: (data: Record<string, unknown>) => api.post('/admin/users', data).then(r => r.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success('User created successfully');
+      onClose();
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message ?? 'Failed to create user';
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload: Record<string, unknown> = {
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      email: form.email.trim(),
+      password: form.password,
+      role: form.role,
+    };
+    if (form.phone.trim()) payload.phone = form.phone.trim();
+    createMutation.mutate(payload);
+  };
+
+  const inputCls = 'w-full rounded-xl border bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50';
+
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      onClick={e => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="w-full max-w-md rounded-2xl border bg-white dark:bg-gray-800 shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50 dark:bg-gray-900">
+          <h2 className="font-bold text-base text-gray-900 dark:text-white">নতুন ইউজার তৈরি করুন</h2>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-400">First Name <span className="text-red-500">*</span></label>
+              <input
+                required
+                value={form.firstName}
+                onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))}
+                placeholder="John"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-400">Last Name <span className="text-red-500">*</span></label>
+              <input
+                required
+                value={form.lastName}
+                onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))}
+                placeholder="Doe"
+                className={inputCls}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-400">Email <span className="text-red-500">*</span></label>
+            <input
+              required
+              type="email"
+              value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              placeholder="john@example.com"
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-400">Phone <span className="text-gray-400 font-normal">(optional)</span></label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+              placeholder="+880..."
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-400">Password <span className="text-red-500">*</span></label>
+            <div className="relative">
+              <input
+                required
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                placeholder="Min 8 chars, upper, lower, number"
+                className={`${inputCls} pr-10`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(s => !s)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-400">Role</label>
+            <select
+              value={form.role}
+              onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+              className={inputCls}
+            >
+              <option value="CUSTOMER">Customer</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+            >
+              {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              Create User
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -364,6 +535,15 @@ function UserRow({ user, onOpen }: { user: UserDetail; onOpen: () => void }) {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete(`/admin/users/${user.id}`),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success('User deleted successfully');
+    },
+    onError: () => toast.error('Failed to delete user'),
+  });
+
   return (
     <tr className="hover:bg-gray-50 transition-colors cursor-pointer group" onClick={onOpen}>
       <td className="px-4 py-3">
@@ -421,6 +601,18 @@ function UserRow({ user, onOpen }: { user: UserDetail; onOpen: () => void }) {
               : user.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
           </button>
           <button
+            onClick={() => {
+              if (window.confirm(`Delete user "${user.name}"? This will suspend their account.`)) {
+                deleteMutation.mutate();
+              }
+            }}
+            disabled={deleteMutation.isPending}
+            className="p-1 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+            title="Delete user"
+          >
+            {deleteMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+          </button>
+          <button
             onClick={onOpen}
             className="p-1 rounded-lg hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
           >
@@ -439,6 +631,7 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -491,6 +684,13 @@ export default function AdminUsersPage() {
             className="w-full rounded-xl border bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
           />
         </div>
+
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="w-4 h-4" /> নতুন ইউজার
+        </button>
 
         <div className="flex flex-wrap items-center gap-1.5">
           {ROLE_TABS.map(r => (
@@ -599,6 +799,9 @@ export default function AdminUsersPage() {
           </div>
         </div>
       )}
+
+      {/* Create User modal */}
+      {showCreateModal && <CreateUserModal onClose={() => setShowCreateModal(false)} />}
 
       {/* Customer detail modal */}
       {selectedUser && <CustomerModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
