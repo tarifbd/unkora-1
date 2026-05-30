@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 /* ─── Nav tree structure ─────────────────────────────────────── */
 type NavLeaf = { href: string; label: string; icon: React.ElementType; exact?: boolean };
@@ -524,6 +525,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleClearCache = useCallback(async () => {
+    setClearing(true);
+    queryClient.clear();
+    await new Promise(r => setTimeout(r, 400));
+    setClearing(false);
+    window.location.reload();
+  }, [queryClient]);
 
   useEffect(() => {
     if (!isAuthenticated) { router.push('/admin/login'); return; }
@@ -583,17 +594,47 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            {/* Context-aware Add New */}
+            {(() => {
+              const addHref = Object.entries(ADD_NEW_MAP).find(([k]) => pathname.startsWith(k))?.[1];
+              return addHref ? (
+                <Link
+                  href={addHref}
+                  className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Add New</span>
+                </Link>
+              ) : null;
+            })()}
+
+            {/* View Store */}
             <Link
               href="/"
+              target="_blank"
               className="hidden sm:flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             >
-              View Store
+              Store
               <ExternalLink className="h-3 w-3" />
             </Link>
-            <button className="rounded-lg p-2 text-muted-foreground hover:bg-accent">
+
+            {/* Clear cache */}
+            <button
+              onClick={handleClearCache}
+              disabled={clearing}
+              title="Clear cache & reload"
+              className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${clearing ? 'animate-spin' : ''}`} />
+            </button>
+
+            {/* Notifications */}
+            <button className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
               <Bell className="h-4 w-4" />
             </button>
+
+            {/* Avatar */}
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
               {initials}
             </div>
