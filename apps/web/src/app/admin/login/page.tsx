@@ -1,123 +1,101 @@
 'use client';
 
 import { useState } from 'react';
-import { Eye, EyeOff, Loader2, Shield, Lock } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useRouter } from 'next/navigation';
-import { authApi } from '@/lib/api/auth';
 import { useAuthStore } from '@/store/auth.store';
-import { saveUserRole } from '@/lib/api';
-
-const schema = z.object({
-  email:    z.string().email(),
-  password: z.string().min(1),
-});
-type FormData = z.infer<typeof schema>;
+import { authApi } from '@/lib/api/auth';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const { setUser } = useAuthStore();
-  const [showPw, setShowPw] = useState(false);
+  const { setUser, isAuthenticated, user } = useAuthStore();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
-  });
+  // Already logged in as admin — go straight to admin dashboard
+  if (isAuthenticated && (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN')) {
+    router.replace('/admin');
+    return null;
+  }
 
-  const onSubmit = async (data: FormData) => {
-    setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError('');
+    setLoading(true);
     try {
-      const { user } = await authApi.login(data.email, data.password);
-      if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
-        setError('Access denied. Admin credentials required.');
-        setLoading(false);
+      const { user: loggedIn } = await authApi.login(email, password);
+      if (loggedIn.role !== 'ADMIN' && loggedIn.role !== 'SUPER_ADMIN') {
+        setError('এই অ্যাকাউন্টে অ্যাডমিন অ্যাক্সেস নেই।');
         return;
       }
-      setUser(user);
-      saveUserRole(user.role);
+      setUser(loggedIn);
       router.push('/admin');
-    } catch {
-      setError('Invalid credentials');
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message;
+      const raw = Array.isArray(msg) ? msg[0] : msg;
+      setError(raw ?? 'ইমেইল বা পাসওয়ার্ড সঠিক নয়।');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-950 px-4">
       <div className="w-full max-w-sm">
         {/* Logo */}
-        <div className="text-center mb-10">
-          <div className="w-14 h-14 bg-gray-800 border border-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Shield className="w-7 h-7 text-primary" />
-          </div>
-          <h1 className="text-white text-xl font-black tracking-tight">UNKORA Admin</h1>
-          <p className="text-gray-500 text-sm mt-1">Restricted access — authorized users only</p>
+        <div className="text-center mb-8">
+          <h1 className="font-serif text-3xl font-black text-white tracking-wide">UNKORA</h1>
+          <p className="text-sm text-gray-400 mt-1">Admin Panel</p>
         </div>
 
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Card */}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl">
+          <h2 className="text-lg font-bold text-white mb-6">Sign in to Admin</h2>
+
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-900/40 border border-red-700/50 px-4 py-3 text-sm text-red-300">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Email Address
-              </label>
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">Email</label>
               <input
-                {...register('email')}
                 type="email"
-                autoComplete="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
                 placeholder="admin@unkora.com"
-                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-primary transition-colors"
+                className="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
               />
-              {errors.email && <p className="text-xs text-red-400 mt-1">Valid email required</p>}
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  {...register('password')}
-                  type={showPw ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  placeholder="••••••••••••"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 pr-11 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-primary transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPw(v => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
-                >
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {errors.password && <p className="text-xs text-red-400 mt-1">Password required</p>}
+              <label className="block text-xs font-medium text-gray-400 mb-1.5">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="w-full rounded-lg bg-gray-800 border border-gray-700 px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
+              />
             </div>
-
-            {error && (
-              <div className="flex items-center gap-2 bg-red-950/50 border border-red-800 rounded-xl px-4 py-3">
-                <Lock className="w-4 h-4 text-red-400 flex-shrink-0" />
-                <p className="text-sm text-red-400">{error}</p>
-              </div>
-            )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-60 text-sm mt-2"
+              className="w-full rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-bold text-white hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-2"
             >
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
-              {loading ? 'Signing in...' : 'Access Admin Panel'}
+              {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-gray-700 text-xs mt-8">
-          This is a secure area. Unauthorized access is prohibited.
+        <p className="mt-4 text-center text-xs text-gray-600">
+          Admin access only · Unauthorized logins are logged
         </p>
       </div>
     </div>

@@ -10,16 +10,11 @@ import {
   RotateCcw, Bike, FileText, User, Sliders, Gavel, Layers,
   CreditCard, Star, Share2, Monitor, Store, MessageCircle,
   DollarSign, RefreshCw, Bell as BellIcon, Mail, Search,
-  Users2, PieChart, UserCog, Palette, MapPin, Map, Rocket,
-  Puzzle, Sparkles, Newspaper, CalendarClock, LifeBuoy, LayoutGrid,
-  Bot, Boxes, Activity, Warehouse, ShoppingCart, ArrowRight,
-  BookOpen, Cpu, Shield,
+  Users2, PieChart, UserCog, Palette,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
-import { useEffect, useState, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { useEffect, useState } from 'react';
 
 /* ─── Nav tree structure ─────────────────────────────────────── */
 type NavLeaf = { href: string; label: string; icon: React.ElementType; exact?: boolean };
@@ -39,14 +34,7 @@ const NAV: NavItem[] = [
     children: [
       { href: '/admin/products',             label: 'All Products',    icon: Package },
       { href: '/admin/products/new',         label: 'Add New Product', icon: Plus },
-      { href: '/admin/inventory',            label: 'Inventory',        icon: Archive },
-      { href: '/admin/inventory/stocks',     label: '— Stocks',         icon: Boxes },
-      { href: '/admin/inventory/movements',  label: '— Movements',      icon: Activity },
-      { href: '/admin/inventory/adjustments',label: '— Adjustments',    icon: RefreshCw },
-      { href: '/admin/inventory/alerts',     label: '— Alerts',         icon: Bell },
-      { href: '/admin/inventory/warehouses', label: '— Warehouses',     icon: Warehouse },
-      { href: '/admin/inventory/suppliers',  label: '— Suppliers',      icon: Users },
-      { href: '/admin/inventory/purchase-orders', label: '— Purchase Orders', icon: ShoppingCart },
+      { href: '/admin/inventory',            label: 'Inventory',       icon: Archive },
       { href: '/admin/products/setup',       label: 'Product Setup',   icon: Sliders },
       { href: '/admin/auctions',             label: 'Auctions',        icon: Gavel },
     ],
@@ -55,9 +43,6 @@ const NAV: NavItem[] = [
     label: 'Sales', icon: ShoppingBag,
     children: [
       { href: '/admin/orders',       label: 'Orders',          icon: ShoppingBag },
-      { href: '/admin/preorders',    label: 'Preorders',       icon: CalendarClock },
-      { href: '/admin/preorders/configurations', label: '— Configurations', icon: Boxes },
-      { href: '/admin/preorders/orders',         label: '— Orders',          icon: ShoppingBag },
       { href: '/admin/shipments',    label: 'Shipments',       icon: Truck },
       { href: '/admin/coupons',      label: 'Coupons',         icon: Ticket },
       { href: '/admin/promotions',   label: 'Promotions',      icon: Zap },
@@ -65,7 +50,6 @@ const NAV: NavItem[] = [
       { href: '/admin/flash-deals',  label: 'Flash Deals',     icon: Zap },
       { href: '/admin/wholesale',    label: 'Wholesale',       icon: Layers },
       { href: '/admin/gift-cards',   label: 'Gift Cards',      icon: CreditCard },
-      { href: '/admin/classifieds',  label: 'Classifieds',     icon: Newspaper },
       { href: '/admin/fraud',        label: 'Fraud Detection', icon: ShieldAlert },
     ],
   },
@@ -73,11 +57,8 @@ const NAV: NavItem[] = [
     label: 'Operations', icon: Monitor,
     children: [
       { href: '/admin/pos',                 label: 'POS Terminal',       icon: Monitor },
-      { href: '/admin/sellers',             label: 'Sellers & Books',    icon: Store },
+      { href: '/admin/sellers',             label: 'Sellers',            icon: Store },
       { href: '/admin/courier',             label: 'Courier',            icon: Truck },
-      { href: '/admin/shiprocket',          label: 'Shiprocket',         icon: Rocket },
-      { href: '/admin/pickup-points',       label: 'Pickup Points',      icon: MapPin },
-      { href: '/admin/shipping-zones',      label: 'Shipping Zones',     icon: Map },
       { href: '/admin/cod-reconciliation',  label: 'COD Reconciliation', icon: DollarSign },
       { href: '/admin/returns',             label: 'Returns',            icon: RefreshCw },
     ],
@@ -91,12 +72,11 @@ const NAV: NavItem[] = [
   {
     label: 'Community', icon: Users,
     children: [
-      { href: '/admin/users',     label: 'Users',            icon: Users },
-      { href: '/admin/reviews',   label: 'Reviews',          icon: MessageSquare },
-      { href: '/admin/support',   label: 'Support Tickets',  icon: LifeBuoy },
-      { href: '/admin/blog',      label: 'Blog',             icon: FileText },
-      { href: '/admin/loyalty',   label: 'Club Points',      icon: Star },
-      { href: '/admin/referrals', label: 'Referrals',        icon: Share2 },
+      { href: '/admin/users',     label: 'Users',         icon: Users },
+      { href: '/admin/reviews',   label: 'Reviews',       icon: MessageSquare },
+      { href: '/admin/blog',      label: 'Blog',          icon: FileText },
+      { href: '/admin/loyalty',   label: 'Club Points',   icon: Star },
+      { href: '/admin/referrals', label: 'Referrals',     icon: Share2 },
     ],
   },
   {
@@ -107,7 +87,6 @@ const NAV: NavItem[] = [
       { href: '/admin/analytics/google-analytics',       label: 'Google Analytics',   icon: BarChart3 },
       { href: '/admin/analytics/google-tag-manager',     label: 'Tag Manager',        icon: Tag },
       { href: '/admin/analytics/google-search-console',  label: 'Search Console',     icon: Globe },
-      { href: '/admin/popups',                           label: 'Popups & Banners',   icon: LayoutGrid },
       { href: '/admin/sms',                              label: 'SMS',                icon: MessageCircle },
       { href: '/admin/notifications',                    label: 'Push Notifications', icon: BellIcon },
       { href: '/admin/email-campaigns',                  label: 'Email Campaigns',    icon: Mail },
@@ -116,13 +95,7 @@ const NAV: NavItem[] = [
   {
     label: 'SEO', icon: Search,
     children: [
-      { href: '/admin/seo',             label: 'SEO Dashboard',  icon: Search },
-      { href: '/admin/seo/products',    label: '— Product SEO',  icon: Package },
-      { href: '/admin/seo/categories',  label: '— Category SEO', icon: Tag },
-      { href: '/admin/seo/redirects',   label: '— Redirects',    icon: ArrowRight },
-      { href: '/admin/seo/sitemap',     label: '— Sitemap',      icon: Globe },
-      { href: '/admin/seo/robots',      label: '— Robots.txt',   icon: Shield },
-      { href: '/admin/seo/settings',    label: '— SEO Settings', icon: Sliders },
+      { href: '/admin/seo', label: 'SEO Tools', icon: Search },
     ],
   },
   {
@@ -136,13 +109,6 @@ const NAV: NavItem[] = [
   {
     label: 'Configuration', icon: Settings,
     children: [
-      { href: '/admin/addons',              label: 'Add-ons',             icon: Puzzle },
-      { href: '/admin/ai-studio',                label: 'AI Studio',            icon: Bot },
-      { href: '/admin/ai-studio/providers',     label: '— AI Providers',       icon: Cpu },
-      { href: '/admin/ai-studio/orchestrator',  label: '— Hermez Orchestrator',icon: Sparkles },
-      { href: '/admin/ai-studio/logs',          label: '— AI Logs',            icon: Activity },
-      { href: '/admin/ai-studio/library',       label: '— AI Library',         icon: BookOpen },
-      { href: '/admin/ai-studio/agents',        label: '— AI Agents',          icon: Cpu },
       { href: '/admin/localization', label: 'Multi-Currency/Lang', icon: Globe },
       { href: '/admin/design',       label: 'Design Studio',       icon: Palette },
       { href: '/admin/staff',        label: 'Staff & Permissions', icon: UserCog },
@@ -243,13 +209,6 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/referrals': 'Referral Program',
   '/admin/categories': 'Categories',
   '/admin/inventory': 'Inventory',
-  '/admin/inventory/stocks': 'Stocks',
-  '/admin/inventory/movements': 'Movements',
-  '/admin/inventory/adjustments': 'Adjustments',
-  '/admin/inventory/alerts': 'Alerts',
-  '/admin/inventory/warehouses': 'Warehouses',
-  '/admin/inventory/suppliers': 'Suppliers',
-  '/admin/inventory/purchase-orders': 'Purchase Orders',
   '/admin/orders': 'Orders',
   '/admin/shipments': 'Shipments',
   '/admin/coupons': 'Coupons',
@@ -276,33 +235,13 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/returns': 'Returns & Exchanges',
   '/admin/notifications': 'Push Notifications',
   '/admin/email-campaigns': 'Email Campaigns',
-  '/admin/seo': 'Advanced SEO',
-  '/admin/seo/products': 'Product SEO',
-  '/admin/seo/categories': 'Category SEO',
-  '/admin/seo/redirects': 'Redirect Manager',
-  '/admin/seo/sitemap': 'Sitemap Manager',
-  '/admin/seo/robots': 'Robots.txt',
-  '/admin/seo/settings': 'SEO Settings',
+  '/admin/seo': 'SEO Tools',
   '/admin/localization': 'Multi-Currency & Languages',
   '/admin/affiliates': 'Affiliate Marketing',
   '/admin/segments': 'Customer Segments',
   '/admin/advanced-reports': 'Advanced Reports',
   '/admin/staff': 'Staff & Permissions',
   '/admin/design': 'Design Studio',
-  '/admin/preorders': 'Preorders',
-  '/admin/classifieds': 'Classifieds',
-  '/admin/shiprocket': 'Shiprocket Integration',
-  '/admin/pickup-points': 'Pickup Points',
-  '/admin/shipping-zones': 'Shipping Zones',
-  '/admin/support': 'Customer Support',
-  '/admin/popups': 'Popups & Banners',
-  '/admin/addons': 'Add-ons & Plugins',
-  '/admin/ai-studio': 'AI Studio',
-  '/admin/ai-studio/providers': 'AI Provider Hub',
-  '/admin/ai-studio/orchestrator': 'Hermez Orchestrator',
-  '/admin/ai-studio/logs': 'AI Generation Logs',
-  '/admin/ai-studio/library': 'AI Content Library',
-  '/admin/ai-studio/agents': 'AI Agents',
 };
 
 /* ─── Sidebar content ────────────────────────────────────────── */
@@ -410,124 +349,6 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   );
 }
 
-/* ─── Persistent Admin Top Bar ──────────────────────────────── */
-const TOP_NAV = [
-  { label: 'Dashboard',          href: '/admin' },
-  { label: 'Orders',             href: '/admin/orders' },
-  { label: 'Preorders',          href: '/admin/preorders' },
-  { label: 'Earnings',           href: '/admin/advanced-reports' },
-  { label: 'Homepage Settings',  href: '/admin/design' },
-];
-
-const ADD_NEW_ITEMS = [
-  { label: 'New Product',    href: '/admin/products/new',  icon: Package },
-  { label: 'New Coupon',     href: '/admin/coupons',        icon: Ticket },
-  { label: 'New Blog Post',  href: '/admin/blog/new',       icon: FileText },
-  { label: 'New Popup',      href: '/admin/popups',         icon: Layers },
-  { label: 'New Category',   href: '/admin/categories',     icon: Tag },
-];
-
-function AdminTopBar() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const qc = useQueryClient();
-  const [clearing, setClearing] = useState(false);
-  const [addOpen, setAddOpen] = useState(false);
-  const dropRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (dropRef.current && !dropRef.current.contains(e.target as Node)) setAddOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const handleClearCache = async () => {
-    setClearing(true);
-    try {
-      qc.clear();
-      router.refresh();
-      toast.success('Cache cleared!');
-    } finally {
-      setClearing(false);
-    }
-  };
-
-  return (
-    <div className="sticky top-[57px] z-30 border-b bg-white dark:bg-gray-900 shadow-sm">
-      <div className="flex items-center gap-1 px-3 sm:px-4 h-11 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-
-        {/* Icon shortcuts */}
-        <div className="flex items-center gap-1 pr-2 mr-1 border-r border-border flex-shrink-0">
-          <Link href="/" target="_blank"
-            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-            title="View Store">
-            <Globe className="h-3.5 w-3.5" />
-          </Link>
-          <Link href="/admin/pos"
-            className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
-            title="POS Terminal">
-            <Monitor className="h-3.5 w-3.5" />
-          </Link>
-          <button
-            onClick={handleClearCache}
-            disabled={clearing}
-            title="Clear Cache"
-            className="flex h-7 w-7 items-center justify-center rounded-md bg-sky-500 text-white hover:bg-sky-600 transition-colors disabled:opacity-60"
-          >
-            {clearing
-              ? <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-              : <RefreshCw className="h-3.5 w-3.5" />}
-          </button>
-        </div>
-
-        {/* Persistent nav links */}
-        <nav className="flex items-center gap-0.5 flex-1 overflow-x-auto [scrollbar-width:none]">
-          {TOP_NAV.map(({ label, href }) => {
-            const active = href === '/admin' ? pathname === '/admin' : pathname.startsWith(href);
-            return (
-              <Link key={href} href={href}
-                className={`flex-shrink-0 px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap
-                  ${active
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                  }`}>
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Add New + dropdown */}
-        <div className="flex-shrink-0 ml-2 relative" ref={dropRef}>
-          <button
-            onClick={() => setAddOpen(v => !v)}
-            className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Add New</span>
-            <span className="sm:hidden">+</span>
-            <ChevronDown className={`h-3 w-3 transition-transform ${addOpen ? 'rotate-180' : ''}`} />
-          </button>
-          {addOpen && (
-            <div className="absolute right-0 top-full mt-1 w-44 rounded-xl border border-border bg-card shadow-lg z-50 py-1 overflow-hidden">
-              {ADD_NEW_ITEMS.map(({ label, href, icon: Icon }) => (
-                <Link key={href} href={href}
-                  onClick={() => setAddOpen(false)}
-                  className="flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-colors">
-                  <Icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                  {label}
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ─── Context-aware Quick Nav Bar ───────────────────────────── */
 const QUICK_NAV_GROUPS: Record<string, { label: string; href: string }[]> = {
   '/admin/products': [
@@ -593,7 +414,7 @@ function QuickNavBar() {
   if (!tabs) return null;
 
   return (
-    <div className="sticky top-[101px] z-20 border-b bg-background/95 backdrop-blur-sm shadow-sm">
+    <div className="sticky top-[57px] z-30 border-b bg-background/95 backdrop-blur-sm shadow-sm">
       <div className="flex items-center gap-1 px-3 sm:px-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {/* Icon shortcuts */}
         <div className="flex items-center gap-1 pr-2 mr-1 border-r border-border flex-shrink-0">
@@ -653,15 +474,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (pathname === '/admin/login') return;
     if (!isAuthenticated) { router.push('/admin/login'); return; }
     if (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN') router.push('/');
-  }, [isAuthenticated, user, router, pathname]);
+  }, [isAuthenticated, user, router]);
 
   // Close mobile sidebar on route change
   useEffect(() => { setSidebarOpen(false); }, [pathname]);
 
-  if (pathname === '/admin/login') return <>{children}</>;
   if (!isAuthenticated || (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN')) return null;
 
   const initials = user
@@ -729,7 +548,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        <AdminTopBar />
         <QuickNavBar />
         <main className="flex-1 p-3 sm:p-6">{children}</main>
       </div>

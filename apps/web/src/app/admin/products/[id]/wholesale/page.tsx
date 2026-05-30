@@ -210,7 +210,7 @@ export default function WholesalePricingPage() {
                     <div key={i} className="flex justify-between text-sm">
                       <span className="text-muted-foreground">
                         {i < sortedTiers.length - 1
-                          ? `${t.minQty} – ${(sortedTiers[i + 1]?.minQty ?? 0) - 1} units`
+                          ? `${t.minQty} – ${(sortedTiers[i + 1]?.minQty ?? t.minQty + 1) - 1} units`
                           : `${t.minQty}+ units`}
                       </span>
                       <span className="font-semibold">৳{t.price.toLocaleString('en-BD', { minimumFractionDigits: 2 })}</span>

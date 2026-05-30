@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   ChevronLeft, ChevronRight, Truck, RotateCcw, ShieldCheck, Headphones,
@@ -11,14 +11,13 @@ import {
 import { productsApi, categoriesApi, type Product } from '@/lib/api/products';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useCart } from '@/lib/hooks/use-cart';
-import { WishlistButton } from '@/components/product/wishlist-button';
 
 /* ─────────────────────── static data ─────────────────────────────── */
 
 const CAT_EMOJI: Record<string, string> = {
   books: '📚', 'baby-products': '👶', 'leather-products': '👜',
   'organic-foods': '🌿', handicrafts: '🎨', electronics: '⚡',
-  'daily-needs': '🛒', 'islamic-lifestyle': '🕌', default: '🏷️',
+  'daily-needs': '🛒', default: '🏷️',
 };
 
 const AUTHORS = [
@@ -139,7 +138,7 @@ function SectionHeader({ titleBn, titleEn, href, accentColor = '#f97316', lang }
 }
 
 /* ── Compact marketplace card (Rokomari-inspired) ── */
-const MiniCard = memo(function MiniCard({ product, lang }: { product: Product; lang: string }) {
+function MiniCard({ product, lang }: { product: Product; lang: string }) {
   const { addItem } = useCart();
   const img = product.images?.[0]?.url;
   const salePrice = Number(product.salePrice ?? product.basePrice);
@@ -152,35 +151,23 @@ const MiniCard = memo(function MiniCard({ product, lang }: { product: Product; l
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-orange-200 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
+      className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col"
     >
-      {/* ── Image ── */}
-      <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden flex-shrink-0">
+      {/* Image — fixed height for uniform cards */}
+      <div className="relative h-44 bg-gray-50 overflow-hidden flex-shrink-0">
         {img ? (
           <Image src={img} alt={product.name} fill
             className="object-cover group-hover:scale-110 transition-transform duration-500"
-            sizes="(max-width:640px) 50vw, (max-width:1024px) 25vw, 200px"
+            sizes="(max-width:640px) 50vw, (max-width:1024px) 25vw, 180px"
             unoptimized={img.includes('unsplash')} />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-4xl">📚</div>
         )}
-
-        {/* Discount badge */}
         {hasDiscount && (
-          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm">
+          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm">
             -{discountPct}%
           </span>
         )}
-
-        {/* Wishlist — top right */}
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <WishlistButton
-            productId={product.id}
-            className="w-7 h-7 bg-white/90 backdrop-blur-sm shadow-md hover:bg-red-50 rounded-full"
-          />
-        </div>
-
-        {/* Out of stock overlay */}
         {!inStock && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
             <span className="bg-gray-800 text-white text-[10px] font-bold px-3 py-1 rounded-full">
@@ -190,25 +177,19 @@ const MiniCard = memo(function MiniCard({ product, lang }: { product: Product; l
         )}
       </div>
 
-      {/* ── Info ── */}
-      <div className="p-3 flex flex-col flex-1 gap-1">
-
-        {/* Title — min 2 lines height so all cards align */}
-        <p className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors min-h-[2.75rem]">
+      {/* Info */}
+      <div className="p-2.5 flex flex-col flex-1">
+        <p className="text-[11px] font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors flex-1">
           {product.name}
         </p>
-
-        {/* Author — fixed height slot */}
-        <p className="text-[10px] text-gray-400 truncate min-h-[1.1rem]">
-          {product.bookDetail?.author ?? ' '}
-        </p>
-
-        {/* Stars */}
+        {product.bookDetail?.author && (
+          <p className="text-[10px] text-gray-400 truncate mt-0.5">{product.bookDetail.author}</p>
+        )}
         {reviewCount > 0 && (
-          <div className="flex items-center gap-1">
-            <div className="flex gap-px">
+          <div className="flex items-center gap-1 mt-1">
+            <div className="flex">
               {[1,2,3,4,5].map(i => (
-                <svg key={i} className={`w-3 h-3 ${i <= 4 ? 'text-yellow-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
+                <svg key={i} className={`w-2.5 h-2.5 ${i <= 4 ? 'text-yellow-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
               ))}
@@ -216,51 +197,32 @@ const MiniCard = memo(function MiniCard({ product, lang }: { product: Product; l
             <span className="text-[9px] text-gray-400">({reviewCount})</span>
           </div>
         )}
-
-        {/* Price — pushed to bottom */}
-        <div className="flex items-baseline gap-1.5 mt-auto pt-1">
+        <div className="flex items-baseline gap-1.5 mt-1.5">
           <span className="text-sm font-black text-primary">৳{salePrice.toLocaleString('en-BD')}</span>
           {hasDiscount && <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
         </div>
-
-        {/* ── Buttons — always 2 columns, equal width ── */}
-        <div className="grid grid-cols-2 gap-2 mt-2">
-          {/* Add to Cart */}
+        {/* Both buttons always visible */}
+        <div className="flex gap-1.5 mt-2">
           <button
-            onClick={e => {
-              e.preventDefault(); e.stopPropagation();
-              if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } });
-            }}
+            onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
             disabled={!inStock}
-            className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-bold transition-all
-              ${inStock
-                ? 'border-2 border-primary/20 text-primary hover:bg-primary hover:text-white hover:border-primary active:scale-95'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-bold transition-all ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
           >
-            <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
+            <ShoppingCart className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
           </button>
-
-          {/* Buy Now */}
-          {inStock ? (
-            <Link
-              href={`/checkout?productSlug=${product.slug}&qty=1`}
-              onClick={e => e.stopPropagation()}
-              className="flex items-center justify-center gap-1.5 py-2 bg-orange-500 text-white rounded-xl text-[11px] font-bold hover:bg-orange-600 active:scale-95 transition-all"
-            >
-              <Zap className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
+          {inStock && (
+            <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
+              className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold hover:bg-orange-600 transition-all">
+              <Zap className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
             </Link>
-          ) : (
-            <div className="flex items-center justify-center py-2 rounded-xl bg-gray-100 text-gray-400 text-[11px] font-bold">
-              {lang === 'bn' ? 'নেই' : 'N/A'}
-            </div>
           )}
         </div>
       </div>
     </Link>
   );
-});
+}
 
 /* ── Skeleton card ── */
 function SkeletonCard() {
@@ -277,156 +239,28 @@ function SkeletonCard() {
   );
 }
 
-/* ── Portrait card — tall book-cover style for Budget Corner ── */
-const PortraitCard = memo(function PortraitCard({ product, lang }: { product: Product; lang: string }) {
-  const img = product.images?.[0]?.url;
-  const salePrice = Number(product.salePrice ?? product.basePrice);
-  const basePrice = Number(product.basePrice);
-  const hasDiscount = product.salePrice && salePrice < basePrice;
-  const discountPct = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
-
-  return (
-    <Link href={`/products/${product.slug}`}
-      className="flex-shrink-0 w-[110px] group">
-      <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-gray-100 shadow-sm">
-        {img ? (
-          <Image src={img} alt={product.name} fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="110px" unoptimized={img.includes('unsplash')} />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-3xl bg-gradient-to-br from-blue-50 to-indigo-100">📚</div>
-        )}
-        {hasDiscount && (
-          <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow">
-            -{discountPct}%
-          </span>
-        )}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-6">
-          <span className="text-white text-xs font-black drop-shadow">৳{salePrice.toLocaleString('en-BD')}</span>
-        </div>
-      </div>
-      <p className="mt-1.5 text-[10px] font-semibold text-gray-700 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
-        {product.name}
-      </p>
-    </Link>
-  );
-});
-
-/* ── Editorial card — dark overlay style for Editor's Picks ── */
-const EditorialCard = memo(function EditorialCard({ product, lang }: { product: Product; lang: string }) {
-  const { addItem } = useCart();
-  const img = product.images?.[0]?.url;
-  const salePrice = Number(product.salePrice ?? product.basePrice);
-  const basePrice = Number(product.basePrice);
-  const hasDiscount = product.salePrice && salePrice < basePrice;
-  const discountPct = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
-  const inStock = product.stockQuantity > 0;
-
-  return (
-    <Link href={`/products/${product.slug}`}
-      className="group relative rounded-2xl overflow-hidden bg-gray-900 aspect-[3/4] block">
-      {img ? (
-        <Image src={img} alt={product.name} fill
-          className="object-cover opacity-75 group-hover:opacity-55 group-hover:scale-105 transition-all duration-500"
-          sizes="(max-width:640px) 50vw, (max-width:1024px) 25vw, 220px"
-          unoptimized={img.includes('unsplash')} />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-5xl bg-gradient-to-br from-blue-900 to-purple-900">📚</div>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
-      {hasDiscount && (
-        <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow">
-          -{discountPct}%
-        </span>
-      )}
-      {product.isFeatured && (
-        <span className="absolute top-3 left-3 bg-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded-lg flex items-center gap-0.5">
-          <Star className="w-2.5 h-2.5 fill-white" />{lang === 'bn' ? 'ফিচার্ড' : 'Featured'}
-        </span>
-      )}
-      <div className="absolute bottom-0 left-0 right-0 p-3">
-        <p className="text-white font-bold text-xs line-clamp-2 leading-snug mb-0.5">{product.name}</p>
-        {product.bookDetail?.author && (
-          <p className="text-white/55 text-[9px] truncate mb-2">{product.bookDetail.author}</p>
-        )}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-baseline gap-1">
-            <span className="text-orange-400 font-black text-sm">৳{salePrice.toLocaleString('en-BD')}</span>
-            {hasDiscount && <span className="text-white/40 text-[9px] line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
-          </div>
-          <div className="flex gap-1 flex-shrink-0">
-            <button
-              onClick={e => {
-                e.preventDefault(); e.stopPropagation();
-                if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } });
-              }}
-              disabled={!inStock}
-              className="flex items-center gap-1 px-2 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded-lg text-[10px] font-bold hover:bg-white/30 transition-colors disabled:opacity-40"
-            >
-              <ShoppingCart className="w-3 h-3" />
-              {lang === 'bn' ? 'কার্ট' : 'Cart'}
-            </button>
-            {inStock && (
-              <Link href={`/checkout?productSlug=${product.slug}&qty=1`} onClick={e => e.stopPropagation()}
-                className="flex items-center gap-1 px-2 py-1.5 bg-orange-500 text-white rounded-lg text-[10px] font-bold hover:bg-orange-600 transition-colors">
-                <Zap className="w-3 h-3" />
-                {lang === 'bn' ? 'কিনুন' : 'Buy'}
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-});
-
 /* ── Flash deal card — uses real Product data with cart buttons ── */
-const FlashCard = memo(function FlashCard({ product, lang }: { product: Product; lang: string }) {
+function FlashCard({ product, lang }: { product: Product; lang: string }) {
   const { addItem } = useCart();
   const [imgErr, setImgErr] = useState(false);
-  const img = (!imgErr && product.images?.[0]?.url) ? product.images[0].url : null;
+  const img = product.images?.[0]?.url;
   const salePrice = Number(product.salePrice ?? product.basePrice);
   const basePrice = Number(product.basePrice);
   const hasDiscount = product.salePrice && salePrice < basePrice;
   const discount = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
   const inStock = product.stockQuantity > 0;
-
+  if (imgErr || !img) return null;
   return (
     <Link href={`/products/${product.slug}`}
-      className="flex-shrink-0 w-[200px] group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-orange-200 hover:-translate-y-1 transition-all duration-300 flex flex-col">
-
-      {/* ── Image ── */}
-      <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden flex-shrink-0">
-        {img ? (
-          <Image src={img} alt={product.name} fill
-            className="object-cover group-hover:scale-110 transition-transform duration-500"
-            unoptimized={img.includes('unsplash') || img.includes('picsum')}
-            sizes="200px" onError={() => setImgErr(true)} />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-4xl bg-gradient-to-br from-orange-50 to-red-50">📦</div>
-        )}
-
-        {/* Discount badge */}
+      className="flex-shrink-0 w-[165px] group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
+      <div className="relative h-[200px] bg-gray-50 overflow-hidden flex-shrink-0">
+        <Image src={img} alt={product.name} fill
+          className="object-cover group-hover:scale-110 transition-transform duration-500"
+          unoptimized={img.includes('unsplash') || img.includes('picsum')}
+          sizes="165px" onError={() => setImgErr(true)} />
         {hasDiscount && (
-          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow">
-            -{discount}%
-          </span>
+          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow">-{discount}%</span>
         )}
-
-        {/* Flash badge */}
-        <span className="absolute top-2 right-2 bg-orange-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
-          <Zap className="w-2.5 h-2.5 fill-white" /> {lang === 'bn' ? 'ডিল' : 'Deal'}
-        </span>
-
-        {/* Wishlist — shows on hover */}
-        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <WishlistButton
-            productId={product.id}
-            className="w-7 h-7 bg-white/90 backdrop-blur-sm shadow-md hover:bg-red-50 rounded-full"
-          />
-        </div>
-
-        {/* Out of stock overlay */}
         {!inStock && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
             <span className="bg-gray-800 text-white text-[10px] font-bold px-3 py-1 rounded-full">
@@ -435,60 +269,37 @@ const FlashCard = memo(function FlashCard({ product, lang }: { product: Product;
           </div>
         )}
       </div>
-
-      {/* ── Info ── */}
-      <div className="p-3 flex flex-col flex-1 gap-1">
-        {/* Title — fixed 2-line height */}
-        <p className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors min-h-[2.75rem]">
+      <div className="p-2.5 flex flex-col flex-1">
+        <p className="text-[11px] font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors flex-1">
           {product.name}
         </p>
-
-        {/* Author — fixed slot */}
-        <p className="text-[10px] text-gray-400 truncate min-h-[1.1rem]">
-          {product.bookDetail?.author ?? ' '}
-        </p>
-
-        {/* Price */}
-        <div className="flex items-baseline gap-2 mt-auto pt-1">
-          <span className="text-base font-black text-red-600">৳{salePrice.toLocaleString('en-BD')}</span>
-          {hasDiscount && (
-            <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>
-          )}
+        {product.bookDetail?.author && (
+          <p className="text-[10px] text-gray-400 truncate mt-0.5">{product.bookDetail.author}</p>
+        )}
+        <div className="flex items-baseline gap-1.5 mt-1.5">
+          <span className="text-sm font-black text-red-600">৳{salePrice.toLocaleString('en-BD')}</span>
+          {hasDiscount && <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
         </div>
-
-        {/* ── Buttons — always equal 2 cols ── */}
-        <div className="grid grid-cols-2 gap-2 mt-2">
+        <div className="flex gap-1 mt-2">
           <button
-            onClick={e => {
-              e.preventDefault(); e.stopPropagation();
-              if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img ?? undefined, slug: product.slug } });
-            }}
+            onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
             disabled={!inStock}
-            className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all
-              ${inStock
-                ? 'border-2 border-primary/20 text-primary hover:bg-primary hover:text-white hover:border-primary active:scale-95'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
-          >
-            <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-bold transition-all ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
+            <ShoppingCart className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
           </button>
-
-          {inStock ? (
-            <Link href={`/checkout?productSlug=${product.slug}&qty=1`} onClick={e => e.stopPropagation()}
-              className="flex items-center justify-center gap-1.5 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 active:scale-95 transition-all">
-              <Zap className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
+          {inStock && (
+            <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
+              className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold hover:bg-orange-600 transition-all">
+              <Zap className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
             </Link>
-          ) : (
-            <div className="flex items-center justify-center py-2 rounded-xl bg-gray-100 text-gray-400 text-xs font-bold">
-              {lang === 'bn' ? 'নেই' : 'N/A'}
-            </div>
           )}
         </div>
       </div>
     </Link>
   );
-});
+}
 
 /* ── Ranking row ── */
 function RankRow({ item, index, lang }: { item: typeof RANK_DATA['Fiction'][number]; index: number; lang: string }) {
@@ -572,25 +383,33 @@ export default function HomePage() {
   ] as const;
 
   /* API data */
-  const { data: featuredProducts = [] } = useQuery({ queryKey: ['products', 'featured'], queryFn: () => productsApi.getFeatured(12), staleTime: 5 * 60 * 1000 });
-  const { data: allCategories = [] }    = useQuery({ queryKey: ['categories-roots'],    queryFn: () => categoriesApi.getRoots(), staleTime: 5 * 60 * 1000 });
-  const { data: newArrivalData }        = useQuery({ queryKey: ['products', 'new-arrivals'], queryFn: () => productsApi.getAll({ limit: 12, sortBy: 'createdAt', sortOrder: 'desc' } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
+  const { data: featuredProducts = [], isError: featuredError } = useQuery({ queryKey: ['products', 'featured'], queryFn: () => productsApi.getFeatured(12) });
+  const { data: allCategories = [] }    = useQuery({ queryKey: ['categories-roots'],    queryFn: () => categoriesApi.getRoots() });
+  const { data: newArrivalData, isError: newArrivalsError } = useQuery({ queryKey: ['products', 'new-arrivals'], queryFn: () => productsApi.getAll({ limit: 12, sortBy: 'createdAt', sortOrder: 'desc' } as Parameters<typeof productsApi.getAll>[0]) });
   const newArrivals = newArrivalData?.data ?? [];
-  const { data: bestData } = useQuery({ queryKey: ['products', 'bestsellers', bestTab], queryFn: () => productsApi.getAll({ limit: 12, ...(bestTab !== 'all' ? { categorySlug: BEST_TABS.find(t => t.key === bestTab)?.category } : {}) } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
+  const { data: bestData, isError: bestError } = useQuery({ queryKey: ['products', 'bestsellers', bestTab], queryFn: () => productsApi.getAll({ limit: 12, ...(bestTab !== 'all' ? { categorySlug: BEST_TABS.find(t => t.key === bestTab)?.category } : {}) } as Parameters<typeof productsApi.getAll>[0]) });
   const bestProducts = bestData?.data ?? [];
-  const { data: shelfData } = useQuery({ queryKey: ['products', 'shelf', bookShelfTab], queryFn: () => productsApi.getAll({ categorySlug: bookShelfTab, limit: 12 } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
+  const { data: shelfData, isError: shelfError } = useQuery({ queryKey: ['products', 'shelf', bookShelfTab], queryFn: () => productsApi.getAll({ categorySlug: bookShelfTab, limit: 12 } as Parameters<typeof productsApi.getAll>[0]) });
   const shelfBooks = shelfData?.data ?? [];
-  const { data: organicData } = useQuery({ queryKey: ['products', 'organic'], queryFn: () => productsApi.getAll({ categorySlug: 'organic-foods', limit: 6 } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
+  const { data: organicData } = useQuery({ queryKey: ['products', 'organic'], queryFn: () => productsApi.getAll({ categorySlug: 'organic-foods', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
   const organicProducts = organicData?.data ?? [];
-  const { data: flashData } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
+  const { data: flashData, isError: flashError } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]) });
   const flashProducts = (flashData?.data ?? []).filter(p => p.salePrice && Number(p.salePrice) < Number(p.basePrice) && p.images?.[0]?.url).slice(0, 12);
-  const { data: budgetData } = useQuery({ queryKey: ['products', 'budget'], queryFn: () => productsApi.getAll({ limit: 20, maxPrice: 500 } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
-  const budgetProducts = (budgetData?.data ?? []).filter(p => p.images?.[0]?.url).slice(0, 16);
+
+  // Show a banner when all main product queries fail (API unreachable)
+  const apiDown = newArrivalsError && bestError && flashError && featuredError && shelfError;
 
   const slide = HERO_SLIDES[slideIndex] ?? HERO_SLIDES[0];
 
   return (
     <div style={{ backgroundColor: '#f5f5f5' }}>
+      {/* API unreachable banner */}
+      {apiDown && (
+        <div className="w-full bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-center gap-2 text-sm text-amber-800">
+          <span>⚠️</span>
+          <span>{lang === 'bn' ? 'API সংযোগ সমস্যা — সার্ভার চালু আছে কিনা দেখুন।' : 'API connection error — please check if the server is running.'}</span>
+        </div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           HERO SECTION — keep as is
@@ -738,21 +557,15 @@ export default function HomePage() {
               <button onClick={() => scroll(flashRef, 'r')} className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronRight className="w-4 h-4 text-gray-500" /></button>
             </div>
           </div>
-          <div ref={flashRef} className="flex items-stretch gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+          <div ref={flashRef} className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
             {flashProducts.length > 0
               ? flashProducts.map(p => <FlashCard key={p.id} product={p} lang={lang} />)
               : Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-[200px] animate-pulse rounded-2xl overflow-hidden border border-gray-100">
-                  <div className="w-full aspect-[4/3] bg-gray-200" />
-                  <div className="p-3 space-y-2">
-                    <div className="h-3 bg-gray-200 rounded" />
-                    <div className="h-3 bg-gray-200 rounded w-2/3" />
-                    <div className="h-4 bg-gray-200 rounded w-1/2" />
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="h-8 bg-gray-200 rounded-xl" />
-                      <div className="h-8 bg-gray-200 rounded-xl" />
-                    </div>
-                  </div>
+                <div key={i} className="flex-shrink-0 w-[165px] animate-pulse">
+                  <div className="w-full h-[200px] rounded-2xl bg-gray-200 mb-2" />
+                  <div className="h-3 bg-gray-200 rounded mb-1 mx-2" />
+                  <div className="h-3 bg-gray-200 rounded w-2/3 mx-2 mb-2" />
+                  <div className="h-7 bg-gray-200 rounded mx-2" />
                 </div>
               ))
             }
@@ -785,11 +598,11 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          <div ref={shelfRef} className="flex items-stretch gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+          <div ref={shelfRef} className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
             {shelfBooks.length > 0 ? shelfBooks.map(p => (
-              <div key={p.id} className="flex-shrink-0 w-[185px] flex flex-col"><MiniCard product={p} lang={lang} /></div>
+              <div key={p.id} className="flex-shrink-0 w-[150px]"><MiniCard product={p} lang={lang} /></div>
             )) : Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[185px]"><SkeletonCard /></div>
+              <div key={i} className="flex-shrink-0 w-[150px]"><SkeletonCard /></div>
             ))}
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100 flex justify-center">
@@ -829,7 +642,7 @@ export default function HomePage() {
       <section className="py-3 px-3 md:px-4">
         <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="নতুন আগমন" titleEn="New Arrivals" href="/products?sortBy=createdAt&sortOrder=desc" accentColor="#f97316" lang={lang} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 items-stretch">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {newArrivals.length > 0
               ? newArrivals.slice(0, 12).map(p => <MiniCard key={p.id} product={p} lang={lang} />)
               : Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
@@ -858,7 +671,7 @@ export default function HomePage() {
               <Link href="/products" className="text-[11px] font-bold text-orange-500 hover:underline ml-1">{lang === 'bn' ? 'সব দেখুন' : 'All'}</Link>
             </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 items-stretch">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {bestProducts.length > 0
               ? bestProducts.slice(0, 12).map(p => <MiniCard key={p.id} product={p} lang={lang} />)
               : Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
@@ -869,83 +682,6 @@ export default function HomePage() {
               {lang === 'bn' ? 'সকল পণ্য দেখুন' : 'View All Products'}
             </Link>
           </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          EDITOR'S PICKS — dark overlay grid
-      ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
-          <SectionHeader titleBn="সম্পাদকের পছন্দ" titleEn="Editor's Picks" href="/products?isFeatured=true" accentColor="#8b5cf6" lang={lang} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {featuredProducts.length > 0
-              ? featuredProducts.slice(0, 10).map(p => <EditorialCard key={p.id} product={p} lang={lang} />)
-              : Array.from({ length: 10 }).map((_, i) => <div key={i} className="aspect-[3/4] animate-pulse rounded-2xl bg-gray-200" />)
-            }
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          ISLAMIC LIFESTYLE BANNER
-      ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-4 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto">
-          <Link href="/islamic-lifestyle"
-            className="group relative overflow-hidden rounded-3xl flex flex-col sm:flex-row items-center gap-0 min-h-[180px] block"
-            style={{ background: 'linear-gradient(135deg, #052e16, #064e3b, #065f46)' }}
-          >
-            {/* Islamic geometric overlay */}
-            <svg className="absolute inset-0 w-full h-full opacity-[0.06] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="il-geo-home" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-                  <g fill="none" stroke="white" strokeWidth="0.4">
-                    <polygon points="30,3 37,22 57,22 42,34 48,54 30,42 12,54 18,34 3,22 23,22" />
-                    <circle cx="30" cy="30" r="12" />
-                  </g>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#il-geo-home)" />
-            </svg>
-            {/* Glow blobs */}
-            <div className="absolute top-0 right-1/4 w-64 h-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-1/3 w-40 h-40 rounded-full bg-teal-400/8 blur-2xl pointer-events-none" />
-            {/* Gold top line */}
-            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
-
-            {/* Content */}
-            <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-5 p-7 sm:p-10 w-full">
-              {/* Icon */}
-              <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-white/10 border border-white/15 flex items-center justify-center text-4xl sm:text-5xl shadow-lg group-hover:scale-110 transition-transform duration-500">
-                🕌
-              </div>
-              {/* Text */}
-              <div className="text-center sm:text-left flex-1">
-                <div className="inline-flex items-center gap-1.5 bg-amber-500/20 border border-amber-400/30 rounded-full px-3 py-0.5 mb-2">
-                  <span className="text-[9px] font-black uppercase tracking-[0.15em] text-amber-300">New Category</span>
-                </div>
-                <div className="text-white/60 text-xs font-medium mb-1 tracking-wide" style={{ direction: 'rtl', fontFamily: 'serif' }}>بِسْمِ اللَّهِ</div>
-                <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-2">
-                  Islamic Lifestyle
-                  <span className="block text-base sm:text-lg font-bold mt-0.5" style={{ background: 'linear-gradient(90deg,#34d399,#6ee7b7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    ইসলামিক লাইফস্টাইল কালেকশন
-                  </span>
-                </h2>
-                <p className="text-white/50 text-xs sm:text-sm leading-relaxed max-w-md">
-                  তাসবিহ · জায়নামাজ · আতর · কুরআন · ইসলামিক পোশাক ও আরও অনেক কিছু
-                </p>
-              </div>
-              {/* CTA */}
-              <div className="flex-shrink-0 sm:self-center">
-                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm text-white transition-all group-hover:scale-105"
-                  style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}>
-                  দেখুন
-                  <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
-                </div>
-              </div>
-            </div>
-          </Link>
         </div>
       </section>
 
@@ -978,40 +714,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          BUDGET CORNER — portrait book covers under ৳500
-      ═══════════════════════════════════════════════════════════════ */}
-      {(budgetProducts.length > 0 || true) && (
-        <section className="py-3 px-3 md:px-4">
-          <div className="max-w-7xl mx-auto bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-base flex-shrink-0">💰</div>
-                <div>
-                  <h2 className="text-base font-black text-gray-900">{lang === 'bn' ? 'বাজেট কর্নার' : 'Budget Corner'}</h2>
-                  <p className="text-[10px] text-blue-600 font-semibold">{lang === 'bn' ? '৫০০ টাকার নিচে সেরা বই' : 'Best books under ৳500'}</p>
-                </div>
-              </div>
-              <Link href="/products?maxPrice=500" className="text-[11px] font-bold text-blue-600 flex items-center gap-0.5 hover:underline">
-                {lang === 'bn' ? 'সব দেখুন' : 'View All'} <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-            <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
-              {budgetProducts.length > 0
-                ? budgetProducts.map(p => <PortraitCard key={p.id} product={p} lang={lang} />)
-                : Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-[110px] animate-pulse">
-                    <div className="w-full aspect-[2/3] bg-blue-200/50 rounded-xl mb-1.5" />
-                    <div className="h-3 bg-blue-200/50 rounded mb-1" />
-                    <div className="h-3 bg-blue-200/50 rounded w-2/3" />
-                  </div>
-                ))
-              }
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           ORGANIC PRODUCTS (only if data available)
