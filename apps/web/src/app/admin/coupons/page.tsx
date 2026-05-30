@@ -508,6 +508,13 @@ export default function AdminCouponsPage() {
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
                       <button
+                        onClick={() => setEditingCoupon(coupon)}
+                        title="Edit coupon"
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => toggleMutation.mutate(coupon.id)}
                         disabled={toggleMutation.isPending}
                         title={coupon.isActive ? 'Deactivate' : 'Activate'}
@@ -538,6 +545,9 @@ export default function AdminCouponsPage() {
           </table>
         </div>
       )}
+
+      {/* Edit Coupon modal */}
+      {editingCoupon && <EditCouponModal coupon={editingCoupon} onClose={() => setEditingCoupon(null)} />}
     </div>
   );
 }
