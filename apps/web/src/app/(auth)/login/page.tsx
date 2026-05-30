@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { Eye, EyeOff, Loader2, BookOpen, ArrowRight, Phone, Mail } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useForm } from 'react-hook-form';
@@ -21,7 +21,7 @@ const emailSchema = z.object({
 });
 type EmailFormData = z.infer<typeof emailSchema>;
 
-export default function LoginPage() {
+function LoginContent() {
   const { login } = useAuth();
   const [showPw, setShowPw] = useState(false);
   const [lang, setLang] = useState<'bn' | 'en'>('bn');
@@ -339,5 +339,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+      <LoginContent />
+    </Suspense>
   );
 }
