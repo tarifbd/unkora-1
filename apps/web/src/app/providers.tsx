@@ -3,7 +3,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState, useEffect } from 'react';
-import { Toaster } from 'sonner';
 import { LanguageProvider } from '@/lib/i18n/language-context';
 import { useAuthStore } from '@/store/auth.store';
 
@@ -41,13 +40,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <AuthLogoutHandler />
         {children}
-        <Toaster
-          position="top-right"
-          richColors
-          closeButton
-          duration={3500}
-          toastOptions={{ style: { fontFamily: 'var(--font-sans)' } }}
-        />
         {process.env.NODE_ENV === 'development' && (
           <ReactQueryDevtools initialIsOpen={false} />
         )}
