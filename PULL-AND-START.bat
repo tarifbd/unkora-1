@@ -24,67 +24,54 @@ echo  [1/8] Configuring git user...
 git config user.email "%GIT_EMAIL%"
 git config user.name  "%GIT_NAME%"
 echo        Email : %GIT_EMAIL%
-echo        Name  : %GIT_NAME%
 echo.
 
 :: ════════════════════════════════════════════════════════════════
-::  STEP 2 — Switch to correct branch
+::  STEP 2 — Switch to correct branch + pull
 :: ════════════════════════════════════════════════════════════════
 for /f "delims=" %%b in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set CURRENT_BRANCH=%%b
 
-if "!CURRENT_BRANCH!"=="!TARGET_BRANCH!" (
-  echo  [2/8] Already on branch: !TARGET_BRANCH!
-) else (
-  echo  [2/8] Switching from !CURRENT_BRANCH! to !TARGET_BRANCH!...
+echo  [2/8] Branch: !CURRENT_BRANCH! → !TARGET_BRANCH!
 
-  :: Stash any local changes before switching
-  for /f %%c in ('git status --porcelain 2^>nul ^| find /c /v ""') do set DIRTY=%%c
-  if !DIRTY! gtr 0 (
-    echo        Stashing local changes...
-    git stash push -m "auto-stash before branch switch %date% %time%"
-    set STASHED=1
-  ) else (
-    set STASHED=0
-  )
-
-  git checkout !TARGET_BRANCH! 2>nul
-  if !errorlevel! neq 0 (
-    git checkout -b !TARGET_BRANCH! --track origin/!TARGET_BRANCH!
-    if !errorlevel! neq 0 (
-      echo.
-      echo  [ERROR] Cannot switch to branch: !TARGET_BRANCH!
-      echo         Make sure the branch exists on GitHub.
-      pause & exit /b 1
-    )
-  )
-  echo        Switched to !TARGET_BRANCH!
+:: Stash local changes if any
+for /f %%c in ('git status --porcelain 2^>nul ^| find /c /v ""') do set DIRTY=%%c
+if not defined DIRTY set DIRTY=0
+if !DIRTY! gtr 0 (
+  echo        Local changes detected — stashing...
+  git stash push -m "auto-stash %date% %time%" >nul 2>&1
 )
-echo.
 
-:: ════════════════════════════════════════════════════════════════
-::  STEP 3 — Pull latest code from GitHub
-:: ════════════════════════════════════════════════════════════════
-echo  [3/8] Pulling latest code from GitHub...
-git fetch origin !TARGET_BRANCH! 2>nul
+:: Fetch all branches
+git fetch origin >nul 2>&1
+
+:: Force checkout target branch (handles untracked files too)
+git checkout -f !TARGET_BRANCH! >nul 2>&1
+if !errorlevel! neq 0 (
+  git checkout -b !TARGET_BRANCH! --track origin/!TARGET_BRANCH! >nul 2>&1
+  if !errorlevel! neq 0 (
+    echo.
+    echo  [ERROR] Cannot switch to branch: !TARGET_BRANCH!
+    echo         Run this first:
+    echo           git fetch origin
+    echo           git checkout -f !TARGET_BRANCH!
+    pause & exit /b 1
+  )
+)
+
+:: Pull latest
 git pull origin !TARGET_BRANCH!
 if !errorlevel! neq 0 (
   echo.
-  echo  [ERROR] git pull failed!
-  echo         Possible causes:
-  echo           - No internet connection
-  echo           - GitHub credentials issue
-  echo           - Merge conflict
-  echo.
-  echo         If there are conflicts, run FRESH-START.bat to reset completely.
+  echo  [ERROR] git pull failed! Check internet connection.
   pause & exit /b 1
 )
-echo        Code is up to date!
+echo        Latest code downloaded!
 echo.
 
 :: ════════════════════════════════════════════════════════════════
-::  STEP 4 — Write .env files (required by API + Web)
+::  STEP 3 — Write .env files
 :: ════════════════════════════════════════════════════════════════
-echo  [4/8] Writing .env files...
+echo  [3/8] Writing .env files...
 
 (
 echo DATABASE_URL=postgresql://unkora:unkora_secret_dev@localhost:15432/unkora
@@ -113,72 +100,65 @@ echo        .env files written.
 echo.
 
 :: ════════════════════════════════════════════════════════════════
-::  STEP 5 — npm install (always run to catch new packages)
+::  STEP 4 — npm install
 :: ════════════════════════════════════════════════════════════════
-echo  [5/8] Installing npm dependencies...
+echo  [4/8] Installing npm dependencies...
 call npm install
 if !errorlevel! neq 0 (
-  echo.
-  echo  [ERROR] npm install failed!
-  echo         Check your internet connection and try again.
+  echo  [ERROR] npm install failed! Check internet connection.
   pause & exit /b 1
 )
-echo        Dependencies installed.
+echo        Done.
 echo.
 
 :: ════════════════════════════════════════════════════════════════
-::  STEP 6 — Start Docker Postgres
+::  STEP 5 — Start Docker Postgres
 :: ════════════════════════════════════════════════════════════════
-echo  [6/8] Starting Docker Postgres...
+echo  [5/8] Starting Docker Postgres...
 
 docker info >nul 2>&1
 if !errorlevel! neq 0 (
   echo.
-  echo  ╔═══════════════════════════════════════════════════╗
-  echo  ║  [ERROR]  Docker Desktop is NOT running!           ║
-  echo  ║                                                    ║
-  echo  ║  Please:                                           ║
-  echo  ║    1. Open Docker Desktop from Start Menu          ║
-  echo  ║    2. Wait until Docker icon in taskbar is green   ║
-  echo  ║    3. Run this file again                          ║
-  echo  ╚═══════════════════════════════════════════════════╝
+  echo  ╔════════════════════════════════════════════════════╗
+  echo  ║  [ERROR]  Docker Desktop is NOT running!            ║
+  echo  ║                                                     ║
+  echo  ║   1. Open Docker Desktop from Start Menu            ║
+  echo  ║   2. Wait until taskbar icon turns green            ║
+  echo  ║   3. Run this file again                            ║
+  echo  ╚════════════════════════════════════════════════════╝
   echo.
   pause & exit /b 1
 )
 
-:: Kill any stale node processes (frees Prisma DLL lock on Windows)
+:: Kill node to release Prisma DLL lock (Windows requirement)
 taskkill /F /IM node.exe >nul 2>&1
 timeout /t 2 /nobreak >nul
 
 docker-compose -f docker-compose.dev.yml up -d --remove-orphans >nul 2>&1
 if !errorlevel! neq 0 (
-  docker compose -f docker-compose.dev.yml up -d --remove-orphans
-  if !errorlevel! neq 0 (
-    echo  [ERROR] Could not start Docker Postgres. Check Docker Desktop.
-    pause & exit /b 1
-  )
+  docker compose -f docker-compose.dev.yml up -d --remove-orphans >nul 2>&1
 )
 
-echo        Waiting for Postgres to be ready...
+echo        Waiting for Postgres...
 set /a pg_tries=0
 :WAIT_PG
 set /a pg_tries+=1
 docker exec unkora_postgres_dev pg_isready -U unkora -d unkora >nul 2>&1
 if !errorlevel! neq 0 (
-  if !pg_tries! geq 30 (
-    echo  [ERROR] Postgres did not start after 60 seconds. Check Docker Desktop.
+  if !pg_tries! geq 40 (
+    echo  [ERROR] Postgres did not start after 80s. Check Docker Desktop.
     pause & exit /b 1
   )
   timeout /t 2 /nobreak >nul
   goto WAIT_PG
 )
-echo        Postgres ready after !pg_tries! checks.
+echo        Postgres ready!
 echo.
 
 :: ════════════════════════════════════════════════════════════════
-::  STEP 7 — Prisma: generate + migrate + seed
+::  STEP 6 — Prisma: generate + migrate
 :: ════════════════════════════════════════════════════════════════
-echo  [7/8] Setting up database (Prisma)...
+echo  [6/8] Setting up database schema (Prisma)...
 cd packages\database
 
 echo        Generating Prisma client...
@@ -192,63 +172,99 @@ if !errorlevel! neq 0 (
 echo        Applying migrations...
 call npx prisma migrate deploy
 if !errorlevel! neq 0 (
-  echo  [WARN] prisma migrate deploy had issues.
-  echo         If the database is badly out of sync, run FRESH-START.bat
-  cd ..\..
-  pause & exit /b 1
-)
-
-:: Seed only if no products exist yet
-for /f %%n in ('docker exec unkora_postgres_dev psql -U unkora -d unkora -tAc "SELECT COUNT(*) FROM products;" 2^>nul') do set PROD_COUNT=%%n
-if "!PROD_COUNT!"=="" set PROD_COUNT=0
-
-if !PROD_COUNT! lss 5 (
-  echo        Only !PROD_COUNT! products found — seeding database...
-  call npx prisma db seed
+  echo.
+  echo  [WARN] migrate deploy failed. Trying db push instead...
+  call npx prisma db push --accept-data-loss
   if !errorlevel! neq 0 (
-    echo  [WARN] Seed had errors. App may still work — check manually.
-  ) else (
-    echo        Seed complete!
+    echo  [ERROR] Database schema setup failed!
+    echo         Try: delete the Docker volume and run again
+    echo         Command: docker volume rm unkora-1_postgres_dev_data
+    cd ..\..
+    pause & exit /b 1
   )
-) else (
-  echo        !PROD_COUNT! products in database — seed skipped.
 )
-
+echo        Schema ready!
 cd ..\..
-echo        Database ready!
 echo.
 
 :: ════════════════════════════════════════════════════════════════
-::  STEP 8 — Free ports then launch API + Web in separate windows
+::  STEP 7 — Seed database
+::  Always run seed — all inserts use "upsert" so it's safe
+::  to run multiple times without duplicating data
 :: ════════════════════════════════════════════════════════════════
-echo  [8/8] Freeing ports and launching servers...
+echo  [7/8] Seeding database with sample data...
+echo        (This creates admin, products, categories etc.)
+echo        (Safe to run again — uses upsert, no duplicates)
+echo.
 
-for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":4000 " ^| findstr LISTENING') do (
-  taskkill /F /PID %%a >nul 2>&1
+cd packages\database
+
+:: Check if products table has data
+set PROD_COUNT=0
+for /f "usebackq tokens=*" %%n in (`docker exec unkora_postgres_dev psql -U unkora -d unkora -tAc "SELECT COUNT(*) FROM products;" 2^>nul`) do (
+  set RAW=%%n
+  set RAW=!RAW: =!
+  if not "!RAW!"=="" set PROD_COUNT=!RAW!
 )
-for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":3000 " ^| findstr LISTENING') do (
-  taskkill /F /PID %%a >nul 2>&1
+
+echo        Current products in DB: !PROD_COUNT!
+
+if !PROD_COUNT! lss 5 (
+  echo        Seeding now — please wait...
+  echo.
+  call npx prisma db seed
+  if !errorlevel! neq 0 (
+    echo.
+    echo  ╔════════════════════════════════════════════════════╗
+    echo  ║  [SEED ERROR] Seed script had errors!              ║
+    echo  ║                                                     ║
+    echo  ║  Common fixes:                                      ║
+    echo  ║   1. Run FRESH-START.bat (wipes DB, starts fresh)   ║
+    echo  ║   2. Check if Docker is running                     ║
+    echo  ║   3. Run manually: cd packages\database             ║
+    echo  ║                    npx prisma db seed               ║
+    echo  ╚════════════════════════════════════════════════════╝
+    echo.
+    echo  Continuing anyway — app may work with partial data.
+    echo.
+  ) else (
+    echo.
+    echo        Seed complete!
+  )
+) else (
+  echo        !PROD_COUNT! products found — seed skipped.
+  echo        (Run RESEED.bat to force fresh seed)
 )
+
+cd ..\..
+echo.
+
+:: ════════════════════════════════════════════════════════════════
+::  STEP 8 — Free ports + Launch API + Web
+:: ════════════════════════════════════════════════════════════════
+echo  [8/8] Launching API and Web servers...
+
+:: Free ports 3000 and 4000
+for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":4000 " ^| findstr LISTENING') do taskkill /F /PID %%a >nul 2>&1
+for /f "tokens=5" %%a in ('netstat -ano 2^>nul ^| findstr ":3000 " ^| findstr LISTENING') do taskkill /F /PID %%a >nul 2>&1
 timeout /t 2 /nobreak >nul
 
 :: API — blue window
-start "UNKORA API :4000" cmd /k "color 0B && echo. && echo  API Server starting on port 4000... && echo  Wait until you see: Application is running on: http://localhost:4000 && echo. && cd /d %~dp0apps\api && npm run dev"
+start "UNKORA API :4000" cmd /k "color 0B && echo. && echo  ╔══════════════════════════════════════╗ && echo  ║    UNKORA  API  :4000  (BLUE)        ║ && echo  ║  Wait: Application is running on...  ║ && echo  ╚══════════════════════════════════════╝ && echo. && cd /d %~dp0apps\api && npm run dev"
 
 timeout /t 3 /nobreak >nul
 
 :: Web — yellow window
-start "UNKORA WEB :3000" cmd /k "color 0E && echo. && echo  Web Server starting on port 3000... && echo  Wait until you see: Ready in... && echo. && cd /d %~dp0apps\web && npm run dev"
+start "UNKORA WEB :3000" cmd /k "color 0E && echo. && echo  ╔══════════════════════════════════════╗ && echo  ║    UNKORA  WEB  :3000  (YELLOW)      ║ && echo  ║    Wait: Ready in...                 ║ && echo  ╚══════════════════════════════════════╝ && echo. && cd /d %~dp0apps\web && npm run dev"
 
-:: ════════════════════════════════════════════════════════════════
-::  Wait for API then Web, then open browser
-:: ════════════════════════════════════════════════════════════════
+:: Wait for API
 echo.
-echo  Waiting for API to start (first time can take 30-60 seconds)...
+echo  Waiting for API to start (first time ~30-60 seconds)...
 set /a api_wait=0
 :WAIT_API
 set /a api_wait+=1
 if !api_wait! geq 60 (
-  echo  [WARN] API is taking long — check the BLUE window for errors.
+  echo  [WARN] API taking long — check BLUE window for errors.
   goto OPEN_BROWSER
 )
 timeout /t 3 /nobreak >nul
@@ -256,12 +272,13 @@ powershell -Command "try{Invoke-WebRequest -Uri 'http://localhost:4000/api/v1/he
 if !errorlevel! neq 0 goto WAIT_API
 echo  API is healthy!
 
-echo  Waiting for Web to start...
+:: Wait for Web
+echo  Waiting for Web to compile...
 set /a web_wait=0
 :WAIT_WEB
 set /a web_wait+=1
 if !web_wait! geq 30 (
-  echo  [WARN] Web taking long — opening browser now anyway...
+  echo  Web taking long — opening browser anyway...
   goto OPEN_BROWSER
 )
 timeout /t 3 /nobreak >nul
@@ -271,7 +288,7 @@ if !errorlevel! neq 0 goto WAIT_WEB
 :OPEN_BROWSER
 echo.
 echo  ╔══════════════════════════════════════════════════════════╗
-echo  ║                  UNKORA IS LIVE!                         ║
+echo  ║                   UNKORA IS LIVE!                        ║
 echo  ║                                                          ║
 echo  ║   Shop      →   http://localhost:3000                    ║
 echo  ║   Admin     →   http://localhost:3000/admin              ║
@@ -280,16 +297,16 @@ echo  ║   Seller    →   http://localhost:3000/seller/login       ║
 echo  ║                                                          ║
 echo  ║   Login: admin@unkora.com  /  Admin@123456               ║
 echo  ║                                                          ║
-echo  ║   BLUE window  = API server  (port 4000)                 ║
-echo  ║   YELLOW window = Web server (port 3000)                 ║
+echo  ║   BLUE   window = API server  (port 4000)                ║
+echo  ║   YELLOW window = Web server  (port 3000)                ║
 echo  ║                                                          ║
-echo  ║   To STOP: close both blue and yellow windows            ║
+echo  ║   To STOP: close the blue and yellow windows             ║
 echo  ╚══════════════════════════════════════════════════════════╝
 echo.
 
 timeout /t 2 /nobreak >nul
 start http://localhost:3000/admin
 
-echo  This window can be closed now. Servers are running.
+echo  This launcher window can be closed.
 echo.
 pause
