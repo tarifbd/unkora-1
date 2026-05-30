@@ -13,6 +13,7 @@ async function main() {
   // ── Users ──────────────────────────────────────────────────────────────────
   const adminHash     = await argon2.hash('Admin@123456');
   const customerHash  = await argon2.hash('Customer@123');
+  const sellerHash    = await argon2.hash('Seller@123');
   const reviewer1Hash = await argon2.hash('Reviewer@123');
 
   await prisma.user.upsert({
@@ -66,7 +67,27 @@ async function main() {
     },
   });
 
-  console.log('✓ Users');
+  // Seller user (role CUSTOMER — no SELLER in UserRole enum)
+  const sellerUser = await prisma.user.upsert({
+    where: { email: 'seller@test.com' },
+    update: { passwordHash: sellerHash, status: 'ACTIVE' },
+    create: {
+      email: 'seller@test.com', passwordHash: sellerHash,
+      firstName: 'Karim', lastName: 'Books',
+      phone: '01755000099', role: 'CUSTOMER', status: 'ACTIVE', emailVerifiedAt: new Date(),
+    },
+  });
+  await prisma.seller.upsert({
+    where: { userId: sellerUser.id },
+    update: { status: 'ACTIVE', isVerified: true },
+    create: {
+      userId: sellerUser.id, shopName: 'করিম বুকস', shopSlug: 'karim-books',
+      description: 'সেরা বাংলা বইয়ের দোকান', phone: '01755000099',
+      status: 'ACTIVE', isVerified: true, commissionRate: 10,
+    },
+  });
+
+  console.log('✓ Users (admin, customer, seller, reviewers)');
 
   // ── Top-level categories ───────────────────────────────────────────────────
   const booksCat = await prisma.category.upsert({
@@ -391,6 +412,7 @@ async function main() {
   console.log(`   products=${pCount}, categories=${catCount}, images=${imgCount}, variants=${varCount}, reviews=${revCount}, site_settings=${settCount}`);
   console.log('   🔑 Admin:    admin@unkora.com / Admin@123456');
   console.log('   👤 Customer: customer@test.com / Customer@123');
+  console.log('   🏪 Seller:   seller@test.com / Seller@123');
 }
 
 main()
