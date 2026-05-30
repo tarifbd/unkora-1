@@ -11,7 +11,7 @@ import {
   CreditCard, Star, Share2, Monitor, Store, MessageCircle,
   DollarSign, RefreshCw, Bell as BellIcon, Mail, Search,
   Users2, PieChart, UserCog, Palette, Sparkles, Bot, Library, ScrollText, Cpu,
-  ClipboardList, BookMarked, LayoutList, LifeBuoy, Maximize2, Puzzle, MapPin, Map, Rocket,
+  ClipboardList, BookMarked, LayoutList, LifeBuoy, Maximize2, Puzzle, MapPin, Map, Rocket, Megaphone,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -102,6 +102,7 @@ const NAV: NavItem[] = [
       { href: '/admin/notifications',                    label: 'Push Notifications', icon: BellIcon },
       { href: '/admin/email-campaigns',                  label: 'Email Campaigns',    icon: Mail },
       { href: '/admin/popups',                           label: 'Popups',             icon: Maximize2 },
+      { href: '/admin/smart-bar',                        label: 'Smart Bar',          icon: Megaphone },
     ],
   },
   {
@@ -289,6 +290,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/ai-studio/providers': 'AI Providers',
   '/admin/ai-studio/library': 'Prompt Library',
   '/admin/ai-studio/logs': 'AI Logs',
+  '/admin/smart-bar': 'Smart Bar',
   '/admin/localization': 'Multi-Currency & Languages',
   '/admin/affiliates': 'Affiliate Marketing',
   '/admin/segments': 'Customer Segments',
