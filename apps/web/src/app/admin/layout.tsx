@@ -10,7 +10,7 @@ import {
   RotateCcw, Bike, FileText, User, Sliders, Gavel, Layers,
   CreditCard, Star, Share2, Monitor, Store, MessageCircle,
   DollarSign, RefreshCw, Bell as BellIcon, Mail, Search,
-  Users2, PieChart, UserCog, Palette,
+  Users2, PieChart, UserCog, Palette, Sparkles, Bot, Library, ScrollText, Cpu,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -95,7 +95,24 @@ const NAV: NavItem[] = [
   {
     label: 'SEO', icon: Search,
     children: [
-      { href: '/admin/seo', label: 'SEO Tools', icon: Search },
+      { href: '/admin/seo',                      label: 'SEO Tools',        icon: Search },
+      { href: '/admin/seo/settings',             label: 'Global Settings',  icon: Settings },
+      { href: '/admin/seo/sitemap',              label: 'Sitemap',          icon: Globe },
+      { href: '/admin/seo/robots',               label: 'Robots.txt',       icon: FileText },
+      { href: '/admin/seo/redirects',            label: 'Redirects',        icon: RotateCcw },
+      { href: '/admin/seo/products',             label: 'Product SEO',      icon: Package },
+      { href: '/admin/seo/categories',           label: 'Category SEO',     icon: Layers },
+    ],
+  },
+  {
+    label: 'AI Studio', icon: Sparkles,
+    children: [
+      { href: '/admin/ai-studio',               label: 'AI Studio',         icon: Sparkles },
+      { href: '/admin/ai-studio/orchestrator',  label: 'Orchestrator',      icon: Cpu },
+      { href: '/admin/ai-studio/agents',        label: 'Agents',            icon: Bot },
+      { href: '/admin/ai-studio/providers',     label: 'Providers',         icon: Zap },
+      { href: '/admin/ai-studio/library',       label: 'Prompt Library',    icon: Library },
+      { href: '/admin/ai-studio/logs',          label: 'Logs',              icon: ScrollText },
     ],
   },
   {
@@ -236,6 +253,18 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/notifications': 'Push Notifications',
   '/admin/email-campaigns': 'Email Campaigns',
   '/admin/seo': 'SEO Tools',
+  '/admin/seo/settings': 'SEO Global Settings',
+  '/admin/seo/sitemap': 'Sitemap',
+  '/admin/seo/robots': 'Robots.txt',
+  '/admin/seo/redirects': 'Redirects',
+  '/admin/seo/products': 'Product SEO',
+  '/admin/seo/categories': 'Category SEO',
+  '/admin/ai-studio': 'AI Studio',
+  '/admin/ai-studio/orchestrator': 'AI Orchestrator',
+  '/admin/ai-studio/agents': 'AI Agents',
+  '/admin/ai-studio/providers': 'AI Providers',
+  '/admin/ai-studio/library': 'Prompt Library',
+  '/admin/ai-studio/logs': 'AI Logs',
   '/admin/localization': 'Multi-Currency & Languages',
   '/admin/affiliates': 'Affiliate Marketing',
   '/admin/segments': 'Customer Segments',
