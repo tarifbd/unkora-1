@@ -3,8 +3,6 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CartDrawer } from '@/components/layout/cart-drawer';
 import { ThemeProvider } from '@/components/theme-provider';
-import { ScrollToTop } from '@/components/ui/scroll-to-top';
-import { AiChatWidget } from '@/components/ai/chat-widget';
 import { SessionGuard } from '@/components/auth/session-guard';
 
 export default function ShopLayout({ children }: { children: React.ReactNode }) {
@@ -12,7 +10,7 @@ export default function ShopLayout({ children }: { children: React.ReactNode }) 
     <>
       <ThemeProvider />
       <SessionGuard />
-      <Suspense fallback={<div className="h-16 border-b bg-white dark:bg-gray-900" />}>
+      <Suspense fallback={<div className="h-16 border-b bg-white" />}>
         <Header />
       </Suspense>
       <CartDrawer />

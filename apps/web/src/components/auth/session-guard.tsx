@@ -15,9 +15,14 @@ export function SessionGuard() {
     // If the token is expired, revoked, or the DB was wiped, /users/me
     // returns 401 — at that point clear localStorage + cookies so the
     // stale "logged-in" state disappears automatically.
-    authApi.getMe().catch(() => {
-      clearAuth();
-      clearAuthTokens();
+    // Network errors (no status) are ignored so a slow API start doesn't
+    // falsely log the user out.
+    authApi.getMe().catch((err: unknown) => {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401 || status === 403) {
+        clearAuth();
+        clearAuthTokens();
+      }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // run once on mount

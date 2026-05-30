@@ -3,7 +3,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState, useEffect } from 'react';
-import { Toaster } from 'sonner';
 import { LanguageProvider } from '@/lib/i18n/language-context';
 import { useAuthStore } from '@/store/auth.store';
 
@@ -24,7 +23,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
         defaultOptions: {
           queries: {
             staleTime: 60 * 1000,
-            retry: 1,
+            // Don't retry client errors (4xx) — only retry server/network errors
+            retry: (failureCount, error) => {
+              const status = (error as { response?: { status?: number } })?.response?.status;
+              if (status && status >= 400 && status < 500) return false;
+              return failureCount < 2;
+            },
             refetchOnWindowFocus: false,
           },
         },
@@ -36,18 +40,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <AuthLogoutHandler />
         {children}
-        <Toaster
-          position="top-right"
-          richColors
-          closeButton
-          duration={3500}
-          toastOptions={{
-            style: { fontFamily: 'var(--font-sans)' },
-            classNames: {
-              toast: 'group',
-            },
-          }}
-        />
         {process.env.NODE_ENV === 'development' && (
           <ReactQueryDevtools initialIsOpen={false} />
         )}

@@ -68,16 +68,19 @@ export async function middleware(request: NextRequest) {
   const accessToken = request.cookies.get('access_token')?.value;
 
   const isProtected = PROTECTED_ROUTES.some((r) => pathname.startsWith(r));
-  // /admin/login must be excluded — otherwise it loops: no token → redirect /admin/login → repeat
+  // /admin/login must be excluded — otherwise unauthenticated visits loop:
+  // /admin/login → no token → redirect /admin/login → repeat
   const isAdmin = pathname !== '/admin/login' && ADMIN_ROUTES.some((r) => pathname.startsWith(r));
   const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r));
 
-  // Redirect unauthenticated users away from protected routes
+  // Redirect unauthenticated admins to the dedicated admin login page
   if (isAdmin && !accessToken) {
     const url = request.nextUrl.clone();
     url.pathname = '/admin/login';
     return NextResponse.redirect(url);
   }
+
+  // Redirect unauthenticated users away from customer-protected routes
   if (isProtected && !accessToken) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
