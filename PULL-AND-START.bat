@@ -190,55 +190,45 @@ echo.
 
 :: ════════════════════════════════════════════════════════════════
 ::  STEP 7 — Seed database
-::  Always run seed — all inserts use "upsert" so it's safe
-::  to run multiple times without duplicating data
+::  Always runs — seed uses upsert everywhere so it is 100%% safe
+::  to run multiple times. No duplicates, no data loss.
 :: ════════════════════════════════════════════════════════════════
-echo  [7/8] Seeding database with sample data...
-echo        (This creates admin, products, categories etc.)
-echo        (Safe to run again — uses upsert, no duplicates)
+echo  [7/8] Seeding database (admin + products + categories)...
 echo.
 
 cd packages\database
-
-:: Check if products table has data
-set PROD_COUNT=0
-for /f "usebackq tokens=*" %%n in (`docker exec unkora_postgres_dev psql -U unkora -d unkora -tAc "SELECT COUNT(*) FROM products;" 2^>nul`) do (
-  set RAW=%%n
-  set RAW=!RAW: =!
-  if not "!RAW!"=="" set PROD_COUNT=!RAW!
-)
-
-echo        Current products in DB: !PROD_COUNT!
-
-if !PROD_COUNT! lss 5 (
-  echo        Seeding now — please wait...
-  echo.
-  call npx prisma db seed
-  if !errorlevel! neq 0 (
-    echo.
-    echo  ╔════════════════════════════════════════════════════╗
-    echo  ║  [SEED ERROR] Seed script had errors!              ║
-    echo  ║                                                     ║
-    echo  ║  Common fixes:                                      ║
-    echo  ║   1. Run FRESH-START.bat (wipes DB, starts fresh)   ║
-    echo  ║   2. Check if Docker is running                     ║
-    echo  ║   3. Run manually: cd packages\database             ║
-    echo  ║                    npx prisma db seed               ║
-    echo  ╚════════════════════════════════════════════════════╝
-    echo.
-    echo  Continuing anyway — app may work with partial data.
-    echo.
-  ) else (
-    echo.
-    echo        Seed complete!
-  )
-) else (
-  echo        !PROD_COUNT! products found — seed skipped.
-  echo        (Run RESEED.bat to force fresh seed)
-)
-
+call npx prisma db seed
+set SEED_ERR=!errorlevel!
 cd ..\..
-echo.
+
+if !SEED_ERR! neq 0 (
+  echo.
+  echo  ╔══════════════════════════════════════════════════════════╗
+  echo  ║  [SEED FAILED]  See error output above                   ║
+  echo  ║                                                          ║
+  echo  ║  To fix — open PowerShell and run:                       ║
+  echo  ║    docker volume rm unkora-1_postgres_dev_data           ║
+  echo  ║  Then run this file again (fresh database).              ║
+  echo  ╚══════════════════════════════════════════════════════════╝
+  echo.
+  echo  Continuing anyway — servers will still start.
+  echo.
+) else (
+  echo.
+  :: Verify admin user was created
+  set ADMIN_EXISTS=0
+  for /f "usebackq tokens=*" %%n in (`docker exec unkora_postgres_dev psql -U unkora -d unkora -tAc "SELECT COUNT(*) FROM users WHERE email='admin@unkora.com';" 2^>nul`) do (
+    set RAW=%%n
+    set RAW=!RAW: =!
+    if not "!RAW!"=="" set ADMIN_EXISTS=!RAW!
+  )
+  if !ADMIN_EXISTS! gtr 0 (
+    echo        Seed complete! Admin user confirmed in database.
+  ) else (
+    echo        [WARN] Seed ran but admin user not found — check seed output above.
+  )
+  echo.
+)
 
 :: ════════════════════════════════════════════════════════════════
 ::  STEP 8 — Free ports + Launch API + Web
