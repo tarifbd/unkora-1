@@ -99,8 +99,8 @@ echo.
 echo  [4/5] Applying Prisma migrations...
 cd packages\database
 
-call npx prisma migrate deploy >nul 2>&1
 call npx prisma generate >nul 2>&1
+call npx prisma db push --accept-data-loss >nul 2>&1
 
 :: Seed if less than 5 products exist (catches missing seed even when admin exists)
 for /f %%n in ('docker exec unkora_postgres_dev psql -U unkora -d unkora -tAc "SELECT COUNT(*) FROM products;" 2^>nul') do set PROD_COUNT=%%n

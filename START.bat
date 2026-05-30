@@ -119,15 +119,14 @@ if not exist node_modules (
 echo.
 echo [5/6] Running Prisma migrate + generate + seed...
 cd packages\database
-call npx prisma migrate deploy
+call npx prisma generate
+call npx prisma db push --accept-data-loss
 if %errorlevel% neq 0 (
-  echo  [ERROR] Migrations failed — try FRESH-START.bat to wipe and rebuild.
+  echo  [ERROR] DB schema sync failed — try FRESH-START.bat to wipe and rebuild.
   cd ..\..
   pause
   exit /b 1
 )
-
-call npx prisma generate
 if %errorlevel% neq 0 (
   echo  [ERROR] Prisma generate failed.
   cd ..\..

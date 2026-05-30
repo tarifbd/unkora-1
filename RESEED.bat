@@ -55,10 +55,10 @@ if %errorlevel% neq 0 (
   pause & exit /b 1
 )
 
-echo   • prisma migrate deploy...
-call npx prisma migrate deploy
+echo   • prisma db push (sync schema)...
+call npx prisma db push --accept-data-loss
 if %errorlevel% neq 0 (
-  echo  [WARN] migrate deploy had issues — continuing with seed anyway...
+  echo  [WARN] db push had issues — continuing with seed anyway...
 )
 
 :: ════════════════════════════════════════════════════════

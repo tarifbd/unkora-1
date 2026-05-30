@@ -156,7 +156,8 @@ echo        Postgres ready!
 echo.
 
 :: ════════════════════════════════════════════════════════════════
-::  STEP 6 — Prisma: generate + migrate
+::  STEP 6 — Prisma: generate + db push (local dev)
+::  db push syncs schema directly — no migration history needed
 :: ════════════════════════════════════════════════════════════════
 echo  [6/8] Setting up database schema (Prisma)...
 cd packages\database
@@ -165,23 +166,23 @@ echo        Generating Prisma client...
 call npx prisma generate
 if !errorlevel! neq 0 (
   echo  [ERROR] prisma generate failed!
+  echo         Fix: close all Node windows, then run this file again.
   cd ..\..
   pause & exit /b 1
 )
 
-echo        Applying migrations...
-call npx prisma migrate deploy
+echo        Syncing database schema (db push)...
+call npx prisma db push --accept-data-loss
 if !errorlevel! neq 0 (
   echo.
-  echo  [WARN] migrate deploy failed. Trying db push instead...
-  call npx prisma db push --accept-data-loss
-  if !errorlevel! neq 0 (
-    echo  [ERROR] Database schema setup failed!
-    echo         Try: delete the Docker volume and run again
-    echo         Command: docker volume rm unkora-1_postgres_dev_data
-    cd ..\..
-    pause & exit /b 1
-  )
+  echo  [ERROR] Database schema sync failed!
+  echo.
+  echo         Try this fix:
+  echo           1. Open PowerShell
+  echo           2. Run: docker volume rm unkora-1_postgres_dev_data
+  echo           3. Run this file again
+  cd ..\..
+  pause & exit /b 1
 )
 echo        Schema ready!
 cd ..\..
