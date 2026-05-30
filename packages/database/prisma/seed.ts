@@ -39,11 +39,11 @@ async function main() {
   // ── Seller test account ───────────────────────────────────────────────────
   const sellerUser = await prisma.user.upsert({
     where: { email: 'seller@test.com' },
-    update: { passwordHash: sellerHash, role: 'SELLER', status: 'ACTIVE' },
+    update: { passwordHash: sellerHash, status: 'ACTIVE' },
     create: {
       email: 'seller@test.com', passwordHash: sellerHash,
       firstName: 'Karim', lastName: 'Books',
-      phone: '01755000099', role: 'SELLER', status: 'ACTIVE', emailVerifiedAt: new Date(),
+      phone: '01755000099', role: 'CUSTOMER', status: 'ACTIVE', emailVerifiedAt: new Date(),
     },
   });
 
