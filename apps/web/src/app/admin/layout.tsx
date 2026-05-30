@@ -11,6 +11,7 @@ import {
   CreditCard, Star, Share2, Monitor, Store, MessageCircle,
   DollarSign, RefreshCw, Bell as BellIcon, Mail, Search,
   Users2, PieChart, UserCog, Palette, Sparkles, Bot, Library, ScrollText, Cpu,
+  ClipboardList, BookMarked, LayoutList, LifeBuoy, Maximize2, Puzzle, MapPin, Map, Rocket,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -51,6 +52,9 @@ const NAV: NavItem[] = [
       { href: '/admin/wholesale',    label: 'Wholesale',       icon: Layers },
       { href: '/admin/gift-cards',   label: 'Gift Cards',      icon: CreditCard },
       { href: '/admin/fraud',        label: 'Fraud Detection', icon: ShieldAlert },
+      { href: '/admin/preorders',    label: 'Preorders',       icon: ClipboardList },
+      { href: '/admin/preorders/configurations', label: 'Preorder Config', icon: Sliders },
+      { href: '/admin/preorders/orders',         label: 'Preorder Orders', icon: ShoppingBag },
     ],
   },
   {
@@ -66,17 +70,23 @@ const NAV: NavItem[] = [
   {
     label: 'Delivery', icon: Bike,
     children: [
-      { href: '/admin/delivery-boys', label: 'Delivery Boys', icon: User },
+      { href: '/admin/delivery-boys',  label: 'Delivery Boys',  icon: User },
+      { href: '/admin/pickup-points',  label: 'Pickup Points',  icon: MapPin },
+      { href: '/admin/shipping-zones', label: 'Shipping Zones', icon: Map },
+      { href: '/admin/shiprocket',     label: 'Shiprocket',     icon: Rocket },
     ],
   },
   {
     label: 'Community', icon: Users,
     children: [
-      { href: '/admin/users',     label: 'Users',         icon: Users },
-      { href: '/admin/reviews',   label: 'Reviews',       icon: MessageSquare },
-      { href: '/admin/blog',      label: 'Blog',          icon: FileText },
-      { href: '/admin/loyalty',   label: 'Club Points',   icon: Star },
-      { href: '/admin/referrals', label: 'Referrals',     icon: Share2 },
+      { href: '/admin/users',            label: 'Users',             icon: Users },
+      { href: '/admin/reviews',          label: 'Reviews',           icon: MessageSquare },
+      { href: '/admin/blog',             label: 'Blog',              icon: FileText },
+      { href: '/admin/book-submissions', label: 'Book Submissions',  icon: BookMarked },
+      { href: '/admin/classifieds',      label: 'Classifieds',       icon: LayoutList },
+      { href: '/admin/support',          label: 'Support Tickets',   icon: LifeBuoy },
+      { href: '/admin/loyalty',          label: 'Club Points',       icon: Star },
+      { href: '/admin/referrals',        label: 'Referrals',         icon: Share2 },
     ],
   },
   {
@@ -90,6 +100,7 @@ const NAV: NavItem[] = [
       { href: '/admin/sms',                              label: 'SMS',                icon: MessageCircle },
       { href: '/admin/notifications',                    label: 'Push Notifications', icon: BellIcon },
       { href: '/admin/email-campaigns',                  label: 'Email Campaigns',    icon: Mail },
+      { href: '/admin/popups',                           label: 'Popups',             icon: Maximize2 },
     ],
   },
   {
@@ -128,6 +139,7 @@ const NAV: NavItem[] = [
     children: [
       { href: '/admin/localization', label: 'Multi-Currency/Lang', icon: Globe },
       { href: '/admin/design',       label: 'Design Studio',       icon: Palette },
+      { href: '/admin/addons',       label: 'Addon Manager',       icon: Puzzle },
       { href: '/admin/staff',        label: 'Staff & Permissions', icon: UserCog },
       { href: '/admin/settings',     label: 'Settings',            icon: Settings },
     ],
@@ -252,6 +264,17 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/returns': 'Returns & Exchanges',
   '/admin/notifications': 'Push Notifications',
   '/admin/email-campaigns': 'Email Campaigns',
+  '/admin/preorders': 'Preorders',
+  '/admin/preorders/configurations': 'Preorder Configurations',
+  '/admin/preorders/orders': 'Preorder Orders',
+  '/admin/pickup-points': 'Pickup Points',
+  '/admin/shipping-zones': 'Shipping Zones',
+  '/admin/shiprocket': 'Shiprocket Integration',
+  '/admin/book-submissions': 'Book Submissions',
+  '/admin/classifieds': 'Classifieds',
+  '/admin/support': 'Support Tickets',
+  '/admin/popups': 'Popups',
+  '/admin/addons': 'Addon Manager',
   '/admin/seo': 'SEO Tools',
   '/admin/seo/settings': 'SEO Global Settings',
   '/admin/seo/sitemap': 'Sitemap',
