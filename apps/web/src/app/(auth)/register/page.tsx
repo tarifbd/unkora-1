@@ -160,7 +160,12 @@ export default function RegisterPage() {
 
             {registerUser.error && (
               <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">
-                {lang === 'bn' ? 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।' : 'Registration failed. Please try again.'}
+                {(() => {
+                  const e = registerUser.error as { response?: { data?: { message?: string | string[] } } };
+                  const msg = e?.response?.data?.message;
+                  const raw = Array.isArray(msg) ? msg[0] : msg;
+                  return raw ?? (lang === 'bn' ? 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।' : 'Registration failed. Please try again.');
+                })()}
               </p>
             )}
 
