@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SocialLoginButtons } from '@/components/auth/social-login-buttons';
 import { useAuthStore } from '@/store/auth.store';
-import { saveAuthTokens, saveUserRole } from '@/lib/api';
+import { saveAuthTokens, saveUserRole, clearAuthTokens } from '@/lib/api';
 import { toast } from 'sonner';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
@@ -41,14 +41,10 @@ function LoginContent() {
 
   const doRedirect = () => {
     const u = useAuthStore.getState().user;
-    if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('/admin')) {
-      router.push(redirectParam);
-    } else if (u?.role === 'ADMIN' || u?.role === 'SUPER_ADMIN') {
-      router.push('/admin');
-    } else if (u?.role === 'SELLER') {
+    if (u?.role === 'SELLER') {
       router.push('/seller/dashboard');
     } else {
-      router.push(redirectParam ?? '/');
+      router.push(redirectParam && redirectParam.startsWith('/') ? redirectParam : '/');
     }
   };
 
@@ -93,6 +89,12 @@ function LoginContent() {
       const apiUser = data.data?.user ?? data.user;
       saveAuthTokens(tokens.accessToken, tokens.refreshToken);
       if (apiUser) {
+        if (apiUser.role === 'ADMIN' || apiUser.role === 'SUPER_ADMIN') {
+          clearAuthTokens();
+          toast.error('Admin পেজে লগইন করুন: /admin/login', { duration: 5000 });
+          setLoggingIn(false);
+          return;
+        }
         const u = {
           id: apiUser.id, email: apiUser.email,
           firstName: apiUser.firstName, lastName: apiUser.lastName,

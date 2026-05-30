@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { authApi } from '../api/auth';
-import { saveUserRole } from '@/lib/api';
+import { saveUserRole, clearAuthTokens } from '@/lib/api';
 import { useAuthStore } from '@/store/auth.store';
 
 function apiErrMsg(err: unknown, fallback: string): string {
@@ -23,6 +23,11 @@ export function useAuth() {
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       authApi.login(email, password),
     onSuccess: ({ user: u }) => {
+      if (u.role === 'ADMIN' || u.role === 'SUPER_ADMIN') {
+        clearAuthTokens();
+        toast.error('Admin পেজে লগইন করুন: /admin/login', { duration: 5000 });
+        return;
+      }
       setUser(u);
       saveUserRole(u.role);
       void qc.invalidateQueries({ queryKey: ['cart'] });
@@ -30,14 +35,10 @@ export function useAuth() {
       const params = new URLSearchParams(window.location.search);
       const redirectTo = params.get('redirect');
 
-      if (redirectTo && redirectTo.startsWith('/') && !redirectTo.startsWith('/admin')) {
-        router.push(redirectTo);
-      } else if (u.role === 'ADMIN' || u.role === 'SUPER_ADMIN') {
-        router.push(redirectTo ?? '/admin');
-      } else if (u.role === 'SELLER') {
+      if (u.role === 'SELLER') {
         router.push('/seller/dashboard');
       } else {
-        router.push(redirectTo ?? '/');
+        router.push(redirectTo && redirectTo.startsWith('/') ? redirectTo : '/');
       }
     },
     onError: (err) => toast.error(apiErrMsg(err, 'ইমেইল বা পাসওয়ার্ড সঠিক নয়')),
