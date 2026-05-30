@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Palette, Image, Layout, Plus, Pencil, Trash2, Check,
+  Palette, Image as ImageIcon, Layout, Plus, Pencil, Trash2, Check,
   ChevronUp, ChevronDown, Loader2, X, Zap, Type,
 } from 'lucide-react';
 import api from '@/lib/api';
@@ -577,7 +577,7 @@ function BannersTab() {
               ))}
               {banners.length === 0 && (
                 <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">
-                  <Image className="h-8 w-8 mx-auto mb-2 opacity-30" aria-hidden="true" />
+                  <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-30" aria-hidden="true" />
                   No banners yet
                 </td></tr>
               )}
@@ -753,7 +753,7 @@ type TabId = 'themes' | 'banners' | 'homepage';
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'themes',   label: 'Themes & Colors',  icon: Palette },
-  { id: 'banners',  label: 'Banners',           icon: Image },
+  { id: 'banners',  label: 'Banners',           icon: ImageIcon },
   { id: 'homepage', label: 'Homepage Sections', icon: Layout },
 ];
 

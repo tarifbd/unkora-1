@@ -7,7 +7,7 @@ import Link from 'next/link';
 import {
   Brain, Zap, Settings, Sparkles, Copy, Check, AlertCircle, Loader2,
   CheckCircle2, XCircle, Activity, BookOpen, Cpu, ChevronDown, ChevronUp,
-  FileText, Image, Mail, HelpCircle, Megaphone, LayoutTemplate, Search,
+  FileText, Image as ImageIcon, Mail, HelpCircle, Megaphone, LayoutTemplate, Search,
   BarChart3, TrendingUp, Clock, AlertTriangle,
 } from 'lucide-react';
 import { aiApi, type AiSettings, type AiProviderStatus } from '@/lib/api/ai-studio';
@@ -135,7 +135,7 @@ function DashboardTab() {
     { href: '#ad-copy', label: 'Ad Copy', icon: Megaphone, tab: 'ad-copy' },
     { href: '#email', label: 'Email Copy', icon: Mail, tab: 'email' },
     { href: '#faq', label: 'FAQ Generator', icon: HelpCircle, tab: 'faq' },
-    { href: '#image-alt', label: 'Image Alt Text', icon: Image, tab: 'image-alt' },
+    { href: '#image-alt', label: 'Image Alt Text', icon: ImageIcon, tab: 'image-alt' },
   ];
 
   return (
@@ -829,7 +829,7 @@ function ImageAltTab() {
     <div className="space-y-5">
       <form onSubmit={handle} className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 space-y-4">
         <h2 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-          <Image className="h-4 w-4 text-pink-500" aria-hidden="true" /> Image Alt Text Generator
+          <ImageIcon className="h-4 w-4 text-pink-500" aria-hidden="true" /> Image Alt Text Generator
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
@@ -1044,7 +1044,7 @@ const TABS = [
   { id: 'ad-copy', label: 'Ad Copy', icon: Megaphone },
   { id: 'email', label: 'Email', icon: Mail },
   { id: 'faq', label: 'FAQ', icon: HelpCircle },
-  { id: 'image-alt', label: 'Image Alt', icon: Image },
+  { id: 'image-alt', label: 'Image Alt', icon: ImageIcon },
   { id: 'custom', label: 'Custom', icon: Brain },
   { id: 'settings', label: 'Settings', icon: Settings },
 ] as const;
