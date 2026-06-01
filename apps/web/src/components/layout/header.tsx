@@ -588,6 +588,7 @@ export function Header() {
   const [megaOpen, setMegaOpen] = useState(false);
   const [megaHoverCat, setMegaHoverCat] = useState(0);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [mobileExpandedCat, setMobileExpandedCat] = useState<string | null>(null);
   const megaRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
 

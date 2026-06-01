@@ -202,21 +202,25 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
           {hasDiscount && <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
         </div>
         {/* Both buttons always visible */}
-        <div className="flex gap-1.5 mt-2">
+        <div className="grid grid-cols-2 gap-1.5 mt-2">
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
             disabled={!inStock}
-            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-bold transition-all ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+            className={`flex items-center justify-center gap-1 h-9 rounded-lg text-xs font-bold transition-all ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
           >
-            <ShoppingCart className="w-3 h-3 flex-shrink-0" />
-            <span className="truncate">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
+            <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
           </button>
-          {inStock && (
+          {inStock ? (
             <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
-              className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold hover:bg-orange-600 transition-all">
-              <Zap className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
+              className="flex items-center justify-center gap-1 h-9 bg-orange-500 text-white rounded-lg text-xs font-bold hover:bg-orange-600 active:scale-95 transition-all">
+              <Zap className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
             </Link>
+          ) : (
+            <div className="flex items-center justify-center h-9 rounded-lg bg-gray-100 text-gray-400 text-xs font-bold">
+              {lang === 'bn' ? 'নেই' : 'N/A'}
+            </div>
           )}
         </div>
       </div>
@@ -280,20 +284,24 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
           <span className="text-sm font-black text-red-600">৳{salePrice.toLocaleString('en-BD')}</span>
           {hasDiscount && <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
         </div>
-        <div className="flex gap-1 mt-2">
+        <div className="grid grid-cols-2 gap-1.5 mt-2">
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
             disabled={!inStock}
-            className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-xl text-[10px] font-bold transition-all ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
-            <ShoppingCart className="w-3 h-3 flex-shrink-0" />
-            <span className="truncate">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
+            className={`flex items-center justify-center gap-1 h-9 rounded-lg text-xs font-bold transition-all ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
+            <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
+            <span>{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
           </button>
-          {inStock && (
+          {inStock ? (
             <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
-              className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-bold hover:bg-orange-600 transition-all">
-              <Zap className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
+              className="flex items-center justify-center gap-1 h-9 bg-orange-500 text-white rounded-lg text-xs font-bold hover:bg-orange-600 active:scale-95 transition-all">
+              <Zap className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
             </Link>
+          ) : (
+            <div className="flex items-center justify-center h-9 rounded-lg bg-gray-100 text-gray-400 text-xs font-bold">
+              {lang === 'bn' ? 'নেই' : 'N/A'}
+            </div>
           )}
         </div>
       </div>
@@ -744,7 +752,7 @@ export default function HomePage() {
                   ))}
                 </div>
               </div>
-              <div className="flex-shrink-0 flex items-center gap-2 bg-amber-500 text-white font-bold px-5 py-2.5 rounded-xl group-hover:bg-amber-400 transition-colors text-sm">
+              <div className="flex-shrink-0 flex items-center gap-2 bg-white text-amber-900 font-bold px-5 py-2.5 rounded-xl group-hover:bg-amber-50 transition-colors text-sm">
                 {lang === 'bn' ? 'দেখুন' : 'Explore'}
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </div>
