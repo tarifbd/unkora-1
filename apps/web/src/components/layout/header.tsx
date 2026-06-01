@@ -1249,7 +1249,7 @@ export function Header() {
         )}
       >
         {/* Drawer header */}
-        <div className="p-5 bg-gray-900 text-white flex items-center justify-between sticky top-0">
+        <div className="p-5 bg-gray-900 text-white flex items-center justify-between sticky top-0 z-10">
           <div className="text-2xl font-black tracking-tight flex items-center">
             <span>UNKORA</span><span className="text-primary">.SHOP</span>
           </div>
@@ -1262,8 +1262,30 @@ export function Header() {
           </button>
         </div>
 
+        {/* ── SELL YOUR BOOK CTA — pinned at top ── */}
+        <Link
+          href="/publish"
+          onClick={() => setSidebarOpen(false)}
+          className="sell-border-wrapper mx-4 my-3 flex items-center justify-center gap-2 min-h-[48px] normal-case group relative overflow-hidden"
+        >
+          <span className="sell-spark sell-spark-1" />
+          <span className="sell-spark sell-spark-2" />
+          <span className="sell-spark sell-spark-3" />
+          <span className="sell-spark sell-spark-4" />
+          <div className="sell-cta-inner w-full justify-center py-3">
+            <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-400" />
+            </span>
+            <span className="text-white font-black text-sm tracking-wide whitespace-nowrap">Sell Your Book</span>
+            <span className="text-white/40 text-sm">/</span>
+            <span className="sell-bn-text whitespace-nowrap text-sm">বই বিক্রি করুন</span>
+            <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-full" />
+          </div>
+        </Link>
+
         {/* User area */}
-        <div className="p-5 bg-primary text-white flex items-center gap-4">
+        <div className="px-5 py-4 bg-primary text-white flex items-center gap-4">
           <div className="w-12 h-12 bg-white/40 rounded-full flex items-center justify-center shadow-sm border border-white/20">
             <User className="w-6 h-6" />
           </div>
@@ -1295,48 +1317,86 @@ export function Header() {
           >English</button>
         </div>
 
-        {/* Category list */}
-        <div className="flex flex-col py-4">
-          <p className="px-5 pt-2 pb-3 text-lg font-black text-gray-900 tracking-tight">{t.header.ourDepartments}</p>
-          {NAV_CATEGORIES.map(cat => (
-            <Link
-              key={cat.slug}
-              href={`/products?categorySlug=${cat.slug}`}
-              onClick={() => setSidebarOpen(false)}
-              className={cn(
-                'py-3.5 px-5 hover:bg-orange-50 font-semibold text-gray-700 flex items-center gap-3 border-b border-gray-100 transition-colors',
-                pathname === '/products' && searchParams.get('categorySlug') === cat.slug ? 'text-primary bg-accent' : '',
-              )}
-            >
-              <span className="text-primary"><cat.icon className="w-4 h-4" /></span>
-              {getCatName(cat)}
-            </Link>
-          ))}
-          <Link href="#" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-orange-50 font-bold text-secondary flex items-center justify-between mt-2">
+        {/* Category list — accordion with sub-menus */}
+        <div className="flex flex-col py-2">
+          <p className="px-5 pt-2 pb-2 text-base font-black text-gray-900 tracking-tight uppercase">{t.header.ourDepartments}</p>
+          {NAV_CATEGORIES.map(cat => {
+            const isExpanded = mobileExpandedCat === cat.slug;
+            const catHref = cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`;
+            const subItems = MEGA_CATEGORIES.find(m => m.href.includes(cat.slug) || m.href === catHref)?.subs ?? [];
+            return (
+              <div key={cat.slug} className="border-b border-gray-100">
+                <div
+                  className={cn(
+                    'py-3.5 px-5 font-semibold text-gray-700 flex items-center gap-3 transition-colors min-h-[48px]',
+                    isExpanded ? 'bg-orange-50 text-primary' : 'hover:bg-orange-50',
+                    pathname === '/products' && searchParams.get('categorySlug') === cat.slug ? 'text-primary bg-accent' : '',
+                  )}
+                >
+                  <Link
+                    href={catHref}
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center gap-3 flex-1 min-w-0"
+                  >
+                    <span className="text-primary flex-shrink-0"><cat.icon className="w-4 h-4" /></span>
+                    <span className="truncate">{getCatName(cat)}</span>
+                  </Link>
+                  {subItems.length > 0 && (
+                    <button
+                      onClick={() => setMobileExpandedCat(isExpanded ? null : cat.slug)}
+                      className="p-1.5 rounded-md hover:bg-gray-200 transition-colors flex-shrink-0 min-w-[36px] min-h-[36px] flex items-center justify-center"
+                      aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                    >
+                      <ChevronDown className={cn('w-4 h-4 transition-transform duration-200 text-gray-500', isExpanded && 'rotate-180 text-primary')} />
+                    </button>
+                  )}
+                </div>
+                {/* Sub-menu accordion */}
+                {isExpanded && subItems.length > 0 && (
+                  <div className="bg-gray-50 border-t border-gray-100">
+                    {subItems.map(sub => (
+                      <Link
+                        key={sub.href + sub.label}
+                        href={sub.href}
+                        onClick={() => setSidebarOpen(false)}
+                        className="flex items-center gap-3 py-2.5 px-8 text-[13px] text-gray-600 hover:text-primary hover:bg-orange-50 transition-colors min-h-[44px]"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0" />
+                        {lang === 'bn' ? sub.labelBn : sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <Link href="/products" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-orange-50 font-bold text-secondary flex items-center justify-between mt-1 min-h-[48px]">
             <span>{t.header.dealOfDay} 🔥</span>
           </Link>
         </div>
 
         {/* Help */}
         <div className="border-t">
-          <p className="px-5 pt-4 pb-2 text-lg font-black text-gray-900 tracking-tight">{t.header.helpSettings}</p>
-          <Link href="/account/orders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary block">{t.header.yourOrders}</Link>
-          <Link href="/account/preorders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
+          <p className="px-5 pt-4 pb-2 text-base font-black text-gray-900 tracking-tight uppercase">{t.header.helpSettings}</p>
+          <Link href="/account/orders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2 min-h-[44px]">
+            <Package className="w-4 h-4" /> {t.header.yourOrders}
+          </Link>
+          <Link href="/account/preorders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2 min-h-[44px]">
             <CalendarClock className="w-4 h-4" /> {lang === 'bn' ? 'প্রি-অর্ডার' : 'My Pre-orders'}
           </Link>
-          <Link href="/seller/dashboard" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-primary hover:text-primary/80 flex items-center gap-2 font-semibold">
+          <Link href="/seller/dashboard" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-primary hover:text-primary/80 flex items-center gap-2 font-semibold min-h-[44px]">
             <Store className="w-4 h-4" /> {lang === 'bn' ? 'সেলার প্যানেল' : 'Seller Panel'}
           </Link>
-          <Link href={isAuthenticated ? '/account/addresses' : '/login'} onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
+          <Link href={isAuthenticated ? '/account/addresses' : '/login'} onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2 min-h-[44px]">
             <MapPin className="w-4 h-4" /> {t.header.deliverTo}
           </Link>
-          <Link href="/support" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
+          <Link href="/support" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2 min-h-[44px]">
             <HelpCircle className="w-4 h-4" /> {t.header.customerService}
           </Link>
           {isAuthenticated && (
             <button
               onClick={() => { void logout.mutate(); setSidebarOpen(false); }}
-              className="py-2.5 px-5 text-[15px] font-medium text-red-500 hover:text-red-700 flex items-center gap-2 w-full text-left"
+              className="py-2.5 px-5 text-[15px] font-medium text-red-500 hover:text-red-700 flex items-center gap-2 w-full text-left min-h-[44px]"
             >
               <X className="w-4 h-4" /> {t.header.signOut}
             </button>

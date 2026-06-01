@@ -757,6 +757,8 @@ export default function HomePage() {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
               </div>
             </div>
+            {/* subtle top-right decorative circle like Islamic banner */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-700/20 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
           </a>
         </div>
       </section>

@@ -563,12 +563,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [queryClient]);
 
   useEffect(() => {
+    if (pathname === '/admin/login') return;
     if (!isAuthenticated) { router.push('/admin/login'); return; }
     if (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN') router.push('/');
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, pathname]);
 
   // Close mobile sidebar on route change
   useEffect(() => { setSidebarOpen(false); }, [pathname]);
+
+  // Login page renders without the admin shell
+  if (pathname === '/admin/login') return <>{children}</>;
 
   if (!isAuthenticated || (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN')) return null;
 
