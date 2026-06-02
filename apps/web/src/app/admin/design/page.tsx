@@ -394,8 +394,22 @@ function BannerModal({ initial, onSave, onClose }: { initial?: Banner; onSave: (
     startsAt: initial?.startsAt?.slice(0, 10) ?? '',
     endsAt:   initial?.endsAt?.slice(0, 10)   ?? '',
   });
+  const [uploading, setUploading] = useState(false);
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await api.post('/upload/image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const url = res.data?.url ?? res.data?.data?.url ?? '';
+      if (url) setForm(f => ({ ...f, imageUrl: url }));
+    } catch { /* ignore upload error */ } finally { setUploading(false); }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
@@ -410,8 +424,15 @@ function BannerModal({ initial, onSave, onClose }: { initial?: Banner; onSave: (
             <input value={form.title} onChange={set('title')} className={inp} placeholder="Summer Sale Banner" />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-semibold text-muted-foreground">Image URL</label>
-            <input type="url" value={form.imageUrl} onChange={set('imageUrl')} className={inp} placeholder="https://..." />
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground">Image</label>
+            <div className="flex gap-2">
+              <input type="url" value={form.imageUrl} onChange={set('imageUrl')} className={inp} placeholder="https://... or upload below" />
+              <label className={`flex-shrink-0 flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold cursor-pointer transition-colors ${uploading ? 'opacity-50 pointer-events-none' : 'hover:bg-accent'}`}>
+                {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageIcon className="h-3.5 w-3.5" />}
+                Upload
+                <input type="file" accept="image/*" className="sr-only" onChange={handleFileUpload} />
+              </label>
+            </div>
             {form.imageUrl && (
               <img src={form.imageUrl} alt="preview" className="mt-2 h-20 w-full object-cover rounded-lg bg-muted"
                 onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -426,6 +447,7 @@ function BannerModal({ initial, onSave, onClose }: { initial?: Banner; onSave: (
               <label className="mb-1 block text-xs font-semibold text-muted-foreground">Position</label>
               <select value={form.position} onChange={set('position')} className={inp}>
                 <option value="hero">Hero</option>
+                <option value="PROMO">Promo (Homepage Middle)</option>
                 <option value="top">Top</option>
                 <option value="sidebar">Sidebar</option>
                 <option value="bottom">Bottom</option>

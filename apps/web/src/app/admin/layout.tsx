@@ -9,7 +9,7 @@ import {
   ShieldAlert, Plus, ChevronDown, ChevronRight,
   RotateCcw, Bike, FileText, User, Sliders, Gavel, Layers,
   CreditCard, Star, Share2, Monitor, Store, MessageCircle,
-  DollarSign, RefreshCw, Bell as BellIcon, Mail, Search,
+  DollarSign, RefreshCw, Bell as BellIcon, Mail, Search, Wallet,
   Users2, PieChart, UserCog, Palette, Sparkles, Bot, Library, ScrollText, Cpu,
   ClipboardList, BookMarked, LayoutList, LifeBuoy, Maximize2, Puzzle, MapPin, Map, Rocket, Megaphone,
 } from 'lucide-react';
@@ -31,6 +31,7 @@ const NAV: NavItem[] = [
   { href: '/admin',   label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/reports', label: 'Reports', icon: BarChart3 },
   { href: '/admin/categories', label: 'Categories', icon: Tag },
+  { href: '/admin/categories/mega-menu', label: 'Mega Menu', icon: LayoutList },
   {
     label: 'Products', icon: Package,
     children: [
@@ -71,6 +72,7 @@ const NAV: NavItem[] = [
       { href: '/admin/pos',                 label: 'POS Terminal',       icon: Monitor },
       { href: '/admin/sellers',             label: 'Sellers',            icon: Store },
       { href: '/admin/courier',             label: 'Courier',            icon: Truck },
+      { href: '/admin/courier/setup',       label: 'Courier Setup',      icon: Settings },
       { href: '/admin/cod-reconciliation',  label: 'COD Reconciliation', icon: DollarSign },
       { href: '/admin/returns',             label: 'Returns',            icon: RefreshCw },
     ],
@@ -122,6 +124,13 @@ const NAV: NavItem[] = [
       { href: '/admin/seo/redirects',            label: 'Redirects',        icon: RotateCcw },
       { href: '/admin/seo/products',             label: 'Product SEO',      icon: Package },
       { href: '/admin/seo/categories',           label: 'Category SEO',     icon: Layers },
+    ],
+  },
+  {
+    label: 'Finance', icon: Wallet,
+    children: [
+      { href: '/admin/finance/payment-gateways', label: 'Payment Gateways', icon: CreditCard },
+      { href: '/admin/finance/payments',         label: 'Transactions',     icon: DollarSign },
     ],
   },
   {
@@ -311,6 +320,10 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/advanced-reports': 'Advanced Reports',
   '/admin/staff': 'Staff & Permissions',
   '/admin/design': 'Design Studio',
+  '/admin/categories/mega-menu': 'Mega Menu Editor',
+  '/admin/finance/payment-gateways': 'Payment Gateways',
+  '/admin/finance/payments': 'Payment Transactions',
+  '/admin/courier/setup': 'Courier Setup',
 };
 
 /* ─── Sidebar content ────────────────────────────────────────── */
@@ -462,6 +475,10 @@ const QUICK_NAV_GROUPS: Record<string, { label: string; href: string }[]> = {
     { label: 'Segments',       href: '/admin/segments' },
     { label: 'Loyalty',        href: '/admin/loyalty' },
     { label: 'Referrals',      href: '/admin/referrals' },
+  ],
+  '/admin/finance': [
+    { label: 'Gateways',     href: '/admin/finance/payment-gateways' },
+    { label: 'Transactions', href: '/admin/finance/payments' },
   ],
   '/admin/settings': [
     { label: 'General',        href: '/admin/settings' },

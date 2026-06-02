@@ -18,6 +18,8 @@ import type { Request } from 'express';
 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { PaymentsService } from './payments.service';
 import { StripeService } from './stripe.service';
 
@@ -223,6 +225,22 @@ export class PaymentsController {
     }
 
     return { received: true };
+  }
+
+  // ─── Admin list ─────────────────────────────────────────────────────────────
+
+  @Get('admin/list')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'List all payments (admin)' })
+  listAll(
+    @Query('page') page = '1',
+    @Query('limit') limit = '20',
+    @Query('status') status?: string,
+    @Query('method') method?: string,
+  ) {
+    return this.paymentsService.findAll(+page, +limit, status, method);
   }
 
   // ─── Internal HMAC webhook ─────────────────────────────────────────────────

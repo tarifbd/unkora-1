@@ -9,8 +9,10 @@ import {
   Package, Heart, CreditCard, Settings, LogOut, Gift, Truck, CalendarClock, Store,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
+import { categoriesApi } from '@/lib/api/products';
 import { useCartStore } from '@/store/cart.store';
 import { useGuestCart } from '@/store/guest-cart.store';
 import { useAuth } from '@/lib/hooks/use-auth';
@@ -35,6 +37,17 @@ const NAV_CATEGORIES: NavCategory[] = [
   { nameKey: 'electronics',      displayName: 'Electronics',       icon: Zap,         slug: 'electronics',      subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances', 'Gadgets'] },
   { nameKey: 'dailyNeeds',       displayName: 'Daily Needs',       icon: ShoppingBag, slug: 'daily-needs',      subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery', 'Pet Care'] },
 ];
+
+const SLUG_TO_NAV: Record<string, Partial<NavCategory>> = {
+  'books':            { nameKey: 'books',            icon: Book,        subnav: ['Authors', 'Subjects', 'Publishers', 'Academic Books', 'E-Books', 'Islamic Books'] },
+  'baby-products':    { nameKey: 'babyProducts',     icon: Baby,        subnav: ['Diapering & Care', 'Feeding & Nursing', 'Baby Gear', 'Toys & Games', 'Baby Clothing'] },
+  'leather-products': { nameKey: 'leatherProducts',  icon: Briefcase,   subnav: ['Wallets & Cards', 'Bags & Backpacks', 'Belts & Accessories'] },
+  'organic-foods':    { nameKey: 'organicFoods',     icon: Leaf,        subnav: ['Nuts & Seeds', 'Honey & Sweeteners', 'Spices & Herbs', 'Healthy Snacks'] },
+  'islamic-lifestyle':{ nameKey: 'islamicLifestyle', icon: Moon,        subnav: ['Prayer Essentials', 'Islamic Books (Lifestyle)', 'Quran Accessories', 'Islamic Clothing'] },
+  'handicrafts':      { nameKey: 'handicrafts',      icon: Palette,     subnav: ['Wall Art', 'Showpieces', 'Lamps & Lighting', 'Rugs & Carpets'] },
+  'electronics':      { nameKey: 'electronics',      icon: Zap,         subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances'] },
+  'daily-needs':      { nameKey: 'dailyNeeds',       icon: ShoppingBag, subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery'] },
+};
 
 function getSubnavHref(catSlug: string, sub: string): string {
   return `/products?categorySlug=${encodeURIComponent(catSlug)}`;
@@ -620,6 +633,31 @@ export function Header() {
     ? (cart?.itemCount ?? 0)
     : guestCart.items.reduce((sum, i) => sum + i.quantity, 0);
 
+  const { data: apiCategories } = useQuery({
+    queryKey: ['nav-categories'],
+    queryFn: () => categoriesApi.getAll(false),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const dynamicNavCategories: NavCategory[] = (() => {
+    if (!apiCategories || apiCategories.length === 0) return NAV_CATEGORIES;
+    const featured = apiCategories
+      .filter(c => c.isFeatured)
+      .sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
+    if (featured.length === 0) return NAV_CATEGORIES;
+    return featured.map(c => {
+      const meta = SLUG_TO_NAV[c.slug];
+      return {
+        nameKey: (meta?.nameKey ?? 'books') as NavCategory['nameKey'],
+        displayName: c.name,
+        icon: meta?.icon ?? ShoppingBag,
+        slug: c.slug,
+        subnav: meta?.subnav ?? [],
+      };
+    });
+  })();
+
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -627,7 +665,7 @@ export function Header() {
     }
   };
 
-  const activeCategory = NAV_CATEGORIES[activeCategoryIndex] ?? NAV_CATEGORIES[0];
+  const activeCategory = dynamicNavCategories[activeCategoryIndex] ?? dynamicNavCategories[0];
 
   const getCatName = (cat: NavCategory) =>
     lang === 'bn' ? t.nav[cat.nameKey] : cat.displayName;
@@ -749,7 +787,7 @@ export function Header() {
               <div className="flex w-full rounded-lg overflow-hidden border-2 border-gray-200 focus-within:border-primary focus-within:shadow-md transition-all duration-300">
                 <select className="bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-600 border-r border-gray-200 cursor-pointer hover:bg-gray-200 focus:outline-none">
                   <option value="">{lang === 'bn' ? 'সব' : 'All'}</option>
-                  {NAV_CATEGORIES.map(c => (
+                  {dynamicNavCategories.map(c => (
                     <option key={c.slug} value={c.slug}>{getCatName(c)}</option>
                   ))}
                 </select>
@@ -1164,7 +1202,7 @@ export function Header() {
             </div>
 
             <nav className="flex items-center justify-start h-[48px] text-[12px] font-bold text-gray-700 flex-1 overflow-x-auto hide-scrollbar">
-              {NAV_CATEGORIES.map((cat, idx) => (
+              {dynamicNavCategories.map((cat, idx) => (
                 <Link
                   key={cat.slug}
                   href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
@@ -1320,7 +1358,7 @@ export function Header() {
         {/* Category list — accordion with sub-menus */}
         <div className="flex flex-col py-2">
           <p className="px-5 pt-2 pb-2 text-base font-black text-gray-900 tracking-tight uppercase">{t.header.ourDepartments}</p>
-          {NAV_CATEGORIES.map(cat => {
+          {dynamicNavCategories.map(cat => {
             const isExpanded = mobileExpandedCat === cat.slug;
             const catHref = cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`;
             const subItems = MEGA_CATEGORIES.find(m => m.href.includes(cat.slug) || m.href === catHref)?.subs ?? [];

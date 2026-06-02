@@ -2,7 +2,7 @@ import api from '@/lib/api';
 
 export interface ProductImage { id: string; url: string; alt?: string; isPrimary: boolean; }
 export interface BookDetail { author: string; publisher?: string; isbn?: string; language: string; pageCount?: number; edition?: string; genres: string[]; binding?: string; translator?: string; series?: string; }
-export interface Category { id: string; name: string; slug: string; description?: string; _count?: { products: number } }
+export interface Category { id: string; name: string; slug: string; description?: string; imageUrl?: string; color?: string; icon?: string; isFeatured?: boolean; sortOrder?: number; _count?: { products: number } }
 export interface Product {
   id: string; name: string; slug: string; description?: string; shortDesc?: string;
   basePrice: string; salePrice?: string; stockQuantity: number; sku: string;

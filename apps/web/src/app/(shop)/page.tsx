@@ -8,7 +8,8 @@ import {
   ChevronLeft, ChevronRight, Truck, RotateCcw, ShieldCheck, Headphones,
   Flame, Star, ArrowRight, ShoppingCart, Zap,
 } from 'lucide-react';
-import { productsApi, categoriesApi, type Product } from '@/lib/api/products';
+import { productsApi, categoriesApi, type Product, type Category } from '@/lib/api/products';
+import api from '@/lib/api';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useCart } from '@/lib/hooks/use-cart';
 
@@ -404,6 +405,12 @@ export default function HomePage() {
   const { data: flashData, isError: flashError } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]) });
   const flashProducts = (flashData?.data ?? []).filter(p => p.salePrice && Number(p.salePrice) < Number(p.basePrice) && p.images?.[0]?.url).slice(0, 12);
 
+  const { data: promoBannersRaw } = useQuery<{ id: string; imageUrl: string; linkUrl?: string; title: string; isActive: boolean }[]>({
+    queryKey: ['promo-banners'],
+    queryFn: () => api.get('/design/banners?position=PROMO&limit=20').then(r => r.data?.data ?? []).catch(() => []),
+  });
+  const promoBanners = (promoBannersRaw ?? []).filter(b => b.isActive);
+
   // Show a banner when all main product queries fail (API unreachable)
   const apiDown = newArrivalsError && bestError && flashError && featuredError && shelfError;
 
@@ -537,6 +544,50 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
+          CATEGORIES STRIP — auto-updates from API
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'বিভাগ অনুযায়ী কেনাকাটা করুন' : 'Shop by Category'}</h2>
+            <Link href="/products" className="text-[11px] font-bold text-orange-500 flex items-center gap-0.5 hover:underline">
+              {lang === 'bn' ? 'সব দেখুন' : 'All'} <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {(allCategories.length > 0
+              ? allCategories.slice(0, 12) as (Category & { children?: Category[] })[]
+              : [
+                { id:'1', slug:'books',            name: lang === 'bn' ? 'বই' : 'Books', imageUrl: undefined, color: '#2563eb' },
+                { id:'2', slug:'baby-products',    name: lang === 'bn' ? 'শিশু পণ্য' : 'Baby', imageUrl: undefined, color: '#ec4899' },
+                { id:'3', slug:'leather-products', name: lang === 'bn' ? 'লেদার' : 'Leather', imageUrl: undefined, color: '#92400e' },
+                { id:'4', slug:'organic-foods',    name: lang === 'bn' ? 'অর্গানিক' : 'Organic', imageUrl: undefined, color: '#16a34a' },
+                { id:'5', slug:'handicrafts',      name: lang === 'bn' ? 'হস্তশিল্প' : 'Crafts', imageUrl: undefined, color: '#7c3aed' },
+                { id:'6', slug:'electronics',      name: lang === 'bn' ? 'ইলেকট্রনিক্স' : 'Electronics', imageUrl: undefined, color: '#0e7490' },
+                { id:'7', slug:'daily-needs',      name: lang === 'bn' ? 'দৈনন্দিন' : 'Daily', imageUrl: undefined, color: '#b45309' },
+                { id:'8', slug:'default',          name: lang === 'bn' ? 'আরো' : 'More', imageUrl: undefined, color: '#6b7280' },
+              ] as (Category & { children?: Category[] })[]
+            ).map(cat => (
+              <Link key={cat.id} href={`/products?categorySlug=${cat.slug}`}
+                className="flex-shrink-0 flex flex-col items-center gap-2 group">
+                <div
+                  className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center text-2xl transition-transform group-hover:scale-105 shadow-sm border-2 border-white"
+                  style={{ backgroundColor: cat.color ?? '#f3f4f6' }}
+                >
+                  {cat.imageUrl ? (
+                    <Image src={cat.imageUrl} alt={cat.name} width={64} height={64} className="object-cover w-full h-full" unoptimized />
+                  ) : (
+                    <span>{CAT_EMOJI[cat.slug] ?? CAT_EMOJI.default}</span>
+                  )}
+                </div>
+                <span className="text-[10px] font-semibold text-gray-700 text-center w-16 leading-tight truncate">{cat.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
           FLASH DEALS
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-5 px-3 md:px-4">
@@ -622,27 +673,50 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          PROMO BANNERS (3 columns)
+          PROMO BANNERS — dynamic from CMS, fallback to static
       ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {[
-            { href: '/books',                    gradient: 'from-blue-600 to-indigo-700',  emoji: '📚', titleBn: 'বই উৎসব',        titleEn: 'Book Festival',    subBn: 'সকল বইয়ে ২০% ছাড়',         subEn: '20% off all books' },
-            { href: '/categories/organic-foods', gradient: 'from-green-600 to-teal-700',   emoji: '🌿', titleBn: 'অর্গানিক স্টোর', titleEn: 'Organic Store',    subBn: 'প্রাকৃতিক পণ্য সংগ্রহ',     subEn: 'Natural products' },
-            { href: '/shipping-policy',          gradient: 'from-orange-500 to-red-600',   emoji: '🚚', titleBn: 'ফ্রি শিপিং',     titleEn: 'Free Shipping',    subBn: '৫০০ টাকার উপরে অর্ডারে',   subEn: 'Orders above ৳500' },
-          ].map(b => (
-            <Link key={b.href} href={b.href}
-              className={`bg-gradient-to-r ${b.gradient} rounded-xl p-4 flex items-center gap-3 group hover:opacity-95 hover:scale-[1.01] transition-all`}>
-              <span className="text-3xl">{b.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-white font-black text-sm">{lang === 'bn' ? b.titleBn : b.titleEn}</h3>
-                <p className="text-white/70 text-xs truncate">{lang === 'bn' ? b.subBn : b.subEn}</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-white/60 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          ))}
-        </div>
-      </section>
+      {promoBanners.length > 0 ? (
+        <section className="py-3 px-3 md:px-4">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {promoBanners.slice(0, 3).map(b => (
+              b.linkUrl ? (
+                <Link key={b.id} href={b.linkUrl}
+                  className="relative rounded-xl overflow-hidden h-28 block group hover:scale-[1.01] transition-all shadow-sm">
+                  <Image src={b.imageUrl} alt={b.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
+                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                  <span className="absolute bottom-3 left-3 text-white font-black text-sm drop-shadow">{b.title}</span>
+                </Link>
+              ) : (
+                <div key={b.id} className="relative rounded-xl overflow-hidden h-28">
+                  <Image src={b.imageUrl} alt={b.title} fill className="object-cover" unoptimized />
+                  <div className="absolute inset-0 bg-black/20" />
+                  <span className="absolute bottom-3 left-3 text-white font-black text-sm drop-shadow">{b.title}</span>
+                </div>
+              )
+            ))}
+          </div>
+        </section>
+      ) : (
+        <section className="py-3 px-3 md:px-4">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { href: '/books',                    gradient: 'from-blue-600 to-indigo-700',  emoji: '📚', titleBn: 'বই উৎসব',        titleEn: 'Book Festival',    subBn: 'সকল বইয়ে ২০% ছাড়',       subEn: '20% off all books' },
+              { href: '/categories/organic-foods', gradient: 'from-green-600 to-teal-700',   emoji: '🌿', titleBn: 'অর্গানিক স্টোর', titleEn: 'Organic Store',    subBn: 'প্রাকৃতিক পণ্য সংগ্রহ',   subEn: 'Natural products' },
+              { href: '/shipping-policy',          gradient: 'from-orange-500 to-red-600',   emoji: '🚚', titleBn: 'ফ্রি শিপিং',     titleEn: 'Free Shipping',    subBn: '৫০০ টাকার উপরে অর্ডারে', subEn: 'Orders above ৳500' },
+            ].map(b => (
+              <Link key={b.href} href={b.href}
+                className={`bg-gradient-to-r ${b.gradient} rounded-xl p-4 flex items-center gap-3 group hover:opacity-95 hover:scale-[1.01] transition-all`}>
+                <span className="text-3xl">{b.emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-white font-black text-sm">{lang === 'bn' ? b.titleBn : b.titleEn}</h3>
+                  <p className="text-white/70 text-xs truncate">{lang === 'bn' ? b.subBn : b.subEn}</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-white/60 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           NEW ARRIVALS — 6-column grid

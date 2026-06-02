@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -8,9 +8,10 @@ import {
   Brain, Zap, Settings, Sparkles, Copy, Check, AlertCircle, Loader2,
   CheckCircle2, XCircle, Activity, BookOpen, Cpu, ChevronDown, ChevronUp,
   FileText, Image as ImageIcon, Mail, HelpCircle, Megaphone, LayoutTemplate, Search,
-  BarChart3, TrendingUp, Clock, AlertTriangle,
+  BarChart3, TrendingUp, Clock, AlertTriangle, Workflow, Play,
 } from 'lucide-react';
 import { aiApi, type AiSettings, type AiProviderStatus } from '@/lib/api/ai-studio';
+import api from '@/lib/api';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) {
@@ -1035,6 +1036,126 @@ function SettingsTab() {
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Automation Tab ──────────────────────────────────────────────────────────
+
+const AI_TRIGGERS = [
+  { key: 'ai.auto_describe',      label: 'Auto-generate product descriptions on create',  desc: 'When a new product is saved without a description, AI writes one automatically.' },
+  { key: 'ai.auto_seo',           label: 'Auto-generate SEO metadata on publish',          desc: 'On product publish, AI generates meta title, description, and keywords.' },
+  { key: 'ai.review_summary',     label: 'Auto-summarize reviews when ≥5 new reviews',     desc: 'AI creates a review digest after every 5 new reviews on a product.' },
+  { key: 'ai.support_suggest',    label: 'AI reply suggestions for support tickets',        desc: 'Show AI-suggested replies in the support ticket view (admin only).' },
+  { key: 'ai.fraud_explain',      label: 'AI explanations for flagged fraud orders',        desc: 'When an order is flagged, AI explains why in plain language.' },
+  { key: 'ai.inventory_alerts',   label: 'AI-powered low stock recommendations',            desc: 'AI suggests reorder quantities based on sales velocity.' },
+];
+
+const BATCH_JOBS = [
+  { key: 'backfill_descriptions', label: 'Backfill missing descriptions',  desc: 'Generate descriptions for all products that have none.' },
+  { key: 'backfill_seo',          label: 'Backfill missing SEO metadata',  desc: 'Generate SEO metadata for all products missing it.' },
+  { key: 'retranslate_all',       label: 'Retranslate product content',    desc: 'Re-run Bengali translation for all products.' },
+  { key: 'regen_summaries',       label: 'Regenerate all review summaries', desc: 'Refresh AI review summaries for all products with ≥3 reviews.' },
+];
+
+function AutomationTab() {
+  const [triggers, setTriggers] = useState<Record<string, boolean>>({});
+  const [saving, setSaving] = useState(false);
+  const [running, setRunning] = useState<string | null>(null);
+
+  useEffect(() => {
+    const keys = AI_TRIGGERS.map(t => t.key).join(',');
+    api.get(`/settings/store?keys=${keys}`)
+      .then(r => {
+        const data = r.data?.data ?? {};
+        const parsed: Record<string, boolean> = {};
+        AI_TRIGGERS.forEach(t => { parsed[t.key] = data[t.key] === 'true'; });
+        setTriggers(parsed);
+      })
+      .catch(() => {/* ignore */});
+  }, []);
+
+  const saveTriggers = async () => {
+    setSaving(true);
+    try {
+      const payload: Record<string, string> = {};
+      AI_TRIGGERS.forEach(t => { payload[t.key] = String(triggers[t.key] ?? false); });
+      await api.patch('/settings/store', payload);
+    } catch { /* ignore */ } finally { setSaving(false); }
+  };
+
+  const runBatch = async (key: string) => {
+    setRunning(key);
+    try {
+      await api.post(`/admin/ai/batch/${key}`);
+    } catch { /* ignore */ } finally { setRunning(null); }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Triggers */}
+      <div className="rounded-xl border overflow-hidden">
+        <div className="px-5 py-4 border-b bg-muted/30">
+          <h3 className="font-bold">Automation Triggers</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">These run automatically when the specified event occurs</p>
+        </div>
+        <div className="divide-y">
+          {AI_TRIGGERS.map(trigger => (
+            <div key={trigger.key} className="flex items-center gap-4 px-5 py-4">
+              <div className="flex-1">
+                <p className="text-sm font-semibold">{trigger.label}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{trigger.desc}</p>
+              </div>
+              <button
+                onClick={() => setTriggers(t => ({ ...t, [trigger.key]: !t[trigger.key] }))}
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors ${triggers[trigger.key] ? 'bg-green-500' : 'bg-gray-200'}`}>
+                <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${triggers[trigger.key] ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="px-5 py-4 border-t bg-muted/10 flex justify-end">
+          <button
+            onClick={saveTriggers}
+            disabled={saving}
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+            Save Triggers
+          </button>
+        </div>
+      </div>
+
+      {/* Batch Jobs */}
+      <div className="rounded-xl border overflow-hidden">
+        <div className="px-5 py-4 border-b bg-muted/30">
+          <h3 className="font-bold">Batch Operations</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Run AI operations across your entire catalogue</p>
+        </div>
+        <div className="divide-y">
+          {BATCH_JOBS.map(job => (
+            <div key={job.key} className="flex items-center gap-4 px-5 py-4">
+              <div className="flex-1">
+                <p className="text-sm font-semibold">{job.label}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{job.desc}</p>
+              </div>
+              <button
+                onClick={() => runBatch(job.key)}
+                disabled={running === job.key}
+                className="flex items-center gap-2 rounded-lg border bg-background px-3 py-1.5 text-xs font-semibold hover:bg-accent disabled:opacity-50">
+                {running === job.key ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+                Run
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Workflow Placeholder */}
+      <div className="rounded-xl border border-dashed p-8 text-center">
+        <Workflow className="h-8 w-8 mx-auto mb-3 text-muted-foreground/50" />
+        <h3 className="font-bold text-sm mb-1">Visual Workflow Builder</h3>
+        <p className="text-xs text-muted-foreground">Drag-and-drop workflow editor coming soon — chain AI actions with triggers, conditions, and outputs.</p>
+      </div>
+    </div>
+  );
+}
+
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
   { id: 'product-content', label: 'Product Content', icon: Sparkles },
@@ -1046,6 +1167,7 @@ const TABS = [
   { id: 'faq', label: 'FAQ', icon: HelpCircle },
   { id: 'image-alt', label: 'Image Alt', icon: ImageIcon },
   { id: 'custom', label: 'Custom', icon: Brain },
+  { id: 'automation', label: 'Automation', icon: Workflow },
   { id: 'settings', label: 'Settings', icon: Settings },
 ] as const;
 
@@ -1099,6 +1221,7 @@ export default function AiStudioPage() {
         {activeTab === 'faq' && <FaqTab />}
         {activeTab === 'image-alt' && <ImageAltTab />}
         {activeTab === 'custom' && <CustomPromptTab />}
+        {activeTab === 'automation' && <AutomationTab />}
         {activeTab === 'settings' && <SettingsTab />}
       </div>
     </div>
