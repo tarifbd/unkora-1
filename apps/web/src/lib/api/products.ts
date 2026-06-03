@@ -18,6 +18,13 @@ export interface ProductQuery {
   page?: number; limit?: number; categorySlug?: string; search?: string;
   minPrice?: number; maxPrice?: number; isFeatured?: boolean; inStock?: boolean;
   sortBy?: string; sortOrder?: 'asc' | 'desc'; tags?: string;
+  author?: string;
+  language?: string;
+  genre?: string;
+  publisher?: string;
+  binding?: string;
+  hasDiscount?: boolean;
+  preorder?: boolean;
 }
 
 export const productsApi = {
