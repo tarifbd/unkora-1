@@ -11,11 +11,13 @@ COPY packages/types/package.json ./packages/types/
 COPY packages/config/tsconfig/package.json ./packages/config/tsconfig/
 COPY packages/config/eslint-config/package.json ./packages/config/eslint-config/
 COPY packages/config/tailwind-config/package.json ./packages/config/tailwind-config/
+COPY packages/ui/package.json ./packages/ui/
 RUN npm ci --ignore-scripts
 
 # ── builder ───────────────────────────────────────────────────────
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY . .
 RUN npx prisma generate --schema=packages/database/prisma/schema.prisma
 RUN npx turbo build --filter=@unkora/api
