@@ -1230,7 +1230,7 @@ export function Header() {
               ))}
             </nav>
 
-            <Link href="#" className="shrink-0 px-4 h-[48px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors ml-auto">
+            <Link href="/flash-deals" className="shrink-0 px-4 h-[48px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors ml-auto">
               {t.header.dealOfDay} <span className="text-red-600 text-lg ml-1">🔥</span>
             </Link>
           </div>

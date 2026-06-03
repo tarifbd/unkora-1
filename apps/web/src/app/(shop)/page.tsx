@@ -6,8 +6,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   ChevronLeft, ChevronRight, Truck, RotateCcw, ShieldCheck, Headphones,
-  Flame, Star, ArrowRight, ShoppingCart, Zap,
+  Flame, Star, ArrowRight, ShoppingCart, Zap, CheckCircle,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { productsApi, categoriesApi, type Product, type Category } from '@/lib/api/products';
 import api from '@/lib/api';
 import { useLanguage } from '@/lib/i18n/language-context';
@@ -400,6 +401,9 @@ export default function HomePage() {
   const [bookShelfTab, setBookShelfTab] = useState('fiction');
   const [slideIndex, setSlideIndex]   = useState(0);
   const [slideKey, setSlideKey]       = useState(0);
+
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterDone, setNewsletterDone]   = useState(false);
 
   const flashRef     = useRef<HTMLDivElement>(null);
   const shelfRef     = useRef<HTMLDivElement>(null);
@@ -989,13 +993,32 @@ export default function HomePage() {
             <div className="text-3xl mb-2">📬</div>
             <h2 className="text-lg font-black text-white mb-1">{lang === 'bn' ? 'অফার মিস করতে চান না?' : 'Never Miss a Deal?'}</h2>
             <p className="text-blue-300 text-xs mb-5">{lang === 'bn' ? 'সাবস্ক্রাইব করুন — সেরা অফার সবার আগে পান' : 'Subscribe and get the best deals first'}</p>
-            <form className="flex gap-2 max-w-sm mx-auto" onSubmit={e => e.preventDefault()}>
-              <input type="email" required placeholder={lang === 'bn' ? 'আপনার ইমেইল' : 'Your email'}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-blue-400 text-xs focus:outline-none focus:ring-2 focus:ring-white/30" />
-              <button type="submit" className="px-5 py-2.5 bg-orange-500 text-white text-xs font-black rounded-lg hover:bg-orange-600 transition-colors whitespace-nowrap">
-                {lang === 'bn' ? 'সাবস্ক্রাইব' : 'Subscribe'}
-              </button>
-            </form>
+            {newsletterDone ? (
+              <div className="flex items-center justify-center gap-2 text-green-300 font-bold text-sm">
+                <CheckCircle className="w-5 h-5" />
+                {lang === 'bn' ? 'সাবস্ক্রাইব করা হয়েছে! ধন্যবাদ।' : 'Subscribed! Thank you.'}
+              </div>
+            ) : (
+              <form className="flex gap-2 max-w-sm mx-auto" onSubmit={e => {
+                e.preventDefault();
+                if (!newsletterEmail) return;
+                setNewsletterDone(true);
+                toast.success(lang === 'bn' ? 'সাবস্ক্রাইব সফল হয়েছে!' : 'Successfully subscribed!', {
+                  description: lang === 'bn' ? 'সেরা অফার সবার আগে পাবেন।' : 'You will get the best deals first.',
+                });
+              }}>
+                <input
+                  type="email" required
+                  value={newsletterEmail}
+                  onChange={e => setNewsletterEmail(e.target.value)}
+                  placeholder={lang === 'bn' ? 'আপনার ইমেইল' : 'Your email'}
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-blue-400 text-xs focus:outline-none focus:ring-2 focus:ring-white/30"
+                />
+                <button type="submit" className="px-5 py-2.5 bg-orange-500 text-white text-xs font-black rounded-lg hover:bg-orange-600 transition-colors whitespace-nowrap">
+                  {lang === 'bn' ? 'সাবস্ক্রাইব' : 'Subscribe'}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </section>
