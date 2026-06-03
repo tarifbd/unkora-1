@@ -427,8 +427,7 @@ export class PaymentsService {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          order: { select: { orderNumber: true } },
-          user: { select: { firstName: true, lastName: true, email: true } },
+          order: { select: { orderNumber: true, user: { select: { firstName: true, lastName: true, email: true } } } },
         },
       }),
       this.prisma.payment.count({ where }),
