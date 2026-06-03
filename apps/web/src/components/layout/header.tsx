@@ -639,13 +639,22 @@ export function Header() {
     staleTime: 5 * 60 * 1000,
   });
 
+  useEffect(() => {
+    const q = searchParams.get('q');
+    setSearchQuery(q ?? '');
+  }, [searchParams]);
+
   const dynamicNavCategories: NavCategory[] = (() => {
     if (!apiCategories || apiCategories.length === 0) return NAV_CATEGORIES;
     const featured = apiCategories
       .filter(c => c.isFeatured)
       .sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
-    if (featured.length === 0) return NAV_CATEGORIES;
-    return featured.map(c => {
+    // If fewer than 5 categories are marked featured, show all sorted by sortOrder
+    const source = featured.length >= 5
+      ? featured
+      : [...apiCategories].sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99)).slice(0, 8);
+    if (source.length === 0) return NAV_CATEGORIES;
+    return source.map(c => {
       const meta = SLUG_TO_NAV[c.slug];
       return {
         nameKey: (meta?.nameKey ?? 'books') as NavCategory['nameKey'],
