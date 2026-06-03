@@ -806,7 +806,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
         <div className="max-w-7xl mx-auto">
-          <a href="/categories/leather-products" className="block rounded-2xl overflow-hidden relative group cursor-pointer"
+          <Link href="/categories/leather-products" className="block rounded-2xl overflow-hidden relative group cursor-pointer"
             style={{ background: 'linear-gradient(135deg, #1c0a00 0%, #3b1a08 40%, #5c2d0e 100%)' }}>
             <div className="absolute inset-0 opacity-10"
               style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #b45309 0%, transparent 50%), radial-gradient(circle at 80% 20%, #d97706 0%, transparent 40%)' }} />
@@ -837,7 +837,7 @@ export default function HomePage() {
             </div>
             {/* subtle top-right decorative circle like Islamic banner */}
             <div className="absolute top-0 right-0 w-48 h-48 bg-amber-700/20 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          </a>
+          </Link>
         </div>
       </section>
 
