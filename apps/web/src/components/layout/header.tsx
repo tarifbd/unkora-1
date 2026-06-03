@@ -1218,7 +1218,7 @@ export function Header() {
                   onMouseEnter={() => setActiveCategoryIndex(idx)}
                   className={cn(
                     'px-2 h-full flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative',
-                    activeCategoryIndex === idx ? 'text-primary' : 'hover:text-primary',
+                    activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
                   )}
                 >
                   <cat.icon className={cn('w-3.5 h-3.5 hidden', activeCategoryIndex === idx ? 'text-primary' : 'opacity-70')} />
