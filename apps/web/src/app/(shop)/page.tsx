@@ -112,6 +112,36 @@ function useCountdown(target: Date) {
   return t;
 }
 
+/* ─────────────────────── promo banner row ─────────────────────────── */
+
+type PromoBannerItem = { id: string; imageUrl: string; linkUrl?: string; title: string };
+
+function PromoBannerRow({ banners }: { banners: PromoBannerItem[] }) {
+  if (banners.length === 0) return null;
+  return (
+    <section className="py-3 px-3 md:px-4">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {banners.slice(0, 3).map(b =>
+          b.linkUrl ? (
+            <Link key={b.id} href={b.linkUrl}
+              className="relative rounded-xl overflow-hidden h-28 md:h-32 block group hover:scale-[1.02] transition-all shadow-sm flex-shrink-0">
+              <Image src={b.imageUrl} alt={b.title} fill className="object-cover group-hover:scale-110 transition-transform duration-500" unoptimized />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent group-hover:from-black/30 transition-all" />
+              <span className="absolute bottom-2 left-3 text-white font-bold text-xs drop-shadow">{b.title}</span>
+            </Link>
+          ) : (
+            <div key={b.id} className="relative rounded-xl overflow-hidden h-28 md:h-32">
+              <Image src={b.imageUrl} alt={b.title} fill className="object-cover" unoptimized />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              <span className="absolute bottom-2 left-3 text-white font-bold text-xs drop-shadow">{b.title}</span>
+            </div>
+          )
+        )}
+      </div>
+    </section>
+  );
+}
+
 /* ─────────────────────── shared UI components ─────────────────────── */
 
 function SectionHeader({ titleBn, titleEn, href, accentColor = '#f97316', lang }: {
@@ -405,11 +435,19 @@ export default function HomePage() {
   const { data: flashData, isError: flashError } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]) });
   const flashProducts = (flashData?.data ?? []).filter(p => p.salePrice && Number(p.salePrice) < Number(p.basePrice) && p.images?.[0]?.url).slice(0, 12);
 
-  const { data: promoBannersRaw } = useQuery<{ id: string; imageUrl: string; linkUrl?: string; title: string; isActive: boolean }[]>({
-    queryKey: ['promo-banners'],
-    queryFn: () => api.get('/design/banners?position=PROMO&limit=20').then(r => r.data?.data ?? []).catch(() => []),
-  });
-  const promoBanners = (promoBannersRaw ?? []).filter(b => b.isActive);
+  type PromoBanner = { id: string; imageUrl: string; linkUrl?: string; title: string; isActive: boolean };
+  const fetchPromo = (pos: string) =>
+    api.get(`/design/banners?position=${pos}&limit=10`).then(r => (r.data?.data ?? []) as PromoBanner[]).catch(() => [] as PromoBanner[]);
+
+  const { data: promo1Raw } = useQuery<PromoBanner[]>({ queryKey: ['promo-banners', 'PROMO_1'], queryFn: () => fetchPromo('PROMO_1') });
+  const { data: promo2Raw } = useQuery<PromoBanner[]>({ queryKey: ['promo-banners', 'PROMO_2'], queryFn: () => fetchPromo('PROMO_2') });
+  const { data: promo3Raw } = useQuery<PromoBanner[]>({ queryKey: ['promo-banners', 'PROMO_3'], queryFn: () => fetchPromo('PROMO_3') });
+  const { data: promo4Raw } = useQuery<PromoBanner[]>({ queryKey: ['promo-banners', 'PROMO_4'], queryFn: () => fetchPromo('PROMO_4') });
+
+  const promo1 = (promo1Raw ?? []).filter(b => b.isActive);
+  const promo2 = (promo2Raw ?? []).filter(b => b.isActive);
+  const promo3 = (promo3Raw ?? []).filter(b => b.isActive);
+  const promo4 = (promo4Raw ?? []).filter(b => b.isActive);
 
   // Show a banner when all main product queries fail (API unreachable)
   const apiDown = newArrivalsError && bestError && flashError && featuredError && shelfError;
@@ -587,6 +625,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* PROMO ROW 1 — after categories */}
+      <PromoBannerRow banners={promo1} />
+
       {/* ═══════════════════════════════════════════════════════════════
           FLASH DEALS
       ═══════════════════════════════════════════════════════════════ */}
@@ -632,6 +673,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* PROMO ROW 2 — after flash deals */}
+      <PromoBannerRow banners={promo2} />
+
       {/* ═══════════════════════════════════════════════════════════════
           BOOK WORLD — tabbed shelf
       ═══════════════════════════════════════════════════════════════ */}
@@ -672,59 +716,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════════════════════
-          PROMO BANNERS — 4 slots, dynamic from CMS, fallback to static
-      ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto">
-          {promoBanners.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {Array.from({ length: 4 }).map((_, i) => {
-                const b = promoBanners[i];
-                if (!b) {
-                  return (
-                    <div key={i} className="rounded-xl overflow-hidden h-32 md:h-36 bg-gray-100 border-2 border-dashed border-gray-200 flex items-center justify-center">
-                      <span className="text-xs text-gray-400 font-medium">Ad Slot {i + 1}</span>
-                    </div>
-                  );
-                }
-                return b.linkUrl ? (
-                  <Link key={b.id} href={b.linkUrl}
-                    className="relative rounded-xl overflow-hidden h-32 md:h-36 block group hover:scale-[1.02] transition-all shadow-sm">
-                    <Image src={b.imageUrl} alt={b.title} fill className="object-cover group-hover:scale-110 transition-transform duration-500" unoptimized />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent group-hover:from-black/30 transition-all" />
-                    <span className="absolute bottom-2 left-3 text-white font-bold text-xs drop-shadow">{b.title}</span>
-                  </Link>
-                ) : (
-                  <div key={b.id} className="relative rounded-xl overflow-hidden h-32 md:h-36">
-                    <Image src={b.imageUrl} alt={b.title} fill className="object-cover" unoptimized />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                    <span className="absolute bottom-2 left-3 text-white font-bold text-xs drop-shadow">{b.title}</span>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                { href: '/books',                    gradient: 'from-blue-600 to-indigo-700',  emoji: '📚', titleBn: 'বই উৎসব',        titleEn: 'Book Festival',    subBn: 'সকল বইয়ে ২০% ছাড়' },
-                { href: '/categories/organic-foods', gradient: 'from-green-600 to-teal-700',   emoji: '🌿', titleBn: 'অর্গানিক স্টোর', titleEn: 'Organic Store',    subBn: 'প্রাকৃতিক পণ্য' },
-                { href: '/categories/leather-products', gradient: 'from-amber-700 to-orange-600', emoji: '👜', titleBn: 'লেদার কালেকশন', titleEn: 'Leather Collection', subBn: 'হ্যান্ডমেড লেদার' },
-                { href: '/shipping-policy',          gradient: 'from-orange-500 to-red-600',   emoji: '🚚', titleBn: 'ফ্রি শিপিং',     titleEn: 'Free Shipping',    subBn: '৫০০ টাকার উপরে' },
-              ].map(b => (
-                <Link key={b.href} href={b.href}
-                  className={`bg-gradient-to-br ${b.gradient} rounded-xl p-4 flex flex-col justify-between h-32 md:h-36 group hover:opacity-95 hover:scale-[1.02] transition-all shadow-sm`}>
-                  <span className="text-3xl">{b.emoji}</span>
-                  <div>
-                    <h3 className="text-white font-black text-sm leading-tight">{lang === 'bn' ? b.titleBn : b.titleEn}</h3>
-                    <p className="text-white/70 text-[11px] mt-0.5 truncate">{b.subBn}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      {/* PROMO ROW 3 — after book world */}
+      <PromoBannerRow banners={promo3} />
 
       {/* ═══════════════════════════════════════════════════════════════
           NEW ARRIVALS — 6-column grid
@@ -740,6 +733,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* PROMO ROW 4 — after new arrivals */}
+      <PromoBannerRow banners={promo4} />
 
       {/* ═══════════════════════════════════════════════════════════════
           BEST SELLERS — tabbed 6-column grid

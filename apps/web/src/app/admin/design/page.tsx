@@ -446,8 +446,11 @@ function BannerModal({ initial, onSave, onClose }: { initial?: Banner; onSave: (
             <div>
               <label className="mb-1 block text-xs font-semibold text-muted-foreground">Position</label>
               <select value={form.position} onChange={set('position')} className={inp}>
+                <option value="PROMO_1">🟠 Promo Row 1 — Categories-এর পরে</option>
+                <option value="PROMO_2">🟠 Promo Row 2 — Flash Deals-এর পরে</option>
+                <option value="PROMO_3">🟠 Promo Row 3 — Book World-এর পরে</option>
+                <option value="PROMO_4">🟠 Promo Row 4 — New Arrivals-এর পরে</option>
                 <option value="hero">Hero</option>
-                <option value="PROMO">Promo (Homepage Middle)</option>
                 <option value="top">Top</option>
                 <option value="sidebar">Sidebar</option>
                 <option value="bottom">Bottom</option>
@@ -519,11 +522,22 @@ function BannersTab() {
   };
 
   const positionColor: Record<string, string> = {
+    PROMO_1: 'bg-orange-100 text-orange-700',
+    PROMO_2: 'bg-orange-100 text-orange-700',
+    PROMO_3: 'bg-orange-100 text-orange-700',
+    PROMO_4: 'bg-orange-100 text-orange-700',
     hero:    'bg-blue-100 text-blue-700',
     top:     'bg-green-100 text-green-700',
     sidebar: 'bg-purple-100 text-purple-700',
-    bottom:  'bg-orange-100 text-orange-700',
+    bottom:  'bg-gray-100 text-gray-700',
     popup:   'bg-red-100 text-red-700',
+  };
+
+  const positionLabel: Record<string, string> = {
+    PROMO_1: 'Promo Row 1',
+    PROMO_2: 'Promo Row 2',
+    PROMO_3: 'Promo Row 3',
+    PROMO_4: 'Promo Row 4',
   };
 
   if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -567,7 +581,7 @@ function BannersTab() {
                     </div>
                   </td>
                   <td className="hidden px-4 py-3 text-center sm:table-cell">
-                    <Badge color={positionColor[b.position] ?? 'bg-gray-100 text-gray-600'}>{b.position}</Badge>
+                    <Badge color={positionColor[b.position] ?? 'bg-gray-100 text-gray-600'}>{positionLabel[b.position] ?? b.position}</Badge>
                   </td>
                   <td className="hidden px-4 py-3 text-xs text-muted-foreground md:table-cell">
                     {b.startsAt ? `${new Date(b.startsAt).toLocaleDateString()}` : '—'}
