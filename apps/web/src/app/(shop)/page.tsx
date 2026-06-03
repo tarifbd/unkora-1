@@ -673,50 +673,58 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          PROMO BANNERS — dynamic from CMS, fallback to static
+          PROMO BANNERS — 4 slots, dynamic from CMS, fallback to static
       ═══════════════════════════════════════════════════════════════ */}
-      {promoBanners.length > 0 ? (
-        <section className="py-3 px-3 md:px-4">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {promoBanners.slice(0, 3).map(b => (
-              b.linkUrl ? (
-                <Link key={b.id} href={b.linkUrl}
-                  className="relative rounded-xl overflow-hidden h-28 block group hover:scale-[1.01] transition-all shadow-sm">
-                  <Image src={b.imageUrl} alt={b.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
-                  <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                  <span className="absolute bottom-3 left-3 text-white font-black text-sm drop-shadow">{b.title}</span>
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto">
+          {promoBanners.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => {
+                const b = promoBanners[i];
+                if (!b) {
+                  return (
+                    <div key={i} className="rounded-xl overflow-hidden h-32 md:h-36 bg-gray-100 border-2 border-dashed border-gray-200 flex items-center justify-center">
+                      <span className="text-xs text-gray-400 font-medium">Ad Slot {i + 1}</span>
+                    </div>
+                  );
+                }
+                return b.linkUrl ? (
+                  <Link key={b.id} href={b.linkUrl}
+                    className="relative rounded-xl overflow-hidden h-32 md:h-36 block group hover:scale-[1.02] transition-all shadow-sm">
+                    <Image src={b.imageUrl} alt={b.title} fill className="object-cover group-hover:scale-110 transition-transform duration-500" unoptimized />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent group-hover:from-black/30 transition-all" />
+                    <span className="absolute bottom-2 left-3 text-white font-bold text-xs drop-shadow">{b.title}</span>
+                  </Link>
+                ) : (
+                  <div key={b.id} className="relative rounded-xl overflow-hidden h-32 md:h-36">
+                    <Image src={b.imageUrl} alt={b.title} fill className="object-cover" unoptimized />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                    <span className="absolute bottom-2 left-3 text-white font-bold text-xs drop-shadow">{b.title}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { href: '/books',                    gradient: 'from-blue-600 to-indigo-700',  emoji: '📚', titleBn: 'বই উৎসব',        titleEn: 'Book Festival',    subBn: 'সকল বইয়ে ২০% ছাড়' },
+                { href: '/categories/organic-foods', gradient: 'from-green-600 to-teal-700',   emoji: '🌿', titleBn: 'অর্গানিক স্টোর', titleEn: 'Organic Store',    subBn: 'প্রাকৃতিক পণ্য' },
+                { href: '/categories/leather-products', gradient: 'from-amber-700 to-orange-600', emoji: '👜', titleBn: 'লেদার কালেকশন', titleEn: 'Leather Collection', subBn: 'হ্যান্ডমেড লেদার' },
+                { href: '/shipping-policy',          gradient: 'from-orange-500 to-red-600',   emoji: '🚚', titleBn: 'ফ্রি শিপিং',     titleEn: 'Free Shipping',    subBn: '৫০০ টাকার উপরে' },
+              ].map(b => (
+                <Link key={b.href} href={b.href}
+                  className={`bg-gradient-to-br ${b.gradient} rounded-xl p-4 flex flex-col justify-between h-32 md:h-36 group hover:opacity-95 hover:scale-[1.02] transition-all shadow-sm`}>
+                  <span className="text-3xl">{b.emoji}</span>
+                  <div>
+                    <h3 className="text-white font-black text-sm leading-tight">{lang === 'bn' ? b.titleBn : b.titleEn}</h3>
+                    <p className="text-white/70 text-[11px] mt-0.5 truncate">{b.subBn}</p>
+                  </div>
                 </Link>
-              ) : (
-                <div key={b.id} className="relative rounded-xl overflow-hidden h-28">
-                  <Image src={b.imageUrl} alt={b.title} fill className="object-cover" unoptimized />
-                  <div className="absolute inset-0 bg-black/20" />
-                  <span className="absolute bottom-3 left-3 text-white font-black text-sm drop-shadow">{b.title}</span>
-                </div>
-              )
-            ))}
-          </div>
-        </section>
-      ) : (
-        <section className="py-3 px-3 md:px-4">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { href: '/books',                    gradient: 'from-blue-600 to-indigo-700',  emoji: '📚', titleBn: 'বই উৎসব',        titleEn: 'Book Festival',    subBn: 'সকল বইয়ে ২০% ছাড়',       subEn: '20% off all books' },
-              { href: '/categories/organic-foods', gradient: 'from-green-600 to-teal-700',   emoji: '🌿', titleBn: 'অর্গানিক স্টোর', titleEn: 'Organic Store',    subBn: 'প্রাকৃতিক পণ্য সংগ্রহ',   subEn: 'Natural products' },
-              { href: '/shipping-policy',          gradient: 'from-orange-500 to-red-600',   emoji: '🚚', titleBn: 'ফ্রি শিপিং',     titleEn: 'Free Shipping',    subBn: '৫০০ টাকার উপরে অর্ডারে', subEn: 'Orders above ৳500' },
-            ].map(b => (
-              <Link key={b.href} href={b.href}
-                className={`bg-gradient-to-r ${b.gradient} rounded-xl p-4 flex items-center gap-3 group hover:opacity-95 hover:scale-[1.01] transition-all`}>
-                <span className="text-3xl">{b.emoji}</span>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-white font-black text-sm">{lang === 'bn' ? b.titleBn : b.titleEn}</h3>
-                  <p className="text-white/70 text-xs truncate">{lang === 'bn' ? b.subBn : b.subEn}</p>
-                </div>
-                <ChevronRight className="w-4 h-4 text-white/60 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* ═══════════════════════════════════════════════════════════════
           NEW ARRIVALS — 6-column grid
