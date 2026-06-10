@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PROTECTED_ROUTES = ['/account', '/checkout', '/cart'];
+// Routes that require login. Note: /checkout and /cart are intentionally NOT
+// here — guests can shop and check out without an account (guest cart +
+// guest order API). Only account-area pages (orders, profile, addresses) are gated.
+const PROTECTED_ROUTES = ['/account'];
+// Guest-friendly pages that live inside an otherwise-protected section.
+// The wishlist page fully supports guests (localStorage + /products/by-ids).
+const GUEST_ALLOWED_ROUTES = ['/account/wishlist'];
 const ADMIN_ROUTES = ['/admin'];
 const AUTH_ROUTES = ['/login', '/register'];
 
@@ -10,7 +16,8 @@ export function middleware(request: NextRequest) {
   const accessToken = request.cookies.get('access_token')?.value;
   const userRole = request.cookies.get('user_role')?.value;
 
-  const isProtected = PROTECTED_ROUTES.some((r) => pathname.startsWith(r));
+  const isGuestAllowed = GUEST_ALLOWED_ROUTES.some((r) => pathname.startsWith(r));
+  const isProtected = !isGuestAllowed && PROTECTED_ROUTES.some((r) => pathname.startsWith(r));
   // /admin/login must be excluded — otherwise unauthenticated visits loop:
   // /admin/login → no token → redirect /admin/login → repeat
   const isAdmin = pathname !== '/admin/login' && ADMIN_ROUTES.some((r) => pathname.startsWith(r));
