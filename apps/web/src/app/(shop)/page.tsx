@@ -486,6 +486,34 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ═══════════════════════════════════════════════════════════════
+          FEATURED PRODUCTS — below hero slider
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="w-full bg-gray-100 pb-1 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-5 bg-blue-600 rounded-full" />
+              <h3 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'ফিচার্ড পণ্য' : 'Featured Products'}</h3>
+            </div>
+            <Link href="/products?isFeatured=true" className="text-[11px] font-bold text-orange-500 flex items-center gap-0.5 hover:underline">
+              {lang === 'bn' ? 'সব দেখুন' : 'View all'} <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+            {featuredProducts.length > 0
+              ? featuredProducts.filter(p => p.images?.[0]?.url).slice(0, 10).map(p => <FeaturedItem key={p.id} p={p} lang={lang} />)
+              : Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex-shrink-0 w-[115px] animate-pulse">
+                  <div className="w-full h-[150px] rounded-xl bg-gray-200 mb-1.5" />
+                  <div className="h-3 bg-gray-200 rounded mb-1" />
+                  <div className="h-3 bg-gray-200 rounded w-2/3" />
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </section>
 
       {/* ═══════════════════════════════════════════════════════════════
           CATEGORIES STRIP — auto-updates from API
