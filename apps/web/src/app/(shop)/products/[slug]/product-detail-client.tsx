@@ -76,9 +76,13 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const tryonCategoryIds = (tryonConfig?.['virtual-tryon.categoryIds'] ?? '')
     .split(',')
     .filter(Boolean);
+  // Match the product's own category OR its parent category, so newly added
+  // subcategories are covered when the admin selected the main category
   const showTryOn =
     tryonEnabled &&
-    (tryonCategoryIds.length === 0 || tryonCategoryIds.includes(product.category?.id ?? ''));
+    (tryonCategoryIds.length === 0 ||
+      tryonCategoryIds.includes(product.category?.id ?? '') ||
+      (product.category?.parentId != null && tryonCategoryIds.includes(product.category.parentId)));
 
   const handleAddToCart = () => {
     addItem.mutate({

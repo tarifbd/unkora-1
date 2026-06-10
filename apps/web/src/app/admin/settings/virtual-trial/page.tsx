@@ -5,7 +5,7 @@ import { Shirt, CheckCircle2, Eye, EyeOff, ArrowLeft, Info, Layers } from 'lucid
 import Link from 'next/link';
 import api from '@/lib/api';
 
-interface CategoryOption { id: string; name: string; }
+interface CategoryOption { id: string; name: string; parentId?: string | null; }
 
 export default function VirtualTrialSettingsPage() {
   const [enabled, setEnabled] = useState(false);
@@ -37,6 +37,20 @@ export default function VirtualTrialSettingsPage() {
 
   const toggleCategory = (id: string) =>
     setSelectedCats(prev => (prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]));
+
+  // Toggling a main category also toggles all of its subcategories
+  const toggleParentCategory = (id: string, childIds: string[]) =>
+    setSelectedCats(prev => {
+      const group = [id, ...childIds];
+      const allSelected = group.every(c => prev.includes(c));
+      return allSelected
+        ? prev.filter(c => !group.includes(c))
+        : [...new Set([...prev, ...group])];
+    });
+
+  // Build tree from the flat list — works for any category added in the future
+  const rootCats = categories.filter(c => !c.parentId);
+  const childrenOf = (parentId: string) => categories.filter(c => c.parentId === parentId);
 
   const handleSave = async () => {
     try {
@@ -145,34 +159,81 @@ export default function VirtualTrialSettingsPage() {
         </div>
         <p className="text-xs text-muted-foreground">
           Select which categories show the "Try On" button. Leave all unchecked to show it on every
-          category.
+          category. Selecting a main category also selects all of its subcategories. New categories
+          added later will appear here automatically.
         </p>
         {categories.length === 0 ? (
           <p className="text-sm text-muted-foreground">No categories found.</p>
         ) : (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {categories.map(cat => {
-              const checked = selectedCats.includes(cat.id);
+          <div className="space-y-3">
+            {rootCats.map(root => {
+              const children = childrenOf(root.id);
+              const childIds = children.map(c => c.id);
+              const rootChecked = selectedCats.includes(root.id);
+              const allChecked = rootChecked && childIds.every(c => selectedCats.includes(c));
+              const someChecked =
+                rootChecked || childIds.some(c => selectedCats.includes(c));
               return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => toggleCategory(cat.id)}
-                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
-                    checked
-                      ? 'border-primary bg-primary/5 text-foreground'
-                      : 'border-border text-muted-foreground hover:bg-accent'
+                <div
+                  key={root.id}
+                  className={`rounded-xl border p-3 transition-colors ${
+                    someChecked ? 'border-primary/40 bg-primary/[0.03]' : 'border-border'
                   }`}
                 >
-                  <span
-                    className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${
-                      checked ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40'
-                    }`}
+                  <button
+                    type="button"
+                    onClick={() => toggleParentCategory(root.id, childIds)}
+                    className="flex w-full items-center gap-2 text-left text-sm font-semibold"
                   >
-                    {checked && <CheckCircle2 className="h-3 w-3" />}
-                  </span>
-                  <span className="truncate">{cat.name}</span>
-                </button>
+                    <span
+                      className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${
+                        allChecked
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : someChecked
+                            ? 'border-primary bg-primary/30 text-primary-foreground'
+                            : 'border-muted-foreground/40'
+                      }`}
+                    >
+                      {someChecked && <CheckCircle2 className="h-3 w-3" />}
+                    </span>
+                    <span className="truncate">{root.name}</span>
+                    {children.length > 0 && (
+                      <span className="ml-auto text-[10px] font-normal text-muted-foreground">
+                        {children.length} sub
+                      </span>
+                    )}
+                  </button>
+                  {children.length > 0 && (
+                    <div className="mt-2 grid grid-cols-2 gap-1.5 pl-6 sm:grid-cols-3">
+                      {children.map(cat => {
+                        const checked = selectedCats.includes(cat.id);
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={() => toggleCategory(cat.id)}
+                            className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left text-xs transition-colors ${
+                              checked
+                                ? 'border-primary bg-primary/5 text-foreground'
+                                : 'border-border text-muted-foreground hover:bg-accent'
+                            }`}
+                          >
+                            <span
+                              className={`flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded border ${
+                                checked
+                                  ? 'border-primary bg-primary text-primary-foreground'
+                                  : 'border-muted-foreground/40'
+                              }`}
+                            >
+                              {checked && <CheckCircle2 className="h-2.5 w-2.5" />}
+                            </span>
+                            <span className="truncate">{cat.name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
