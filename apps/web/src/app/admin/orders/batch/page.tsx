@@ -15,15 +15,20 @@ interface Order {
   date: string;
 }
 
+const CUSTOMERS_LIST = ['Rahim Ahmed', 'Fatema Begum', 'Karim Mia', 'Nasrin Sultana', 'Anwar Hossain'] as const;
+const DISTRICTS_LIST = ['Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi', 'Khulna', 'Barisal', 'Comilla', 'Mymensingh'] as const;
+const STATUSES_LIST = ['Pending', 'Processing', 'Packed'] as const;
+const COURIERS_LIST = ['Pathao', 'Paperfly', 'Redx', 'Steadfast'] as const;
+
 const MOCK_ORDERS: Order[] = Array.from({ length: 20 }, (_, i) => ({
   id: `#ORD-${8800 + i}`,
-  customer: ['Rahim Ahmed', 'Fatema Begum', 'Karim Mia', 'Nasrin Sultana', 'Anwar Hossain'][i % 5],
+  customer: CUSTOMERS_LIST[i % 5] as string,
   phone: `0171${1 + i}-${100000 + i * 12345}`.slice(0, 14),
-  district: ['Dhaka', 'Chittagong', 'Sylhet', 'Rajshahi', 'Khulna', 'Barisal', 'Comilla', 'Mymensingh'][i % 8],
+  district: DISTRICTS_LIST[i % 8] as string,
   items: Math.floor(Math.random() * 5) + 1,
   total: Math.floor(Math.random() * 3000) + 300,
-  status: ['Pending', 'Processing', 'Packed'][i % 3],
-  courier: ['Pathao', 'Paperfly', 'Redx', 'Steadfast'][i % 4],
+  status: STATUSES_LIST[i % 3] as string,
+  courier: COURIERS_LIST[i % 4] as string,
   date: `Jun ${8 - Math.floor(i / 4)}, 2026`,
 }));
 

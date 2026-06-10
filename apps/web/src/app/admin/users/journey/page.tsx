@@ -78,8 +78,10 @@ const SEGMENT_COLORS: Record<string, string> = {
   'At Risk': 'bg-red-100 text-red-700',
 };
 
+type Customer = typeof CUSTOMERS[number];
+
 export default function CustomerJourneyPage() {
-  const [selected, setSelected] = useState(CUSTOMERS[0]);
+  const [selected, setSelected] = useState<Customer>(CUSTOMERS[0]!);
   const [search, setSearch] = useState('');
 
   const filtered = CUSTOMERS.filter(c =>

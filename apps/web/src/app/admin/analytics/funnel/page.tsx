@@ -57,13 +57,14 @@ export default function ConversionFunnelPage() {
         <h3 className="font-bold text-sm mb-6">Purchase Funnel — Last {period}</h3>
         <div className="space-y-3">
           {funnelSteps.map((step, i) => {
-            const drop = i > 0 ? ((funnelSteps[i - 1].users - step.users) / funnelSteps[i - 1].users * 100).toFixed(1) : null;
+            const prev = funnelSteps[i - 1];
+            const drop = i > 0 && prev ? ((prev.users - step.users) / prev.users * 100).toFixed(1) : null;
             return (
               <div key={step.step}>
-                {drop && (
+                {drop && prev && (
                   <div className="flex items-center gap-2 py-1 px-4">
                     <TrendingDown className="h-3 w-3 text-red-400" />
-                    <span className="text-xs text-red-500 font-medium">{drop}% drop-off ({(funnelSteps[i-1].users - step.users).toLocaleString()} users left)</span>
+                    <span className="text-xs text-red-500 font-medium">{drop}% drop-off ({(prev.users - step.users).toLocaleString()} users left)</span>
                   </div>
                 )}
                 <div className="flex items-center gap-4">

@@ -96,7 +96,7 @@ function confidence(control: Variant, variant: Variant): number {
 
 export default function ABTestingPage() {
   const [filter, setFilter] = useState<TestStatus | 'all'>('all');
-  const [selectedTest, setSelectedTest] = useState<ABTest | null>(TESTS[0]);
+  const [selectedTest, setSelectedTest] = useState<ABTest | null>(TESTS[0] ?? null);
 
   const filtered = filter === 'all' ? TESTS : TESTS.filter(t => t.status === filter);
 
