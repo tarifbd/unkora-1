@@ -1101,11 +1101,11 @@ export function Header() {
 
               {/* ── Mega Menu Dropdown ── */}
               {megaOpen && (
-                <div className="absolute top-full left-0 z-50 shadow-2xl rounded-b-2xl overflow-hidden border border-gray-100 flex flex-col bg-white" style={{ width: 'min(960px, calc(100vw - 1.5rem))' }}>
+                <div className="absolute top-full left-0 z-50 shadow-2xl rounded-b-2xl overflow-hidden border border-gray-100 flex flex-col bg-white" style={{ width: 'min(960px, calc(100vw - 1.5rem))', maxHeight: 'calc(100vh - 120px)' }}>
                   {/* Top accent */}
                   <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-primary flex-shrink-0" />
 
-                  <div className="flex" style={{ minHeight: '380px' }}>
+                  <div className="flex flex-1 min-h-0">
                     {/* ── Left sidebar ── */}
                     <div className="w-48 bg-gray-50 border-r border-gray-100 py-1.5 flex-shrink-0 overflow-y-auto">
                       {MEGA_CATEGORIES.map((cat, i) => (
