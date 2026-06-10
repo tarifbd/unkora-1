@@ -76,6 +76,8 @@ import { PopupsModule } from './modules/popups/popups.module';
 import { CmsModule } from './modules/cms/cms.module';
 import { RagModule } from './modules/rag/rag.module';
 import { VirtualTryOnModule } from './modules/virtual-tryon/virtual-tryon.module';
+import { ChatbotModule } from './modules/chatbot/chatbot.module';
+import { PredictionsModule } from './modules/predictions/predictions.module';
 
 @Module({
   imports: [
@@ -160,6 +162,8 @@ import { VirtualTryOnModule } from './modules/virtual-tryon/virtual-tryon.module
     CmsModule,
     RagModule,
     VirtualTryOnModule,
+    ChatbotModule,
+    PredictionsModule,
   ],
 })
 export class AppModule {}
