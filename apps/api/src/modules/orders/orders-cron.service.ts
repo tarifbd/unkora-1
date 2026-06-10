@@ -93,12 +93,12 @@ export class OrdersCronService {
       const cartItems = cart.items.map(item => ({
         name: item.product.name,
         quantity: item.quantity,
-        price: String(item.product.salePrice ?? item.product.price),
+        price: String(item.product.salePrice ?? 0),
         imageUrl: item.product.images[0]?.url,
       }));
 
       const cartTotal = cart.items.reduce(
-        (sum, item) => sum + Number(item.product.salePrice ?? item.product.price) * item.quantity,
+        (sum, item) => sum + Number(item.product.salePrice ?? 0) * item.quantity,
         0,
       );
 
