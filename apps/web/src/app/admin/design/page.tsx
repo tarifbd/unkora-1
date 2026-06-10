@@ -42,12 +42,14 @@ interface ThemeFormData {
 
 interface Banner {
   id: string; title: string; imageUrl: string; linkUrl?: string;
+  subtitle?: string; ctaText?: string;
   position: string; order: number; isActive: boolean;
   startsAt?: string; endsAt?: string;
 }
 interface BannerFormData {
   title: string; imageUrl: string; linkUrl: string;
   position: string; order: number; isActive: boolean;
+  subtitle?: string; ctaText?: string;
   startsAt?: string; endsAt?: string;
 }
 
@@ -388,7 +390,9 @@ function BannerModal({ initial, onSave, onClose }: { initial?: Banner; onSave: (
     title:    initial?.title    ?? '',
     imageUrl: initial?.imageUrl ?? '',
     linkUrl:  initial?.linkUrl  ?? '',
-    position: initial?.position ?? 'hero',
+    subtitle: initial?.subtitle ?? '',
+    ctaText:  initial?.ctaText  ?? '',
+    position: initial?.position ?? 'HERO_SLIDER',
     order:    String(initial?.order ?? 0),
     isActive: initial?.isActive ?? true,
     startsAt: initial?.startsAt?.slice(0, 10) ?? '',
@@ -421,7 +425,15 @@ function BannerModal({ initial, onSave, onClose }: { initial?: Banner; onSave: (
         <div className="p-6 space-y-3">
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">Title</label>
-            <input value={form.title} onChange={set('title')} className={inp} placeholder="Summer Sale Banner" />
+            <input value={form.title} onChange={set('title')} className={inp} placeholder="বাংলাদেশের সেরা বইয়ের দোকান" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground">Subtitle <span className="text-muted-foreground/60 font-normal">(Hero Slider)</span></label>
+            <input value={form.subtitle} onChange={set('subtitle')} className={inp} placeholder="১ লাখেরও বেশি বই • সেরা দামে • দ্রুত ডেলিভারি" />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-muted-foreground">CTA Button Text <span className="text-muted-foreground/60 font-normal">(Hero Slider)</span></label>
+            <input value={form.ctaText} onChange={set('ctaText')} className={inp} placeholder="বই দেখুন" />
           </div>
           <div>
             <label className="mb-1 block text-xs font-semibold text-muted-foreground">Image</label>
@@ -446,6 +458,7 @@ function BannerModal({ initial, onSave, onClose }: { initial?: Banner; onSave: (
             <div>
               <label className="mb-1 block text-xs font-semibold text-muted-foreground">Position</label>
               <select value={form.position} onChange={set('position')} className={inp}>
+                <option value="HERO_SLIDER">🎯 Hero Slider — Homepage main banner</option>
                 <option value="PROMO_1">🟠 Promo Row 1 — Categories-এর পরে</option>
                 <option value="PROMO_2">🟠 Promo Row 2 — Flash Deals-এর পরে</option>
                 <option value="PROMO_3">🟠 Promo Row 3 — Book World-এর পরে</option>
@@ -485,6 +498,8 @@ function BannerModal({ initial, onSave, onClose }: { initial?: Banner; onSave: (
             onClick={() => onSave({
               title: form.title, imageUrl: form.imageUrl,
               linkUrl: form.linkUrl, position: form.position,
+              subtitle: form.subtitle || undefined,
+              ctaText: form.ctaText || undefined,
               order: parseInt(form.order, 10), isActive: form.isActive,
               startsAt: form.startsAt || undefined, endsAt: form.endsAt || undefined,
             })}
@@ -522,6 +537,7 @@ function BannersTab() {
   };
 
   const positionColor: Record<string, string> = {
+    HERO_SLIDER: 'bg-indigo-100 text-indigo-700',
     PROMO_1: 'bg-orange-100 text-orange-700',
     PROMO_2: 'bg-orange-100 text-orange-700',
     PROMO_3: 'bg-orange-100 text-orange-700',
@@ -534,6 +550,7 @@ function BannersTab() {
   };
 
   const positionLabel: Record<string, string> = {
+    HERO_SLIDER: '🎯 Hero Slider',
     PROMO_1: 'Promo Row 1',
     PROMO_2: 'Promo Row 2',
     PROMO_3: 'Promo Row 3',
@@ -542,8 +559,23 @@ function BannersTab() {
 
   if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
+  const heroSlides = banners.filter(b => b.position === 'HERO_SLIDER');
+
   return (
     <div>
+      {/* Hero Slider info */}
+      <div className="mb-4 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 flex items-start gap-3">
+        <span className="text-lg leading-none mt-0.5">🎯</span>
+        <div className="text-sm">
+          <p className="font-bold text-indigo-800">Hero Slider Control</p>
+          <p className="text-indigo-700 mt-0.5">
+            {heroSlides.length > 0
+              ? `${heroSlides.length} custom slide${heroSlides.length > 1 ? 's' : ''} active — these replace the default category banners on the homepage.`
+              : 'No custom slides yet — homepage is showing the default category banners. Add a banner with position "Hero Slider" to override.'}
+          </p>
+        </div>
+      </div>
+
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{banners.length} banner{banners.length !== 1 ? 's' : ''}</p>
         <button onClick={() => setModal('create')}
@@ -783,14 +815,171 @@ function SectionsTab() {
   );
 }
 
+// ─── Hero Slider Tab ──────────────────────────────────────────
+
+function HeroSliderTab() {
+  const qc = useQueryClient();
+  const [modal, setModal] = useState<'create' | Banner | null>(null);
+
+  const { data: banners = [], isLoading } = useQuery<Banner[]>({
+    queryKey: ['design-banners'],
+    queryFn: designApi.getBanners,
+  });
+
+  const heroSlides = banners
+    .filter(b => b.position === 'HERO_SLIDER')
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+  const createMut = useMutation({ mutationFn: designApi.createBanner, onSuccess: () => { qc.invalidateQueries({ queryKey: ['design-banners'] }); setModal(null); } });
+  const updateMut = useMutation({ mutationFn: ({ id, data }: { id: string; data: Partial<BannerFormData> }) => designApi.updateBanner(id, data), onSuccess: () => { qc.invalidateQueries({ queryKey: ['design-banners'] }); setModal(null); } });
+  const deleteMut = useMutation({ mutationFn: designApi.deleteBanner, onSuccess: () => qc.invalidateQueries({ queryKey: ['design-banners'] }) });
+  const toggleMut = useMutation({ mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) => designApi.updateBanner(id, { isActive }), onSuccess: () => qc.invalidateQueries({ queryKey: ['design-banners'] }) });
+  const orderMut = useMutation({ mutationFn: ({ id, data }: { id: string; data: Partial<BannerFormData> }) => designApi.updateBanner(id, data), onSuccess: () => qc.invalidateQueries({ queryKey: ['design-banners'] }) });
+
+  const handleSave = (data: BannerFormData) => {
+    const payload = { ...data, position: 'HERO_SLIDER' };
+    if (typeof modal === 'object' && modal !== null) {
+      updateMut.mutate({ id: (modal as Banner).id, data: payload });
+    } else {
+      createMut.mutate(payload);
+    }
+  };
+
+  const move = (slide: Banner, dir: 'up' | 'down') => {
+    const i = heroSlides.findIndex(s => s.id === slide.id);
+    const target = heroSlides[dir === 'up' ? i - 1 : i + 1];
+    if (!target) return;
+    orderMut.mutate({ id: slide.id, data: { order: target.order } });
+    orderMut.mutate({ id: target.id, data: { order: slide.order } });
+  };
+
+  if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
+
+  return (
+    <div className="space-y-4">
+      {/* Info */}
+      <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm">
+        <p className="font-bold text-indigo-800 mb-1">🎯 Hero Slider — Homepage মেইন ব্যানার</p>
+        <p className="text-indigo-700">
+          {heroSlides.length > 0
+            ? `${heroSlides.length}টি কাস্টম স্লাইড সক্রিয় — ডিফল্ট ক্যাটাগরি ব্যানারের পরিবর্তে এগুলো দেখাচ্ছে।`
+            : 'কোনো কাস্টম স্লাইড নেই — homepage-এ ডিফল্ট ক্যাটাগরি ব্যানার দেখাচ্ছে। নিচে "Add Slide" করুন।'}
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{heroSlides.length} slide{heroSlides.length !== 1 ? 's' : ''}</p>
+        <button
+          onClick={() => setModal('create')}
+          className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+        >
+          <Plus className="h-4 w-4" /> Add Slide
+        </button>
+      </div>
+
+      {/* Slides grid */}
+      <div className="space-y-3">
+        {heroSlides.map((slide, i) => (
+          <div
+            key={slide.id}
+            className={`flex gap-4 rounded-xl border bg-card p-3 transition-colors ${!slide.isActive ? 'opacity-60' : ''}`}
+          >
+            {/* Thumbnail */}
+            {slide.imageUrl ? (
+              <img
+                src={slide.imageUrl} alt={slide.title}
+                className="h-20 w-32 flex-shrink-0 rounded-lg object-cover bg-muted"
+                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            ) : (
+              <div className="h-20 w-32 flex-shrink-0 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
+                <ImageIcon className="h-6 w-6 opacity-40" />
+              </div>
+            )}
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm truncate">{slide.title}</p>
+                  {slide.subtitle && <p className="text-xs text-muted-foreground truncate mt-0.5">{slide.subtitle}</p>}
+                  {slide.ctaText && (
+                    <span className="inline-block mt-1 text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                      CTA: {slide.ctaText}
+                    </span>
+                  )}
+                </div>
+                <span className="flex-shrink-0 text-xs font-bold text-muted-foreground">#{i + 1}</span>
+              </div>
+              {slide.linkUrl && (
+                <p className="text-[11px] text-muted-foreground truncate mt-1">{slide.linkUrl}</p>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col items-end justify-between gap-1 flex-shrink-0">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => toggleMut.mutate({ id: slide.id, isActive: !slide.isActive })}
+                  className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${slide.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+                >
+                  {slide.isActive ? 'Active' : 'Off'}
+                </button>
+                <button onClick={() => setModal(slide)} className="rounded-lg p-1.5 hover:bg-blue-50 hover:text-blue-700">
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={() => deleteMut.mutate(slide.id)} className="rounded-lg p-1.5 hover:bg-red-50 hover:text-red-700">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              <div className="flex gap-0.5">
+                <button
+                  disabled={i === 0}
+                  onClick={() => move(slide, 'up')}
+                  className="rounded p-0.5 hover:bg-accent disabled:opacity-30"
+                >
+                  <ChevronUp className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  disabled={i === heroSlides.length - 1}
+                  onClick={() => move(slide, 'down')}
+                  className="rounded p-0.5 hover:bg-accent disabled:opacity-30"
+                >
+                  <ChevronDown className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {heroSlides.length === 0 && (
+          <div className="rounded-xl border border-dashed py-12 text-center text-muted-foreground">
+            <ImageIcon className="h-8 w-8 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">কোনো স্লাইড নেই। "Add Slide" করুন।</p>
+          </div>
+        )}
+      </div>
+
+      {modal !== null && (
+        <BannerModal
+          initial={typeof modal === 'object' ? (modal as Banner) : undefined}
+          onSave={handleSave}
+          onClose={() => setModal(null)}
+        />
+      )}
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────
 
-type TabId = 'themes' | 'banners' | 'homepage';
+type TabId = 'themes' | 'hero-slider' | 'banners' | 'homepage';
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
-  { id: 'themes',   label: 'Themes & Colors',  icon: Palette },
-  { id: 'banners',  label: 'Banners',           icon: ImageIcon },
-  { id: 'homepage', label: 'Homepage Sections', icon: Layout },
+  { id: 'themes',      label: 'Themes & Colors',  icon: Palette },
+  { id: 'hero-slider', label: 'Hero Slider',       icon: ImageIcon },
+  { id: 'banners',     label: 'All Banners',       icon: Layout },
+  { id: 'homepage',    label: 'Homepage Sections', icon: Layout },
 ];
 
 export default function DesignPage() {
@@ -819,9 +1008,10 @@ export default function DesignPage() {
         ))}
       </div>
 
-      {tab === 'themes'   && <ThemesTab />}
-      {tab === 'banners'  && <BannersTab />}
-      {tab === 'homepage' && <SectionsTab />}
+      {tab === 'themes'      && <ThemesTab />}
+      {tab === 'hero-slider' && <HeroSliderTab />}
+      {tab === 'banners'     && <BannersTab />}
+      {tab === 'homepage'    && <SectionsTab />}
     </div>
   );
 }
