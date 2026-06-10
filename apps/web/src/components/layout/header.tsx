@@ -15,6 +15,8 @@ import { useAuthStore } from '@/store/auth.store';
 import { categoriesApi } from '@/lib/api/products';
 import { useCartStore } from '@/store/cart.store';
 import { useGuestCart } from '@/store/guest-cart.store';
+import { useGuestWishlist } from '@/store/guest-wishlist.store';
+import { wishlistApi } from '@/lib/api/wishlist';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useLanguage } from '@/lib/i18n/language-context';
 import type { LucideIcon } from 'lucide-react';
@@ -633,6 +635,17 @@ export function Header() {
     ? (cart?.itemCount ?? 0)
     : guestCart.items.reduce((sum, i) => sum + i.quantity, 0);
 
+  const guestWishlist = useGuestWishlist();
+  const { data: wishlistItems } = useQuery({
+    queryKey: ['wishlist'],
+    queryFn: () => wishlistApi.getAll(),
+    enabled: isAuthenticated,
+    staleTime: 60 * 1000,
+  });
+  const wishlistCount = isAuthenticated
+    ? (wishlistItems?.length ?? 0)
+    : guestWishlist.productIds.length;
+
   const { data: apiCategories } = useQuery({
     queryKey: ['nav-categories'],
     queryFn: () => categoriesApi.getAll(false),
@@ -967,6 +980,25 @@ export function Header() {
                   {t.header.admin}
                 </Link>
               )}
+
+              {/* Wishlist */}
+              <Link
+                href="/account/wishlist"
+                className="relative group cursor-pointer p-2 hover:text-secondary transition-colors flex items-center gap-2"
+                aria-label="Wishlist"
+              >
+                <div className="relative">
+                  <Heart className="w-[26px] h-[26px]" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[11px] font-black h-5 w-5 rounded-full flex items-center justify-center border-2 border-white">
+                      {wishlistCount > 9 ? '9+' : wishlistCount}
+                    </span>
+                  )}
+                </div>
+                <div className="hidden xl:block text-left pt-2">
+                  <p className="text-sm font-bold leading-tight">{lang === 'bn' ? 'উইশলিস্ট' : 'Wishlist'}</p>
+                </div>
+              </Link>
 
               {/* Cart */}
               <button
