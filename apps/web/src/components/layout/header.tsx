@@ -710,22 +710,22 @@ export function Header() {
         <div className="bg-[#1a1a1a] py-1.5 hidden md:block">
           <div className="max-w-7xl mx-auto px-4 flex justify-between items-center text-[11px] text-gray-300 font-medium">
             <div className="flex items-center gap-4">
-              {/* ── Preorder orbiting comet button — LEFT side ── */}
-              <Link href="/products?preorder=1" className="po-hdr-outer -my-1.5 normal-case">
-                {/* Circular badge — comet orbits this */}
-                <span className="po-hdr-badge">
-                  <CalendarClock className="po-hdr-cal w-3.5 h-3.5 text-emerald-400" />
-                  {/* Spin arm AFTER icon so comet renders on top */}
-                  <span className="po-hdr-spin-arm">
-                    <span className="po-hdr-comet" />
+              {/* ── Sell on Unkora animated button — LEFT side ── */}
+              <Link href="/publish" className="sell-border-wrapper normal-case hover:scale-105 transition-transform duration-200 group self-center -my-1.5">
+                <span className="sell-spark sell-spark-1" />
+                <span className="sell-spark sell-spark-2" />
+                <span className="sell-spark sell-spark-3" />
+                <span className="sell-spark sell-spark-4" />
+                <div className="sell-cta-inner">
+                  <span className="relative flex h-2 w-2 flex-shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
                   </span>
-                </span>
-                {/* Text pill */}
-                <span className="po-hdr-pill">
-                  <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Pre-Order</span>
+                  <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Sell on Unkora</span>
                   <span className="text-white/30 text-[10px]">/</span>
-                  <span className="po-hdr-txt">প্রি-অর্ডার</span>
-                </span>
+                  <span className="sell-bn-text whitespace-nowrap">আনকোরায় বিক্রি করুন</span>
+                  <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-full" />
+                </div>
               </Link>
 
               <div className="h-3 w-px bg-gray-600" />
@@ -757,7 +757,18 @@ export function Header() {
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-5 uppercase tracking-wide">
+            <div className="flex items-center gap-4 uppercase tracking-wide">
+              {/* Pre-Order — simple button, far right of top bar */}
+              <Link
+                href="/preorder"
+                className="flex items-center gap-1.5 bg-emerald-600/90 hover:bg-emerald-500 text-white font-black text-[10px] tracking-wider px-3 py-1.5 rounded-full transition-colors whitespace-nowrap normal-case shadow-sm shadow-emerald-900/40"
+              >
+                <CalendarClock className="w-3 h-3 flex-shrink-0" />
+                Pre-Order
+                <span className="text-white/50">/</span>
+                <span className="text-emerald-200">প্রি-অর্ডার</span>
+              </Link>
+              <div className="h-3 w-px bg-gray-600" />
               <Link href="/support" className="hover:text-primary transition-colors flex items-center gap-1">
                 <HelpCircle className="w-3 h-3" /> {t.header.support}
               </Link>
@@ -1021,27 +1032,6 @@ export function Header() {
         <div className="bg-white hidden lg:block border-b border-gray-200 relative z-30" ref={megaRef}>
           <div className="max-w-7xl mx-auto pl-4 flex items-center relative">
 
-            {/* Sell Your Book — far left */}
-            <Link href="/publish" className="sell-border-wrapper normal-case hover:scale-105 transition-transform duration-200 group shrink-0 mr-4 self-center">
-              {/* Floating sparkles */}
-              <span className="sell-spark sell-spark-1" />
-              <span className="sell-spark sell-spark-2" />
-              <span className="sell-spark sell-spark-3" />
-              <span className="sell-spark sell-spark-4" />
-              <div className="sell-cta-inner">
-                {/* Ping dot */}
-                <span className="relative flex h-2 w-2 flex-shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
-                </span>
-                <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Sell Your Book</span>
-                <span className="text-white/30 text-[10px]">/</span>
-                <span className="sell-bn-text whitespace-nowrap">বই বিক্রি করুন</span>
-                {/* Hover shine sweep */}
-                <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-full" />
-              </div>
-            </Link>
-
             {/* All Departments button */}
             <div className="relative h-[48px] flex items-center mr-6 shrink-0">
               <button
@@ -1266,10 +1256,6 @@ export function Header() {
 
             <Link href="/flash-deals" className="shrink-0 px-4 h-[48px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors ml-auto">
               {t.header.dealOfDay} <span className="text-red-600 text-lg ml-1">🔥</span>
-            </Link>
-            <Link href="/preorder" className="shrink-0 pl-4 h-[48px] flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:text-emerald-600 transition-colors">
-              <CalendarClock className="w-4 h-4" />
-              {lang === 'bn' ? 'প্রি-অর্ডার' : 'Pre-Order'}
             </Link>
           </div>
         </div>
