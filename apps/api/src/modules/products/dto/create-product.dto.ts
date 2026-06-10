@@ -121,6 +121,16 @@ export class CreateProductDto {
   @IsBoolean()
   isFeatured?: boolean;
 
+  @ApiPropertyOptional({ description: 'Mark this product as available for pre-order' })
+  @IsOptional()
+  @IsBoolean()
+  isPreorder?: boolean;
+
+  @ApiPropertyOptional({ description: 'Optional note shown on the pre-order badge/button' })
+  @IsOptional()
+  @IsString()
+  preorderNote?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsArray()

@@ -66,6 +66,8 @@ interface EditProductForm {
   sku: string;
   isFeatured: boolean;
   isActive: boolean;
+  isPreorder: boolean;
+  preorderNote: string;
   tags: string;
   categoryId: string;
 }
@@ -109,6 +111,8 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
     sku: '',
     isFeatured: false,
     isActive: true,
+    isPreorder: false,
+    preorderNote: '',
     tags: '',
     categoryId: '',
   });
@@ -154,6 +158,8 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         sku: product.sku ?? '',
         isFeatured: product.isFeatured ?? false,
         isActive: product.isActive ?? true,
+        isPreorder: product.isPreorder ?? false,
+        preorderNote: product.preorderNote ?? '',
         tags: product.tags?.join(', ') ?? '',
         categoryId: product.category?.id ?? '',
       });
@@ -301,6 +307,8 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
       stockQuantity: Number(form.stockQuantity) || 0,
       isFeatured: form.isFeatured,
       isActive: form.isActive,
+      isPreorder: form.isPreorder,
+      preorderNote: form.preorderNote.trim() || undefined,
     };
 
     if (form.description) payload.description = form.description;
@@ -819,6 +827,31 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
                 <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.isFeatured ? 'translate-x-4' : 'translate-x-0.5'}`} />
               </div>
             </label>
+
+            <label className="flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 hover:bg-accent transition-colors">
+              <div>
+                <p className="text-sm font-medium">Pre-order</p>
+                <p className="text-xs text-muted-foreground">Reserve before stock arrives</p>
+              </div>
+              <div
+                onClick={() => setForm(f => ({ ...f, isPreorder: !f.isPreorder }))}
+                className={`relative h-5 w-9 rounded-full transition-colors ${form.isPreorder ? 'bg-emerald-600' : 'bg-muted-foreground/30'}`}
+              >
+                <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.isPreorder ? 'translate-x-4' : 'translate-x-0.5'}`} />
+              </div>
+            </label>
+
+            {form.isPreorder && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Pre-order note (optional)</label>
+                <input
+                  value={form.preorderNote}
+                  onChange={set('preorderNote')}
+                  className={inputCls}
+                  placeholder="e.g. Ships within 2 weeks"
+                />
+              </div>
+            )}
           </div>
 
           {/* Category */}

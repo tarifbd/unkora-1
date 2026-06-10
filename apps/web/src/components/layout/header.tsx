@@ -1262,7 +1262,11 @@ export function Header() {
               ))}
             </nav>
 
-            <Link href="/flash-deals" className="shrink-0 px-4 h-[48px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors ml-auto">
+            <Link href="/preorder" className="shrink-0 px-4 h-[48px] flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:text-emerald-600 transition-colors ml-auto">
+              <CalendarClock className="w-4 h-4" />
+              {lang === 'bn' ? 'প্রি-অর্ডার' : 'Pre-Order'}
+            </Link>
+            <Link href="/flash-deals" className="shrink-0 px-4 h-[48px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors">
               {t.header.dealOfDay} <span className="text-red-600 text-lg ml-1">🔥</span>
             </Link>
           </div>

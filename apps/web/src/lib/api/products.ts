@@ -7,6 +7,7 @@ export interface Product {
   id: string; name: string; slug: string; description?: string; shortDesc?: string;
   basePrice: string; salePrice?: string; stockQuantity: number; sku: string;
   isActive: boolean; isFeatured: boolean; tags: string[];
+  isPreorder?: boolean; preorderNote?: string;
   images: ProductImage[]; category: Category; bookDetail?: BookDetail;
   _count?: { reviews: number };
 }

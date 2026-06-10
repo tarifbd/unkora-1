@@ -8,7 +8,8 @@ import type { Product } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { WishlistButton } from './wishlist-button';
-import { PreorderBadge } from './preorder-cta';
+import { PreorderButton, PreorderTag } from './preorder-button';
+import { isPreorderProduct } from '@/lib/preorder';
 import { trackAddToCart } from '@/lib/analytics';
 
 interface ProductCardProps {
@@ -30,6 +31,7 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
     : 0;
   const reviewCount = product._count?.reviews ?? 0;
   const inStock = product.stockQuantity > 0;
+  const preorder = isPreorderProduct(product);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -55,10 +57,13 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
           ) : (
             <div className="flex h-full items-center justify-center text-3xl text-gray-200">📚</div>
           )}
-          {hasDiscount && (
+          {hasDiscount && !preorder && (
             <span className="absolute top-1 left-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded">
               -{discountPct}%
             </span>
+          )}
+          {preorder && (
+            <PreorderTag lang={lang} className="absolute top-1 left-1 !text-[8px] !px-1.5 !py-0.5" />
           )}
           <div className="absolute top-1 right-1">
             <WishlistButton
@@ -88,7 +93,9 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
                 <span className="text-xs text-gray-400 line-through">৳{Number(product.basePrice).toLocaleString('en-BD')}</span>
               )}
             </div>
-            {inStock ? (
+            {preorder ? (
+              <PreorderButton productSlug={product.slug} lang={lang} className="!h-8 px-3 flex-shrink-0" />
+            ) : (
               <button
                 onClick={handleAddToCart}
                 disabled={addItem.isPending}
@@ -97,8 +104,6 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
                 <ShoppingCart className="w-3.5 h-3.5" />
                 {lang === 'bn' ? 'কার্টে যোগ' : 'Add'}
               </button>
-            ) : (
-              <span className="text-xs text-gray-400 font-medium">{lang === 'bn' ? 'স্টক নেই' : 'Out of stock'}</span>
             )}
           </div>
         </div>
@@ -134,12 +139,13 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
 
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {hasDiscount && (
+          {preorder && <PreorderTag lang={lang} />}
+          {hasDiscount && !preorder && (
             <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm">
               -{discountPct}%
             </span>
           )}
-          {product.isFeatured && !hasDiscount && (
+          {product.isFeatured && !hasDiscount && !preorder && (
             <span className="bg-amber-400 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm">
               {lang === 'bn' ? 'জনপ্রিয়' : 'Hot'}
             </span>
@@ -154,8 +160,8 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
           />
         </div>
 
-        {/* Out of stock overlay */}
-        {!inStock && (
+        {/* Out of stock overlay — only when NOT available for pre-order */}
+        {!inStock && !preorder && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[2px]">
             <span className="rounded-full bg-gray-800 text-white px-4 py-1.5 text-xs font-bold shadow-lg">
               {lang === 'bn' ? 'স্টক নেই' : 'Out of Stock'}
@@ -206,24 +212,24 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
         </div>
 
         {/* ── Buttons ── always pinned at bottom */}
-        <div className="grid grid-cols-2 gap-1.5 mt-auto pt-2">
-          {/* Add to Cart */}
-          <button
-            onClick={handleAddToCart}
-            disabled={!inStock || addItem.isPending}
-            className={cn(
-              'flex items-center justify-center gap-1 h-9 rounded-xl text-xs font-black transition-all',
-              inStock
-                ? 'bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            )}
-          >
-            <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}</span>
-          </button>
+        {preorder ? (
+          /* Pre-order takes over the whole action row */
+          <div className="mt-auto pt-2">
+            <PreorderButton productSlug={product.slug} lang={lang} full />
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-1.5 mt-auto pt-2">
+            {/* Add to Cart */}
+            <button
+              onClick={handleAddToCart}
+              disabled={addItem.isPending}
+              className="flex items-center justify-center gap-1 h-9 rounded-xl text-xs font-black transition-all bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10"
+            >
+              <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>{lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}</span>
+            </button>
 
-          {/* Buy Now */}
-          {inStock ? (
+            {/* Buy Now */}
             <Link
               href={`/checkout?productSlug=${product.slug}&qty=1`}
               onClick={e => e.stopPropagation()}
@@ -232,20 +238,8 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
               <Zap className="w-3.5 h-3.5 flex-shrink-0" />
               <span>{lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}</span>
             </Link>
-          ) : (
-            <div className="flex items-center justify-center h-9 rounded-lg bg-gray-100 text-gray-400 text-xs font-bold">
-              {lang === 'bn' ? 'নেই' : 'N/A'}
-            </div>
-          )}
-        </div>
-
-        {/* Pre-order badge — only renders when product has active preorder */}
-        <PreorderBadge
-          productId={product.id}
-          productSlug={product.slug}
-          basePrice={Number(product.basePrice)}
-          salePrice={product.salePrice ? Number(product.salePrice) : undefined}
-        />
+          </div>
+        )}
       </div>
     </Link>
   );

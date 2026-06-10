@@ -25,6 +25,8 @@ const productSchema = z.object({
   description: z.string().optional(),
   isActive: z.boolean().optional(),
   isFeatured: z.boolean().optional(),
+  isPreorder: z.boolean().optional(),
+  preorderNote: z.string().optional(),
   tags: z.string().optional(),
   // Book details
   author: z.string().optional(),
@@ -175,8 +177,10 @@ export default function NewProductPage() {
       stockQuantity: data.stockQuantity,
       isActive: data.isActive ?? true,
       isFeatured: data.isFeatured ?? false,
+      isPreorder: data.isPreorder ?? false,
       tags: data.tags ? data.tags.split(',').map(t => t.trim()).filter(Boolean) : [],
     };
+    if (data.preorderNote) payload.preorderNote = data.preorderNote;
     if (data.sku) payload.sku = data.sku;
     if (data.salePrice) payload.salePrice = data.salePrice;
     if (data.lowStockAlert) payload.lowStockAlert = data.lowStockAlert;
@@ -526,6 +530,14 @@ export default function NewProductPage() {
               <input type="checkbox" {...register('isFeatured')} className="rounded border" />
               <span className="text-sm font-medium">Featured product</span>
             </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" {...register('isPreorder')} className="rounded border" />
+              <span className="text-sm font-medium">Pre-order (reserve before stock arrives)</span>
+            </label>
+          </div>
+          <div>
+            <label className={labelCls}>Pre-order Note <span className="text-muted-foreground text-xs font-normal">(optional)</span></label>
+            <input {...register('preorderNote')} className={inputCls()} placeholder="e.g. Ships within 2 weeks" />
           </div>
         </div>
 
