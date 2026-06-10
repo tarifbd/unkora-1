@@ -2887,3 +2887,84 @@ model BundleOfferItem {
   @@index([bundleOfferId])
   @@map("bundle_offer_items")
 }
+
+// ─────────────────────────────────────────────────────────────
+// RAG CUSTOMER SUPPORT KNOWLEDGE BASE
+// ─────────────────────────────────────────────────────────────
+
+enum RagDocumentStatus {
+  PENDING
+  INDEXED
+  FAILED
+}
+
+enum RagDocumentCategory {
+  FAQ
+  POLICY
+  PRODUCT
+  SHIPPING
+  RETURNS
+  GENERAL
+}
+
+model RagDocument {
+  id          String              @id @default(cuid())
+  title       String
+  content     String              @db.Text
+  category    RagDocumentCategory @default(GENERAL)
+  source      String?
+  status      RagDocumentStatus   @default(PENDING)
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  chunks RagDocumentChunk[]
+
+  @@index([category])
+  @@index([status])
+  @@map("rag_documents")
+}
+
+model RagDocumentChunk {
+  id         String   @id @default(cuid())
+  documentId String
+  chunkIndex Int
+  content    String   @db.Text
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  document RagDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@map("rag_document_chunks")
+}
+
+// ─────────────────────────────────────────────────────────────
+// VIRTUAL TRIAL ROOM
+// ─────────────────────────────────────────────────────────────
+
+enum TryOnStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model VirtualTryOnSession {
+  id             String      @id @default(cuid())
+  userId         String?
+  productId      String
+  variantId      String?
+  userImageUrl   String?
+  resultImageUrl String?
+  status         TryOnStatus @default(PENDING)
+  errorMessage   String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  user    User?   @relation("UserTryOnSessions", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([productId])
+  @@map("virtual_try_on_sessions")
+}

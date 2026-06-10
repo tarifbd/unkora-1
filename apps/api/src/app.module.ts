@@ -74,6 +74,8 @@ import { ClassifiedsModule } from './modules/classifieds/classifieds.module';
 import { AddonsModule } from './modules/addons/addons.module';
 import { PopupsModule } from './modules/popups/popups.module';
 import { CmsModule } from './modules/cms/cms.module';
+import { RagModule } from './modules/rag/rag.module';
+import { VirtualTryOnModule } from './modules/virtual-tryon/virtual-tryon.module';
 
 @Module({
   imports: [
