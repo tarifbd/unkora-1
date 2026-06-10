@@ -24,7 +24,7 @@ async function bootstrap() {
   );
 
   const config = app.get(ConfigService);
-  const port = config.get<number>('app.port') ?? 4000;
+  const port = process.env.PORT ?? config.get<number>('app.port') ?? 4000;
   const apiPrefix = config.get<string>('app.apiPrefix') ?? 'api';
   const isProd = process.env['NODE_ENV'] === 'production';
 
