@@ -30,7 +30,7 @@ async function bootstrap() {
 
   await app.register(cors, {
     origin: true,
-    credentials: true,
+    credentials: false,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
@@ -40,6 +40,25 @@ async function bootstrap() {
   });
 
   app.getHttpAdapter().getInstance().addHook(
+    'onRequest',
+    (
+      req: { method: string; url: string },
+      reply: { header: (k: string, v: string) => void },
+      done: () => void,
+    ) => {
+      reply.header('Access-Control-Allow-Origin', '*');
+      reply.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+      reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+      if (!req.url.includes('/health')) {
+        logger.log(`${req.method} ${req.url}`);
+      }
+
+      done();
+    },
+  );
+
+  app.getHttpAdapter().getInstance().addHook(
     'onSend',
     (
       _req: unknown,
@@ -47,25 +66,21 @@ async function bootstrap() {
       _payload: unknown,
       done: () => void,
     ) => {
+      reply.header('Access-Control-Allow-Origin', '*');
+      reply.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+      reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
       reply.header('X-Content-Type-Options', 'nosniff');
       reply.header('X-Frame-Options', 'DENY');
       reply.header('X-XSS-Protection', '1; mode=block');
       reply.header('Referrer-Policy', 'strict-origin-when-cross-origin');
       reply.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
       reply.header('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+
       if (isProd) {
         reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
       }
-      done();
-    },
-  );
 
-  app.getHttpAdapter().getInstance().addHook(
-    'onRequest',
-    (req: { method: string; url: string }, _reply: unknown, done: () => void) => {
-      if (!req.url.includes('/health')) {
-        logger.log(`${req.method} ${req.url}`);
-      }
       done();
     },
   );
@@ -110,6 +125,7 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
 
   logger.log(`UNKORA API running on http://localhost:${port}/${apiPrefix}/v1`);
+
   if (!isProd) {
     logger.log(`Swagger docs: http://localhost:${port}/${apiPrefix}/docs`);
   }
