@@ -26,6 +26,62 @@ interface CampaignStats {
   avgOpenRate: number;
 }
 
+const EMAIL_TEMPLATES = [
+  {
+    id: 'sale',
+    label: '🔥 Flash Sale',
+    subject: 'HUGE SALE — Up to 50% Off Today Only!',
+    html: `<div style="text-align:center;padding:20px 0">
+  <div style="background:linear-gradient(135deg,#f97316,#ea580c);padding:32px;border-radius:12px;margin-bottom:20px">
+    <h1 style="color:#fff;font-size:36px;margin:0;font-weight:900">FLASH SALE! 🔥</h1>
+    <p style="color:#fed7aa;font-size:18px;margin:8px 0 0">Up to 50% off — Today only!</p>
+  </div>
+  <p style="color:#374151;font-size:16px;line-height:1.6">Don't miss out on our biggest sale of the year. Shop thousands of products at unbeatable prices.</p>
+  <a href="{{SITE_URL}}/flash-deals" style="background:#f97316;color:#fff;font-weight:700;font-size:16px;padding:14px 40px;border-radius:50px;text-decoration:none;display:inline-block;margin-top:16px">Shop Flash Deals →</a>
+  <p style="color:#9ca3af;font-size:13px;margin-top:24px">Offer valid for 24 hours only. While stocks last.</p>
+</div>`,
+  },
+  {
+    id: 'welcome',
+    label: '👋 Welcome',
+    subject: "Welcome to UNKORA! Here's 10% off your first order",
+    html: `<div style="padding:20px 0">
+  <h2 style="color:#1c1917;font-size:28px;margin:0 0 12px">Welcome to UNKORA! 🎉</h2>
+  <p style="color:#374151;font-size:16px;line-height:1.6">We're thrilled to have you with us. As a welcome gift, here's <strong style="color:#f97316">10% off your first order</strong> with code:</p>
+  <div style="background:#fff7ed;border:2px dashed #fb923c;border-radius:12px;padding:20px;text-align:center;margin:20px 0">
+    <span style="font-family:monospace;font-size:28px;font-weight:900;color:#ea580c;letter-spacing:4px">WELCOME10</span>
+    <p style="color:#9ca3af;font-size:13px;margin:6px 0 0">Valid for 7 days • Min. order ৳500</p>
+  </div>
+  <a href="{{SITE_URL}}/products" style="background:#1c1917;color:#fff;font-weight:700;font-size:16px;padding:14px 40px;border-radius:50px;text-decoration:none;display:inline-block">Start Shopping →</a>
+</div>`,
+  },
+  {
+    id: 'eid',
+    label: '🌙 Eid Offer',
+    subject: 'Eid Mubarak! Special gifts for you 🎁',
+    html: `<div style="text-align:center;padding:20px 0">
+  <div style="background:linear-gradient(135deg,#065f46,#047857);padding:32px;border-radius:12px;margin-bottom:20px">
+    <h1 style="color:#6ee7b7;font-size:32px;margin:0">ঈদ মুবারক 🌙</h1>
+    <h2 style="color:#fff;font-size:24px;margin:8px 0 0">Eid Mubarak!</h2>
+    <p style="color:#a7f3d0;margin:8px 0 0">Special gifts and offers for you this Eid</p>
+  </div>
+  <p style="color:#374151;font-size:16px;line-height:1.6">This Eid, we've prepared exclusive deals just for you. Enjoy free shipping on orders over ৳500 and special discounts on selected items.</p>
+  <a href="{{SITE_URL}}/products" style="background:#065f46;color:#fff;font-weight:700;font-size:16px;padding:14px 40px;border-radius:50px;text-decoration:none;display:inline-block;margin-top:16px">Shop Eid Specials →</a>
+</div>`,
+  },
+  {
+    id: 'restock',
+    label: '📦 Back in Stock',
+    subject: 'Great news — popular items are back in stock!',
+    html: `<div style="padding:20px 0">
+  <h2 style="color:#1c1917;font-size:24px;margin:0 0 12px">They're back! 📦</h2>
+  <p style="color:#374151;font-size:16px;line-height:1.6">Some of your favourite products that were out of stock are now available again. Grab them before they sell out!</p>
+  <a href="{{SITE_URL}}/products" style="background:#f97316;color:#fff;font-weight:700;font-size:16px;padding:14px 40px;border-radius:50px;text-decoration:none;display:inline-block;margin:20px 0">Browse New Stock →</a>
+  <p style="color:#9ca3af;font-size:13px">These items are popular and may sell out quickly.</p>
+</div>`,
+  },
+];
+
 const AUDIENCE_OPTIONS = [
   { value: 'ALL', label: 'All Users' },
   { value: 'BUYERS', label: 'Buyers Only' },
@@ -63,6 +119,8 @@ export default function EmailCampaignsPage() {
   const [sendingId, setSendingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [preview, setPreview] = useState<EmailCampaign | null>(null);
+  const [previewHtml, setPreviewHtml] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -262,7 +320,31 @@ export default function EmailCampaignsPage() {
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium">HTML Content *</label>
+            {/* Template presets */}
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className="text-xs font-medium text-muted-foreground">Templates:</span>
+              {EMAIL_TEMPLATES.map(tpl => (
+                <button
+                  key={tpl.id}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, htmlContent: tpl.html, subject: f.subject || tpl.subject }))}
+                  className="text-xs px-2.5 py-1 rounded-full border border-dashed hover:border-primary hover:text-primary transition-colors"
+                >
+                  {tpl.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-sm font-medium">HTML Content *</label>
+              <button
+                type="button"
+                onClick={() => { setPreviewHtml(form.htmlContent); setShowPreview(true); }}
+                disabled={!form.htmlContent}
+                className="flex items-center gap-1.5 text-xs text-primary hover:underline disabled:opacity-40"
+              >
+                <Eye className="h-3.5 w-3.5" /> Preview
+              </button>
+            </div>
             <textarea
               value={form.htmlContent}
               onChange={e => setForm(f => ({ ...f, htmlContent: e.target.value }))}
@@ -405,6 +487,26 @@ export default function EmailCampaignsPage() {
           </div>
         )}
       </div>
+
+      {/* Form HTML Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between px-5 py-3 border-b">
+              <h3 className="font-bold text-sm">Email Preview</h3>
+              <button onClick={() => setShowPreview(false)} className="p-1 rounded hover:bg-gray-100">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <div
+                className="border rounded-xl overflow-hidden"
+                dangerouslySetInnerHTML={{ __html: previewHtml }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* HTML Preview Modal */}
       {preview && (

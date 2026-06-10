@@ -6,9 +6,10 @@ import { OrdersService } from './orders.service';
 import { InvoiceService } from './invoice.service';
 import { SettingsModule } from '../settings/settings.module';
 import { CouponsModule } from '../coupons/coupons.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
-  imports: [SettingsModule, CouponsModule],
+  imports: [SettingsModule, CouponsModule, EmailModule],
   controllers: [OrdersController, OrdersGuestController],
   providers: [OrdersService, InvoiceService, OrdersCronService],
   exports: [OrdersService, InvoiceService],

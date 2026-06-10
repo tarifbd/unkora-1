@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import Link from 'next/link';
 import api from '@/lib/api';
 import { Loader2, Star, Trash2, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -77,6 +78,10 @@ export default function ReviewsPage() {
       <div>
         <h1 className="font-serif text-2xl font-bold">Reviews</h1>
         <p className="text-sm text-muted-foreground">Moderate customer reviews</p>
+        <div className="flex gap-2 mt-3">
+          <Link href="/admin/reviews" className="px-4 py-1.5 rounded-full text-xs font-semibold bg-gray-900 text-white">Reviews</Link>
+          <Link href="/admin/reviews/qa" className="px-4 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 hover:bg-gray-200">Q&A</Link>
+        </div>
       </div>
 
       {/* Filter Tabs */}

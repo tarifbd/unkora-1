@@ -416,12 +416,13 @@ model BookDetail {
 // ─────────────────────────────────────────────────────────────
 
 model Cart {
-  id        String     @id @default(cuid())
-  userId    String?    @unique
-  sessionId String?    @unique
-  items     CartItem[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id                    String     @id @default(cuid())
+  userId                String?    @unique
+  sessionId             String?    @unique
+  items                 CartItem[]
+  recoveryEmailSentAt   DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
