@@ -19,16 +19,25 @@ const NAV_ITEMS = [
   { href: '/seller/profile',     icon: Settings,         label: 'শপ সেটিংস',  en: 'Shop Settings' },
 ];
 
+const PUBLIC_PATHS = ['/seller/login', '/seller/register'];
+
 export default function SellerLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
 
+  const isPublicPath = PUBLIC_PATHS.some(p => pathname.startsWith(p));
+
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isPublicPath && !isAuthenticated) {
       router.push('/login?redirect=' + pathname);
     }
-  }, [isAuthenticated, router, pathname]);
+  }, [isPublicPath, isAuthenticated, router, pathname]);
+
+  // Login / Register pages — render without seller panel chrome
+  if (isPublicPath) {
+    return <>{children}</>;
+  }
 
   if (!isAuthenticated) {
     return (
