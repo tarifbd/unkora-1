@@ -44,7 +44,7 @@ export default function SmartBarPage() {
 
   const { data: bars = [], isLoading } = useQuery<SmartBar[]>({
     queryKey: ['smart-bars'],
-    queryFn: () => api.get<SmartBar[]>('/smart-bar/active').then(r => r.data),
+    queryFn: () => api.get<SmartBar[]>('/smart-bar/active').then(r => r.data.data as SmartBar[]),
   });
 
   const save = useMutation({

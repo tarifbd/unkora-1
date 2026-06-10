@@ -211,9 +211,9 @@ function StaffMembersTab() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useQuery<{ data: StaffMember[]; meta: PageMeta }>({
+  const { data, isLoading } = useQuery<{ data: StaffMember[]; total: number; page: number; limit: number }>({
     queryKey: ['staff-members', page],
-    queryFn: () => api.get(`/staff?page=${page}&limit=20`).then(r => r.data),
+    queryFn: () => api.get(`/staff?page=${page}&limit=20`).then(r => r.data.data),
   });
 
   const remove = useMutation({
@@ -243,7 +243,9 @@ function StaffMembersTab() {
   }
 
   const members = data?.data ?? [];
-  const meta = data?.meta;
+  const meta: PageMeta | undefined = data
+    ? { total: data.total, page: data.page, limit: data.limit, totalPages: Math.ceil(data.total / data.limit) }
+    : undefined;
 
   return (
     <div>
@@ -317,9 +319,9 @@ function StaffMembersTab() {
 function InvitationsTab() {
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useQuery<{ data: StaffInvitation[]; meta: PageMeta }>({
+  const { data, isLoading } = useQuery<{ data: StaffInvitation[]; total: number; page: number; limit: number }>({
     queryKey: ['staff-invitations', page],
-    queryFn: () => api.get(`/staff/invitations?page=${page}&limit=20`).then(r => r.data),
+    queryFn: () => api.get(`/staff/invitations?page=${page}&limit=20`).then(r => r.data.data),
   });
 
   if (isLoading) {
@@ -331,7 +333,9 @@ function InvitationsTab() {
   }
 
   const invitations = data?.data ?? [];
-  const meta = data?.meta;
+  const meta: PageMeta | undefined = data
+    ? { total: data.total, page: data.page, limit: data.limit, totalPages: Math.ceil(data.total / data.limit) }
+    : undefined;
 
   return (
     <div>
@@ -394,9 +398,9 @@ function InvitationsTab() {
 function AuditLogsTab() {
   const [page, setPage] = useState(1);
 
-  const { data, isLoading } = useQuery<{ data: AuditLog[]; meta: PageMeta }>({
+  const { data, isLoading } = useQuery<{ data: AuditLog[]; total: number; page: number; limit: number }>({
     queryKey: ['staff-audit-logs', page],
-    queryFn: () => api.get(`/staff/audit-logs?page=${page}&limit=20`).then(r => r.data),
+    queryFn: () => api.get(`/staff/audit-logs?page=${page}&limit=20`).then(r => r.data.data),
   });
 
   if (isLoading) {
@@ -408,7 +412,9 @@ function AuditLogsTab() {
   }
 
   const logs = data?.data ?? [];
-  const meta = data?.meta;
+  const meta: PageMeta | undefined = data
+    ? { total: data.total, page: data.page, limit: data.limit, totalPages: Math.ceil(data.total / data.limit) }
+    : undefined;
 
   return (
     <div>
@@ -468,7 +474,7 @@ export default function StaffPage() {
 
   const { data: stats } = useQuery<StaffStats>({
     queryKey: ['staff-stats'],
-    queryFn: () => api.get('/staff/stats').then(r => r.data),
+    queryFn: () => api.get('/staff/stats').then(r => r.data.data),
   });
 
   const tabs: { key: Tab; label: string; icon: React.ElementType }[] = [

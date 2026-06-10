@@ -49,7 +49,7 @@ export default function CmsEditorPage() {
   // Load all pages from API
   const { isLoading: loadingPages, data: pagesData } = useQuery<{ data: Array<{ id: string; slug: string; content: string }> }>({
     queryKey: ['cms-all-pages'],
-    queryFn: () => api.get('/cms/pages?limit=100').then(r => r.data),
+    queryFn: () => api.get('/cms/pages?limit=100').then(r => r.data.data),
   });
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export default function CmsEditorPage() {
   // Load FAQs
   const { isLoading: loadingFaqs, data: faqsData } = useQuery<ApiFaq[]>({
     queryKey: ['cms-faqs'],
-    queryFn: () => api.get('/cms/faqs').then(r => r.data),
+    queryFn: () => api.get('/cms/faqs').then(r => r.data.data as ApiFaq[]),
   });
 
   useEffect(() => {

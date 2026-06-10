@@ -28,13 +28,13 @@ export default function ProductNotesPage() {
 
   const { data: product } = useQuery<ProductInfo>({
     queryKey: ['product-basic', productId],
-    queryFn: () => api.get<ProductInfo>(`/products/${productId}`).then(r => r.data),
+    queryFn: () => api.get<ProductInfo>(`/products/${productId}`).then(r => r.data.data as ProductInfo),
     enabled: !!productId,
   });
 
   const { data: notes = [], isLoading } = useQuery<ProductNote[]>({
     queryKey: ['product-notes', productId],
-    queryFn: () => api.get<ProductNote[]>(`/product-notes/product/${productId}`).then(r => r.data),
+    queryFn: () => api.get<ProductNote[]>(`/product-notes/product/${productId}`).then(r => r.data.data as ProductNote[]),
     enabled: !!productId,
   });
 
