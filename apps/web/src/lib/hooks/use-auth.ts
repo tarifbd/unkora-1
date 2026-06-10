@@ -51,7 +51,9 @@ export function useAuth() {
       setUser(u);
       saveUserRole(u.role);
       toast.success('অ্যাকাউন্ট তৈরি হয়েছে! স্বাগতম 🎉');
-      router.push('/');
+      const params = new URLSearchParams(window.location.search);
+      const redirectTo = params.get('redirect');
+      router.push(redirectTo && redirectTo.startsWith('/') ? redirectTo : '/');
     },
     onError: (err) => toast.error(apiErrMsg(err, 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।')),
   });

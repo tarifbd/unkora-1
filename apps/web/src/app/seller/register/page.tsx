@@ -1,13 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { Eye, EyeOff, Loader2, Store, ArrowRight, BookOpen } from 'lucide-react';
-import { useAuth } from '@/lib/hooks/use-auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { authApi } from '@/lib/api/auth';
+import { saveUserRole } from '@/lib/api';
+import { useAuthStore } from '@/store/auth.store';
+import { toast } from 'sonner';
 
 const schema = z.object({
   firstName: z.string().min(2, 'Min 2 chars'),
@@ -21,22 +24,44 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 function SellerRegisterContent() {
-  const { register: registerUser } = useAuth();
+  const { isAuthenticated, setUser } = useAuthStore();
   const [showPw, setShowPw] = useState(false);
   const [lang, setLang] = useState<'bn' | 'en'>('bn');
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
   const searchParams = useSearchParams();
   const router = useRouter();
-  const redirectParam = searchParams.get('redirect') ?? '/seller/apply';
+  const redirectTo = searchParams.get('redirect') ?? '/seller/apply';
+
+  // Already logged in → skip straight to apply
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace(redirectTo.startsWith('/') ? redirectTo : '/seller/apply');
+    }
+  }, [isAuthenticated, redirectTo, router]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = ({ confirmPassword: _, phone, ...data }: FormData) =>
-    registerUser.mutate(
-      { ...data, phone: phone || undefined },
-      { onSuccess: () => { router.push(redirectParam.startsWith('/') ? redirectParam : '/seller/apply'); } },
-    );
+  const onSubmit = async ({ confirmPassword: _, phone, ...data }: FormData) => {
+    setLoading(true);
+    setApiError('');
+    try {
+      const { user } = await authApi.register({ ...data, phone: phone || undefined });
+      setUser(user);
+      saveUserRole(user.role);
+      toast.success('অ্যাকাউন্ট তৈরি হয়েছে! স্বাগতম 🎉');
+      router.push(redirectTo.startsWith('/') ? redirectTo : '/seller/apply');
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string | string[] } } };
+      const msg = e?.response?.data?.message;
+      const raw = Array.isArray(msg) ? msg[0] : msg;
+      setApiError(raw ?? (lang === 'bn' ? 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।' : 'Registration failed. Please try again.'));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const t = {
     title:    lang === 'bn' ? 'সেলার অ্যাকাউন্ট তৈরি করুন' : 'Create Seller Account',
@@ -54,6 +79,14 @@ function SellerRegisterContent() {
   };
 
   const inp = 'w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors';
+
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex">
@@ -174,24 +207,17 @@ function SellerRegisterContent() {
               {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message}</p>}
             </div>
 
-            {registerUser.error && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">
-                {(() => {
-                  const e = registerUser.error as { response?: { data?: { message?: string | string[] } } };
-                  const msg = e?.response?.data?.message;
-                  const raw = Array.isArray(msg) ? msg[0] : msg;
-                  return raw ?? (lang === 'bn' ? 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।' : 'Registration failed. Please try again.');
-                })()}
-              </p>
+            {apiError && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">{apiError}</p>
             )}
 
             <button
               type="submit"
-              disabled={registerUser.isPending}
+              disabled={loading}
               className="w-full bg-primary text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-60 text-sm"
             >
-              {registerUser.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Store className="w-4 h-4" />}
-              {registerUser.isPending ? (lang === 'bn' ? 'তৈরি হচ্ছে...' : 'Creating...') : t.submit}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Store className="w-4 h-4" />}
+              {loading ? (lang === 'bn' ? 'তৈরি হচ্ছে...' : 'Creating...') : t.submit}
             </button>
           </form>
 

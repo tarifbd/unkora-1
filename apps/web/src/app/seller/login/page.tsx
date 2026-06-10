@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Loader2, Store, ArrowRight, BookOpen } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,7 +22,14 @@ type FormData = z.infer<typeof schema>;
 export default function SellerLoginPage() {
   const router = useRouter();
   const qc = useQueryClient();
-  const { setUser } = useAuthStore();
+  const { setUser, isAuthenticated } = useAuthStore();
+
+  // Already logged in → go to seller dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/seller/dashboard');
+    }
+  }, [isAuthenticated, router]);
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -52,6 +59,14 @@ export default function SellerLoginPage() {
       setLoading(false);
     }
   };
+
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   const t = {
     title:      lang === 'bn' ? 'সেলার লগইন' : 'Seller Login',
