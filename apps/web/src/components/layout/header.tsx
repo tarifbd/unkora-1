@@ -880,30 +880,35 @@ export function Header() {
               {/* Account */}
               <div
                 ref={accountRef}
-                className="relative flex items-center gap-2 cursor-pointer group transition-colors"
-                onClick={() => setAccountOpen(o => !o)}
+                className="relative group"
               >
-                <div className={`p-2 transition-colors ${accountOpen ? 'text-secondary' : 'hover:text-secondary'}`}>
-                  <User className="w-[26px] h-[26px]" />
-                </div>
-                <div className="hidden lg:block text-left">
-                  <p className="text-[10px] text-gray-500 font-bold uppercase leading-tight">
-                    {isAuthenticated
-                      ? `${lang === 'bn' ? 'হ্যালো,' : 'Hello,'} ${
-                          user?.firstName
-                            || user?.name
-                            || (user?.role === 'ADMIN'
-                                ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')
-                                : user?.role === 'SELLER'
-                                ? (lang === 'bn' ? 'সেলার' : 'Seller')
-                                : (lang === 'bn' ? 'গ্রাহক' : 'Customer'))
-                        }`
-                      : t.header.helloSignIn}
-                  </p>
-                  <span className={`text-sm font-bold leading-tight flex items-center transition-colors ${accountOpen ? 'text-secondary' : 'text-gray-800'}`}>
-                    {isAuthenticated ? t.header.accountOrders : t.header.accountsLists}
-                    <ChevronDown className={`w-3 h-3 ml-0.5 transition-transform ${accountOpen ? 'rotate-180 text-secondary' : ''}`} />
-                  </span>
+                {/* Trigger — only this toggles the dropdown */}
+                <div
+                  className="flex items-center gap-2 cursor-pointer transition-colors"
+                  onClick={() => setAccountOpen(o => !o)}
+                >
+                  <div className={`p-2 transition-colors ${accountOpen ? 'text-secondary' : 'hover:text-secondary'}`}>
+                    <User className="w-[26px] h-[26px]" />
+                  </div>
+                  <div className="hidden lg:block text-left">
+                    <p className="text-[10px] text-gray-500 font-bold uppercase leading-tight">
+                      {isAuthenticated
+                        ? `${lang === 'bn' ? 'হ্যালো,' : 'Hello,'} ${
+                            user?.firstName
+                              || user?.name
+                              || (user?.role === 'ADMIN'
+                                  ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')
+                                  : user?.role === 'SELLER'
+                                  ? (lang === 'bn' ? 'সেলার' : 'Seller')
+                                  : (lang === 'bn' ? 'গ্রাহক' : 'Customer'))
+                          }`
+                        : t.header.helloSignIn}
+                    </p>
+                    <span className={`text-sm font-bold leading-tight flex items-center transition-colors ${accountOpen ? 'text-secondary' : 'text-gray-800'}`}>
+                      {isAuthenticated ? t.header.accountOrders : t.header.accountsLists}
+                      <ChevronDown className={`w-3 h-3 ml-0.5 transition-transform ${accountOpen ? 'rotate-180 text-secondary' : ''}`} />
+                    </span>
+                  </div>
                 </div>
 
                 {/* Account Dropdown */}
