@@ -881,8 +881,7 @@ export function Header() {
               <div
                 ref={accountRef}
                 className="relative flex items-center gap-2 cursor-pointer group transition-colors"
-                onMouseEnter={() => setAccountOpen(true)}
-                onMouseLeave={() => setAccountOpen(false)}
+                onClick={() => setAccountOpen(o => !o)}
               >
                 <div className={`p-2 transition-colors ${accountOpen ? 'text-secondary' : 'hover:text-secondary'}`}>
                   <User className="w-[26px] h-[26px]" />
