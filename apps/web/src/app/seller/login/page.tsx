@@ -76,6 +76,7 @@ export default function SellerLoginPage() {
     signIn:     lang === 'bn' ? 'সেলার লগইন' : 'Seller Sign In',
     noAccount:  lang === 'bn' ? 'নতুন সেলার?' : 'New seller?',
     apply:      lang === 'bn' ? 'সেলার হিসেবে আবেদন করুন' : 'Apply as a seller',
+    forgot:     lang === 'bn' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot password?',
     customerText: lang === 'bn' ? 'কাস্টমার লগইন' : 'Customer login',
   };
 
@@ -160,7 +161,10 @@ export default function SellerLoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.password}</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-semibold text-gray-700">{t.password}</label>
+                <Link href="/forgot-password" className="text-xs text-primary hover:underline">{t.forgot}</Link>
+              </div>
               <div className="relative">
                 <input
                   {...register('password')}
