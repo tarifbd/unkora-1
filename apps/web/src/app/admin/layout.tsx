@@ -34,6 +34,7 @@ function isDivider(item: NavItem): item is NavDivider {
 
 const NAV: NavItem[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true, keywords: ['home', 'overview', 'summary', 'kpi'] },
+  { href: '/admin/reports', label: 'Reports', icon: BarChart3, exact: true, keywords: ['report', 'analytics', 'metrics', 'kpi', 'sales report'] },
 
   /* ───── CATALOGUE ───── */
   { type: 'divider', label: 'CATALOGUE' },
@@ -180,7 +181,7 @@ const NAV: NavItem[] = [
     label: 'Content', icon: FileText,
     children: [
       { href: '/admin/cms',         label: 'Static Pages',      icon: FileCode2, keywords: ['about', 'contact', 'privacy', 'terms', 'faq', 'page'] },
-      { href: '/admin/cms/banners', label: 'Banners & Sliders', icon: ImageIcon, keywords: ['hero', 'carousel', 'slideshow'] },
+      { href: '/admin/cms/banners', label: 'Banners & Sliders', icon: ImageIcon, keywords: ['hero', 'carousel', 'slideshow', 'ad slider'] },
       { href: '/admin/blog',        label: 'Blog',              icon: FileText,  keywords: ['article', 'post', 'news'] },
       { href: '/admin/blog/new',    label: 'New Post',          icon: Plus,      keywords: ['write', 'article'] },
     ],
@@ -208,10 +209,8 @@ const NAV: NavItem[] = [
   /* ───── INTELLIGENCE ───── */
   { type: 'divider', label: 'INTELLIGENCE' },
   {
-    label: 'Reports & AI', icon: Sparkles,
+    label: 'AI Studio', icon: Sparkles,
     children: [
-      { href: '/admin/reports',                label: 'Reports',          icon: BarChart3, keywords: ['report', 'sales report'] },
-      { href: '/admin/advanced-reports',       label: 'Advanced Reports', icon: PieChart,  keywords: ['analytics', 'export'] },
       { href: '/admin/ai-studio',              label: 'AI Studio',        icon: Sparkles,  keywords: ['artificial intelligence', 'gpt'] },
       { href: '/admin/ai-studio/orchestrator', label: 'Orchestrator',     icon: Cpu,       keywords: ['workflow', 'automation'] },
       { href: '/admin/ai-studio/agents',       label: 'Agents',           icon: Bot,       keywords: ['assistant', 'bot'] },
@@ -232,6 +231,7 @@ const NAV: NavItem[] = [
       { href: '/admin/finance/pnl',              label: 'P&L Report',       icon: LineChart,  keywords: ['profit', 'loss', 'income'] },
       { href: '/admin/finance/wallet',           label: 'Digital Wallet',   icon: Wallet,     keywords: ['balance', 'credit'] },
       { href: '/admin/finance/store-credit',     label: 'Store Credit',     icon: Gift,       keywords: ['credit', 'refund'] },
+      { href: '/admin/advanced-reports',         label: 'Advanced Reports', icon: PieChart,   keywords: ['analytics', 'export', 'report'] },
     ],
   },
 
@@ -250,6 +250,20 @@ const NAV: NavItem[] = [
     ],
   },
 ];
+
+/* ─── Section color palette ──────────────────────────────────── */
+const SECTION_STYLE: Record<string, { label: string; dot: string }> = {
+  'CATALOGUE':      { label: 'text-sky-400/80',      dot: 'bg-sky-400' },
+  'SALES':          { label: 'text-emerald-400/80',  dot: 'bg-emerald-400' },
+  'CUSTOMERS':      { label: 'text-violet-400/80',   dot: 'bg-violet-400' },
+  'MARKETING':      { label: 'text-orange-400/80',   dot: 'bg-orange-400' },
+  'CHANNELS':       { label: 'text-pink-400/80',     dot: 'bg-pink-400' },
+  'CONTENT':        { label: 'text-amber-400/80',    dot: 'bg-amber-400' },
+  'SEO & VISIBILITY':{ label: 'text-cyan-400/80',   dot: 'bg-cyan-400' },
+  'INTELLIGENCE':   { label: 'text-purple-400/80',   dot: 'bg-purple-400' },
+  'FINANCE':        { label: 'text-green-400/80',    dot: 'bg-green-400' },
+  'SYSTEM':         { label: 'text-slate-400/80',    dot: 'bg-slate-400' },
+};
 
 /* ─── Helpers ────────────────────────────────────────────────── */
 function isActive(href: string, pathname: string, exact?: boolean) {
@@ -289,8 +303,7 @@ const SEARCH_INDEX: SearchEntry[] = (() => {
   return entries;
 })();
 
-// Multi-word AND search across labels + parent + keyword synonyms.
-// Ranks exact-label and label-prefix matches above keyword-only matches.
+// Multi-word AND search with keyword synonyms + ranked scoring.
 function searchNav(query: string): SearchEntry[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
@@ -303,7 +316,7 @@ function searchNav(query: string): SearchEntry[] {
     if (label === q) score = 100;
     else if (label.startsWith(q)) score = 80;
     else if (label.includes(q)) score = 60;
-    else score = 30; // matched via parent or keyword only
+    else score = 30;
     scored.push({ entry, score });
   }
   scored.sort((a, b) => b.score - a.score || a.entry.leaf.label.localeCompare(b.entry.leaf.label));
@@ -321,27 +334,27 @@ function NavLeafItem({
     <Link
       href={item.href}
       onClick={onClose}
-      className={`flex items-center gap-3 rounded-lg py-2 text-sm font-medium transition-all
-        ${depth > 0 ? 'pl-10 pr-3' : 'px-3'}
+      className={`group flex items-center gap-2.5 rounded-lg py-[7px] text-[13px] font-medium transition-all duration-150
+        ${depth > 0 ? 'pl-9 pr-3' : 'px-3'}
         ${active
-          ? 'bg-white/15 text-white'
-          : 'text-white/60 hover:bg-white/8 hover:text-white/90'
+          ? 'bg-white/[0.12] text-white shadow-sm'
+          : 'text-white/55 hover:bg-white/[0.06] hover:text-white/85'
         }`}
     >
       {depth > 0 ? (
-        <span className={`h-1.5 w-1.5 rounded-full flex-shrink-0 ${active ? 'bg-white' : 'bg-white/30'}`} />
+        <span className={`h-[5px] w-[5px] rounded-full flex-shrink-0 transition-colors ${active ? 'bg-indigo-400' : 'bg-white/20 group-hover:bg-white/40'}`} />
       ) : (
-        <item.icon className="h-4 w-4 flex-shrink-0" />
+        <item.icon className={`h-4 w-4 flex-shrink-0 transition-colors ${active ? 'text-indigo-300' : 'text-white/35 group-hover:text-white/60'}`} />
       )}
-      <span className="truncate">{item.label}</span>
+      <span className="truncate flex-1">{item.label}</span>
       {active && depth === 0 && (
-        <span className="ml-auto h-1.5 w-1.5 rounded-full bg-white/70" />
+        <span className="ml-auto h-1.5 w-1.5 rounded-full bg-indigo-400 flex-shrink-0" />
       )}
     </Link>
   );
 }
 
-/* ─── Expandable group — controlled via openGroup ────────────── */
+/* ─── Expandable group ───────────────────────────────────────── */
 function NavGroupItem({
   item, pathname, isOpen, onToggle, onClose,
 }: {
@@ -353,18 +366,21 @@ function NavGroupItem({
     <div>
       <button
         onClick={onToggle}
-        className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all
-          ${active ? 'text-white' : 'text-white/60 hover:text-white/90 hover:bg-white/8'}`}
+        className={`group flex w-full items-center gap-2.5 rounded-lg px-3 py-[7px] text-[13px] font-medium transition-all duration-150
+          ${active
+            ? 'text-white bg-white/[0.07]'
+            : 'text-white/55 hover:text-white/85 hover:bg-white/[0.05]'
+          }`}
       >
-        <item.icon className="h-4 w-4 flex-shrink-0" />
+        <item.icon className={`h-4 w-4 flex-shrink-0 transition-colors ${active ? 'text-indigo-300' : 'text-white/30 group-hover:text-white/55'}`} />
         <span className="flex-1 truncate text-left">{item.label}</span>
-        {isOpen
-          ? <ChevronDown className="h-3.5 w-3.5 flex-shrink-0 transition-transform duration-200" />
-          : <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 transition-transform duration-200" />}
+        <span className={`h-4 w-4 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}>
+          <ChevronRight className="h-4 w-4" />
+        </span>
       </button>
 
       {isOpen && (
-        <div className="mt-0.5 space-y-0.5">
+        <div className="mt-0.5 space-y-0.5 pb-0.5">
           {item.children.map(child => (
             <NavLeafItem key={child.href} item={child} pathname={pathname} depth={1} onClose={onClose} />
           ))}
@@ -493,19 +509,15 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Powerful search: multi-word, keyword synonyms, ranked + deduped
   const searchResults = useMemo(() => searchNav(searchQuery), [searchQuery]);
 
-  // Accordion: only one group open at a time
   const [openGroup, setOpenGroup] = useState<string | null>(() => {
-    // auto-open the group that contains the current route
     for (const item of NAV) {
       if (isParent(item) && groupIsActive(item.children, pathname)) return item.label;
     }
     return null;
   });
 
-  // When route changes, open the matching group and clear search
   useEffect(() => {
     setSearchQuery('');
     for (const item of NAV) {
@@ -516,10 +528,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     }
   }, [pathname]);
 
-  // Reset keyboard selection whenever the query (and thus results) changes
   useEffect(() => { setActiveIndex(0); }, [searchQuery]);
 
-  // Keyboard navigation over search results: ↑ ↓ Enter Esc
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!searchResults.length) {
       if (e.key === 'Escape') setSearchQuery('');
@@ -534,17 +544,12 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     } else if (e.key === 'Enter') {
       e.preventDefault();
       const target = searchResults[activeIndex];
-      if (target) {
-        setSearchQuery('');
-        onClose?.();
-        router.push(target.leaf.href);
-      }
+      if (target) { setSearchQuery(''); onClose?.(); router.push(target.leaf.href); }
     } else if (e.key === 'Escape') {
       setSearchQuery('');
     }
   };
 
-  // Keep the highlighted result scrolled into view
   useEffect(() => {
     const el = resultsRef.current?.querySelector<HTMLElement>(`[data-idx="${activeIndex}"]`);
     el?.scrollIntoView({ block: 'nearest' });
@@ -565,53 +570,56 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     : 'AD';
 
   return (
-    <div className="flex h-full flex-col" style={{ background: '#0d1b3e' }}>
-      {/* Brand */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-white/10 flex-shrink-0">
-        <div>
-          <Link href="/" className="font-serif text-xl font-black text-white tracking-wide">
-            UNKORA
-          </Link>
-          <p className="text-[10px] font-semibold uppercase tracking-widest mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Admin Panel
-          </p>
+    <div className="flex h-full flex-col" style={{ background: 'linear-gradient(175deg, #0d1535 0%, #090f25 55%, #060b1c 100%)' }}>
+
+      {/* ── Brand ── */}
+      <div className="flex items-center justify-between px-4 py-[14px] border-b border-white/[0.07] flex-shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg"
+            style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' }}>
+            <span className="text-[13px] font-black text-white tracking-tight">U</span>
+          </div>
+          <div className="min-w-0">
+            <span className="block font-black text-white text-[15px] tracking-widest">UNKORA</span>
+            <span className="block text-[9px] font-semibold uppercase tracking-[0.22em] text-white/30 -mt-0.5">Admin Console</span>
+          </div>
         </div>
         {onClose && (
-          <button onClick={onClose} className="rounded-md p-1 text-white/40 hover:text-white hover:bg-white/10 lg:hidden">
+          <button onClick={onClose} className="ml-2 rounded-md p-1 text-white/30 hover:text-white hover:bg-white/10 lg:hidden transition-colors">
             <X className="h-4 w-4" />
           </button>
         )}
       </div>
 
-      {/* Search */}
-      <div className="px-3 pt-3 pb-2 border-b border-white/8 flex-shrink-0">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30 pointer-events-none" />
+      {/* ── Search ── */}
+      <div className="px-3 pt-3 pb-2.5 border-b border-white/[0.06] flex-shrink-0">
+        <div className="relative group">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/25 pointer-events-none group-focus-within:text-indigo-400 transition-colors duration-200" />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             onKeyDown={handleSearchKeyDown}
-            placeholder="Search anything…  (try 'po', 'vendor', 'vat')"
-            className="w-full bg-white/8 border border-white/10 rounded-lg pl-8 pr-7 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:bg-white/12 transition-all"
+            placeholder="Search…  try 'po', 'vat', 'vendor'"
+            className="w-full bg-white/[0.06] border border-white/[0.09] rounded-xl pl-8 pr-7 py-2 text-[12px] text-white placeholder-white/25 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.09] focus:ring-1 focus:ring-indigo-500/20 transition-all duration-200"
           />
           {searchQuery && (
-            <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+            <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/25 hover:text-white/60 transition-colors">
               <X className="h-3 w-3" />
             </button>
           )}
         </div>
       </div>
 
-      {/* Nav — search results or full tree */}
+      {/* ── Nav content ── */}
       {searchQuery.trim() ? (
         <div ref={resultsRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 overscroll-contain">
           {searchResults.length === 0 ? (
-            <p className="px-3 py-6 text-xs text-white/30 text-center">No results for &ldquo;{searchQuery}&rdquo;</p>
+            <p className="px-3 py-8 text-[11px] text-white/30 text-center">No results for &ldquo;{searchQuery}&rdquo;</p>
           ) : (
             <>
-              <p className="px-2 pb-1.5 text-[9px] font-bold uppercase tracking-wider text-white/25">
-                {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} · ↑↓ to move · ↵ to open
+              <p className="px-2 pb-2 text-[9px] font-bold uppercase tracking-wider text-white/20">
+                {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} · ↑↓ move · ↵ open
               </p>
               {searchResults.map(({ leaf, parent }, idx) => (
                 <Link
@@ -620,21 +628,21 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
                   data-idx={idx}
                   onMouseEnter={() => setActiveIndex(idx)}
                   onClick={() => { setSearchQuery(''); onClose?.(); }}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs transition-all ${
+                  className={`flex items-center gap-2.5 rounded-xl px-3 py-2 text-[12px] transition-all duration-100 ${
                     idx === activeIndex
-                      ? 'bg-white/15 text-white font-semibold ring-1 ring-white/20'
+                      ? 'bg-indigo-500/20 text-white font-semibold ring-1 ring-indigo-500/30'
                       : pathname === leaf.href
                         ? 'bg-white/10 text-white font-semibold'
-                        : 'text-white/60 hover:bg-white/8 hover:text-white/90'
+                        : 'text-white/55 hover:bg-white/[0.07] hover:text-white/85'
                   }`}
                 >
-                  <leaf.icon className="h-3.5 w-3.5 flex-shrink-0 text-white/40" />
+                  <leaf.icon className="h-3.5 w-3.5 flex-shrink-0 text-white/35" />
                   <div className="min-w-0 flex-1">
                     <div className="font-medium truncate">{leaf.label}</div>
-                    <div className="text-[9px] opacity-40 truncate">{parent}</div>
+                    <div className="text-[9px] opacity-35 truncate">{parent}</div>
                   </div>
                   {idx === activeIndex && (
-                    <span className="text-[9px] text-white/40 flex-shrink-0">↵</span>
+                    <span className="text-[9px] text-white/35 flex-shrink-0">↵</span>
                   )}
                 </Link>
               ))}
@@ -643,50 +651,60 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         </div>
       ) : (
         <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 overscroll-contain">
-          {NAV.map((item, i) =>
-            isDivider(item) ? (
-              <div key={`div-${i}`} className="pt-4 pb-1 px-1">
-                <p className="text-[9px] font-black uppercase tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.22)' }}>
-                  {item.label}
-                </p>
-              </div>
-            ) : isParent(item) ? (
-              <NavGroupItem
-                key={i}
-                item={item}
-                pathname={pathname}
-                isOpen={openGroup === item.label}
-                onToggle={() => handleToggle(item.label)}
-                onClose={onClose}
-              />
-            ) : (
-              <NavLeafItem key={item.href} item={item} pathname={pathname} onClose={onClose} />
-            )
-          )}
+          {NAV.map((item, i) => {
+            if (isDivider(item)) {
+              const s = SECTION_STYLE[item.label];
+              return (
+                <div key={`div-${i}`} className="pt-5 pb-1.5 px-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`h-[3px] w-3 rounded-full ${s?.dot ?? 'bg-white/15'} opacity-70`} />
+                    <p className={`text-[8.5px] font-black uppercase tracking-[0.18em] ${s?.label ?? 'text-white/25'}`}>
+                      {item.label}
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+            if (isParent(item)) {
+              return (
+                <NavGroupItem
+                  key={i}
+                  item={item}
+                  pathname={pathname}
+                  isOpen={openGroup === item.label}
+                  onToggle={() => handleToggle(item.label)}
+                  onClose={onClose}
+                />
+              );
+            }
+            return <NavLeafItem key={item.href} item={item} pathname={pathname} onClose={onClose} />;
+          })}
+          <div className="h-4" />
         </nav>
       )}
 
-      {/* User + logout */}
-      <div className="border-t border-white/10 px-3 py-3 space-y-2 flex-shrink-0">
-        <div className="flex items-center gap-3 rounded-lg px-3 py-2.5" style={{ background: 'rgba(255,255,255,0.07)' }}>
-          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+      {/* ── User + logout ── */}
+      <div className="border-t border-white/[0.07] px-3 py-3 space-y-1.5 flex-shrink-0">
+        <div className="flex items-center gap-2.5 rounded-xl px-3 py-2.5" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+            style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' }}>
             {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-white">
+            <p className="truncate text-[13px] font-semibold text-white">
               {user ? `${user.firstName} ${user.lastName}` : 'Admin'}
             </p>
-            <span className="text-[10px] font-semibold" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <span className="text-[10px] font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>
               {user?.role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'}
             </span>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-white/10"
-          style={{ color: 'rgba(255,100,100,0.85)' }}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[12px] font-medium transition-colors hover:bg-white/[0.07]"
+          style={{ color: 'rgba(248,113,113,0.8)' }}
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-3.5 w-3.5" />
           Sign Out
         </button>
       </div>
@@ -752,7 +770,6 @@ const QUICK_NAV_GROUPS: Record<string, { label: string; href: string }[]> = {
   ],
 };
 
-// ADD_NEW map: what "+ Add New" should link to per section
 const ADD_NEW_MAP: Record<string, string> = {
   '/admin/products':  '/admin/products/new',
   '/admin/blog':      '/admin/blog/new',
@@ -763,11 +780,8 @@ const ADD_NEW_MAP: Record<string, string> = {
 
 function QuickNavBar() {
   const pathname = usePathname();
-
-  // Find matching group by prefix
   const groupKey = Object.keys(QUICK_NAV_GROUPS).find(k => pathname.startsWith(k));
   const tabs = groupKey ? QUICK_NAV_GROUPS[groupKey] : null;
-
   const addNewHref = Object.entries(ADD_NEW_MAP).find(([k]) => pathname.startsWith(k))?.[1];
 
   if (!tabs) return null;
@@ -775,7 +789,6 @@ function QuickNavBar() {
   return (
     <div className="sticky top-[57px] z-30 border-b bg-background/95 backdrop-blur-sm shadow-sm">
       <div className="flex items-center gap-1 px-3 sm:px-4 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {/* Icon shortcuts */}
         <div className="flex items-center gap-1 pr-2 mr-1 border-r border-border flex-shrink-0">
           <Link href="/" target="_blank"
             className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
@@ -794,7 +807,6 @@ function QuickNavBar() {
           </Link>
         </div>
 
-        {/* Context tabs */}
         <nav className="flex items-center gap-0.5 flex-1 overflow-x-auto [scrollbar-width:none]">
           {tabs.map(tab => {
             const active = pathname === tab.href || (tab.href !== groupKey && pathname.startsWith(tab.href));
@@ -811,7 +823,6 @@ function QuickNavBar() {
           })}
         </nav>
 
-        {/* Add New button */}
         {addNewHref && (
           <Link href={addNewHref}
             className="flex-shrink-0 ml-2 flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-colors">
@@ -848,12 +859,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN') router.push('/');
   }, [isAuthenticated, user, router, pathname]);
 
-  // Close mobile sidebar on route change
   useEffect(() => { setSidebarOpen(false); }, [pathname]);
 
-  // Login page renders without the admin shell
   if (pathname === '/admin/login') return <>{children}</>;
-
   if (!isAuthenticated || (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN')) return null;
 
   const initials = user
@@ -867,8 +875,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen bg-muted/20">
-      {/* Desktop Sidebar — sticky full height */}
-      <aside className="hidden lg:flex lg:flex-col w-60 flex-shrink-0 sticky top-0 h-screen overflow-hidden">
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex lg:flex-col w-[232px] flex-shrink-0 sticky top-0 h-screen overflow-hidden">
         <SidebarContent />
       </aside>
 
@@ -876,10 +884,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />
-          <aside className="absolute left-0 top-0 h-full w-64 shadow-2xl">
+          <aside className="absolute left-0 top-0 h-full w-60 shadow-2xl">
             <SidebarContent onClose={() => setSidebarOpen(false)} />
           </aside>
         </div>
@@ -888,24 +896,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Top Header */}
-        <header className="sticky top-0 z-40 flex items-center justify-between border-b bg-card px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-3">
+        <header className="sticky top-0 z-40 flex items-center justify-between border-b bg-white/98 dark:bg-card backdrop-blur-sm px-4 py-0 shadow-sm" style={{ minHeight: 57 }}>
+          {/* Gradient accent line */}
+          <div className="absolute inset-x-0 top-0 h-[2px]" style={{ background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)' }} />
+
+          <div className="flex items-center gap-3 py-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent lg:hidden"
+              className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground lg:hidden transition-colors"
             >
               <Menu className="h-5 w-5" />
             </button>
             <div>
-              <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground hidden sm:block">
-                Admin Panel
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 hidden sm:block leading-none">
+                Admin Console
               </p>
-              <h1 className="font-semibold text-foreground text-sm sm:text-base">{pageTitle}</h1>
+              <h1 className="font-bold text-foreground text-sm sm:text-[15px] leading-snug">{pageTitle}</h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Context-aware Add New */}
+          <div className="flex items-center gap-1.5 py-3">
             {(() => {
               const addHref = Object.entries(ADD_NEW_MAP).find(([k]) => pathname.startsWith(k))?.[1];
               return addHref ? (
@@ -919,7 +929,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               ) : null;
             })()}
 
-            {/* View Store */}
             <Link
               href="/"
               target="_blank"
@@ -929,7 +938,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <ExternalLink className="h-3 w-3" />
             </Link>
 
-            {/* Clear cache */}
             <button
               onClick={handleClearCache}
               disabled={clearing}
@@ -939,13 +947,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <RefreshCw className={`h-4 w-4 ${clearing ? 'animate-spin' : ''}`} />
             </button>
 
-            {/* Notifications */}
             <button className="rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors">
               <Bell className="h-4 w-4" />
             </button>
 
-            {/* Avatar */}
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white"
+              style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' }}>
               {initials}
             </div>
           </div>
