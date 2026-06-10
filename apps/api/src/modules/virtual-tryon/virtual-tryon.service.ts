@@ -135,11 +135,20 @@ export class VirtualTryOnService {
     return { data, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
+  async getPublicConfig() {
+    return this.settings.getMany([
+      'virtual-tryon.enabled',
+      'virtual-tryon.requireLogin',
+      'virtual-tryon.categoryIds',
+    ]);
+  }
+
   async getSettings() {
     return this.settings.getMany([
       'virtual-tryon.enabled',
       'virtual-tryon.aiServiceUrl',
       'virtual-tryon.requireLogin',
+      'virtual-tryon.categoryIds',
     ]);
   }
 
@@ -149,6 +158,7 @@ export class VirtualTryOnService {
       'virtual-tryon.aiServiceUrl',
       'virtual-tryon.aiServiceKey',
       'virtual-tryon.requireLogin',
+      'virtual-tryon.categoryIds',
     ];
     const filtered = Object.fromEntries(
       Object.entries(data).filter(([k]) => allowed.includes(k)),

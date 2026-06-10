@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { ShoppingCart, Minus, Plus, Loader2, ArrowLeft, BookOpen, Package, Zap, Shirt } from 'lucide-react';
 import Link from 'next/link';
 
+import api from '@/lib/api';
 import { productsApi } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useCartStore } from '@/store/cart.store';
@@ -22,6 +23,13 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const { data: product, isLoading } = useQuery({
     queryKey: ['product', slug],
     queryFn: () => productsApi.getBySlug(slug),
+  });
+  const { data: tryonConfig } = useQuery({
+    queryKey: ['virtual-tryon-config'],
+    queryFn: () =>
+      api.get('/virtual-tryon/config').then(r => (r.data?.data ?? {}) as Record<string, string>),
+    staleTime: 5 * 60_000,
+    retry: false,
   });
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
@@ -62,6 +70,15 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 
   const price = Number(product.salePrice ?? product.basePrice);
   const hasDiscount = product.salePrice && Number(product.salePrice) < Number(product.basePrice);
+
+  // Try-On button: feature enabled + product category allowed (empty list = all categories)
+  const tryonEnabled = tryonConfig?.['virtual-tryon.enabled'] === 'true';
+  const tryonCategoryIds = (tryonConfig?.['virtual-tryon.categoryIds'] ?? '')
+    .split(',')
+    .filter(Boolean);
+  const showTryOn =
+    tryonEnabled &&
+    (tryonCategoryIds.length === 0 || tryonCategoryIds.includes(product.category?.id ?? ''));
 
   const handleAddToCart = () => {
     addItem.mutate({
@@ -190,7 +207,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
               >
                 <Zap className="h-4 w-4" /> {t.productDetail.buyNow}
               </Link>
-              {product.images?.length > 0 && (
+              {showTryOn && product.images?.length > 0 && (
                 <Link
                   href={`/try-on?productId=${product.id}&productName=${encodeURIComponent(product.name)}&productImage=${encodeURIComponent(product.images[0]?.url ?? '')}`}
                   className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-orange-300 text-orange-600 text-sm font-semibold hover:bg-orange-50 active:scale-[0.98] transition-all"

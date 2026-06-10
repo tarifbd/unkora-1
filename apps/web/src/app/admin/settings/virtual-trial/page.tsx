@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Shirt, CheckCircle2, Eye, EyeOff, ArrowLeft, Info } from 'lucide-react';
+import { Shirt, CheckCircle2, Eye, EyeOff, ArrowLeft, Info, Layers } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
+
+interface CategoryOption { id: string; name: string; }
 
 export default function VirtualTrialSettingsPage() {
   const [enabled, setEnabled] = useState(false);
@@ -13,19 +15,28 @@ export default function VirtualTrialSettingsPage() {
   const [showKey, setShowKey] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [selectedCats, setSelectedCats] = useState<string[]>([]);
 
   useEffect(() => {
-    api
-      .get('/virtual-tryon/admin/settings')
-      .then(r => {
-        const s = r.data.data as Record<string, string>;
+    Promise.all([
+      api.get('/virtual-tryon/admin/settings'),
+      api.get('/categories/all?includeInactive=true'),
+    ])
+      .then(([settingsRes, catsRes]) => {
+        const s = settingsRes.data.data as Record<string, string>;
         setEnabled(s['virtual-tryon.enabled'] === 'true');
         setRequireLogin(s['virtual-tryon.requireLogin'] === 'true');
         setAiServiceUrl(s['virtual-tryon.aiServiceUrl'] ?? '');
+        setSelectedCats((s['virtual-tryon.categoryIds'] ?? '').split(',').filter(Boolean));
+        setCategories((catsRes.data.data as CategoryOption[]) ?? []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  const toggleCategory = (id: string) =>
+    setSelectedCats(prev => (prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]));
 
   const handleSave = async () => {
     try {
@@ -33,6 +44,7 @@ export default function VirtualTrialSettingsPage() {
         'virtual-tryon.enabled': enabled ? 'true' : 'false',
         'virtual-tryon.requireLogin': requireLogin ? 'true' : 'false',
         'virtual-tryon.aiServiceUrl': aiServiceUrl,
+        'virtual-tryon.categoryIds': selectedCats.join(','),
       };
       if (aiServiceKey) body['virtual-tryon.aiServiceKey'] = aiServiceKey;
       await api.post('/virtual-tryon/admin/settings', body);
@@ -123,6 +135,60 @@ export default function VirtualTrialSettingsPage() {
           </div>
           <Toggle value={requireLogin} onChange={() => setRequireLogin(!requireLogin)} />
         </div>
+      </div>
+
+      {/* Categories */}
+      <div className="rounded-2xl border bg-card p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Layers className="h-4 w-4 text-muted-foreground" />
+          <h2 className="font-semibold">Allowed Categories</h2>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Select which categories show the "Try On" button. Leave all unchecked to show it on every
+          category.
+        </p>
+        {categories.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No categories found.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {categories.map(cat => {
+              const checked = selectedCats.includes(cat.id);
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => toggleCategory(cat.id)}
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+                    checked
+                      ? 'border-primary bg-primary/5 text-foreground'
+                      : 'border-border text-muted-foreground hover:bg-accent'
+                  }`}
+                >
+                  <span
+                    className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border ${
+                      checked ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40'
+                    }`}
+                  >
+                    {checked && <CheckCircle2 className="h-3 w-3" />}
+                  </span>
+                  <span className="truncate">{cat.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+        {selectedCats.length > 0 && (
+          <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+            <span>{selectedCats.length} categor{selectedCats.length === 1 ? 'y' : 'ies'} selected</span>
+            <button
+              type="button"
+              onClick={() => setSelectedCats([])}
+              className="font-medium text-primary hover:underline"
+            >
+              Clear all (show everywhere)
+            </button>
+          </div>
+        )}
       </div>
 
       {/* AI Service */}

@@ -13,6 +13,12 @@ import { VirtualTryOnService } from './virtual-tryon.service';
 export class VirtualTryOnController {
   constructor(private readonly svc: VirtualTryOnService) {}
 
+  @Get('config')
+  @ApiOperation({ summary: 'Get public virtual try-on config (enabled, allowed categories)' })
+  getPublicConfig() {
+    return this.svc.getPublicConfig();
+  }
+
   @Post('sessions')
   @ApiOperation({ summary: 'Create a virtual try-on session' })
   createSession(
