@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Eye, EyeOff, Loader2, Store, ArrowRight, BookOpen } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi } from '@/lib/api/auth';
 import { useAuthStore } from '@/store/auth.store';
 import { saveUserRole } from '@/lib/api';
@@ -19,17 +19,19 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-export default function SellerLoginPage() {
+function SellerLoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const qc = useQueryClient();
   const { setUser, isAuthenticated } = useAuthStore();
 
-  // Already logged in → go to seller dashboard
+  // Already logged in → honour redirect or go to seller dashboard
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/seller/dashboard');
+      router.replace(redirectTo && redirectTo.startsWith('/') ? redirectTo : '/seller/dashboard');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, redirectTo]);
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -50,6 +52,8 @@ export default function SellerLoginPage() {
 
       if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
         router.push('/admin');
+      } else if (redirectTo && redirectTo.startsWith('/')) {
+        router.push(redirectTo);
       } else {
         router.push('/seller/dashboard');
       }
@@ -61,11 +65,7 @@ export default function SellerLoginPage() {
   };
 
   if (isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
   const t = {
@@ -213,5 +213,13 @@ export default function SellerLoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SellerLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+      <SellerLoginContent />
+    </Suspense>
   );
 }

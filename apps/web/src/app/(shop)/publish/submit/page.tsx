@@ -67,17 +67,29 @@ function SubmitBookContent() {
     setForm(f => ({ ...f, bookType: defaultType }));
   }, [defaultType]);
 
+  const currentUrl = `/publish/submit${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h2 className="text-2xl font-black text-gray-900 mb-3">সাইন ইন করুন</h2>
-          <p className="text-gray-500 mb-6">বই জমা দিতে আপনাকে সাইন ইন করতে হবে।</p>
-          <Link href="/login?redirect=/publish/submit"
-            className="bg-primary text-white font-bold py-3 px-8 rounded-xl inline-block hover:bg-primary/90 transition-colors">
-            সাইন ইন করুন
-          </Link>
+          <h2 className="text-2xl font-black text-gray-900 mb-3">সেলার লগইন করুন</h2>
+          <p className="text-gray-500 mb-6">বই জমা দিতে আপনার সেলার অ্যাকাউন্টে লগইন করুন।</p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href={`/seller/login?redirect=${encodeURIComponent(currentUrl)}`}
+              className="bg-primary text-white font-bold py-3 px-8 rounded-xl inline-block hover:bg-primary/90 transition-colors"
+            >
+              সেলার লগইন
+            </Link>
+            <Link
+              href={`/seller/register?redirect=${encodeURIComponent(currentUrl)}`}
+              className="border-2 border-primary text-primary font-bold py-3 px-8 rounded-xl inline-block hover:bg-primary/5 transition-colors"
+            >
+              নতুন সেলার নিবন্ধন
+            </Link>
+          </div>
         </div>
       </div>
     );

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, BookOpen, ShoppingBag, TrendingUp,
   Wallet, Settings, Store, ChevronRight, Plus, ArrowLeft,
@@ -25,21 +25,28 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   const { isAuthenticated, user } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+  const [hydrated, setHydrated] = useState(false);
 
   const isPublicPath = PUBLIC_PATHS.some(p => pathname.startsWith(p));
 
   useEffect(() => {
-    if (!isPublicPath && !isAuthenticated) {
-      router.push('/login?redirect=' + pathname);
+    const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
+    if (useAuthStore.persist.hasHydrated()) setHydrated(true);
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (!isPublicPath && hydrated && !isAuthenticated) {
+      router.push('/seller/login?redirect=' + encodeURIComponent(pathname));
     }
-  }, [isPublicPath, isAuthenticated, router, pathname]);
+  }, [isPublicPath, hydrated, isAuthenticated, router, pathname]);
 
   // Login / Register pages — render without seller panel chrome
   if (isPublicPath) {
     return <>{children}</>;
   }
 
-  if (!isAuthenticated) {
+  if (!hydrated || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center space-y-4">

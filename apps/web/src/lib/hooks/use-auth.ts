@@ -35,10 +35,13 @@ export function useAuth() {
       const params = new URLSearchParams(window.location.search);
       const redirectTo = params.get('redirect');
 
-      if (u.role === 'SELLER') {
+      // Respect explicit redirect param for all roles; sellers fall back to dashboard
+      if (redirectTo && redirectTo.startsWith('/')) {
+        router.push(redirectTo);
+      } else if (u.role === 'SELLER') {
         router.push('/seller/dashboard');
       } else {
-        router.push(redirectTo && redirectTo.startsWith('/') ? redirectTo : '/');
+        router.push('/');
       }
     },
     onError: (err) => toast.error(apiErrMsg(err, 'ইমেইল বা পাসওয়ার্ড সঠিক নয়')),
