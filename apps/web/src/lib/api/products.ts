@@ -34,6 +34,11 @@ export const productsApi = {
   getBySlug: (slug: string) =>
     api.get(`/products/${slug}`).then(r => r.data.data as Product),
 
+  getByIds: (ids: string[]) =>
+    ids.length === 0
+      ? Promise.resolve([] as Product[])
+      : api.get('/products/by-ids', { params: { ids: ids.join(',') } }).then(r => r.data.data as Product[]),
+
   getFeatured: (limit = 8) =>
     api.get('/products/featured', { params: { limit } }).then(r => r.data.data as Product[]),
 

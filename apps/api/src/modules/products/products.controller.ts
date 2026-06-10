@@ -71,6 +71,13 @@ export class ProductsController {
     return this.csvImportService.importProducts(dto.csvContent, { dryRun: dto.dryRun, updateExisting: dto.updateExisting });
   }
 
+  @Get('by-ids')
+  @ApiOperation({ summary: 'Get multiple products by IDs (comma-separated ?ids=). Used by guest wishlist.' })
+  findByIds(@Query('ids') ids?: string) {
+    const list = (ids ?? '').split(',').map(s => s.trim()).filter(Boolean);
+    return this.productsService.findByIds(list);
+  }
+
   @Get('admin/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'SUPER_ADMIN')

@@ -5,6 +5,7 @@ import { Heart, Loader2, Trash2, ShoppingCart, LogIn } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { wishlistApi } from '@/lib/api/wishlist';
+import { productsApi, type Product } from '@/lib/api/products';
 import { formatCurrency } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
 import { useGuestWishlist } from '@/store/guest-wishlist.store';
@@ -31,10 +32,18 @@ export default function WishlistPage() {
   const { addItem } = useCart();
   const { lang } = useLanguage();
 
-  const { data: items, isLoading } = useQuery({
+  // Authenticated users: server wishlist
+  const { data: serverItems, isLoading: serverLoading } = useQuery({
     queryKey: ['wishlist'],
     queryFn: () => wishlistApi.getAll(),
     enabled: isAuthenticated,
+  });
+
+  // Guests: fetch the products they saved locally
+  const { data: guestProducts, isLoading: guestLoading } = useQuery({
+    queryKey: ['guest-wishlist-products', guestWishlist.productIds],
+    queryFn: () => productsApi.getByIds(guestWishlist.productIds),
+    enabled: !isAuthenticated && guestWishlist.productIds.length > 0,
   });
 
   const removeMutation = useMutation({
@@ -47,98 +56,116 @@ export default function WishlistPage() {
 
   const title = lang === 'en' ? 'My Wishlist' : 'আমার উইশলিস্ট';
 
-  if (!isAuthenticated) {
-    return (
-      <div>
-        <h1 className="mb-6 font-serif text-2xl font-bold">{title}</h1>
+  // Normalise both sources to a common product list
+  const products: Product[] = isAuthenticated
+    ? (serverItems?.map(i => i.product) ?? [])
+    : (guestProducts ?? []);
+
+  const isLoading = isAuthenticated ? serverLoading : guestLoading;
+
+  const removeItem = (productId: string) => {
+    if (isAuthenticated) {
+      removeMutation.mutate(productId);
+    } else {
+      guestWishlist.toggle(productId);
+      void qc.invalidateQueries({ queryKey: ['guest-wishlist-products'] });
+    }
+  };
+
+  // Empty state — for guests with nothing saved we also nudge them to sign in
+  const isEmpty = !isLoading && products.length === 0;
+
+  return (
+    <div>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <h1 className="font-serif text-2xl font-bold">{title}</h1>
+        {!isAuthenticated && products.length > 0 && (
+          <Link
+            href="/auth/login"
+            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-xs font-bold hover:bg-accent transition-colors"
+          >
+            <LogIn className="h-3.5 w-3.5" />
+            {lang === 'en' ? 'Sign in to sync' : 'সিঙ্ক করতে সাইন ইন'}
+          </Link>
+        )}
+      </div>
+
+      {/* Guest banner — items still show, this is just a hint */}
+      {!isAuthenticated && products.length > 0 && (
+        <div className="mb-4 rounded-xl border border-orange-200 bg-orange-50 px-4 py-2.5 text-xs text-orange-700">
+          {lang === 'en'
+            ? 'These items are saved on this device. Sign in to keep them on your account and access from anywhere.'
+            : 'এই পণ্যগুলো এই ডিভাইসে সেভ করা আছে। অ্যাকাউন্টে রাখতে এবং যেকোনো জায়গা থেকে দেখতে সাইন ইন করুন।'}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => <WishlistSkeleton key={i} />)}
+        </div>
+      ) : isEmpty ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center gap-4">
           <Heart className="h-14 w-14 text-red-300" />
           <div>
             <h2 className="font-bold text-lg mb-1">
-              {lang === 'en' ? 'Sign in to see your wishlist' : 'উইশলিস্ট দেখতে সাইন ইন করুন'}
+              {lang === 'en' ? 'Your wishlist is empty' : 'উইশলিস্ট খালি'}
             </h2>
-            <p className="text-sm text-muted-foreground mb-1">
+            <p className="text-sm text-muted-foreground">
               {lang === 'en'
-                ? 'Save items you love and access them from any device.'
-                : 'পছন্দের পণ্য সেভ করুন এবং যেকোনো ডিভাইস থেকে দেখুন।'}
+                ? 'Tap the heart icon on any product to save it here.'
+                : 'যেকোনো পণ্যের হার্ট আইকনে ক্লিক করে এখানে সেভ করুন।'}
             </p>
-            {guestWishlist.productIds.length > 0 && (
-              <p className="text-xs text-orange-600 font-medium">
+            {!isAuthenticated && (
+              <p className="mt-2 text-xs text-muted-foreground">
                 {lang === 'en'
-                  ? `You have ${guestWishlist.productIds.length} item(s) saved locally — sign in to sync them.`
-                  : `আপনার ${guestWishlist.productIds.length}টি পণ্য লোকালি সেভ করা আছে — সিঙ্ক করতে সাইন ইন করুন।`}
+                  ? 'Sign in to sync your wishlist across devices.'
+                  : 'ডিভাইস জুড়ে উইশলিস্ট সিঙ্ক করতে সাইন ইন করুন।'}
               </p>
             )}
           </div>
           <div className="flex gap-3">
             <Link
-              href="/auth/login"
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-slate-700 to-slate-900 px-6 py-2.5 text-sm font-bold text-white shadow-lg hover:from-slate-600 hover:to-slate-800 transition-all"
-            >
-              <LogIn className="h-4 w-4" />
-              {lang === 'en' ? 'Sign In' : 'সাইন ইন'}
-            </Link>
-            <Link
               href="/products"
-              className="inline-flex items-center gap-2 rounded-xl border px-6 py-2.5 text-sm font-bold hover:bg-accent transition-colors"
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-b from-slate-700 to-slate-900 px-6 py-2.5 text-sm font-bold text-white shadow-lg hover:from-slate-600 hover:to-slate-800 transition-all"
             >
               {lang === 'en' ? 'Browse Products' : 'পণ্য দেখুন'}
             </Link>
+            {!isAuthenticated && (
+              <Link
+                href="/auth/login"
+                className="inline-flex items-center gap-2 rounded-xl border px-6 py-2.5 text-sm font-bold hover:bg-accent transition-colors"
+              >
+                <LogIn className="h-4 w-4" />
+                {lang === 'en' ? 'Sign In' : 'সাইন ইন'}
+              </Link>
+            )}
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <h1 className="mb-6 font-serif text-2xl font-bold">{title}</h1>
-
-      {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => <WishlistSkeleton key={i} />)}
-        </div>
-      ) : !items || items.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center">
-          <Heart className="mb-3 h-12 w-12 text-muted-foreground/30" />
-          <h2 className="mb-1 font-semibold">
-            {lang === 'en' ? 'Your wishlist is empty' : 'উইশলিস্ট খালি'}
-          </h2>
-          <p className="mb-4 text-sm text-muted-foreground">
-            {lang === 'en' ? 'Save items you love to your wishlist' : 'পছন্দের পণ্যে হার্ট আইকনে ক্লিক করুন'}
-          </p>
-          <Link
-            href="/products"
-            className="rounded-xl bg-gradient-to-b from-slate-700 to-slate-900 px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:from-slate-600 hover:to-slate-800 transition-all"
-          >
-            {lang === 'en' ? 'Browse Products' : 'পণ্য দেখুন'}
-          </Link>
         </div>
       ) : (
         <>
           <p className="mb-4 text-sm text-muted-foreground">
             {lang === 'en'
-              ? `${items.length} item${items.length !== 1 ? 's' : ''} saved`
-              : `${items.length}টি পণ্য সেভ করা আছে`}
+              ? `${products.length} item${products.length !== 1 ? 's' : ''} saved`
+              : `${products.length}টি পণ্য সেভ করা আছে`}
           </p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {items.map(item => {
-              const product = item.product;
+            {products.map(product => {
               const image = product.images?.[0]?.url;
               const price = product.salePrice ?? product.basePrice;
               const hasDiscount = product.salePrice && Number(product.salePrice) < Number(product.basePrice);
               const inStock = product.stockQuantity > 0;
+              const removing = isAuthenticated && removeMutation.isPending && removeMutation.variables === product.id;
 
               return (
-                <div key={item.id} className="group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md">
+                <div key={product.id} className="group relative flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md">
                   {/* Remove button */}
                   <button
-                    onClick={() => removeMutation.mutate(product.id)}
-                    disabled={removeMutation.isPending}
+                    onClick={() => removeItem(product.id)}
+                    disabled={removing}
                     className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-background/80 shadow backdrop-blur-sm hover:bg-destructive hover:text-white transition-colors disabled:opacity-50"
                     title={lang === 'en' ? 'Remove from wishlist' : 'উইশলিস্ট থেকে সরান'}
                   >
-                    {removeMutation.isPending ? (
+                    {removing ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     ) : (
                       <Trash2 className="h-3.5 w-3.5" />

@@ -181,6 +181,21 @@ export class ProductsService {
     return products;
   }
 
+  async findByIds(ids: string[]) {
+    if (!ids.length) return [];
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: ids }, isActive: true },
+      include: {
+        images: { where: { isPrimary: true }, take: 1 },
+        category: { select: { id: true, name: true, slug: true } },
+        bookDetail: { select: { author: true } },
+      },
+    });
+    // Preserve the order of the requested ids
+    const byId = new Map(products.map(p => [p.id, p]));
+    return ids.map(id => byId.get(id)).filter((p): p is NonNullable<typeof p> => Boolean(p));
+  }
+
   async create(dto: CreateProductDto) {
     const existing = await this.prisma.product.findUnique({ where: { slug: dto.slug } });
     if (existing) throw new ConflictException('Product slug already exists');
