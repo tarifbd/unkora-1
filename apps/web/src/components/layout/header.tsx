@@ -710,7 +710,7 @@ export function Header() {
       ? featured
       : [...apiCategories].sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99)).slice(0, 8);
     if (source.length === 0) return NAV_CATEGORIES;
-    const result = source.map(c => {
+    const mapped = source.map(c => {
       const meta = SLUG_TO_NAV[c.slug];
       return {
         nameKey: (meta?.nameKey ?? 'books') as NavCategory['nameKey'],
@@ -720,17 +720,32 @@ export function Header() {
         subnav: meta?.subnav ?? [],
       };
     });
-    // Always ensure books appears first in the nav strip
-    const booksIdx = result.findIndex(c => c.slug === 'books');
+
+    // Always ensure books appears first
+    const booksIdx = mapped.findIndex(c => c.slug === 'books');
+    let ordered: NavCategory[];
     if (booksIdx > 0) {
-      const booksCat = result[booksIdx]!;
-      return [booksCat, ...result.filter((_, i) => i !== booksIdx)];
+      const booksCat = mapped[booksIdx]!;
+      ordered = [booksCat, ...mapped.filter((_, i) => i !== booksIdx)];
+    } else if (booksIdx === -1) {
+      ordered = [NAV_CATEGORIES[0]!, ...mapped.slice(0, 7)];
+    } else {
+      ordered = mapped;
     }
-    if (booksIdx === -1) {
-      // Books not in API results — prepend static entry
-      return [NAV_CATEGORIES[0]!, ...result.slice(0, 7)];
+
+    // Always ensure Islamic Lifestyle appears
+    if (!ordered.some(c => c.slug === 'islamic-lifestyle')) {
+      const islamicStatic = NAV_CATEGORIES.find(c => c.slug === 'islamic-lifestyle')!;
+      const organicIdx = ordered.findIndex(c => c.slug === 'organic-foods');
+      const insertAt = organicIdx !== -1 ? organicIdx + 1 : Math.min(4, ordered.length);
+      ordered = [
+        ...ordered.slice(0, insertAt),
+        islamicStatic,
+        ...ordered.slice(insertAt),
+      ].slice(0, 8);
     }
-    return result;
+
+    return ordered;
   })();
 
 
