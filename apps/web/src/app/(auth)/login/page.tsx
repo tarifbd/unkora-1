@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Eye, EyeOff, Loader2, BookOpen, ArrowRight, Phone, Mail } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useForm } from 'react-hook-form';
@@ -37,14 +37,25 @@ function LoginContent() {
   const [sendingOtp, setSendingOtp] = useState(false);
   const [loggingIn, setLoggingIn] = useState(false);
 
-  const { setUser } = useAuthStore();
+  const { setUser, isAuthenticated } = useAuthStore();
+
+  // Already authenticated — redirect away from login page (client-side only, no middleware)
+  useEffect(() => {
+    if (isAuthenticated) {
+      const dest = redirectParam && redirectParam.startsWith('/') ? redirectParam : '/';
+      router.replace(dest);
+    }
+  }, [isAuthenticated, redirectParam, router]);
 
   const doRedirect = () => {
     const u = useAuthStore.getState().user;
-    if (u?.role === 'SELLER') {
+    const dest = redirectParam && redirectParam.startsWith('/') ? redirectParam : null;
+    if (dest) {
+      router.push(dest);
+    } else if (u?.role === 'SELLER') {
       router.push('/seller/dashboard');
     } else {
-      router.push(redirectParam && redirectParam.startsWith('/') ? redirectParam : '/');
+      router.push('/');
     }
   };
 

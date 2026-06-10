@@ -44,10 +44,10 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // Redirect authenticated users away from login/register
-  if (isAuthRoute && accessToken) {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
+  // NOTE: We deliberately do NOT redirect authenticated users away from /login or /register
+  // in middleware. The access_token cookie may be stale/expired while the refresh_token is
+  // still valid — blocking /login based on cookie presence prevents those users from
+  // re-authenticating. The login/register pages handle their own client-side redirects.
 
   // Security headers on all responses
   const response = NextResponse.next();
