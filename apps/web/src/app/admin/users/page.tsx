@@ -59,7 +59,8 @@ interface Order {
 
 interface UserDetail {
   id: string;
-  name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   phone?: string;
   role: string;
@@ -69,6 +70,15 @@ interface UserDetail {
   addresses?: Address[];
   orders?: Order[];
   totalSpent?: number;
+}
+
+function userDisplayName(u: Pick<UserDetail, 'firstName' | 'lastName' | 'email'>): string {
+  const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
+  return name || u.email;
+}
+
+function userInitials(u: Pick<UserDetail, 'firstName' | 'lastName' | 'email'>): string {
+  return userDisplayName(u).split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('');
 }
 
 type RiskLevel = 'low' | 'medium' | 'high';
@@ -407,7 +417,7 @@ function CustomerModal({ user, onClose }: { user: UserDetail; onClose: () => voi
 
   const u = fullUser ?? user;
   const risk = getRiskLevel(u);
-  const initials = u.name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('');
+  const initials = userInitials(u);
   const colorClass = avatarColor(u.id);
 
   const changeRole = useMutation({
@@ -467,7 +477,7 @@ function CustomerModal({ user, onClose }: { user: UserDetail; onClose: () => voi
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-bold text-gray-900 text-lg leading-tight">{u.name}</h3>
+                      <h3 className="font-bold text-gray-900 text-lg leading-tight">{userDisplayName(u)}</h3>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${ROLE_BADGE[u.role] ?? 'bg-gray-100'}`}>
                           {u.role === 'SUPER_ADMIN' ? 'Super Admin' : u.role === 'ADMIN' ? 'Admin' : 'Customer'}
@@ -664,7 +674,7 @@ function CustomerModal({ user, onClose }: { user: UserDetail; onClose: () => voi
 function UserRow({ user, onOpen }: { user: UserDetail; onOpen: () => void }) {
   const qc = useQueryClient();
   const risk = getRiskLevel(user);
-  const initials = user.name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('');
+  const initials = userInitials(user);
   const colorClass = avatarColor(user.id);
   const primaryAddress = user.addresses?.find(a => a.isDefault) ?? user.addresses?.[0];
 
@@ -690,7 +700,7 @@ function UserRow({ user, onOpen }: { user: UserDetail; onOpen: () => void }) {
             {initials}
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-sm text-gray-900 truncate">{user.name}</p>
+            <p className="font-semibold text-sm text-gray-900 truncate">{userDisplayName(user)}</p>
             <p className="text-xs text-gray-400 truncate">{user.email}</p>
           </div>
         </div>
@@ -740,7 +750,7 @@ function UserRow({ user, onOpen }: { user: UserDetail; onOpen: () => void }) {
           </button>
           <button
             onClick={() => {
-              if (window.confirm(`Delete user "${user.name}"? This will suspend their account.`)) {
+              if (window.confirm(`Delete user "${userDisplayName(user)}"? This will suspend their account.`)) {
                 deleteMutation.mutate();
               }
             }}

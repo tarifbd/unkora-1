@@ -97,8 +97,9 @@ export default function PreorderConfigsPage() {
     queryFn: () => preordersApi.listConfigs({ status: statusFilter || undefined, page }),
   });
 
-  const configs = data?.data ?? [];
-  const total = data?.total ?? 0;
+  const preorderPayload = (data as any)?.data ?? {};
+  const configs = preorderPayload?.data ?? [];
+  const total = preorderPayload?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
 
   return (

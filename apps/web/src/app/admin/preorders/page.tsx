@@ -62,8 +62,15 @@ export default function PreordersDashboard() {
     );
   }
 
-  const { stats, recentOrders = [] } = data;
-  if (!stats) return null;
+  const inner = (data as any)?.data ?? data ?? {};
+  const stats = inner?.stats as typeof data.stats | undefined;
+  const recentOrders: PreorderOrder[] = inner?.recentOrders ?? [];
+  if (!stats) return (
+    <div className="p-6 flex items-center gap-3 rounded-xl bg-red-50 border border-red-200 text-red-600 max-w-md mx-auto mt-8">
+      <AlertCircle className="h-5 w-5 flex-shrink-0" />
+      <p className="text-sm font-semibold">Failed to load dashboard statistics</p>
+    </div>
+  );
 
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">

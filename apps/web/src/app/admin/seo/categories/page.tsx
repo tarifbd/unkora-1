@@ -43,9 +43,17 @@ export default function CategorySeoPage() {
     onError: () => toast.error('Audit failed'),
   });
 
-  const raw = data as { data?: CategorySeoRow[]; meta?: { totalPages?: number } } | undefined;
-  const categories: CategorySeoRow[] = raw?.data ?? (Array.isArray(data) ? data as CategorySeoRow[] : []);
-  const totalPages = raw?.meta?.totalPages ?? 1;
+  const seoPayload = (data as any)?.data ?? {};
+  const categories: CategorySeoRow[] = (seoPayload?.data ?? []).map((c: any) => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    seoTitle: c.seoMetadata?.seoTitle ?? c.seoTitle ?? null,
+    metaDescription: c.seoMetadata?.metaDescription ?? c.metaDescription ?? null,
+    focusKeyword: c.seoMetadata?.focusKeyword ?? c.focusKeyword ?? null,
+    seoScore: c.seoMetadata?.seoScore ?? c.seoScore ?? null,
+  }));
+  const totalPages = seoPayload?.meta?.totalPages ?? 1;
 
   const startEdit = (c: CategorySeoRow) => {
     setEditingId(c.id);
