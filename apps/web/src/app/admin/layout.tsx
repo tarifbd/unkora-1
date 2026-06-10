@@ -16,11 +16,11 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 /* ─── Nav tree structure ─────────────────────────────────────── */
-type NavLeaf = { href: string; label: string; icon: React.ElementType; exact?: boolean };
+type NavLeaf = { href: string; label: string; icon: React.ElementType; exact?: boolean; keywords?: string[] };
 type NavParent = { label: string; icon: React.ElementType; children: NavLeaf[] };
 type NavDivider = { type: 'divider'; label: string };
 type NavItem = NavLeaf | NavParent | NavDivider;
@@ -33,161 +33,220 @@ function isDivider(item: NavItem): item is NavDivider {
 }
 
 const NAV: NavItem[] = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { type: 'divider', label: 'STORE' },
+  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true, keywords: ['home', 'overview', 'summary', 'kpi'] },
+
+  /* ───── CATALOGUE ───── */
+  { type: 'divider', label: 'CATALOGUE' },
   {
-    label: 'Catalogue & Stock', icon: Package,
+    label: 'Categories', icon: Tag,
     children: [
-      { href: '/admin/categories',                    label: 'Categories',       icon: Tag },
-      { href: '/admin/categories/mega-menu',          label: 'Mega Menu',        icon: LayoutList },
-      { href: '/admin/products',                      label: 'All Products',     icon: Package },
-      { href: '/admin/products/new',                  label: 'Add New Product',  icon: Plus },
-      { href: '/admin/inventory',                     label: 'Inventory',        icon: Archive },
-      { href: '/admin/inventory/stocks',              label: 'Stock Levels',     icon: Archive },
-      { href: '/admin/inventory/suppliers',           label: 'Suppliers',        icon: Store },
-      { href: '/admin/inventory/warehouses',          label: 'Warehouses',       icon: Layers },
-      { href: '/admin/inventory/purchase-orders',     label: 'Purchase Orders',  icon: ClipboardList },
-      { href: '/admin/inventory/movements',           label: 'Stock Movements',  icon: RefreshCw },
-      { href: '/admin/inventory/adjustments',         label: 'Adjustments',      icon: Sliders },
-      { href: '/admin/inventory/alerts',              label: 'Low Stock Alerts', icon: ShieldAlert },
-      { href: '/admin/products/setup',                label: 'Product Setup',    icon: Sliders },
-      { href: '/admin/auctions',                      label: 'Auctions',         icon: Gavel },
+      { href: '/admin/categories',           label: 'All Categories', icon: Tag,        keywords: ['category', 'taxonomy', 'tree', 'department'] },
+      { href: '/admin/categories/mega-menu', label: 'Mega Menu',      icon: LayoutList, keywords: ['navigation', 'menu', 'header', 'dropdown'] },
+      { href: '/admin/seo/categories',       label: 'Category SEO',   icon: Layers,     keywords: ['meta', 'seo', 'optimization'] },
     ],
   },
   {
-    label: 'Commerce', icon: ShoppingBag,
+    label: 'Catalogue', icon: Package,
     children: [
-      { href: '/admin/orders',                        label: 'Orders',              icon: ShoppingBag },
-      { href: '/admin/shipments',                     label: 'Shipments',           icon: Truck },
-      { href: '/admin/coupons',                       label: 'Coupons',             icon: Ticket },
-      { href: '/admin/promotions',                    label: 'Promotions',          icon: Zap },
-      { href: '/admin/flash-deals',                   label: 'Flash Deals',         icon: Zap },
-      { href: '/admin/deal-of-the-day',              label: 'Deal of the Day',     icon: Sun },
-      { href: '/admin/refunds',                       label: 'Refunds',             icon: RotateCcw },
-      { href: '/admin/wholesale',                     label: 'Wholesale',           icon: Layers },
-      { href: '/admin/gift-cards',                    label: 'Gift Cards',          icon: CreditCard },
-      { href: '/admin/fraud',                         label: 'Fraud Detection',     icon: ShieldAlert },
-      { href: '/admin/preorders',                     label: 'Preorders',           icon: ClipboardList },
-      { href: '/admin/preorders/configurations',      label: 'Preorder Config',     icon: Sliders },
-      { href: '/admin/preorders/orders',              label: 'Preorder Orders',     icon: ShoppingBag },
-      { href: '/admin/pos',                           label: 'POS Terminal',        icon: Monitor },
-      { href: '/admin/sellers',                       label: 'Sellers',             icon: Store },
-      { href: '/admin/courier',                       label: 'Courier',             icon: Truck },
-      { href: '/admin/courier/setup',                 label: 'Courier Setup',       icon: Settings },
-      { href: '/admin/cod-reconciliation',            label: 'COD Reconciliation',  icon: DollarSign },
-      { href: '/admin/returns',                       label: 'Returns',             icon: RefreshCw },
-      { href: '/admin/delivery-boys',                 label: 'Delivery Boys',       icon: Bike },
-      { href: '/admin/pickup-points',                 label: 'Pickup Points',       icon: MapPin },
-      { href: '/admin/shipping-zones',                label: 'Shipping Zones',      icon: Map },
-      { href: '/admin/shiprocket',                    label: 'Shiprocket',          icon: Rocket },
+      { href: '/admin/products',                 label: 'All Products',    icon: Package,  keywords: ['catalog', 'item', 'sku', 'goods', 'merchandise'] },
+      { href: '/admin/products/new',             label: 'Add New Product', icon: Plus,     keywords: ['create', 'add', 'new'] },
+      { href: '/admin/products/setup',           label: 'Product Setup',   icon: Sliders,  keywords: ['config', 'configuration'] },
+      { href: '/admin/products/setup/brands',    label: 'Brands',          icon: Store,    keywords: ['manufacturer', 'maker'] },
+      { href: '/admin/products/setup/colors',    label: 'Colors',          icon: Palette,  keywords: ['variant', 'swatch'] },
+      { href: '/admin/products/setup/attributes',label: 'Attributes',      icon: Sliders,  keywords: ['variant', 'option', 'spec'] },
+      { href: '/admin/products/setup/size-guides',label: 'Size Guides',    icon: LayoutList,keywords: ['sizing', 'measurement'] },
+      { href: '/admin/products/setup/warranties',label: 'Warranties',      icon: ShieldAlert,keywords: ['guarantee'] },
+      { href: '/admin/products/setup/labels',    label: 'Product Labels',  icon: Tag,      keywords: ['badge', 'tag'] },
+      { href: '/admin/seo/products',             label: 'Product SEO',     icon: Search,   keywords: ['meta', 'optimization'] },
+      { href: '/admin/auctions',                 label: 'Auctions',        icon: Gavel,    keywords: ['bid', 'bidding'] },
+      { href: '/admin/wholesale',                label: 'Wholesale',       icon: Layers,   keywords: ['bulk', 'b2b', 'tier', 'pricing'] },
     ],
   },
+  {
+    label: 'Inventory & Stock', icon: Archive,
+    children: [
+      { href: '/admin/inventory',                 label: 'Inventory Overview', icon: Archive,       keywords: ['stock', 'warehouse'] },
+      { href: '/admin/inventory/stocks',          label: 'Stock Levels',       icon: Archive,       keywords: ['quantity', 'on hand'] },
+      { href: '/admin/inventory/suppliers',       label: 'Suppliers',          icon: Store,         keywords: ['vendor', 'procurement', 'source'] },
+      { href: '/admin/inventory/warehouses',      label: 'Warehouses',         icon: Layers,        keywords: ['location', 'storage'] },
+      { href: '/admin/inventory/purchase-orders', label: 'Purchase Orders',    icon: ClipboardList, keywords: ['po', 'procurement', 'restock', 'buy'] },
+      { href: '/admin/inventory/movements',       label: 'Stock Movements',    icon: RefreshCw,     keywords: ['transfer', 'log'] },
+      { href: '/admin/inventory/adjustments',     label: 'Adjustments',        icon: Sliders,       keywords: ['correction', 'count'] },
+      { href: '/admin/inventory/alerts',          label: 'Low Stock Alerts',   icon: ShieldAlert,   keywords: ['reorder', 'threshold'] },
+    ],
+  },
+
+  /* ───── SALES ───── */
+  { type: 'divider', label: 'SALES' },
+  {
+    label: 'Orders', icon: ShoppingBag,
+    children: [
+      { href: '/admin/orders',                   label: 'All Orders',          icon: ShoppingBag,   keywords: ['sales', 'purchase', 'invoice', 'transaction'] },
+      { href: '/admin/returns',                  label: 'Returns & Exchanges', icon: RefreshCw,     keywords: ['rma', 'exchange'] },
+      { href: '/admin/refunds',                  label: 'Refunds',             icon: RotateCcw,     keywords: ['money back', 'reverse'] },
+      { href: '/admin/cod-reconciliation',       label: 'COD Reconciliation',  icon: DollarSign,    keywords: ['cash on delivery', 'collection'] },
+      { href: '/admin/preorders',                label: 'Preorders',           icon: ClipboardList, keywords: ['advance', 'reserve'] },
+      { href: '/admin/preorders/configurations', label: 'Preorder Config',     icon: Sliders,       keywords: ['setup'] },
+      { href: '/admin/preorders/orders',         label: 'Preorder Orders',     icon: ShoppingBag },
+    ],
+  },
+  {
+    label: 'Shipping & Delivery', icon: Truck,
+    children: [
+      { href: '/admin/shipments',      label: 'Shipments',      icon: Truck,    keywords: ['fulfillment', 'tracking', 'dispatch'] },
+      { href: '/admin/courier',        label: 'Courier',        icon: Truck,    keywords: ['logistics', 'carrier'] },
+      { href: '/admin/courier/setup',  label: 'Courier Setup',  icon: Settings, keywords: ['config', 'integration'] },
+      { href: '/admin/shipping-zones', label: 'Shipping Zones', icon: Map,      keywords: ['region', 'rate', 'area'] },
+      { href: '/admin/pickup-points',  label: 'Pickup Points',  icon: MapPin,   keywords: ['collection', 'location'] },
+      { href: '/admin/delivery-boys',  label: 'Delivery Boys',  icon: Bike,     keywords: ['rider', 'agent', 'driver'] },
+      { href: '/admin/shiprocket',     label: 'Shiprocket',     icon: Rocket,   keywords: ['integration', 'logistics'] },
+    ],
+  },
+  {
+    label: 'POS & Sellers', icon: Monitor,
+    children: [
+      { href: '/admin/pos',        label: 'POS Terminal', icon: Monitor,    keywords: ['point of sale', 'cashier', 'retail', 'register'] },
+      { href: '/admin/sellers',    label: 'Sellers',      icon: Store,      keywords: ['vendor', 'marketplace', 'merchant'] },
+      { href: '/admin/gift-cards', label: 'Gift Cards',   icon: CreditCard, keywords: ['voucher', 'prepaid'] },
+    ],
+  },
+  {
+    label: 'Promotions', icon: Zap,
+    children: [
+      { href: '/admin/flash-deals',     label: 'Flash Deals',     icon: Zap,    keywords: ['discount', 'offer', 'sale', 'limited'] },
+      { href: '/admin/deal-of-the-day', label: 'Deal of the Day', icon: Sun,    keywords: ['daily', 'offer', 'discount'] },
+      { href: '/admin/coupons',         label: 'Coupons',         icon: Ticket, keywords: ['voucher', 'promo code', 'discount'] },
+      { href: '/admin/promotions',      label: 'Promotions',      icon: Zap,    keywords: ['campaign', 'discount', 'offer'] },
+    ],
+  },
+
+  /* ───── CUSTOMERS ───── */
   { type: 'divider', label: 'CUSTOMERS' },
   {
     label: 'Customers', icon: Users,
     children: [
-      { href: '/admin/users',             label: 'Users',              icon: Users },
-      { href: '/admin/reviews',           label: 'Reviews',            icon: MessageSquare },
-      { href: '/admin/support',           label: 'Support Tickets',    icon: LifeBuoy },
-      { href: '/admin/loyalty',           label: 'Club Points',        icon: Star },
-      { href: '/admin/referrals',         label: 'Referrals',          icon: Share2 },
-      { href: '/admin/book-submissions',  label: 'Book Submissions',   icon: BookMarked },
-      { href: '/admin/classifieds',       label: 'Classifieds',        icon: LayoutList },
+      { href: '/admin/users',            label: 'All Customers',    icon: Users,         keywords: ['user', 'buyer', 'account', 'member'] },
+      { href: '/admin/segments',         label: 'Segments',         icon: Users2,        keywords: ['group', 'cohort', 'audience'] },
+      { href: '/admin/reviews',          label: 'Reviews',          icon: MessageSquare, keywords: ['rating', 'feedback', 'comment'] },
+      { href: '/admin/support',          label: 'Support Tickets',  icon: LifeBuoy,      keywords: ['help', 'desk', 'complaint'] },
+      { href: '/admin/loyalty',          label: 'Club Points',      icon: Star,          keywords: ['loyalty', 'rewards', 'points'] },
+      { href: '/admin/referrals',        label: 'Referrals',        icon: Share2,        keywords: ['invite', 'refer'] },
+      { href: '/admin/book-submissions', label: 'Book Submissions', icon: BookMarked,    keywords: ['author', 'manuscript'] },
+      { href: '/admin/classifieds',      label: 'Classifieds',      icon: LayoutList,    keywords: ['listing', 'ads'] },
+      { href: '/admin/fraud',            label: 'Fraud Detection',  icon: ShieldAlert,   keywords: ['risk', 'security', 'suspicious'] },
     ],
   },
-  { type: 'divider', label: 'CONTENT' },
-  {
-    label: 'Content', icon: FileText,
-    children: [
-      { href: '/admin/cms',          label: 'Static Pages',      icon: FileCode2 },
-      { href: '/admin/cms/banners',  label: 'Banners & Sliders', icon: ImageIcon },
-      { href: '/admin/blog',         label: 'Blog',              icon: FileText },
-      { href: '/admin/blog/new',     label: 'New Post',          icon: Plus },
-    ],
-  },
+
+  /* ───── MARKETING ───── */
   { type: 'divider', label: 'MARKETING' },
   {
-    label: 'Marketing', icon: TrendingUp,
+    label: 'Marketing', icon: Megaphone,
     children: [
-      { href: '/admin/analytics',                        label: 'Analytics Hub',      icon: TrendingUp },
-      { href: '/admin/analytics/meta-pixel',             label: 'Meta Pixel',         icon: Target },
-      { href: '/admin/analytics/google-analytics',       label: 'Google Analytics',   icon: BarChart3 },
-      { href: '/admin/analytics/google-tag-manager',     label: 'Tag Manager',        icon: Tag },
-      { href: '/admin/analytics/google-search-console',  label: 'Search Console',     icon: Globe },
-      { href: '/admin/sms',                              label: 'SMS',                icon: MessageCircle },
-      { href: '/admin/notifications',                    label: 'Push Notifications', icon: BellIcon },
-      { href: '/admin/email-campaigns',                  label: 'Email Campaigns',    icon: Mail },
-      { href: '/admin/popups',                           label: 'Popups',             icon: Maximize2 },
-      { href: '/admin/smart-bar',                        label: 'Smart Bar',          icon: Megaphone },
+      { href: '/admin/email-campaigns', label: 'Email Campaigns',    icon: Mail,          keywords: ['newsletter', 'broadcast'] },
+      { href: '/admin/sms',             label: 'SMS',                icon: MessageCircle, keywords: ['text', 'message'] },
+      { href: '/admin/notifications',   label: 'Push Notifications', icon: BellIcon,      keywords: ['alert', 'web push'] },
+      { href: '/admin/popups',          label: 'Popups',             icon: Maximize2,     keywords: ['modal', 'banner'] },
+      { href: '/admin/smart-bar',       label: 'Smart Bar',          icon: Megaphone,     keywords: ['announcement', 'banner'] },
+      { href: '/admin/affiliates',      label: 'Affiliates',         icon: Share2,        keywords: ['partner', 'commission'] },
     ],
   },
+  {
+    label: 'Analytics', icon: TrendingUp,
+    children: [
+      { href: '/admin/analytics',                       label: 'Analytics Hub',    icon: TrendingUp, keywords: ['stats', 'metrics', 'insights'] },
+      { href: '/admin/analytics/meta-pixel',            label: 'Meta Pixel',       icon: Target,     keywords: ['facebook', 'capi', 'tracking'] },
+      { href: '/admin/analytics/google-analytics',      label: 'Google Analytics', icon: BarChart3,  keywords: ['ga4', 'tracking'] },
+      { href: '/admin/analytics/google-tag-manager',    label: 'Tag Manager',      icon: Tag,        keywords: ['gtm', 'tracking'] },
+      { href: '/admin/analytics/google-search-console', label: 'Search Console',   icon: Globe,      keywords: ['gsc', 'indexing'] },
+    ],
+  },
+
+  /* ───── CHANNELS ───── */
   { type: 'divider', label: 'CHANNELS' },
   {
     label: 'Sales Channels', icon: Share2,
     children: [
-      { href: '/admin/channels/facebook',    label: 'Facebook',        icon: Share2 },
-      { href: '/admin/channels/instagram',   label: 'Instagram',       icon: Star },
-      { href: '/admin/channels/google',      label: 'Google Shopping', icon: Globe },
-      { href: '/admin/channels/whatsapp',    label: 'WhatsApp',        icon: MessageCircle },
-      { href: '/admin/channels/live',        label: 'Live Commerce',   icon: Radio },
+      { href: '/admin/channels/facebook',  label: 'Facebook',        icon: Share2,        keywords: ['social', 'fb', 'shop'] },
+      { href: '/admin/channels/instagram', label: 'Instagram',       icon: Star,          keywords: ['social', 'ig', 'shop'] },
+      { href: '/admin/channels/google',    label: 'Google Shopping', icon: Globe,         keywords: ['merchant', 'feed'] },
+      { href: '/admin/channels/whatsapp',  label: 'WhatsApp',        icon: MessageCircle, keywords: ['social', 'chat'] },
+      { href: '/admin/channels/live',      label: 'Live Commerce',   icon: Radio,         keywords: ['stream', 'broadcast'] },
     ],
   },
-  { type: 'divider', label: 'VISIBILITY' },
+
+  /* ───── CONTENT ───── */
+  { type: 'divider', label: 'CONTENT' },
   {
-    label: 'Visibility', icon: Search,
+    label: 'Content', icon: FileText,
     children: [
-      { href: '/admin/seo',                      label: 'SEO Tools',        icon: Search },
-      { href: '/admin/seo/settings',             label: 'Global Settings',  icon: Settings },
-      { href: '/admin/seo/sitemap',              label: 'Sitemap',          icon: Globe },
-      { href: '/admin/seo/robots',               label: 'Robots.txt',       icon: FileText },
-      { href: '/admin/seo/redirects',            label: 'Redirects',        icon: RotateCcw },
-      { href: '/admin/seo/products',             label: 'Product SEO',      icon: Package },
-      { href: '/admin/seo/categories',           label: 'Category SEO',     icon: Layers },
-      { href: '/admin/seo/aeo',                  label: 'AEO',              icon: Bot },
-      { href: '/admin/seo/geo',                  label: 'GEO',              icon: Globe },
-      { href: '/admin/seo/aio',                  label: 'AI Overview (AIO)', icon: Bot },
-      { href: '/admin/seo/advanced-search',      label: 'Advanced Search',  icon: Search },
+      { href: '/admin/cms',         label: 'Static Pages',      icon: FileCode2, keywords: ['about', 'contact', 'privacy', 'terms', 'faq', 'page'] },
+      { href: '/admin/cms/banners', label: 'Banners & Sliders', icon: ImageIcon, keywords: ['hero', 'carousel', 'slideshow'] },
+      { href: '/admin/blog',        label: 'Blog',              icon: FileText,  keywords: ['article', 'post', 'news'] },
+      { href: '/admin/blog/new',    label: 'New Post',          icon: Plus,      keywords: ['write', 'article'] },
     ],
   },
+
+  /* ───── SEO & VISIBILITY ───── */
+  { type: 'divider', label: 'SEO & VISIBILITY' },
+  {
+    label: 'SEO Tools', icon: Search,
+    children: [
+      { href: '/admin/seo',                 label: 'SEO Overview',      icon: Search,    keywords: ['optimization', 'ranking'] },
+      { href: '/admin/seo/settings',        label: 'Global Settings',   icon: Settings,  keywords: ['meta', 'config'] },
+      { href: '/admin/seo/sitemap',         label: 'Sitemap',           icon: Globe,     keywords: ['xml', 'index'] },
+      { href: '/admin/seo/robots',          label: 'Robots.txt',        icon: FileText,  keywords: ['crawl', 'index'] },
+      { href: '/admin/seo/redirects',       label: 'Redirects',         icon: RotateCcw, keywords: ['301', 'url'] },
+      { href: '/admin/seo/products',        label: 'Product SEO',       icon: Package,   keywords: ['meta'] },
+      { href: '/admin/seo/categories',      label: 'Category SEO',      icon: Layers,    keywords: ['meta'] },
+      { href: '/admin/seo/aeo',             label: 'AEO',               icon: Bot,       keywords: ['answer engine', 'ai'] },
+      { href: '/admin/seo/geo',             label: 'GEO',               icon: Globe,     keywords: ['generative engine', 'ai'] },
+      { href: '/admin/seo/aio',             label: 'AI Overview (AIO)', icon: Bot,       keywords: ['ai overview', 'sge'] },
+      { href: '/admin/seo/advanced-search', label: 'Advanced Search',   icon: Search,    keywords: ['site search', 'index'] },
+    ],
+  },
+
+  /* ───── INTELLIGENCE ───── */
   { type: 'divider', label: 'INTELLIGENCE' },
   {
-    label: 'Intelligence', icon: Sparkles,
+    label: 'Reports & AI', icon: Sparkles,
     children: [
-      { href: '/admin/reports',              label: 'Reports',          icon: BarChart3 },
-      { href: '/admin/ai-studio',            label: 'AI Studio',        icon: Sparkles },
-      { href: '/admin/ai-studio/orchestrator', label: 'Orchestrator',   icon: Cpu },
-      { href: '/admin/ai-studio/agents',     label: 'Agents',           icon: Bot },
-      { href: '/admin/ai-studio/providers',  label: 'Providers',        icon: Zap },
-      { href: '/admin/ai-studio/library',    label: 'Prompt Library',   icon: Library },
-      { href: '/admin/ai-studio/logs',       label: 'AI Logs',          icon: ScrollText },
-      { href: '/admin/affiliates',           label: 'Affiliates',       icon: Share2 },
-      { href: '/admin/segments',             label: 'Segments',         icon: Users2 },
-      { href: '/admin/advanced-reports',     label: 'Advanced Reports', icon: PieChart },
+      { href: '/admin/reports',                label: 'Reports',          icon: BarChart3, keywords: ['report', 'sales report'] },
+      { href: '/admin/advanced-reports',       label: 'Advanced Reports', icon: PieChart,  keywords: ['analytics', 'export'] },
+      { href: '/admin/ai-studio',              label: 'AI Studio',        icon: Sparkles,  keywords: ['artificial intelligence', 'gpt'] },
+      { href: '/admin/ai-studio/orchestrator', label: 'Orchestrator',     icon: Cpu,       keywords: ['workflow', 'automation'] },
+      { href: '/admin/ai-studio/agents',       label: 'Agents',           icon: Bot,       keywords: ['assistant', 'bot'] },
+      { href: '/admin/ai-studio/providers',    label: 'Providers',        icon: Zap,       keywords: ['openai', 'anthropic', 'model'] },
+      { href: '/admin/ai-studio/library',      label: 'Prompt Library',   icon: Library,   keywords: ['template', 'prompt'] },
+      { href: '/admin/ai-studio/logs',         label: 'AI Logs',          icon: ScrollText,keywords: ['history', 'usage'] },
     ],
   },
+
+  /* ───── FINANCE ───── */
   { type: 'divider', label: 'FINANCE' },
   {
     label: 'Finance', icon: Wallet,
     children: [
-      { href: '/admin/finance/payment-gateways', label: 'Payment Gateways', icon: CreditCard },
-      { href: '/admin/finance/payments',         label: 'Transactions',     icon: DollarSign },
-      { href: '/admin/finance/tax',              label: 'Tax Settings',     icon: Percent },
-      { href: '/admin/finance/pnl',              label: 'P&L Report',       icon: LineChart },
-      { href: '/admin/finance/wallet',           label: 'Digital Wallet',   icon: Wallet },
-      { href: '/admin/finance/store-credit',     label: 'Store Credit',     icon: Gift },
+      { href: '/admin/finance/payment-gateways', label: 'Payment Gateways', icon: CreditCard, keywords: ['bkash', 'nagad', 'stripe', 'gateway'] },
+      { href: '/admin/finance/payments',         label: 'Transactions',     icon: DollarSign, keywords: ['payment', 'ledger'] },
+      { href: '/admin/finance/tax',              label: 'Tax Settings',     icon: Percent,    keywords: ['vat', 'gst'] },
+      { href: '/admin/finance/pnl',              label: 'P&L Report',       icon: LineChart,  keywords: ['profit', 'loss', 'income'] },
+      { href: '/admin/finance/wallet',           label: 'Digital Wallet',   icon: Wallet,     keywords: ['balance', 'credit'] },
+      { href: '/admin/finance/store-credit',     label: 'Store Credit',     icon: Gift,       keywords: ['credit', 'refund'] },
     ],
   },
+
+  /* ───── SYSTEM ───── */
   { type: 'divider', label: 'SYSTEM' },
   {
     label: 'System', icon: Settings,
     children: [
-      { href: '/admin/localization',    label: 'Multi-Currency/Lang',  icon: Globe },
-      { href: '/admin/design',          label: 'Design Studio',        icon: Palette },
-      { href: '/admin/addons',          label: 'Addon Manager',        icon: Puzzle },
-      { href: '/admin/staff',           label: 'Staff & Permissions',  icon: UserCog },
-      { href: '/admin/settings',        label: 'Settings',             icon: Settings },
-      { href: '/admin/security/audit',  label: 'Audit Logs',           icon: Database },
-      { href: '/admin/security/rbac',   label: 'RBAC',                 icon: Lock },
+      { href: '/admin/settings',       label: 'Settings',            icon: Settings, keywords: ['config', 'general', 'preferences'] },
+      { href: '/admin/design',         label: 'Design Studio',       icon: Palette,  keywords: ['theme', 'appearance', 'brand'] },
+      { href: '/admin/localization',   label: 'Multi-Currency/Lang', icon: Globe,    keywords: ['language', 'currency', 'translation', 'i18n'] },
+      { href: '/admin/addons',         label: 'Addon Manager',       icon: Puzzle,   keywords: ['plugin', 'extension', 'module'] },
+      { href: '/admin/staff',          label: 'Staff & Permissions', icon: UserCog,  keywords: ['team', 'employee', 'role'] },
+      { href: '/admin/security/audit', label: 'Audit Logs',          icon: Database, keywords: ['activity', 'history', 'log'] },
+      { href: '/admin/security/rbac',  label: 'RBAC',                icon: Lock,     keywords: ['role', 'access control', 'permission'] },
     ],
   },
 ];
@@ -198,6 +257,57 @@ function isActive(href: string, pathname: string, exact?: boolean) {
 }
 function groupIsActive(children: NavLeaf[], pathname: string) {
   return children.some(c => isActive(c.href, pathname, c.exact));
+}
+
+/* ─── Flattened search index (built once) ────────────────────── */
+type SearchEntry = { leaf: NavLeaf; parent: string; haystack: string };
+const SEARCH_INDEX: SearchEntry[] = (() => {
+  const entries: SearchEntry[] = [];
+  const seen = new Set<string>();
+  for (const item of NAV) {
+    if (isDivider(item)) continue;
+    if (isParent(item)) {
+      for (const child of item.children) {
+        if (seen.has(child.href)) continue;
+        seen.add(child.href);
+        entries.push({
+          leaf: child,
+          parent: item.label,
+          haystack: [child.label, item.label, ...(child.keywords ?? [])].join(' ').toLowerCase(),
+        });
+      }
+    } else {
+      if (seen.has(item.href)) continue;
+      seen.add(item.href);
+      entries.push({
+        leaf: item,
+        parent: 'General',
+        haystack: [item.label, ...(item.keywords ?? [])].join(' ').toLowerCase(),
+      });
+    }
+  }
+  return entries;
+})();
+
+// Multi-word AND search across labels + parent + keyword synonyms.
+// Ranks exact-label and label-prefix matches above keyword-only matches.
+function searchNav(query: string): SearchEntry[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const tokens = q.split(/\s+/).filter(Boolean);
+  const scored: { entry: SearchEntry; score: number }[] = [];
+  for (const entry of SEARCH_INDEX) {
+    if (!tokens.every(t => entry.haystack.includes(t))) continue;
+    const label = entry.leaf.label.toLowerCase();
+    let score = 0;
+    if (label === q) score = 100;
+    else if (label.startsWith(q)) score = 80;
+    else if (label.includes(q)) score = 60;
+    else score = 30; // matched via parent or keyword only
+    scored.push({ entry, score });
+  }
+  scored.sort((a, b) => b.score - a.score || a.entry.leaf.label.localeCompare(b.entry.leaf.label));
+  return scored.map(s => s.entry);
 }
 
 /* ─── Single leaf link ───────────────────────────────────────── */
@@ -380,6 +490,11 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
   const { clearAuth } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeIndex, setActiveIndex] = useState(0);
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Powerful search: multi-word, keyword synonyms, ranked + deduped
+  const searchResults = useMemo(() => searchNav(searchQuery), [searchQuery]);
 
   // Accordion: only one group open at a time
   const [openGroup, setOpenGroup] = useState<string | null>(() => {
@@ -400,6 +515,40 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
       }
     }
   }, [pathname]);
+
+  // Reset keyboard selection whenever the query (and thus results) changes
+  useEffect(() => { setActiveIndex(0); }, [searchQuery]);
+
+  // Keyboard navigation over search results: ↑ ↓ Enter Esc
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!searchResults.length) {
+      if (e.key === 'Escape') setSearchQuery('');
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex(i => (i + 1) % searchResults.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex(i => (i - 1 + searchResults.length) % searchResults.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const target = searchResults[activeIndex];
+      if (target) {
+        setSearchQuery('');
+        onClose?.();
+        router.push(target.leaf.href);
+      }
+    } else if (e.key === 'Escape') {
+      setSearchQuery('');
+    }
+  };
+
+  // Keep the highlighted result scrolled into view
+  useEffect(() => {
+    const el = resultsRef.current?.querySelector<HTMLElement>(`[data-idx="${activeIndex}"]`);
+    el?.scrollIntoView({ block: 'nearest' });
+  }, [activeIndex]);
 
   const handleToggle = (label: string) => {
     setOpenGroup(prev => (prev === label ? null : label));
@@ -442,7 +591,8 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search menu..."
+            onKeyDown={handleSearchKeyDown}
+            placeholder="Search anything…  (try 'po', 'vendor', 'vat')"
             className="w-full bg-white/8 border border-white/10 rounded-lg pl-8 pr-7 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:bg-white/12 transition-all"
           />
           {searchQuery && (
@@ -455,39 +605,41 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
 
       {/* Nav — search results or full tree */}
       {searchQuery.trim() ? (
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 overscroll-contain">
-          {(() => {
-            const q = searchQuery.toLowerCase();
-            const results: { leaf: NavLeaf; parent: string }[] = [];
-            for (const item of NAV) {
-              if (isParent(item)) {
-                item.children.forEach(child => {
-                  if (child.label.toLowerCase().includes(q) || item.label.toLowerCase().includes(q)) {
-                    results.push({ leaf: child, parent: item.label });
-                  }
-                });
-              }
-            }
-            if (results.length === 0) {
-              return <p className="px-3 py-6 text-xs text-white/30 text-center">No results for "{searchQuery}"</p>;
-            }
-            return results.map(({ leaf, parent }) => (
-              <Link
-                key={leaf.href}
-                href={leaf.href}
-                onClick={() => { setSearchQuery(''); onClose?.(); }}
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs transition-all ${
-                  pathname === leaf.href ? 'bg-white/15 text-white font-semibold' : 'text-white/60 hover:bg-white/8 hover:text-white/90'
-                }`}
-              >
-                <leaf.icon className="h-3.5 w-3.5 flex-shrink-0 text-white/40" />
-                <div className="min-w-0">
-                  <div className="font-medium truncate">{leaf.label}</div>
-                  <div className="text-[9px] opacity-40 truncate">{parent}</div>
-                </div>
-              </Link>
-            ));
-          })()}
+        <div ref={resultsRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 overscroll-contain">
+          {searchResults.length === 0 ? (
+            <p className="px-3 py-6 text-xs text-white/30 text-center">No results for &ldquo;{searchQuery}&rdquo;</p>
+          ) : (
+            <>
+              <p className="px-2 pb-1.5 text-[9px] font-bold uppercase tracking-wider text-white/25">
+                {searchResults.length} result{searchResults.length !== 1 ? 's' : ''} · ↑↓ to move · ↵ to open
+              </p>
+              {searchResults.map(({ leaf, parent }, idx) => (
+                <Link
+                  key={leaf.href}
+                  href={leaf.href}
+                  data-idx={idx}
+                  onMouseEnter={() => setActiveIndex(idx)}
+                  onClick={() => { setSearchQuery(''); onClose?.(); }}
+                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs transition-all ${
+                    idx === activeIndex
+                      ? 'bg-white/15 text-white font-semibold ring-1 ring-white/20'
+                      : pathname === leaf.href
+                        ? 'bg-white/10 text-white font-semibold'
+                        : 'text-white/60 hover:bg-white/8 hover:text-white/90'
+                  }`}
+                >
+                  <leaf.icon className="h-3.5 w-3.5 flex-shrink-0 text-white/40" />
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium truncate">{leaf.label}</div>
+                    <div className="text-[9px] opacity-40 truncate">{parent}</div>
+                  </div>
+                  {idx === activeIndex && (
+                    <span className="text-[9px] text-white/40 flex-shrink-0">↵</span>
+                  )}
+                </Link>
+              ))}
+            </>
+          )}
         </div>
       ) : (
         <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 overscroll-contain">
