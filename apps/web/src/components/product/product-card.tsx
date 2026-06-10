@@ -228,13 +228,12 @@ export function ProductCard({ product, className, listView, mini }: ProductCardP
               <ShoppingCart className="w-3 h-3 flex-shrink-0" />
               <span>{lang === 'bn' ? 'কার্টে' : 'Add'}</span>
             </button>
-            <Link
-              href={`/checkout?productSlug=${product.slug}&qty=1`}
-              onClick={e => e.stopPropagation()}
+            <button
+              onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/checkout?productSlug=${product.slug}&qty=1`; }}
               className="flex items-center justify-center h-8 w-8 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl shadow-md shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20 flex-shrink-0"
             >
               <Zap className="w-3.5 h-3.5" />
-            </Link>
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-1.5 mt-auto pt-2">
@@ -250,15 +249,14 @@ export function ProductCard({ product, className, listView, mini }: ProductCardP
             </button>
 
             {/* Buy Now */}
-            <Link
-              href={`/checkout?productSlug=${product.slug}&qty=1`}
-              onClick={e => e.stopPropagation()}
+            <button
+              onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/checkout?productSlug=${product.slug}&qty=1`; }}
               className="flex items-center justify-center gap-1 h-9 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl text-xs font-black shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20"
             >
               <Zap className="w-3.5 h-3.5 flex-shrink-0" />
               <span className="hidden sm:inline">{lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}</span>
               <span className="sm:hidden">{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
-            </Link>
+            </button>
           </div>
         )}
       </div>
