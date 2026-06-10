@@ -398,6 +398,22 @@ async function main() {
   }
   console.log(`✓ Site settings (${settings.length})`);
 
+  // ── Chat Widget defaults (create-only, so admin changes survive re-seeding) ─
+  const chatDefaults: { key: string; value: string }[] = [
+    { key: 'chatbot.enabled',           value: 'true' },
+    { key: 'chatbot.welcomeMessage',    value: 'হ্যালো! 👋 আমি Unkora AI। আপনাকে কীভাবে সাহায্য করতে পারি?' },
+    { key: 'contact.whatsappNumber',    value: '8801708166233' },
+    { key: 'contact.messengerUsername', value: 'unkora' },
+  ];
+  for (const s of chatDefaults) {
+    await prisma.siteSetting.upsert({
+      where: { key: s.key },
+      update: {},
+      create: { key: s.key, value: s.value },
+    });
+  }
+  console.log(`✓ Chat widget defaults (${chatDefaults.length})`);
+
   // ── Summary ────────────────────────────────────────────────────────────────
   const [pCount, catCount, imgCount, varCount, revCount, settCount] = await Promise.all([
     prisma.product.count(),
