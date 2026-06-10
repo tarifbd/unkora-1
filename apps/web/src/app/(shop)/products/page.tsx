@@ -146,7 +146,7 @@ const BINDINGS = [
 ];
 
 // ─── Filter Panel ──────────────────────────────────────────────────────────────
-function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, totalProducts, activeCount }: {
+function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, totalProducts, activeCount, advanced }: {
   filters: FilterState;
   categories: CategoryWithChildren[] | undefined;
   filterOptions: { genres: string[]; authors: string[]; publishers: string[]; bindings: string[]; } | undefined;
@@ -154,6 +154,7 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
   onClear: () => void;
   totalProducts?: number;
   activeCount: number;
+  advanced?: boolean;
 }) {
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
   const [sliderMin, setSliderMin] = useState(filters.minPrice ?? 0);
@@ -270,75 +271,75 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
         <CheckRow label="On Sale / Discounted" active={filters.hasDiscount} onClick={() => onFilter({ hasDiscount: !filters.hasDiscount })} icon={Tag} iconClass="text-red-400" />
       </Section>
 
-      {/* Book Language */}
-      <Section title="Language" icon={Globe} badge={filters.language ? 1 : 0} defaultOpen={false}>
-        <div className="space-y-0.5">
-          {LANGUAGES.map(l => (
-            <CheckRow key={l.value} label={l.label} active={filters.language === l.value} onClick={() => onFilter({ language: filters.language === l.value ? undefined : l.value })} />
-          ))}
-        </div>
-      </Section>
+      {/* Language / Genre / Author / Publisher / Binding — top bar on desktop; shown in mobile drawer only when not advanced */}
+      {!advanced && (
+        <>
+          <Section title="Language" icon={Globe} badge={filters.language ? 1 : 0} defaultOpen={false}>
+            <div className="space-y-0.5">
+              {LANGUAGES.map(l => (
+                <CheckRow key={l.value} label={l.label} active={filters.language === l.value} onClick={() => onFilter({ language: filters.language === l.value ? undefined : l.value })} />
+              ))}
+            </div>
+          </Section>
 
-      {/* Genre */}
-      {allGenres.length > 0 && (
-        <Section title="Genre" icon={BookOpen} badge={filters.genre ? 1 : 0} defaultOpen={false}>
-          <div className="space-y-0.5">
-            {visibleGenres.map(g => (
-              <CheckRow key={g} label={g} active={filters.genre === g} onClick={() => onFilter({ genre: filters.genre === g ? undefined : g })} />
-            ))}
-            {allGenres.length > 8 && (
-              <button onClick={() => setShowAllGenres(v => !v)} className="w-full text-left text-xs text-primary font-semibold px-2.5 py-1.5 hover:bg-primary/5 rounded-lg transition-colors">
-                {showAllGenres ? '▲ Show less' : `▼ Show all ${allGenres.length} genres`}
-              </button>
-            )}
-          </div>
-        </Section>
+          {allGenres.length > 0 && (
+            <Section title="Genre" icon={BookOpen} badge={filters.genre ? 1 : 0} defaultOpen={false}>
+              <div className="space-y-0.5">
+                {visibleGenres.map(g => (
+                  <CheckRow key={g} label={g} active={filters.genre === g} onClick={() => onFilter({ genre: filters.genre === g ? undefined : g })} />
+                ))}
+                {allGenres.length > 8 && (
+                  <button onClick={() => setShowAllGenres(v => !v)} className="w-full text-left text-xs text-primary font-semibold px-2.5 py-1.5 hover:bg-primary/5 rounded-lg transition-colors">
+                    {showAllGenres ? '▲ Show less' : `▼ Show all ${allGenres.length} genres`}
+                  </button>
+                )}
+              </div>
+            </Section>
+          )}
+
+          {(filterOptions?.authors?.length ?? 0) > 0 && (
+            <Section title="Author" icon={Feather} badge={filters.author ? 1 : 0} defaultOpen={false}>
+              <div className="relative mb-2">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <input type="text" placeholder="Search author..." value={authorSearch} onChange={e => setAuthorSearch(e.target.value)} className="w-full border rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              </div>
+              <div className="space-y-0.5 max-h-44 overflow-y-auto">
+                {visibleAuthors.map(a => (
+                  <CheckRow key={a} label={a} active={filters.author === a} onClick={() => onFilter({ author: filters.author === a ? undefined : a })} />
+                ))}
+                {!authorSearch && filteredAuthors.length > 6 && (
+                  <button onClick={() => setShowAllAuthors(v => !v)} className="w-full text-left text-xs text-primary font-semibold px-2.5 py-1.5 hover:bg-primary/5 rounded-lg transition-colors">
+                    {showAllAuthors ? '▲ Show less' : `▼ ${filteredAuthors.length - 6} more authors`}
+                  </button>
+                )}
+              </div>
+            </Section>
+          )}
+
+          {allPublishers.length > 0 && (
+            <Section title="Publisher" icon={Building2} badge={filters.publisher ? 1 : 0} defaultOpen={false}>
+              <div className="space-y-0.5">
+                {visiblePublishers.map(p => (
+                  <CheckRow key={p as string} label={p as string} active={filters.publisher === p} onClick={() => onFilter({ publisher: filters.publisher === p ? undefined : p as string })} />
+                ))}
+                {allPublishers.length > 5 && (
+                  <button onClick={() => setShowAllPublishers(v => !v)} className="w-full text-left text-xs text-primary font-semibold px-2.5 py-1.5 hover:bg-primary/5 rounded-lg transition-colors">
+                    {showAllPublishers ? '▲ Show less' : `▼ ${allPublishers.length - 5} more publishers`}
+                  </button>
+                )}
+              </div>
+            </Section>
+          )}
+
+          <Section title="Format / Binding" icon={BookMarked} badge={filters.binding ? 1 : 0} defaultOpen={false}>
+            <div className="space-y-0.5">
+              {BINDINGS.map(b => (
+                <CheckRow key={b.value} label={b.label} active={filters.binding === b.value} onClick={() => onFilter({ binding: filters.binding === b.value ? undefined : b.value })} />
+              ))}
+            </div>
+          </Section>
+        </>
       )}
-
-      {/* Author */}
-      {(filterOptions?.authors?.length ?? 0) > 0 && (
-        <Section title="Author" icon={Feather} badge={filters.author ? 1 : 0} defaultOpen={false}>
-          <div className="relative mb-2">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-            <input type="text" placeholder="Search author..." value={authorSearch} onChange={e => setAuthorSearch(e.target.value)} className="w-full border rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30" />
-          </div>
-          <div className="space-y-0.5 max-h-44 overflow-y-auto">
-            {visibleAuthors.map(a => (
-              <CheckRow key={a} label={a} active={filters.author === a} onClick={() => onFilter({ author: filters.author === a ? undefined : a })} />
-            ))}
-            {!authorSearch && filteredAuthors.length > 6 && (
-              <button onClick={() => setShowAllAuthors(v => !v)} className="w-full text-left text-xs text-primary font-semibold px-2.5 py-1.5 hover:bg-primary/5 rounded-lg transition-colors">
-                {showAllAuthors ? '▲ Show less' : `▼ ${filteredAuthors.length - 6} more authors`}
-              </button>
-            )}
-          </div>
-        </Section>
-      )}
-
-      {/* Publisher */}
-      {allPublishers.length > 0 && (
-        <Section title="Publisher" icon={Building2} badge={filters.publisher ? 1 : 0} defaultOpen={false}>
-          <div className="space-y-0.5">
-            {visiblePublishers.map(p => (
-              <CheckRow key={p as string} label={p as string} active={filters.publisher === p} onClick={() => onFilter({ publisher: filters.publisher === p ? undefined : p as string })} />
-            ))}
-            {allPublishers.length > 5 && (
-              <button onClick={() => setShowAllPublishers(v => !v)} className="w-full text-left text-xs text-primary font-semibold px-2.5 py-1.5 hover:bg-primary/5 rounded-lg transition-colors">
-                {showAllPublishers ? '▲ Show less' : `▼ ${allPublishers.length - 5} more publishers`}
-              </button>
-            )}
-          </div>
-        </Section>
-      )}
-
-      {/* Binding */}
-      <Section title="Format / Binding" icon={BookMarked} badge={filters.binding ? 1 : 0} defaultOpen={false}>
-        <div className="space-y-0.5">
-          {BINDINGS.map(b => (
-            <CheckRow key={b.value} label={b.label} active={filters.binding === b.value} onClick={() => onFilter({ binding: filters.binding === b.value ? undefined : b.value })} />
-          ))}
-        </div>
-      </Section>
 
       {/* Product Type / Tags */}
       <Section title="Product Type" icon={Tag} badge={filters.tags.length}>
@@ -598,31 +599,8 @@ function ProductsContent() {
         )}
       </div>
 
-      {/* Desktop filter bar — dropdowns */}
+      {/* Top filter bar — Language, Genre, Author, Publisher, Format only */}
       <div className="hidden lg:flex items-center gap-2 flex-wrap mb-4 pb-3 border-b border-gray-100">
-        {/* Category */}
-        <FilterDropdown label={activeCategoryName ?? 'Category'} icon={BookMarked} active={!!categorySlug}>
-          <div className="p-2 space-y-0.5">
-            <button onClick={() => onFilter({ categorySlug: undefined })} className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm text-left transition-colors ${!categorySlug ? 'bg-primary text-white font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}>All Categories</button>
-            {(categories as CategoryWithChildren[] | undefined)?.filter(c => !('parentId' in c) || !(c as unknown as { parentId: string }).parentId).map(cat => (
-              <button key={cat.id} onClick={() => onFilter({ categorySlug: cat.slug })} className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm text-left transition-colors ${filters.categorySlug === cat.slug ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}>
-                <span>{cat.name}</span>
-                {cat._count?.products !== undefined && <span className="text-xs opacity-50">{cat._count.products}</span>}
-              </button>
-            ))}
-          </div>
-        </FilterDropdown>
-
-        {/* Price */}
-        <FilterDropdown label={(minPrice || maxPrice) ? `৳${(minPrice ?? 0).toLocaleString()}–${maxPrice ? '৳' + maxPrice.toLocaleString() : '∞'}` : 'Price'} icon={Tag} active={!!(minPrice || maxPrice)}>
-          <div className="p-2 space-y-1">
-            <button onClick={() => onFilter({ minPrice: undefined, maxPrice: undefined })} className={`w-full text-left rounded-lg px-3 py-1.5 text-xs transition-colors ${!minPrice && !maxPrice ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}>All Prices</button>
-            {PRICE_PRESETS.map(p => (
-              <button key={p.label} onClick={() => onFilter({ minPrice: p.min > 0 ? p.min : undefined, maxPrice: p.max < PRICE_MAX ? p.max : undefined })} className={`w-full text-left rounded-lg px-3 py-1.5 text-xs transition-colors ${minPrice === (p.min || undefined) && maxPrice === (p.max < PRICE_MAX ? p.max : undefined) ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}>{p.label}</button>
-            ))}
-          </div>
-        </FilterDropdown>
-
         {/* Language */}
         <FilterDropdown label={language ?? 'Language'} icon={Globe} active={!!language}>
           <div className="p-2 space-y-0.5">
@@ -679,115 +657,99 @@ function ProductsContent() {
             ))}
           </div>
         </FilterDropdown>
-
-        {/* Type / Tags / Availability */}
-        <FilterDropdown
-          label="Type"
-          icon={Tag}
-          active={tags.length > 0 || hasDiscount || inStock || preorder || isFeatured}
-        >
-          <div className="p-2 space-y-0.5">
-            {TAG_OPTIONS.map(t => {
-              const act = filters.tags.includes(t.value);
-              return <CheckRow key={t.value} label={t.label} active={act} onClick={() => { const next = act ? filters.tags.filter(x => x !== t.value) : [...filters.tags, t.value]; onFilter({ tags: next }); }} icon={t.icon} iconClass={t.color} />;
-            })}
-            <CheckRow label="On Sale / Discounted" active={filters.hasDiscount} onClick={() => onFilter({ hasDiscount: !filters.hasDiscount })} icon={Tag} iconClass="text-red-400" />
-            <CheckRow label="In Stock Only" active={filters.inStock} onClick={() => onFilter({ inStock: !filters.inStock })} />
-            <CheckRow label="Pre-Order Available" active={filters.preorder} onClick={() => onFilter({ preorder: !filters.preorder })} icon={CalendarClock} iconClass="text-emerald-500" />
-            <CheckRow label="Featured" active={filters.isFeatured} onClick={() => onFilter({ isFeatured: !filters.isFeatured })} icon={Star} iconClass="text-yellow-400" />
-          </div>
-        </FilterDropdown>
-
-        {/* Clear all */}
-        {activeCount > 0 && (
-          <button onClick={clearAllFilters} className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 transition-colors ml-auto">
-            <RotateCcw className="w-3.5 h-3.5" /> Clear ({activeCount})
-          </button>
-        )}
       </div>
 
-      {/* Sort bar + product count */}
-      <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border bg-white px-3 py-2 sm:px-4 shadow-sm">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <span className="hidden sm:block text-xs text-gray-400 whitespace-nowrap font-medium">Sort:</span>
-          <div className="relative flex-1 max-w-[200px]">
-            <select value={`${sortBy}:${sortOrder}`} onChange={e => { const [sb, so] = e.target.value.split(':'); setParams({ sortBy: sb, sortOrder: so }); }} className="w-full appearance-none rounded-lg border bg-gray-50 pl-2.5 pr-7 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer font-medium">
-              <option value="createdAt:desc">Newest First</option>
-              <option value="createdAt:asc">Oldest First</option>
-              <option value="basePrice:asc">Price: Low → High</option>
-              <option value="basePrice:desc">Price: High → Low</option>
-              <option value="name:asc">Name A–Z</option>
-              <option value="name:desc">Name Z–A</option>
-              <option value="salePrice:desc">Highest Original Price</option>
-              <option value="stockQuantity:desc">Most Stock</option>
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+      <div className="flex gap-5 items-start">
+        {/* Desktop sidebar — advanced filters (Category, Price, Type, Availability…) */}
+        <aside className="hidden lg:block w-60 flex-shrink-0 sticky top-4">
+          <FilterPanel {...filterPanelProps} advanced />
+        </aside>
+
+        <div className="min-w-0 flex-1">
+          {/* Sort bar */}
+          <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border bg-white px-3 py-2 sm:px-4 shadow-sm">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <span className="hidden sm:block text-xs text-gray-400 whitespace-nowrap font-medium">Sort:</span>
+              <div className="relative flex-1 max-w-[200px]">
+                <select value={`${sortBy}:${sortOrder}`} onChange={e => { const [sb, so] = e.target.value.split(':'); setParams({ sortBy: sb, sortOrder: so }); }} className="w-full appearance-none rounded-lg border bg-gray-50 pl-2.5 pr-7 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer font-medium">
+                  <option value="createdAt:desc">Newest First</option>
+                  <option value="createdAt:asc">Oldest First</option>
+                  <option value="basePrice:asc">Price: Low → High</option>
+                  <option value="basePrice:desc">Price: High → Low</option>
+                  <option value="name:asc">Name A–Z</option>
+                  <option value="name:desc">Name Z–A</option>
+                  <option value="salePrice:desc">Highest Original Price</option>
+                  <option value="stockQuantity:desc">Most Stock</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+              </div>
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {([2, 3, 4, 'list'] as const).map(v => (
+                <button key={v} onClick={() => setGridCols(v)} className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg border transition-colors ${gridCols === v ? 'border-gray-800 bg-gray-800 text-white' : 'bg-gray-50 hover:bg-gray-100 text-gray-500'}`}>
+                  {v === 2 && <Grid2X2 className="h-3.5 w-3.5" />}
+                  {v === 3 && <LayoutGrid className="h-3.5 w-3.5" />}
+                  {v === 4 && <Grid3X3 className="h-3.5 w-3.5" />}
+                  {v === 'list' && <List className="h-3.5 w-3.5" />}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {([2, 3, 4, 'list'] as const).map(v => (
-            <button key={v} onClick={() => setGridCols(v)} className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg border transition-colors ${gridCols === v ? 'border-gray-800 bg-gray-800 text-white' : 'bg-gray-50 hover:bg-gray-100 text-gray-500'}`}>
-              {v === 2 && <Grid2X2 className="h-3.5 w-3.5" />}
-              {v === 3 && <LayoutGrid className="h-3.5 w-3.5" />}
-              {v === 4 && <Grid3X3 className="h-3.5 w-3.5" />}
-              {v === 'list' && <List className="h-3.5 w-3.5" />}
-            </button>
-          ))}
+
+          {/* Active filter chips */}
+          {activeCount > 0 && (
+            <div className="mb-3 flex flex-wrap gap-1.5 items-center">
+              {categorySlug && <Chip label={activeCategoryName ?? categorySlug} onRemove={() => onFilter({ categorySlug: undefined })} />}
+              {(minPrice || maxPrice) && <Chip label={`৳${(minPrice ?? 0).toLocaleString()} – ৳${maxPrice ? maxPrice.toLocaleString() : '∞'}`} onRemove={() => onFilter({ minPrice: undefined, maxPrice: undefined })} />}
+              {isFeatured && <Chip label="Featured" onRemove={() => onFilter({ isFeatured: false })} />}
+              {inStock && <Chip label="In Stock" onRemove={() => onFilter({ inStock: false })} />}
+              {hasDiscount && <Chip label="On Sale" onRemove={() => onFilter({ hasDiscount: false })} />}
+              {preorder && <Chip label="Pre-Order" onRemove={() => onFilter({ preorder: false })} />}
+              {language && <Chip label={language} onRemove={() => onFilter({ language: undefined })} />}
+              {genre && <Chip label={genre} onRemove={() => onFilter({ genre: undefined })} />}
+              {author && <Chip label={author} onRemove={() => onFilter({ author: undefined })} />}
+              {publisher && <Chip label={publisher} onRemove={() => onFilter({ publisher: undefined })} />}
+              {binding && <Chip label={binding} onRemove={() => onFilter({ binding: undefined })} />}
+              {tags.map(tag => <Chip key={tag} label={TAG_OPTIONS.find(t => t.value === tag)?.label ?? tag} onRemove={() => onFilter({ tags: tags.filter(t => t !== tag) })} />)}
+              <button onClick={clearAllFilters} className="flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-500 hover:bg-red-100 transition-colors">
+                <RotateCcw className="w-3 h-3" /> Clear all
+              </button>
+            </div>
+          )}
+
+          {/* Grid */}
+          {isLoading ? (
+            <div className={`grid gap-3 sm:gap-4 ${gridClass}`}>{Array.from({ length: 8 }).map((_, i) => <div key={i} className="aspect-[3/4] animate-pulse rounded-xl bg-gray-100" />)}</div>
+          ) : (data?.data ?? []).length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center"><Package className="w-8 h-8 text-gray-300" /></div>
+              <p className="text-base font-bold text-gray-700">{t.products.noProductsFound}</p>
+              <p className="text-sm text-gray-400">{t.products.tryAdjustingFilters}</p>
+              {activeCount > 0 && <button onClick={clearAllFilters} className="mt-1 text-sm text-primary font-semibold hover:underline flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> Clear all filters</button>}
+            </div>
+          ) : gridCols === 'list' ? (
+            <div className="space-y-2.5">{(data?.data ?? []).map(product => <ProductCard key={product.id} product={product} listView />)}</div>
+          ) : (
+            <div className={`grid gap-3 sm:gap-4 ${gridClass}`}>{(data?.data ?? []).map(product => <ProductCard key={product.id} product={product} />)}</div>
+          )}
+
+          {/* Pagination */}
+          {data && data.meta.totalPages > 1 && (
+            <div className="mt-8 flex flex-wrap justify-center gap-1.5">
+              <button onClick={() => setParams({ page: String(page - 1) })} disabled={page === 1} className="rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-50 disabled:opacity-40">‹ Prev</button>
+              {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === data.meta.totalPages || Math.abs(p - page) <= 2)
+                .reduce<(number | 'ellipsis')[]>((acc, p, i, arr) => { if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('ellipsis'); acc.push(p); return acc; }, [])
+                .map((p, i) => p === 'ellipsis' ? (
+                  <span key={`e${i}`} className="flex h-9 w-9 items-center justify-center text-sm text-gray-400">…</span>
+                ) : (
+                  <button key={p} onClick={() => setParams({ page: String(p) })} className={`h-9 w-9 rounded-lg text-sm font-semibold transition-colors ${p === page ? 'bg-primary text-white' : 'border hover:bg-gray-50'}`}>{p}</button>
+                ))}
+              <button onClick={() => setParams({ page: String(page + 1) })} disabled={page === data.meta.totalPages} className="rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-50 disabled:opacity-40">Next ›</button>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Active filter chips */}
-      {activeCount > 0 && (
-        <div className="mb-3 flex flex-wrap gap-1.5 items-center">
-          {categorySlug && <Chip label={activeCategoryName ?? categorySlug} onRemove={() => onFilter({ categorySlug: undefined })} />}
-          {(minPrice || maxPrice) && <Chip label={`৳${(minPrice ?? 0).toLocaleString()} – ৳${maxPrice ? maxPrice.toLocaleString() : '∞'}`} onRemove={() => onFilter({ minPrice: undefined, maxPrice: undefined })} />}
-          {isFeatured && <Chip label="Featured" onRemove={() => onFilter({ isFeatured: false })} />}
-          {inStock && <Chip label="In Stock" onRemove={() => onFilter({ inStock: false })} />}
-          {hasDiscount && <Chip label="On Sale" onRemove={() => onFilter({ hasDiscount: false })} />}
-          {preorder && <Chip label="Pre-Order" onRemove={() => onFilter({ preorder: false })} />}
-          {language && <Chip label={language} onRemove={() => onFilter({ language: undefined })} />}
-          {genre && <Chip label={genre} onRemove={() => onFilter({ genre: undefined })} />}
-          {author && <Chip label={author} onRemove={() => onFilter({ author: undefined })} />}
-          {publisher && <Chip label={publisher} onRemove={() => onFilter({ publisher: undefined })} />}
-          {binding && <Chip label={binding} onRemove={() => onFilter({ binding: undefined })} />}
-          {tags.map(tag => <Chip key={tag} label={TAG_OPTIONS.find(t => t.value === tag)?.label ?? tag} onRemove={() => onFilter({ tags: tags.filter(t => t !== tag) })} />)}
-          <button onClick={clearAllFilters} className="flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-500 hover:bg-red-100 transition-colors">
-            <RotateCcw className="w-3 h-3" /> Clear all
-          </button>
-        </div>
-      )}
-
-      {/* Grid */}
-      {isLoading ? (
-        <div className={`grid gap-3 sm:gap-4 ${gridClass}`}>{Array.from({ length: 8 }).map((_, i) => <div key={i} className="aspect-[3/4] animate-pulse rounded-xl bg-gray-100" />)}</div>
-      ) : (data?.data ?? []).length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center"><Package className="w-8 h-8 text-gray-300" /></div>
-          <p className="text-base font-bold text-gray-700">{t.products.noProductsFound}</p>
-          <p className="text-sm text-gray-400">{t.products.tryAdjustingFilters}</p>
-          {activeCount > 0 && <button onClick={clearAllFilters} className="mt-1 text-sm text-primary font-semibold hover:underline flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> Clear all filters</button>}
-        </div>
-      ) : gridCols === 'list' ? (
-        <div className="space-y-2.5">{(data?.data ?? []).map(product => <ProductCard key={product.id} product={product} listView />)}</div>
-      ) : (
-        <div className={`grid gap-3 sm:gap-4 ${gridClass}`}>{(data?.data ?? []).map(product => <ProductCard key={product.id} product={product} />)}</div>
-      )}
-
-      {/* Pagination */}
-      {data && data.meta.totalPages > 1 && (
-        <div className="mt-8 flex flex-wrap justify-center gap-1.5">
-          <button onClick={() => setParams({ page: String(page - 1) })} disabled={page === 1} className="rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-50 disabled:opacity-40">‹ Prev</button>
-          {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1)
-            .filter(p => p === 1 || p === data.meta.totalPages || Math.abs(p - page) <= 2)
-            .reduce<(number | 'ellipsis')[]>((acc, p, i, arr) => { if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('ellipsis'); acc.push(p); return acc; }, [])
-            .map((p, i) => p === 'ellipsis' ? (
-              <span key={`e${i}`} className="flex h-9 w-9 items-center justify-center text-sm text-gray-400">…</span>
-            ) : (
-              <button key={p} onClick={() => setParams({ page: String(p) })} className={`h-9 w-9 rounded-lg text-sm font-semibold transition-colors ${p === page ? 'bg-primary text-white' : 'border hover:bg-gray-50'}`}>{p}</button>
-            ))}
-          <button onClick={() => setParams({ page: String(page + 1) })} disabled={page === data.meta.totalPages} className="rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-50 disabled:opacity-40">Next ›</button>
-        </div>
-      )}
     </div>
   );
 }
