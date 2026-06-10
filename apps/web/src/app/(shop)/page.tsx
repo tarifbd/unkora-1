@@ -19,7 +19,7 @@ import { useCart } from '@/lib/hooks/use-cart';
 const CAT_EMOJI: Record<string, string> = {
   books: '📚', 'baby-products': '👶', 'leather-products': '👜',
   'organic-foods': '🌿', handicrafts: '🎨', electronics: '⚡',
-  'daily-needs': '🛒', default: '🏷️',
+  'daily-needs': '🛒', 'islamic-lifestyle': '🕌', default: '🏷️',
 };
 
 const AUTHORS = [
@@ -67,11 +67,11 @@ const BOOK_SHELF_TABS = [
 ];
 
 const BEST_TABS = [
-  { key: 'all',        labelBn: 'সব',         category: undefined },
-  { key: 'books',      labelBn: 'বই',         category: 'books' },
-  { key: 'organic',    labelBn: 'অর্গানিক',   category: 'organic-foods' },
-  { key: 'leather',    labelBn: 'লেদার',      category: 'leather-products' },
-  { key: 'handicraft', labelBn: 'হস্তশিল্প',  category: 'handicrafts' },
+  { key: 'all',        labelBn: 'সব',         labelEn: 'All',        category: undefined },
+  { key: 'books',      labelBn: 'বই',         labelEn: 'Books',      category: 'books' },
+  { key: 'organic',    labelBn: 'অর্গানিক',   labelEn: 'Organic',   category: 'organic-foods' },
+  { key: 'leather',    labelBn: 'লেদার',      labelEn: 'Leather',   category: 'leather-products' },
+  { key: 'handicraft', labelBn: 'হস্তশিল্প',  labelEn: 'Crafts',    category: 'handicrafts' },
 ];
 
 const RANK_SECTIONS = [
@@ -420,9 +420,9 @@ export default function HomePage() {
   };
 
   const HERO_SLIDES = [
+    { bg: 'from-green-900 to-green-700', img: 'https://images.unsplash.com/photo-1556909114-4d4a51b2f17e?q=80&w=1200&auto=format&fit=crop',  headlineBn: 'বাংলাদেশে পণ্য কিনুন',          headlineEn: 'Shop Products in Bangladesh',    subBn: 'সেরা দামে সেরা পণ্য — সরাসরি আপনার দোরগোড়ায়', subEn: 'Best products at best prices — delivered to your door', ctaBn: 'এখনই কিনুন', ctaEn: 'Shop Now', href: '/products' },
     { bg: 'from-blue-900 to-blue-700',   img: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1200&auto=format&fit=crop',  headlineBn: 'বাংলাদেশের সেরা বইয়ের দোকান',   headlineEn: "Bangladesh's Best Bookstore",    subBn: '১ লাখেরও বেশি বই · সেরা দামে',       subEn: '100,000+ books · Best prices',   ctaBn: 'বই দেখুন',    ctaEn: 'Shop Books',   href: '/books' },
-    { bg: 'from-green-900 to-green-700', img: 'https://images.unsplash.com/photo-1556909114-4d4a51b2f17e?q=80&w=1200&auto=format&fit=crop',  headlineBn: 'খাঁটি অর্গানিক পণ্য',           headlineEn: 'Pure Organic Products',          subBn: 'প্রকৃতি থেকে সরাসরি আপনার কাছে',   subEn: 'Direct from nature to you',     ctaBn: 'অর্গানিক',    ctaEn: 'Shop Organic', href: '/categories/organic-foods' },
-    { bg: 'from-red-900 to-orange-700',  img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop', headlineBn: 'মেগা সেল চলছে!',               headlineEn: 'Mega Sale is Live!',             subBn: '৭০% পর্যন্ত ছাড় · সীমিত সময়',      subEn: 'Up to 70% off · Limited time',   ctaBn: 'অফার দেখুন', ctaEn: 'See Deals',    href: '/products' },
+    { bg: 'from-red-900 to-orange-700',  img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop', headlineBn: 'মেগা সেল চলছে!',               headlineEn: 'Mega Sale is Live!',             subBn: '৭০% পর্যন্ত ছাড় · সীমিত সময়',      subEn: 'Up to 70% off · Limited time',   ctaBn: 'অফার দেখুন', ctaEn: 'See Deals',    href: '/flash-deals' },
   ] as const;
 
   /* API data */
@@ -436,6 +436,10 @@ export default function HomePage() {
   const shelfBooks = shelfData?.data ?? [];
   const { data: organicData } = useQuery({ queryKey: ['products', 'organic'], queryFn: () => productsApi.getAll({ categorySlug: 'organic-foods', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
   const organicProducts = organicData?.data ?? [];
+  const { data: dailyData } = useQuery({ queryKey: ['products', 'daily-needs'], queryFn: () => productsApi.getAll({ categorySlug: 'daily-needs', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
+  const dailyProducts = dailyData?.data ?? [];
+  const { data: babyData } = useQuery({ queryKey: ['products', 'baby-products'], queryFn: () => productsApi.getAll({ categorySlug: 'baby-products', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
+  const babyProducts = babyData?.data ?? [];
   const { data: flashData, isError: flashError } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]) });
   const flashProducts = (flashData?.data ?? []).filter(p => p.salePrice && Number(p.salePrice) < Number(p.basePrice) && p.images?.[0]?.url).slice(0, 12);
 
@@ -600,17 +604,18 @@ export default function HomePage() {
             {(allCategories.length > 0
               ? allCategories.slice(0, 12) as (Category & { children?: Category[] })[]
               : [
-                { id:'1', slug:'books',            name: lang === 'bn' ? 'বই' : 'Books', imageUrl: undefined, color: '#2563eb' },
-                { id:'2', slug:'baby-products',    name: lang === 'bn' ? 'শিশু পণ্য' : 'Baby', imageUrl: undefined, color: '#ec4899' },
-                { id:'3', slug:'leather-products', name: lang === 'bn' ? 'লেদার' : 'Leather', imageUrl: undefined, color: '#92400e' },
-                { id:'4', slug:'organic-foods',    name: lang === 'bn' ? 'অর্গানিক' : 'Organic', imageUrl: undefined, color: '#16a34a' },
-                { id:'5', slug:'handicrafts',      name: lang === 'bn' ? 'হস্তশিল্প' : 'Crafts', imageUrl: undefined, color: '#7c3aed' },
-                { id:'6', slug:'electronics',      name: lang === 'bn' ? 'ইলেকট্রনিক্স' : 'Electronics', imageUrl: undefined, color: '#0e7490' },
-                { id:'7', slug:'daily-needs',      name: lang === 'bn' ? 'দৈনন্দিন' : 'Daily', imageUrl: undefined, color: '#b45309' },
-                { id:'8', slug:'default',          name: lang === 'bn' ? 'আরো' : 'More', imageUrl: undefined, color: '#6b7280' },
+                { id:'1', slug:'books',              name: lang === 'bn' ? 'বই' : 'Books',           imageUrl: undefined, color: '#2563eb' },
+                { id:'2', slug:'baby-products',      name: lang === 'bn' ? 'শিশু পণ্য' : 'Baby',     imageUrl: undefined, color: '#ec4899' },
+                { id:'3', slug:'leather-products',   name: lang === 'bn' ? 'লেদার' : 'Leather',       imageUrl: undefined, color: '#92400e' },
+                { id:'4', slug:'organic-foods',      name: lang === 'bn' ? 'অর্গানিক' : 'Organic',   imageUrl: undefined, color: '#16a34a' },
+                { id:'5', slug:'handicrafts',        name: lang === 'bn' ? 'হস্তশিল্প' : 'Crafts',   imageUrl: undefined, color: '#7c3aed' },
+                { id:'6', slug:'islamic-lifestyle',  name: lang === 'bn' ? 'ইসলামিক' : 'Islamic',    imageUrl: undefined, color: '#065f46' },
+                { id:'7', slug:'daily-needs',        name: lang === 'bn' ? 'দৈনন্দিন' : 'Daily',     imageUrl: undefined, color: '#b45309' },
+                { id:'8', slug:'default',            name: lang === 'bn' ? 'আরো' : 'More',            imageUrl: undefined, color: '#6b7280' },
               ] as (Category & { children?: Category[] })[]
             ).map(cat => (
-              <Link key={cat.id} href={`/products?categorySlug=${cat.slug}`}
+              <Link key={cat.id}
+                href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : cat.slug === 'default' ? '/categories' : `/products?categorySlug=${cat.slug}`}
                 className="flex-shrink-0 flex flex-col items-center gap-2 group">
                 <div
                   className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center text-2xl transition-transform group-hover:scale-105 shadow-sm border-2 border-white"
@@ -755,7 +760,7 @@ export default function HomePage() {
               {BEST_TABS.map(tab => (
                 <button key={tab.key} onClick={() => setBestTab(tab.key)}
                   className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap ${bestTab === tab.key ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                  {lang === 'bn' ? tab.labelBn : tab.key}
+                  {lang === 'bn' ? tab.labelBn : tab.labelEn}
                 </button>
               ))}
               <Link href="/products" className="text-[11px] font-bold text-orange-500 hover:underline ml-1">{lang === 'bn' ? 'সব দেখুন' : 'All'}</Link>
@@ -884,18 +889,49 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          ORGANIC PRODUCTS (only if data available)
+          DAILY NEEDS
       ═══════════════════════════════════════════════════════════════ */}
-      {organicProducts.length > 0 && (
-        <section className="py-3 px-3 md:px-4">
-          <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
-            <SectionHeader titleBn="অর্গানিক পণ্য" titleEn="Organic Products" href="/categories/organic-foods" accentColor="#16a34a" lang={lang} />
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {organicProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
-            </div>
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="দৈনিক পণ্য" titleEn="Daily Needs" href="/products?categorySlug=daily-needs" accentColor="#f59e0b" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {dailyProducts.length > 0
+              ? dailyProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)
+              : Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+            }
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          BABY PRODUCTS
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="শিশু পণ্য" titleEn="Baby Products" href="/products?categorySlug=baby-products" accentColor="#ec4899" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {babyProducts.length > 0
+              ? babyProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)
+              : Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          ORGANIC PRODUCTS
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="অর্গানিক পণ্য" titleEn="Organic Products" href="/categories/organic-foods" accentColor="#16a34a" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {organicProducts.length > 0
+              ? organicProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)
+              : Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+            }
+          </div>
+        </div>
+      </section>
 
       {/* ═══════════════════════════════════════════════════════════════
           AUTHORS
