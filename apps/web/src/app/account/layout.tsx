@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth.store';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Package, Heart, MapPin, User, LogOut,
   ChevronRight, ShoppingBag, CalendarClock, Search, ArrowLeft, BookOpen,
@@ -27,12 +27,22 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   const { isAuthenticated, user, clearAuth } = useAuthStore();
   const router = useRouter();
   const pathname = usePathname();
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) router.push('/login?redirect=' + pathname);
-  }, [isAuthenticated, router, pathname]);
+    // Zustand persist rehydrates asynchronously on first mount; we must wait
+    // before deciding to redirect so we don't bounce authenticated users.
+    const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
+    if (useAuthStore.persist.hasHydrated()) setHydrated(true);
+    return unsub;
+  }, []);
 
-  if (!isAuthenticated) return null;
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!isAuthenticated) router.push('/login?redirect=' + pathname);
+  }, [hydrated, isAuthenticated, router, pathname]);
+
+  if (!hydrated || !isAuthenticated) return null;
 
   const initials = (
     `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() ||

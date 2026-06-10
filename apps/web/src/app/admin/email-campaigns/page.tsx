@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Loader2, Mail, Send, Trash2, Plus, X, Eye } from 'lucide-react';
+import { Loader2, Mail, Send, Trash2, Plus, X, Eye, Sparkles } from 'lucide-react';
 import api from '@/lib/api';
 
 interface EmailCampaign {
@@ -121,6 +121,36 @@ export default function EmailCampaignsPage() {
   const [preview, setPreview] = useState<EmailCampaign | null>(null);
   const [previewHtml, setPreviewHtml] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
+
+  const handleAiGenerate = async () => {
+    if (!form.subject && !form.name) return;
+    setAiGenerating(true);
+    try {
+      const prompt = `Generate a professional HTML email for an eCommerce campaign for UNKORA, a Bangladeshi online store.
+Campaign name: "${form.name || 'Email Campaign'}"
+Subject line: "${form.subject || 'Special Offer'}"
+
+Requirements:
+- Use inline CSS only (no external stylesheets)
+- Include a clear CTA button linking to {{SITE_URL}}/products
+- Use orange/dark color scheme
+- Include the Bengali Taka symbol ৳ where prices are mentioned (use ৳X% or ৳NNN format)
+- Keep it under 400 words
+- Make it professional and engaging
+- Output ONLY the HTML, no explanation
+
+Return only the HTML code.`;
+
+      const { data } = await api.post('/admin/ai/generate/custom', { prompt, outputFormat: 'html' });
+      const generated = String(data?.data?.generatedContent ?? data?.data?.content ?? '').replace(/```html|```/g, '').trim();
+      if (generated) setForm(f => ({ ...f, htmlContent: generated }));
+    } catch {
+      // silently fail
+    } finally {
+      setAiGenerating(false);
+    }
+  };
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -320,7 +350,7 @@ export default function EmailCampaignsPage() {
           </div>
 
           <div>
-            {/* Template presets */}
+            {/* Template presets + AI Generate */}
             <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="text-xs font-medium text-muted-foreground">Templates:</span>
               {EMAIL_TEMPLATES.map(tpl => (
@@ -333,6 +363,15 @@ export default function EmailCampaignsPage() {
                   {tpl.label}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => void handleAiGenerate()}
+                disabled={aiGenerating || (!form.name && !form.subject)}
+                className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-600 hover:bg-indigo-100 disabled:opacity-50 transition-colors font-semibold"
+              >
+                {aiGenerating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                {aiGenerating ? 'Generating…' : 'AI Generate'}
+              </button>
             </div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-sm font-medium">HTML Content *</label>

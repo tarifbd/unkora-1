@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   ChevronLeft, ChevronRight, Truck, RotateCcw, ShieldCheck, Headphones,
@@ -15,6 +15,7 @@ import { useLanguage } from '@/lib/i18n/language-context';
 import { useCart } from '@/lib/hooks/use-cart';
 import { WishlistButton } from '@/components/product/wishlist-button';
 import { AdSlider } from '@/components/home/ad-slider';
+import { HeroSlider } from '@/components/home/hero-slider';
 
 /* ─────────────────────── static data ─────────────────────────────── */
 
@@ -409,33 +410,22 @@ function FeaturedItem({ p, lang }: { product?: never; p: Product; lang: string }
 
 export default function HomePage() {
   const { lang, t } = useLanguage();
-  const [bestTab, setBestTab]         = useState('all');
+  const [bestTab, setBestTab]           = useState('all');
   const [bookShelfTab, setBookShelfTab] = useState('fiction');
-  const [slideIndex, setSlideIndex]   = useState(0);
-  const [slideKey, setSlideKey]       = useState(0);
 
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterDone, setNewsletterDone]   = useState(false);
 
-  const flashRef     = useRef<HTMLDivElement>(null);
-  const shelfRef     = useRef<HTMLDivElement>(null);
-  const authorsRef   = useRef<HTMLDivElement>(null);
-  const flashEnd     = useRef(new Date(Date.now() + 8 * 3600 * 1000)).current;
-  const countdown    = useCountdown(flashEnd);
-
-  const goToSlide = useCallback((fn: (i: number) => number) => { setSlideIndex(fn); setSlideKey(k => k + 1); }, []);
-  useEffect(() => { const id = setInterval(() => setSlideIndex(i => (i + 1) % 3), 5000); return () => clearInterval(id); }, [slideKey]);
+  const flashRef   = useRef<HTMLDivElement>(null);
+  const shelfRef   = useRef<HTMLDivElement>(null);
+  const authorsRef = useRef<HTMLDivElement>(null);
+  const flashEnd   = useRef(new Date(Date.now() + 8 * 3600 * 1000)).current;
+  const countdown  = useCountdown(flashEnd);
 
   const scroll = (ref: React.RefObject<HTMLDivElement | null>, dir: 'l' | 'r') => {
     if (!ref.current) return;
     ref.current.scrollBy({ left: dir === 'l' ? -ref.current.clientWidth * 0.8 : ref.current.clientWidth * 0.8, behavior: 'smooth' });
   };
-
-  const HERO_SLIDES = [
-    { bg: 'from-green-900 to-green-700', img: 'https://images.unsplash.com/photo-1556909114-4d4a51b2f17e?q=80&w=1200&auto=format&fit=crop',  headlineBn: 'বাংলাদেশে পণ্য কিনুন',          headlineEn: 'Shop Products in Bangladesh',    subBn: 'সেরা দামে সেরা পণ্য — সরাসরি আপনার দোরগোড়ায়', subEn: 'Best products at best prices — delivered to your door', ctaBn: 'এখনই কিনুন', ctaEn: 'Shop Now', href: '/products' },
-    { bg: 'from-blue-900 to-blue-700',   img: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1200&auto=format&fit=crop',  headlineBn: 'বাংলাদেশের সেরা বইয়ের দোকান',   headlineEn: "Bangladesh's Best Bookstore",    subBn: '১ লাখেরও বেশি বই · সেরা দামে',       subEn: '100,000+ books · Best prices',   ctaBn: 'বই দেখুন',    ctaEn: 'Shop Books',   href: '/books' },
-    { bg: 'from-red-900 to-orange-700',  img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop', headlineBn: 'মেগা সেল চলছে!',               headlineEn: 'Mega Sale is Live!',             subBn: '৭০% পর্যন্ত ছাড় · সীমিত সময়',      subEn: 'Up to 70% off · Limited time',   ctaBn: 'অফার দেখুন', ctaEn: 'See Deals',    href: '/flash-deals' },
-  ] as const;
 
   /* API data */
   const { data: featuredProducts = [], isError: featuredError } = useQuery({ queryKey: ['products', 'featured'], queryFn: () => productsApi.getFeatured(12) });
@@ -478,8 +468,6 @@ export default function HomePage() {
   // Show a banner when all main product queries fail (API unreachable)
   const apiDown = newArrivalsError && bestError && flashError && featuredError && shelfError;
 
-  const slide = HERO_SLIDES[slideIndex] ?? HERO_SLIDES[0];
-
   return (
     <div style={{ backgroundColor: '#f5f5f5' }}>
       {/* API unreachable banner */}
@@ -491,122 +479,102 @@ export default function HomePage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════
-          HERO SECTION — keep as is
+          HERO SLIDER — full-width promotional carousel
       ═══════════════════════════════════════════════════════════════ */}
       <section className="w-full bg-gray-100 py-3 px-3 md:px-4">
-        <div className="max-w-[1400px] mx-auto flex flex-col xl:flex-row items-stretch gap-3">
+        <div className="max-w-[1400px] mx-auto">
+          <HeroSlider lang={lang} />
+        </div>
+      </section>
 
-          {/* Hero Banner */}
-          <div className="relative rounded-xl overflow-hidden flex-shrink-0 h-[220px] sm:h-[280px] xl:w-[360px] xl:h-auto xl:min-h-[440px] cursor-pointer group"
-            onClick={() => window.location.href = slide.href}>
-            <div className={`absolute inset-0 bg-gradient-to-br ${slide.bg} transition-all duration-700`} />
-            <Image src={slide.img} alt="hero" fill unoptimized priority className="object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-500" sizes="(max-width:1280px) 100vw, 360px" />
-            <div className="absolute inset-0 flex flex-col justify-end p-6 xl:p-8">
-              <h1 className="text-xl sm:text-2xl xl:text-3xl font-black text-white leading-tight mb-2">
-                {lang === 'bn' ? slide.headlineBn : slide.headlineEn}
-              </h1>
-              <p className="text-white/70 text-xs mb-5">{lang === 'bn' ? slide.subBn : slide.subEn}</p>
-              <span className="inline-flex items-center gap-2 bg-white text-gray-900 font-black text-sm px-5 py-2.5 rounded-lg w-fit group-hover:bg-yellow-400 transition-colors duration-300">
-                {lang === 'bn' ? slide.ctaBn : slide.ctaEn} <ArrowRight className="w-4 h-4" />
-              </span>
+      {/* ═══════════════════════════════════════════════════════════════
+          BELOW HERO — AdSlider + Quick Categories + Featured Products
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="w-full bg-gray-100 pb-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-3">
+
+          {/* Ad Slider (admin-managed) — falls back to Flash Sale teaser */}
+          <AdSlider
+            lang={lang}
+            fallback={
+              <Link href="/flash-deals" className="relative bg-gradient-to-br from-red-600 to-orange-500 rounded-xl p-5 overflow-hidden min-h-[160px] flex flex-col justify-between">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Flame className="w-4 h-4 text-yellow-300 animate-bounce" />
+                    <span className="text-yellow-200 text-xs font-bold uppercase tracking-widest animate-pulse">{lang === 'bn' ? 'ফ্ল্যাশ সেল' : 'Flash Sale'}</span>
+                  </div>
+                  <h3 className="text-xl font-black text-white leading-tight">{lang === 'bn' ? 'সীমিত সময়ের অফার' : 'Limited Time Deals'}</h3>
+                  <p className="text-orange-100 text-xs mt-1">{lang === 'bn' ? '৭০% পর্যন্ত ছাড়' : 'Up to 70% discount'}</p>
+                </div>
+                <div className="flex gap-1.5 items-center">
+                  {[{ v: pad(countdown.h), l: lang === 'bn' ? 'ঘণ্টা' : 'HRS' }, { v: pad(countdown.m), l: lang === 'bn' ? 'মিনিট' : 'MIN' }, { v: pad(countdown.s), l: lang === 'bn' ? 'সেকেন্ড' : 'SEC' }].map(({ v, l }, i) => (
+                    <div key={l} className="flex items-center gap-1">
+                      <div className="bg-black/30 backdrop-blur-sm text-white rounded-md px-2 py-1 text-center min-w-[36px]">
+                        <div className="text-sm font-black leading-none">{v}</div>
+                        <div className="text-[8px] opacity-70 mt-0.5">{l}</div>
+                      </div>
+                      {i < 2 && <span className="text-yellow-300 font-black text-xs">:</span>}
+                    </div>
+                  ))}
+                </div>
+              </Link>
+            }
+          />
+
+          {/* Quick Categories */}
+          <div className="bg-white rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-base">🔥</span>
+              <h3 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'বিভাগ' : 'Categories'}</h3>
             </div>
-            {/* Slide dots */}
-            <div className="absolute bottom-3 right-4 flex gap-1.5">
-              {[0,1,2].map(i => (
-                <button key={i} onClick={e => { e.stopPropagation(); goToSlide(() => i); }}
-                  className={`rounded-full transition-all ${i === slideIndex ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/50'}`} />
+            <div className="grid grid-cols-4 gap-2">
+              {(allCategories.length > 0 ? allCategories.slice(0, 8) : [
+                { id:'1', slug:'books',            name: lang === 'bn' ? 'বই' : 'Books' },
+                { id:'2', slug:'baby-products',    name: lang === 'bn' ? 'শিশু পণ্য' : 'Baby' },
+                { id:'3', slug:'leather-products', name: lang === 'bn' ? 'চামড়া' : 'Leather' },
+                { id:'4', slug:'organic-foods',    name: lang === 'bn' ? 'অর্গানিক' : 'Organic' },
+                { id:'5', slug:'handicrafts',      name: lang === 'bn' ? 'হস্তশিল্প' : 'Crafts' },
+                { id:'6', slug:'electronics',      name: lang === 'bn' ? 'ইলেকট্রনিক্স' : 'Electronics' },
+                { id:'7', slug:'daily-needs',      name: lang === 'bn' ? 'দৈনন্দিন' : 'Daily' },
+                { id:'8', slug:'default',          name: lang === 'bn' ? 'আরো' : 'More' },
+              ] as { id: string; slug: string; name: string }[]).map(cat => (
+                <Link key={cat.id} href={`/products?categorySlug=${cat.slug}`}
+                  className="flex flex-col items-center gap-1 p-1.5 rounded-lg hover:bg-blue-50 transition-colors group">
+                  <div className="w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center text-lg transition-colors">
+                    {CAT_EMOJI[cat.slug] ?? CAT_EMOJI.default}
+                  </div>
+                  <span className="text-[9px] font-semibold text-gray-600 text-center leading-tight">{cat.name}</span>
+                </Link>
               ))}
             </div>
           </div>
 
-          {/* Right: Flash Sale mini banner + Categories */}
-          <div className="flex flex-col gap-3 flex-1 min-w-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-              {/* Ad Slider (admin-managed) — falls back to Flash Sale teaser when empty */}
-              <AdSlider
-                lang={lang}
-                fallback={
-                  <Link href="/flash-deals" className="relative bg-gradient-to-br from-red-600 to-orange-500 rounded-xl p-5 overflow-hidden min-h-[160px] flex flex-col justify-between">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <Flame className="w-4 h-4 text-yellow-300 animate-bounce" />
-                        <span className="text-yellow-200 text-xs font-bold uppercase tracking-widest animate-pulse">{lang === 'bn' ? 'ফ্ল্যাশ সেল' : 'Flash Sale'}</span>
-                      </div>
-                      <h3 className="text-xl font-black text-white leading-tight">{lang === 'bn' ? 'সীমিত সময়ের অফার' : 'Limited Time Deals'}</h3>
-                      <p className="text-orange-100 text-xs mt-1">{lang === 'bn' ? '৭০% পর্যন্ত ছাড়' : 'Up to 70% discount'}</p>
-                    </div>
-                    <div className="flex gap-1.5 items-center">
-                      {[{ v: pad(countdown.h), l: lang === 'bn' ? 'ঘণ্টা' : 'HRS' }, { v: pad(countdown.m), l: lang === 'bn' ? 'মিনিট' : 'MIN' }, { v: pad(countdown.s), l: lang === 'bn' ? 'সেকেন্ড' : 'SEC' }].map(({ v, l }, i) => (
-                        <div key={l} className="flex items-center gap-1">
-                          <div className="bg-black/30 backdrop-blur-sm text-white rounded-md px-2 py-1 text-center min-w-[36px]">
-                            <div className="text-sm font-black leading-none">{v}</div>
-                            <div className="text-[8px] opacity-70 mt-0.5">{l}</div>
-                          </div>
-                          {i < 2 && <span className="text-yellow-300 font-black text-xs">:</span>}
-                        </div>
-                      ))}
-                    </div>
-                  </Link>
-                }
-              />
-
-              {/* Hot Categories */}
-              <div className="bg-white rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-base">🔥</span>
-                  <h3 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'বিভাগ' : 'Categories'}</h3>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {(allCategories.length > 0 ? allCategories.slice(0, 8) : [
-                    { id:'1', slug:'books',            name: lang === 'bn' ? 'বই' : 'Books' },
-                    { id:'2', slug:'baby-products',    name: lang === 'bn' ? 'শিশু পণ্য' : 'Baby' },
-                    { id:'3', slug:'leather-products', name: lang === 'bn' ? 'চামড়া' : 'Leather' },
-                    { id:'4', slug:'organic-foods',    name: lang === 'bn' ? 'অর্গানিক' : 'Organic' },
-                    { id:'5', slug:'handicrafts',      name: lang === 'bn' ? 'হস্তশিল্প' : 'Crafts' },
-                    { id:'6', slug:'electronics',      name: lang === 'bn' ? 'ইলেকট্রনিক্স' : 'Electronics' },
-                    { id:'7', slug:'daily-needs',      name: lang === 'bn' ? 'দৈনন্দিন' : 'Daily' },
-                    { id:'8', slug:'default',          name: lang === 'bn' ? 'আরো' : 'More' },
-                  ] as { id: string; slug: string; name: string }[]).map(cat => (
-                    <Link key={cat.id} href={`/products?categorySlug=${cat.slug}`}
-                      className="flex flex-col items-center gap-1 p-1.5 rounded-lg hover:bg-blue-50 transition-colors group">
-                      <div className="w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center text-lg transition-colors">
-                        {CAT_EMOJI[cat.slug] ?? CAT_EMOJI.default}
-                      </div>
-                      <span className="text-[9px] font-semibold text-gray-600 text-center leading-tight">{cat.name}</span>
-                    </Link>
-                  ))}
-                </div>
+          {/* Featured Products horizontal mini */}
+          <div className="bg-white rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-1 h-5 bg-blue-600 rounded-full" />
+                <h3 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'ফিচার্ড পণ্য' : 'Featured'}</h3>
               </div>
+              <Link href="/products?isFeatured=true" className="text-[11px] font-bold text-orange-500 flex items-center gap-0.5 hover:underline">
+                {lang === 'bn' ? 'সব দেখুন' : 'All'} <ArrowRight className="w-3 h-3" />
+              </Link>
             </div>
-
-            {/* Featured Products horizontal mini */}
-            <div className="bg-white rounded-xl p-4 flex-1">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-blue-600 rounded-full" />
-                  <h3 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'ফিচার্ড পণ্য' : 'Featured Products'}</h3>
-                </div>
-                <Link href="/products?isFeatured=true" className="text-[11px] font-bold text-orange-500 flex items-center gap-0.5 hover:underline">
-                  {lang === 'bn' ? 'সব দেখুন' : 'View all'} <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
-              <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
-                {featuredProducts.length > 0
-                  ? featuredProducts
-                      .filter(p => p.images?.[0]?.url)
-                      .slice(0, 8)
-                      .map(p => <FeaturedItem key={p.id} p={p} lang={lang} />)
-                  : Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="flex-shrink-0 w-[115px] animate-pulse">
-                      <div className="w-full h-[150px] rounded-xl bg-gray-200 mb-1.5" />
-                      <div className="h-3 bg-gray-200 rounded mb-1" />
-                      <div className="h-3 bg-gray-200 rounded w-2/3" />
-                    </div>
-                  ))
-                }
-              </div>
+            <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+              {featuredProducts.length > 0
+                ? featuredProducts
+                    .filter(p => p.images?.[0]?.url)
+                    .slice(0, 6)
+                    .map(p => <FeaturedItem key={p.id} p={p} lang={lang} />)
+                : Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-[100px] animate-pulse">
+                    <div className="w-full h-[130px] rounded-xl bg-gray-200 mb-1.5" />
+                    <div className="h-3 bg-gray-200 rounded mb-1" />
+                    <div className="h-3 bg-gray-200 rounded w-2/3" />
+                  </div>
+                ))
+              }
             </div>
           </div>
         </div>

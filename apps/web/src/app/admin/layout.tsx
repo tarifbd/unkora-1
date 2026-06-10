@@ -18,6 +18,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { AiAssistant } from '@/components/admin/ai-assistant';
 
 /* ─── Nav tree structure ─────────────────────────────────────── */
 type NavLeaf = { href: string; label: string; icon: React.ElementType; exact?: boolean; keywords?: string[] };
@@ -843,6 +844,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { isAuthenticated, user } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
   const queryClient = useQueryClient();
 
   const handleClearCache = useCallback(async () => {
@@ -854,15 +856,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [queryClient]);
 
   useEffect(() => {
+    const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
+    if (useAuthStore.persist.hasHydrated()) setHydrated(true);
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
     if (pathname === '/admin/login') return;
     if (!isAuthenticated) { router.push('/admin/login'); return; }
     if (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN') router.push('/');
-  }, [isAuthenticated, user, router, pathname]);
+  }, [hydrated, isAuthenticated, user, router, pathname]);
 
   useEffect(() => { setSidebarOpen(false); }, [pathname]);
 
   if (pathname === '/admin/login') return <>{children}</>;
-  if (!isAuthenticated || (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN')) return null;
+  if (!hydrated || !isAuthenticated || (user?.role !== 'ADMIN' && user?.role !== 'SUPER_ADMIN')) return null;
 
   const initials = user
     ? `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase()
@@ -961,6 +970,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <QuickNavBar />
         <main className="flex-1 p-3 sm:p-6">{children}</main>
       </div>
+
+      {/* AI Assistant — floating chat widget */}
+      <AiAssistant />
     </div>
   );
 }

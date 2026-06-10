@@ -1,16 +1,18 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import Link from 'next/link';
 import {
   TrendingUp, ShoppingBag, Package, Users, AlertTriangle, Star,
   ArrowRight, Loader2, Plus, Tag, FileBarChart, Activity, Clock,
   CheckCircle2, XCircle, Truck, RefreshCw, Zap, ShoppingCart,
-  Layers, CreditCard, Banknote, LayoutGrid, ChevronRight,
+  Layers, CreditCard, Banknote, LayoutGrid, ChevronRight, Sparkles, Bot,
 } from 'lucide-react';
 import { adminApi } from '@/lib/api/admin';
 import { formatCurrency } from '@/lib/utils';
 import { createProgressToast } from '@/components/ui/progress-toast';
+import api from '@/lib/api';
 
 // ─── Sparkline ────────────────────────────────────────────────────────────────
 function Sparkline({ data }: { data: { label: string; value: number }[] }) {
@@ -173,6 +175,75 @@ function MiniStat({ label, value, icon, color }: { label: string; value: string;
       <div>
         <p className="text-lg font-black text-gray-800">{value}</p>
         <p className="text-[11px] text-gray-500 font-medium">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── AI Sales Forecast Widget ─────────────────────────────────────────────────
+function AiForecastWidget({ stats, chart }: { stats: any; chart: any[] | undefined }) {
+  const [forecast, setForecast] = useState<string | null>(null);
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const totalRevenue = stats?.revenue?.total ?? 0;
+      const monthRevenue = stats?.revenue?.thisMonth ?? 0;
+      const todayRevenue = stats?.revenue?.today ?? 0;
+      const totalOrders = stats?.orders?.total ?? 0;
+      const pendingOrders = stats?.orders?.pending ?? 0;
+      const chartSummary = (chart ?? []).slice(-7).map((d: any) => `${d.date}: ৳${d.revenue}`).join(', ');
+
+      const prompt = `You are a sales analyst for UNKORA, a Bangladeshi eCommerce store.
+Based on these metrics, provide a concise 2-3 sentence sales forecast and 2 actionable recommendations for this week.
+
+Current metrics:
+- Total revenue: ৳${totalRevenue}
+- This month: ৳${monthRevenue}
+- Today: ৳${todayRevenue}
+- Total orders: ${totalOrders}
+- Pending orders: ${pendingOrders}
+- Last 7 days revenue: ${chartSummary || 'N/A'}
+
+Keep the response practical and specific. Use ৳ for currency. No markdown, plain text only.`;
+
+      const { data } = await api.post('/admin/ai/generate/custom', { prompt, outputFormat: 'text' });
+      return String(data?.data?.generatedContent ?? data?.data?.content ?? 'Unable to generate forecast.');
+    },
+    onSuccess: (result) => setForecast(result),
+  });
+
+  return (
+    <div className="rounded-2xl bg-white shadow-lg border border-gray-100 overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3.5" style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}>
+        <div className="flex items-center gap-2.5">
+          <div className="rounded-xl p-1.5 bg-white/20"><Bot className="h-4 w-4 text-white" /></div>
+          <div>
+            <p className="font-bold text-sm text-white">AI Sales Forecast</p>
+            <p className="text-xs text-white/60">Powered by AI analysis</p>
+          </div>
+        </div>
+        <button
+          onClick={() => mutation.mutate()}
+          disabled={mutation.isPending}
+          className="flex items-center gap-1.5 rounded-lg bg-white/20 hover:bg-white/30 px-3 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-50"
+        >
+          {mutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+          {mutation.isPending ? 'Analyzing…' : forecast ? 'Refresh' : 'Generate'}
+        </button>
+      </div>
+      <div className="p-4">
+        {forecast ? (
+          <p className="text-sm text-gray-700 leading-relaxed">{forecast}</p>
+        ) : mutation.isPending ? (
+          <div className="flex items-center gap-2 py-2">
+            <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+            <p className="text-sm text-gray-400">Generating AI-powered forecast…</p>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 py-2">
+            <Bot className="h-8 w-8 text-indigo-200 flex-shrink-0" />
+            <p className="text-sm text-gray-400">Click Generate to get an AI-powered sales forecast and recommendations based on your current store data.</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -674,6 +745,9 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* ── AI Sales Forecast ─────────────────────────────────────────── */}
+      <AiForecastWidget stats={stats} chart={chart} />
 
     </div>
   );
