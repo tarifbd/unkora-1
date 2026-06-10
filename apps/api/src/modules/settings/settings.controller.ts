@@ -63,6 +63,8 @@ export class SettingsController {
       'analytics.pixel.enabled', 'analytics.pixel.pixelId',
       'analytics.capi.enabled', 'analytics.capi.pixelId', 'analytics.capi.accessToken',
       'analytics.gsc.verificationTag', 'analytics.gsc.sitemapUrl',
+      'analytics.clarity.enabled', 'analytics.clarity.projectId',
+      'analytics.tiktok.enabled', 'analytics.tiktok.pixelId',
     ];
     const filtered = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)));
     await this.settingsService.setMany(filtered);

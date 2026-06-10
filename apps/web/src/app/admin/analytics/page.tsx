@@ -1,12 +1,14 @@
 'use client';
 import Link from 'next/link';
-import { BarChart3, Target, Tag, Globe, CheckCircle2, XCircle } from 'lucide-react';
+import { BarChart3, Target, Tag, Globe, CheckCircle2, XCircle, MousePointerClick, Video } from 'lucide-react';
 
 const TOOLS = [
   { href: '/admin/analytics/google-analytics', icon: BarChart3, title: 'Google Analytics 4', desc: 'Track traffic, conversions and user behavior with GA4 measurement', color: '#f97316', badge: 'GA4', configured: false },
   { href: '/admin/analytics/google-tag-manager', icon: Tag, title: 'Google Tag Manager', desc: 'Manage all tracking tags from one place without touching code', color: '#3b82f6', badge: 'GTM', configured: false },
   { href: '/admin/analytics/meta-pixel', icon: Target, title: 'Meta Pixel & CAPI', desc: 'Facebook & Instagram conversion tracking with Conversions API', color: '#1877f2', badge: 'META', configured: false },
   { href: '/admin/analytics/google-search-console', icon: Globe, title: 'Google Search Console', desc: 'Monitor SEO performance, indexing status and search visibility', color: '#10b981', badge: 'GSC', configured: false },
+  { href: '/admin/analytics/microsoft-clarity', icon: MousePointerClick, title: 'Microsoft Clarity', desc: 'Session recordings, heatmaps and user behavior insights — free', color: '#0078d4', badge: 'CLARITY', configured: false },
+  { href: '/admin/analytics/tiktok-pixel', icon: Video, title: 'TikTok Pixel', desc: 'Track conversions from TikTok ads and measure campaign performance', color: '#010101', badge: 'TIKTOK', configured: false },
 ];
 
 export default function AnalyticsHubPage() {
