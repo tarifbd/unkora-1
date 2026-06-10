@@ -14,6 +14,7 @@ import api from '@/lib/api';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useCart } from '@/lib/hooks/use-cart';
 import { WishlistButton } from '@/components/product/wishlist-button';
+import { AdSlider } from '@/components/home/ad-slider';
 
 /* ─────────────────────── static data ─────────────────────────────── */
 
@@ -522,29 +523,34 @@ export default function HomePage() {
           <div className="flex flex-col gap-3 flex-1 min-w-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
-              {/* Flash Sale teaser */}
-              <div className="relative bg-gradient-to-br from-red-600 to-orange-500 rounded-xl p-5 overflow-hidden min-h-[160px] flex flex-col justify-between">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Flame className="w-4 h-4 text-yellow-300 animate-bounce" />
-                    <span className="text-yellow-200 text-xs font-bold uppercase tracking-widest animate-pulse">{lang === 'bn' ? 'ফ্ল্যাশ সেল' : 'Flash Sale'}</span>
-                  </div>
-                  <h3 className="text-xl font-black text-white leading-tight">{lang === 'bn' ? 'সীমিত সময়ের অফার' : 'Limited Time Deals'}</h3>
-                  <p className="text-orange-100 text-xs mt-1">{lang === 'bn' ? '৭০% পর্যন্ত ছাড়' : 'Up to 70% discount'}</p>
-                </div>
-                <div className="flex gap-1.5 items-center">
-                  {[{ v: pad(countdown.h), l: lang === 'bn' ? 'ঘণ্টা' : 'HRS' }, { v: pad(countdown.m), l: lang === 'bn' ? 'মিনিট' : 'MIN' }, { v: pad(countdown.s), l: lang === 'bn' ? 'সেকেন্ড' : 'SEC' }].map(({ v, l }, i) => (
-                    <div key={l} className="flex items-center gap-1">
-                      <div className="bg-black/30 backdrop-blur-sm text-white rounded-md px-2 py-1 text-center min-w-[36px]">
-                        <div className="text-sm font-black leading-none">{v}</div>
-                        <div className="text-[8px] opacity-70 mt-0.5">{l}</div>
+              {/* Ad Slider (admin-managed) — falls back to Flash Sale teaser when empty */}
+              <AdSlider
+                lang={lang}
+                fallback={
+                  <Link href="/flash-deals" className="relative bg-gradient-to-br from-red-600 to-orange-500 rounded-xl p-5 overflow-hidden min-h-[160px] flex flex-col justify-between">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Flame className="w-4 h-4 text-yellow-300 animate-bounce" />
+                        <span className="text-yellow-200 text-xs font-bold uppercase tracking-widest animate-pulse">{lang === 'bn' ? 'ফ্ল্যাশ সেল' : 'Flash Sale'}</span>
                       </div>
-                      {i < 2 && <span className="text-yellow-300 font-black text-xs">:</span>}
+                      <h3 className="text-xl font-black text-white leading-tight">{lang === 'bn' ? 'সীমিত সময়ের অফার' : 'Limited Time Deals'}</h3>
+                      <p className="text-orange-100 text-xs mt-1">{lang === 'bn' ? '৭০% পর্যন্ত ছাড়' : 'Up to 70% discount'}</p>
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <div className="flex gap-1.5 items-center">
+                      {[{ v: pad(countdown.h), l: lang === 'bn' ? 'ঘণ্টা' : 'HRS' }, { v: pad(countdown.m), l: lang === 'bn' ? 'মিনিট' : 'MIN' }, { v: pad(countdown.s), l: lang === 'bn' ? 'সেকেন্ড' : 'SEC' }].map(({ v, l }, i) => (
+                        <div key={l} className="flex items-center gap-1">
+                          <div className="bg-black/30 backdrop-blur-sm text-white rounded-md px-2 py-1 text-center min-w-[36px]">
+                            <div className="text-sm font-black leading-none">{v}</div>
+                            <div className="text-[8px] opacity-70 mt-0.5">{l}</div>
+                          </div>
+                          {i < 2 && <span className="text-yellow-300 font-black text-xs">:</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </Link>
+                }
+              />
 
               {/* Hot Categories */}
               <div className="bg-white rounded-xl p-4">

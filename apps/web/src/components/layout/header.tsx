@@ -762,25 +762,6 @@ export function Header() {
                 <HelpCircle className="w-3 h-3" /> {t.header.support}
               </Link>
               <Link href="/track-order" className="hover:text-primary transition-colors">{t.header.trackOrder}</Link>
-              <Link href="/publish" className="sell-border-wrapper ml-2 normal-case hover:scale-110 transition-transform duration-200 group">
-                {/* Floating sparkles */}
-                <span className="sell-spark sell-spark-1" />
-                <span className="sell-spark sell-spark-2" />
-                <span className="sell-spark sell-spark-3" />
-                <span className="sell-spark sell-spark-4" />
-                <div className="sell-cta-inner">
-                  {/* Ping dot */}
-                  <span className="relative flex h-2 w-2 flex-shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
-                  </span>
-                  <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Sell Your Book</span>
-                  <span className="text-white/30 text-[10px]">/</span>
-                  <span className="sell-bn-text whitespace-nowrap">বই বিক্রি করুন</span>
-                  {/* Hover shine sweep */}
-                  <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-full" />
-                </div>
-              </Link>
             </div>
           </div>
         </div>
@@ -1040,6 +1021,27 @@ export function Header() {
         <div className="bg-white hidden lg:block border-b border-gray-200 relative z-30" ref={megaRef}>
           <div className="max-w-7xl mx-auto pl-4 flex items-center relative">
 
+            {/* Sell Your Book — far left */}
+            <Link href="/publish" className="sell-border-wrapper normal-case hover:scale-105 transition-transform duration-200 group shrink-0 mr-4 self-center">
+              {/* Floating sparkles */}
+              <span className="sell-spark sell-spark-1" />
+              <span className="sell-spark sell-spark-2" />
+              <span className="sell-spark sell-spark-3" />
+              <span className="sell-spark sell-spark-4" />
+              <div className="sell-cta-inner">
+                {/* Ping dot */}
+                <span className="relative flex h-2 w-2 flex-shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
+                </span>
+                <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Sell Your Book</span>
+                <span className="text-white/30 text-[10px]">/</span>
+                <span className="sell-bn-text whitespace-nowrap">বই বিক্রি করুন</span>
+                {/* Hover shine sweep */}
+                <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-full" />
+              </div>
+            </Link>
+
             {/* All Departments button */}
             <div className="relative h-[48px] flex items-center mr-6 shrink-0">
               <button
@@ -1262,12 +1264,12 @@ export function Header() {
               ))}
             </nav>
 
-            <Link href="/preorder" className="shrink-0 px-4 h-[48px] flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:text-emerald-600 transition-colors ml-auto">
+            <Link href="/flash-deals" className="shrink-0 px-4 h-[48px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors ml-auto">
+              {t.header.dealOfDay} <span className="text-red-600 text-lg ml-1">🔥</span>
+            </Link>
+            <Link href="/preorder" className="shrink-0 pl-4 h-[48px] flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:text-emerald-600 transition-colors">
               <CalendarClock className="w-4 h-4" />
               {lang === 'bn' ? 'প্রি-অর্ডার' : 'Pre-Order'}
-            </Link>
-            <Link href="/flash-deals" className="shrink-0 px-4 h-[48px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors">
-              {t.header.dealOfDay} <span className="text-red-600 text-lg ml-1">🔥</span>
             </Link>
           </div>
         </div>

@@ -21,9 +21,10 @@ interface Banner {
 }
 type Form = { title: string; imageUrl: string; linkUrl: string; position: string; startsAt: string; endsAt: string };
 
-const EMPTY: Form = { title: '', imageUrl: '', linkUrl: '', position: 'PROMO', startsAt: '', endsAt: '' };
-const POSITIONS = ['PROMO', 'HERO', 'CATEGORY', 'SIDEBAR', 'FOOTER', 'POPUP'];
+const EMPTY: Form = { title: '', imageUrl: '', linkUrl: '', position: 'AD_SLIDER', startsAt: '', endsAt: '' };
+const POSITIONS = ['AD_SLIDER', 'PROMO', 'HERO', 'CATEGORY', 'SIDEBAR', 'FOOTER', 'POPUP'];
 const POS_COLOR: Record<string, string> = {
+  AD_SLIDER: 'bg-emerald-100 text-emerald-700',
   PROMO: 'bg-orange-100 text-orange-700',
   HERO: 'bg-blue-100 text-blue-700',
   CATEGORY: 'bg-purple-100 text-purple-700',
@@ -133,7 +134,7 @@ export default function BannersPage() {
             <Layers className="h-5 w-5 text-orange-500" /> Banners & Promotional Images
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Upload clickable banner images. <strong>PROMO</strong> banners appear in the homepage middle section.
+            Upload clickable banner images. <strong>AD_SLIDER</strong> banners show in the homepage hero ad slider (top-left). <strong>PROMO</strong> banners appear in the homepage middle section.
           </p>
         </div>
         <button onClick={openNew}
