@@ -25,7 +25,7 @@ function SmartCTA() {
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Link href="/login?redirect=/seller/apply"
+        <Link href="/seller/register"
           className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-4 px-10 rounded-2xl text-lg transition-all hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5">
           বিক্রি শুরু করুন <ArrowRight className="w-5 h-5" />
         </Link>
@@ -104,7 +104,7 @@ function FinalCTA() {
   if (!isAuthenticated) {
     return (
       <div className="flex flex-col sm:flex-row gap-4 justify-center">
-        <Link href="/login?redirect=/seller/apply"
+        <Link href="/seller/register"
           className="inline-flex items-center gap-3 bg-primary text-white font-black py-4 px-10 rounded-2xl text-lg hover:bg-primary/90 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30">
           <BookOpen className="w-6 h-6" /> সেলার হিসেবে নিবন্ধন করুন
         </Link>
@@ -324,7 +324,7 @@ export default function SellOnUnkoraPage() {
                 title: 'সেলার হিসেবে নিবন্ধন',
                 en: 'Register as Seller',
                 desc: 'বিনামূল্যে সেলার অ্যাকাউন্ট খুলুন। দোকানের নাম ও তথ্য দিন।',
-                link: '/seller/apply',
+                link: '/seller/register',
               },
               {
                 step: '২', icon: '📤', color: 'from-purple-500 to-purple-600',

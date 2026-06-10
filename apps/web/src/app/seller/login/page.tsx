@@ -180,7 +180,7 @@ export default function SellerLoginPage() {
 
           <div className="mt-6 text-center">
             <span className="text-sm text-gray-500">{t.noAccount} </span>
-            <Link href="/seller/apply" className="text-sm font-bold text-primary hover:underline">{t.apply}</Link>
+            <Link href="/seller/register" className="text-sm font-bold text-primary hover:underline">{t.apply}</Link>
           </div>
 
           <div className="mt-4 pt-4 border-t border-gray-100 text-center">
