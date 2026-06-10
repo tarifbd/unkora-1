@@ -209,9 +209,9 @@ const NAV: NavItem[] = [
   /* ───── INTELLIGENCE ───── */
   { type: 'divider', label: 'INTELLIGENCE' },
   {
-    label: 'AI Studio', icon: Sparkles,
+    label: 'AI & Automation', icon: Sparkles,
     children: [
-      { href: '/admin/ai-studio',              label: 'AI Studio',        icon: Sparkles,  keywords: ['artificial intelligence', 'gpt'] },
+      { href: '/admin/ai-studio',              label: 'AI Studio',        icon: Sparkles,  keywords: ['artificial intelligence', 'gpt', 'ai automation'] },
       { href: '/admin/ai-studio/orchestrator', label: 'Orchestrator',     icon: Cpu,       keywords: ['workflow', 'automation'] },
       { href: '/admin/ai-studio/agents',       label: 'Agents',           icon: Bot,       keywords: ['assistant', 'bot'] },
       { href: '/admin/ai-studio/providers',    label: 'Providers',        icon: Zap,       keywords: ['openai', 'anthropic', 'model'] },
@@ -461,7 +461,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/seo/redirects': 'Redirects',
   '/admin/seo/products': 'Product SEO',
   '/admin/seo/categories': 'Category SEO',
-  '/admin/ai-studio': 'AI Studio',
+  '/admin/ai-studio': 'AI & Automation',
   '/admin/ai-studio/orchestrator': 'AI Orchestrator',
   '/admin/ai-studio/agents': 'AI Agents',
   '/admin/ai-studio/providers': 'AI Providers',
