@@ -246,7 +246,8 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
             className={`relative flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-[11px] font-black transition-all overflow-hidden ${inStock ? 'bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
           >
             <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-            {lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}
+            <span className="hidden sm:inline">{lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}</span>
+            <span className="sm:hidden">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
           </button>
           <WishlistButton
             productId={product.id}
@@ -259,7 +260,8 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
           <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
             className="flex items-center justify-center gap-1.5 h-9 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl text-[11px] font-black shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20">
             <Zap className="w-3.5 h-3.5 flex-shrink-0" />
-            {lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}
+            <span className="hidden sm:inline">{lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}</span>
+            <span className="sm:hidden">{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
           </Link>
         ) : (
           <div className="h-9 flex items-center justify-center rounded-xl bg-gray-100 text-gray-400 text-[11px] font-black">
@@ -342,7 +344,7 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
             disabled={!inStock}
             className={`flex-1 flex items-center justify-center gap-1 h-8 rounded-lg text-[10px] font-black transition-all overflow-hidden ${inStock ? 'bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-md shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
             <ShoppingCart className="w-3 h-3 flex-shrink-0" />
-            <span>{lang === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
+            <span className="truncate">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
           </button>
           <WishlistButton
             productId={product.id}
@@ -353,7 +355,7 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
           <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
             className="flex items-center justify-center gap-1 h-8 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-lg text-[10px] font-black shadow-md shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20">
             <Zap className="w-3 h-3 flex-shrink-0" />
-            <span>{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
+            <span className="truncate">{lang === 'bn' ? 'কিনুন' : 'Buy Now'}</span>
           </Link>
         ) : (
           <div className="h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-400 text-[10px] font-black">
@@ -650,18 +652,18 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-5 px-3 md:px-4">
         <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-red-500 text-white px-3 py-1.5 rounded-full shadow-lg shadow-red-200 animate-pulse">
-                <Flame className="w-4 h-4 animate-bounce" />
-                <span className="font-black text-sm">{lang === 'bn' ? 'ফ্ল্যাশ ডিল' : 'Flash Deals'}</span>
+          <div className="flex flex-wrap items-center justify-between gap-y-2 mb-4">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-red-500 text-white px-2.5 sm:px-3 py-1.5 rounded-full shadow-lg shadow-red-200 animate-pulse">
+                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-bounce" />
+                <span className="font-black text-xs sm:text-sm">{lang === 'bn' ? 'ফ্ল্যাশ ডিল' : 'Flash Deals'}</span>
               </div>
               <div className="flex gap-1 items-center">
                 {[{ v: pad(countdown.h), l: 'H' }, { v: pad(countdown.m), l: 'M' }, { v: pad(countdown.s), l: 'S' }].map(({ v, l }, i) => (
                   <div key={l} className="flex items-center gap-1">
-                    <div className="bg-gray-900 text-white rounded px-2 py-1 text-center min-w-[32px]">
-                      <div className="text-sm font-black leading-none">{v}</div>
-                      <div className="text-[7px] opacity-60">{l}</div>
+                    <div className="bg-gray-900 text-white rounded px-1.5 sm:px-2 py-1 text-center min-w-[28px] sm:min-w-[32px]">
+                      <div className="text-xs sm:text-sm font-black leading-none">{v}</div>
+                      <div className="text-[6px] sm:text-[7px] opacity-60">{l}</div>
                     </div>
                     {i < 2 && <span className="text-gray-400 font-black text-xs">:</span>}
                   </div>

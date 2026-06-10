@@ -62,7 +62,7 @@ export function AdSlider({ fallback, lang = 'en' }: { fallback?: React.ReactNode
 
   return (
     <div
-      className="group relative rounded-xl overflow-hidden min-h-[160px] h-full bg-gray-900 shadow-lg"
+      className="group relative rounded-xl overflow-hidden min-h-[140px] sm:min-h-[180px] h-full bg-gray-900 shadow-lg"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >

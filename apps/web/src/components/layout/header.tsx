@@ -1025,8 +1025,8 @@ export function Header() {
           </div>
 
           {/* Mobile Search */}
-          <div className="mt-3 md:hidden bg-primary/20 p-2 rounded-lg">
-            <form onSubmit={handleSearch} className="flex rounded-lg overflow-hidden border-2 border-white bg-white focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all duration-300">
+          <div className="mt-2 pb-2 md:hidden">
+            <form onSubmit={handleSearch} className="flex rounded-lg overflow-hidden border-2 border-gray-200 bg-white focus-within:border-primary transition-all duration-300">
               <input
                 type="text"
                 value={searchQuery}

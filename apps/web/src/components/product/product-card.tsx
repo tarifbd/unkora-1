@@ -245,7 +245,8 @@ export function ProductCard({ product, className, listView, mini }: ProductCardP
               className="flex items-center justify-center gap-1 h-9 rounded-xl text-xs font-black transition-all bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10"
             >
               <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>{lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}</span>
+              <span className="hidden sm:inline">{lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}</span>
+              <span className="sm:hidden">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
             </button>
 
             {/* Buy Now */}
@@ -255,7 +256,8 @@ export function ProductCard({ product, className, listView, mini }: ProductCardP
               className="flex items-center justify-center gap-1 h-9 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl text-xs font-black shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20"
             >
               <Zap className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>{lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}</span>
+              <span className="hidden sm:inline">{lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}</span>
+              <span className="sm:hidden">{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
             </Link>
           </div>
         )}

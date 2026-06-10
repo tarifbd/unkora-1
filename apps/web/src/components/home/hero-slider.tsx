@@ -205,8 +205,7 @@ export function HeroSlider({ lang = 'en' }: { lang?: 'en' | 'bn' }) {
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-xl bg-gray-900 select-none"
-      style={{ height: 'clamp(200px, 32vw, 400px)' }}
+      className="relative w-full overflow-hidden rounded-xl bg-gray-900 select-none h-[220px] sm:h-[300px] md:h-[390px] lg:h-[460px] xl:h-[520px]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -273,7 +272,7 @@ export function HeroSlider({ lang = 'en' }: { lang?: 'en' | 'bn' }) {
               <Link
                 href={s.linkUrl}
                 key={`content-${animKey}`}
-                className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 md:p-12"
+                className="absolute inset-0 flex flex-col justify-end p-4 sm:p-8 md:p-12"
                 style={{
                   zIndex: 10,
                   animation: `hs-slide-${dir} 700ms cubic-bezier(0.22, 1, 0.36, 1) forwards`,
@@ -283,7 +282,7 @@ export function HeroSlider({ lang = 'en' }: { lang?: 'en' | 'bn' }) {
                   {/* Badge */}
                   {s.badge && (
                     <span
-                      className="inline-block mb-3 px-3 py-1 text-[11px] font-black uppercase tracking-widest text-white rounded-full shadow-lg"
+                      className="inline-block mb-2 sm:mb-3 px-2.5 sm:px-3 py-0.5 sm:py-1 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-white rounded-full shadow-lg"
                       style={{
                         background: `linear-gradient(135deg, ${s.accentFrom}, ${s.accentTo})`,
                         animation: 'hs-pop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) 150ms both',
@@ -295,25 +294,33 @@ export function HeroSlider({ lang = 'en' }: { lang?: 'en' | 'bn' }) {
 
                   {/* Title */}
                   <h1
-                    className="text-2xl sm:text-3xl md:text-[2.4rem] font-black text-white leading-tight mb-2 drop-shadow-lg"
+                    className="text-xl sm:text-2xl md:text-3xl lg:text-[2.4rem] font-black text-white leading-tight mb-1.5 sm:mb-2 drop-shadow-lg"
                     style={{ animation: 'hs-fadeup 600ms cubic-bezier(0.16, 1, 0.3, 1) 250ms both' }}
                   >
                     {s.title}
                   </h1>
 
-                  {/* Subtitle */}
+                  {/* Subtitle — hidden on very small phones to save space */}
                   {s.subtitle && (
                     <p
-                      className="text-white/80 text-sm sm:text-base mb-5 drop-shadow max-w-lg"
+                      className="hidden sm:block text-white/80 text-sm sm:text-base mb-4 sm:mb-5 drop-shadow max-w-lg line-clamp-2"
                       style={{ animation: 'hs-fadeup 600ms cubic-bezier(0.16, 1, 0.3, 1) 370ms both' }}
                     >
                       {s.subtitle}
                     </p>
                   )}
 
+                  {/* Subtitle short — only on very small phones */}
+                  {s.subtitle && (
+                    <p className="sm:hidden text-white/75 text-[11px] mb-2.5 drop-shadow line-clamp-1"
+                      style={{ animation: 'hs-fadeup 600ms cubic-bezier(0.16, 1, 0.3, 1) 370ms both' }}>
+                      {s.subtitle}
+                    </p>
+                  )}
+
                   {/* CTA */}
                   <span
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-sm text-white shadow-xl hover:brightness-110 transition-all"
+                    className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-1.5 sm:py-2.5 rounded-xl font-black text-xs sm:text-sm text-white shadow-xl hover:brightness-110 transition-all"
                     style={{
                       background: `linear-gradient(135deg, ${s.accentFrom}, ${s.accentTo})`,
                       animation: 'hs-fadeup 600ms cubic-bezier(0.16, 1, 0.3, 1) 470ms both',
@@ -321,7 +328,7 @@ export function HeroSlider({ lang = 'en' }: { lang?: 'en' | 'bn' }) {
                     }}
                   >
                     {s.ctaText}
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </span>
                 </div>
               </Link>
@@ -332,7 +339,7 @@ export function HeroSlider({ lang = 'en' }: { lang?: 'en' | 'bn' }) {
 
       {/* ── Category dot tabs ─────────────────────────────────────────────── */}
       {count > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
+        <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
           {slides.map((s, i) => (
             <button
               key={s.id}
@@ -340,8 +347,8 @@ export function HeroSlider({ lang = 'en' }: { lang?: 'en' | 'bn' }) {
               aria-label={`Go to slide ${i + 1}`}
               className="transition-all duration-300 rounded-full overflow-hidden"
               style={{
-                width: i === idx ? 28 : 8,
-                height: 8,
+                width: i === idx ? 24 : 7,
+                height: 7,
                 background: i === idx
                   ? `linear-gradient(90deg, ${slide.accentFrom}, ${slide.accentTo})`
                   : 'rgba(255,255,255,0.45)',
@@ -356,17 +363,17 @@ export function HeroSlider({ lang = 'en' }: { lang?: 'en' | 'bn' }) {
         <>
           <button
             onClick={e => { e.preventDefault(); prev(); }}
-            className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-sm flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95"
+            className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-sm flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95"
             aria-label="Previous slide"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           <button
             onClick={e => { e.preventDefault(); next(); }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-sm flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95"
+            className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-sm flex items-center justify-center text-white transition-all hover:scale-110 active:scale-95"
             aria-label="Next slide"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </>
       )}
