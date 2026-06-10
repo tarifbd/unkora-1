@@ -187,7 +187,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 href={`/checkout?productSlug=${product.slug}&qty=${qty}`}
                 className="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl font-black text-sm shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-[0.98] transition-all ring-1 ring-white/20"
               >
-                <Zap className="h-4 w-4" /> এখনই কিনুন
+                <Zap className="h-4 w-4" /> {t.productDetail.buyNow}
               </Link>
             </div>
           )}
@@ -244,14 +244,14 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/20 text-white text-xs font-bold hover:bg-white/10 transition-colors"
               >
                 <ShoppingCart className="h-3.5 w-3.5" />
-                <span className="hidden xs:inline">কার্ট</span>
+                <span className="hidden xs:inline">{t.productDetail.cartShort}</span>
               </button>
               <Link
                 href={`/checkout?productSlug=${product.slug}&qty=${qty}`}
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-orange-500 text-white text-xs font-black hover:bg-orange-600 active:scale-95 transition-all"
               >
                 <Zap className="h-3.5 w-3.5" />
-                এখনই কিনুন
+                {t.productDetail.buyNow}
               </Link>
             </div>
           </div>
@@ -264,6 +264,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 }
 
 function RelatedProducts({ categorySlug, currentId }: { categorySlug: string; currentId: string }) {
+  const { t } = useLanguage();
   const { data } = useQuery({
     queryKey: ['related-products', categorySlug],
     queryFn: () => productsApi.getAll({ categorySlug, limit: 12 }),
@@ -272,7 +273,7 @@ function RelatedProducts({ categorySlug, currentId }: { categorySlug: string; cu
   if (!related.length) return null;
   return (
     <div className="mt-12 border-t pt-10">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">আপনার পছন্দ হতে পারে</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-4">{t.productDetail.relatedProducts}</h2>
       <div className="flex gap-3 overflow-x-auto pb-3 [scrollbar-width:thin] [scrollbar-color:#e5e7eb_transparent]">
         {related.map(p => (
           <div key={p.id} className="flex-shrink-0 w-44">

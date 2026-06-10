@@ -116,10 +116,10 @@ const PRICE_PRESETS = [
 ];
 
 const TAG_OPTIONS = [
-  { value: 'flash-deal', label: 'Flash Deals', labelBn: 'ফ্ল্যাশ ডিল', icon: Zap, color: 'text-orange-500' },
-  { value: 'new-arrival', label: 'New Arrival', labelBn: 'নতুন আসা', icon: Package, color: 'text-blue-500' },
-  { value: 'bestseller', label: 'Best Seller', labelBn: 'বেস্ট সেলার', icon: Star, color: 'text-yellow-500' },
-  { value: 'sale', label: 'On Sale', labelBn: 'সেলে', icon: Tag, color: 'text-red-500' },
+  { value: 'flash-deal',  label: 'Flash Deals', labelBn: 'ফ্ল্যাশ ডিল',  icon: Zap,     color: 'text-orange-500' },
+  { value: 'new-arrival', label: 'New Arrival',  labelBn: 'নতুন আসা',    icon: Package, color: 'text-blue-500' },
+  { value: 'bestseller',  label: 'Best Seller',  labelBn: 'বেস্ট সেলার', icon: Star,    color: 'text-yellow-500' },
+  { value: 'sale',        label: 'On Sale',      labelBn: 'সেলে',         icon: Tag,     color: 'text-red-500' },
 ];
 
 const QUICK_FILTERS = [
@@ -156,6 +156,7 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
   activeCount: number;
   advanced?: boolean;
 }) {
+  const { t, lang } = useLanguage();
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
   const [sliderMin, setSliderMin] = useState(filters.minPrice ?? 0);
   const [sliderMax, setSliderMax] = useState(filters.maxPrice ?? PRICE_MAX);
@@ -194,26 +195,26 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
       <div className="flex items-center justify-between px-4 py-3.5 bg-gray-50 border-b">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-gray-500" />
-          <span className="text-sm font-black text-gray-800">Filters</span>
+          <span className="text-sm font-black text-gray-800">{t.products.filters}</span>
           {activeCount > 0 && <span className="text-[10px] bg-primary text-white font-bold px-1.5 py-0.5 rounded-full">{activeCount}</span>}
         </div>
         {activeCount > 0 && (
           <button onClick={onClear} className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 font-semibold transition-colors">
-            <RotateCcw className="w-3 h-3" /> Reset all
+            <RotateCcw className="w-3 h-3" /> {t.products.resetAll}
           </button>
         )}
       </div>
       {totalProducts !== undefined && (
         <div className="px-4 py-2 bg-primary/5 border-b">
-          <p className="text-xs text-primary font-semibold">{totalProducts.toLocaleString()} products found</p>
+          <p className="text-xs text-primary font-semibold">{totalProducts.toLocaleString()} {t.products.productsFound}</p>
         </div>
       )}
 
       {/* Categories */}
-      <Section title="Categories" icon={BookMarked} badge={filters.categorySlug ? 1 : 0}>
+      <Section title={t.products.filterCategories} icon={BookMarked} badge={filters.categorySlug ? 1 : 0}>
         <div className="space-y-0.5 -mx-1">
           <button onClick={() => onFilter({ categorySlug: undefined })} className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm text-left transition-colors ${!filters.categorySlug ? 'bg-primary text-white font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}>
-            <span>All Categories</span>
+            <span>{t.products.allCategories}</span>
             {!filters.categorySlug && totalProducts !== undefined && <span className="text-xs opacity-70">{totalProducts}</span>}
           </button>
           {parentCats.map(cat => {
@@ -251,14 +252,14 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
       </Section>
 
       {/* Price Range */}
-      <Section title="Price Range" icon={Tag} badge={(filters.minPrice || filters.maxPrice) ? 1 : 0}>
+      <Section title={t.products.priceRange} icon={Tag} badge={(filters.minPrice || filters.maxPrice) ? 1 : 0}>
         <PriceSlider min={sliderMin} max={sliderMax} onChange={(min, max) => { setSliderMin(min); setSliderMax(max); setPriceInputMin(min > 0 ? String(min) : ''); setPriceInputMax(max < PRICE_MAX ? String(max) : ''); }} />
         <div className="flex items-center gap-2 mt-3">
           <input type="number" placeholder="Min ৳" value={priceInputMin} onChange={e => { setPriceInputMin(e.target.value); setSliderMin(Number(e.target.value) || 0); }} className="flex-1 border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 text-center" />
           <span className="text-gray-300 text-xs">—</span>
           <input type="number" placeholder="Max ৳" value={priceInputMax} onChange={e => { setPriceInputMax(e.target.value); setSliderMax(Number(e.target.value) || PRICE_MAX); }} className="flex-1 border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30 text-center" />
         </div>
-        <button onClick={() => applyPrice(sliderMin, sliderMax)} className="w-full mt-2.5 bg-primary text-white rounded-lg py-2 text-xs font-bold hover:bg-primary/90 transition-colors">Apply Price</button>
+        <button onClick={() => applyPrice(sliderMin, sliderMax)} className="w-full mt-2.5 bg-primary text-white rounded-lg py-2 text-xs font-bold hover:bg-primary/90 transition-colors">{t.products.applyPrice}</button>
         <div className="mt-3 space-y-1">
           {PRICE_PRESETS.map(p => (
             <button key={p.label} onClick={() => { setSliderMin(p.min); setSliderMax(p.max); setPriceInputMin(p.min > 0 ? String(p.min) : ''); setPriceInputMax(p.max < PRICE_MAX ? String(p.max) : ''); applyPrice(p.min, p.max); }} className={`w-full text-left rounded-lg px-3 py-1.5 text-xs transition-colors ${filters.minPrice === (p.min || undefined) && filters.maxPrice === (p.max < PRICE_MAX ? p.max : undefined) ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}>{p.label}</button>
@@ -267,14 +268,14 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
       </Section>
 
       {/* Discount */}
-      <Section title="Discount" icon={Percent} badge={filters.hasDiscount ? 1 : 0}>
-        <CheckRow label="On Sale / Discounted" active={filters.hasDiscount} onClick={() => onFilter({ hasDiscount: !filters.hasDiscount })} icon={Tag} iconClass="text-red-400" />
+      <Section title={t.products.discount} icon={Percent} badge={filters.hasDiscount ? 1 : 0}>
+        <CheckRow label={t.products.onSale} active={filters.hasDiscount} onClick={() => onFilter({ hasDiscount: !filters.hasDiscount })} icon={Tag} iconClass="text-red-400" />
       </Section>
 
       {/* Language / Genre / Author / Publisher / Binding — top bar on desktop; shown in mobile drawer only when not advanced */}
       {!advanced && (
         <>
-          <Section title="Language" icon={Globe} badge={filters.language ? 1 : 0} defaultOpen={false}>
+          <Section title={t.books.language} icon={Globe} badge={filters.language ? 1 : 0} defaultOpen={false}>
             <div className="space-y-0.5">
               {LANGUAGES.map(l => (
                 <CheckRow key={l.value} label={l.label} active={filters.language === l.value} onClick={() => onFilter({ language: filters.language === l.value ? undefined : l.value })} />
@@ -283,14 +284,14 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
           </Section>
 
           {allGenres.length > 0 && (
-            <Section title="Genre" icon={BookOpen} badge={filters.genre ? 1 : 0} defaultOpen={false}>
+            <Section title={t.products.genre} icon={BookOpen} badge={filters.genre ? 1 : 0} defaultOpen={false}>
               <div className="space-y-0.5">
                 {visibleGenres.map(g => (
                   <CheckRow key={g} label={g} active={filters.genre === g} onClick={() => onFilter({ genre: filters.genre === g ? undefined : g })} />
                 ))}
                 {allGenres.length > 8 && (
                   <button onClick={() => setShowAllGenres(v => !v)} className="w-full text-left text-xs text-primary font-semibold px-2.5 py-1.5 hover:bg-primary/5 rounded-lg transition-colors">
-                    {showAllGenres ? '▲ Show less' : `▼ Show all ${allGenres.length} genres`}
+                    {showAllGenres ? t.products.showLess : `▼ ${t.products.showAllGenres} (${allGenres.length})`}
                   </button>
                 )}
               </div>
@@ -298,10 +299,10 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
           )}
 
           {(filterOptions?.authors?.length ?? 0) > 0 && (
-            <Section title="Author" icon={Feather} badge={filters.author ? 1 : 0} defaultOpen={false}>
+            <Section title={t.products.author} icon={Feather} badge={filters.author ? 1 : 0} defaultOpen={false}>
               <div className="relative mb-2">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                <input type="text" placeholder="Search author..." value={authorSearch} onChange={e => setAuthorSearch(e.target.value)} className="w-full border rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                <input type="text" placeholder={t.products.searchAuthor} value={authorSearch} onChange={e => setAuthorSearch(e.target.value)} className="w-full border rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
               <div className="space-y-0.5 max-h-44 overflow-y-auto">
                 {visibleAuthors.map(a => (
@@ -309,7 +310,7 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
                 ))}
                 {!authorSearch && filteredAuthors.length > 6 && (
                   <button onClick={() => setShowAllAuthors(v => !v)} className="w-full text-left text-xs text-primary font-semibold px-2.5 py-1.5 hover:bg-primary/5 rounded-lg transition-colors">
-                    {showAllAuthors ? '▲ Show less' : `▼ ${filteredAuthors.length - 6} more authors`}
+                    {showAllAuthors ? t.products.showLess : `▼ ${filteredAuthors.length - 6} ${t.products.moreAuthors}`}
                   </button>
                 )}
               </div>
@@ -317,21 +318,21 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
           )}
 
           {allPublishers.length > 0 && (
-            <Section title="Publisher" icon={Building2} badge={filters.publisher ? 1 : 0} defaultOpen={false}>
+            <Section title={t.products.publisher} icon={Building2} badge={filters.publisher ? 1 : 0} defaultOpen={false}>
               <div className="space-y-0.5">
                 {visiblePublishers.map(p => (
                   <CheckRow key={p as string} label={p as string} active={filters.publisher === p} onClick={() => onFilter({ publisher: filters.publisher === p ? undefined : p as string })} />
                 ))}
                 {allPublishers.length > 5 && (
                   <button onClick={() => setShowAllPublishers(v => !v)} className="w-full text-left text-xs text-primary font-semibold px-2.5 py-1.5 hover:bg-primary/5 rounded-lg transition-colors">
-                    {showAllPublishers ? '▲ Show less' : `▼ ${allPublishers.length - 5} more publishers`}
+                    {showAllPublishers ? t.products.showLess : `▼ ${allPublishers.length - 5} ${t.products.morePublishers}`}
                   </button>
                 )}
               </div>
             </Section>
           )}
 
-          <Section title="Format / Binding" icon={BookMarked} badge={filters.binding ? 1 : 0} defaultOpen={false}>
+          <Section title={t.products.format} icon={BookMarked} badge={filters.binding ? 1 : 0} defaultOpen={false}>
             <div className="space-y-0.5">
               {BINDINGS.map(b => (
                 <CheckRow key={b.value} label={b.label} active={filters.binding === b.value} onClick={() => onFilter({ binding: filters.binding === b.value ? undefined : b.value })} />
@@ -342,26 +343,26 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
       )}
 
       {/* Product Type / Tags */}
-      <Section title="Product Type" icon={Tag} badge={filters.tags.length}>
+      <Section title={t.products.type} icon={Tag} badge={filters.tags.length}>
         <div className="space-y-0.5">
-          {TAG_OPTIONS.map(t => {
-            const active = filters.tags.includes(t.value);
-            return <CheckRow key={t.value} label={t.label} active={active} onClick={() => { const next = active ? filters.tags.filter(x => x !== t.value) : [...filters.tags, t.value]; onFilter({ tags: next }); }} icon={t.icon} iconClass={t.color} />;
+          {TAG_OPTIONS.map(tag => {
+            const active = filters.tags.includes(tag.value);
+            return <CheckRow key={tag.value} label={lang === 'bn' ? tag.labelBn : tag.label} active={active} onClick={() => { const next = active ? filters.tags.filter(x => x !== tag.value) : [...filters.tags, tag.value]; onFilter({ tags: next }); }} icon={tag.icon} iconClass={tag.color} />;
           })}
         </div>
       </Section>
 
       {/* Availability */}
-      <Section title="Availability" icon={Package} badge={(filters.inStock ? 1 : 0) + (filters.preorder ? 1 : 0)}>
+      <Section title={t.products.availability} icon={Package} badge={(filters.inStock ? 1 : 0) + (filters.preorder ? 1 : 0)}>
         <div className="space-y-0.5">
-          <CheckRow label="In Stock Only" active={filters.inStock} onClick={() => onFilter({ inStock: !filters.inStock })} />
-          <CheckRow label="Pre-Order Available" active={filters.preorder} onClick={() => onFilter({ preorder: !filters.preorder })} icon={CalendarClock} iconClass="text-emerald-500" />
+          <CheckRow label={t.products.inStockOnly} active={filters.inStock} onClick={() => onFilter({ inStock: !filters.inStock })} />
+          <CheckRow label={t.products.preorderAvailable} active={filters.preorder} onClick={() => onFilter({ preorder: !filters.preorder })} icon={CalendarClock} iconClass="text-emerald-500" />
         </div>
       </Section>
 
       {/* Featured */}
-      <Section title="Special" icon={Star} badge={filters.isFeatured ? 1 : 0} defaultOpen={false}>
-        <CheckRow label="Featured Products" active={filters.isFeatured} onClick={() => onFilter({ isFeatured: !filters.isFeatured })} icon={Star} iconClass="text-yellow-400" />
+      <Section title={t.products.special} icon={Star} badge={filters.isFeatured ? 1 : 0} defaultOpen={false}>
+        <CheckRow label={t.products.featuredProducts} active={filters.isFeatured} onClick={() => onFilter({ isFeatured: !filters.isFeatured })} icon={Star} iconClass="text-yellow-400" />
       </Section>
     </div>
   );
@@ -537,7 +538,7 @@ function ProductsContent() {
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
           <aside className="absolute left-0 top-0 h-full w-72 bg-white shadow-xl overflow-y-auto">
             <div className="flex items-center justify-between border-b px-4 py-3 sticky top-0 bg-white z-10">
-              <span className="font-bold text-sm">Filters {activeCount > 0 && `(${activeCount})`}</span>
+              <span className="font-bold text-sm">{t.products.filters} {activeCount > 0 && `(${activeCount})`}</span>
               <button onClick={() => setDrawerOpen(false)} className="rounded-lg p-1.5 hover:bg-gray-100"><X className="h-5 w-5 text-gray-500" /></button>
             </div>
             <FilterPanel {...filterPanelProps} />
@@ -553,7 +554,7 @@ function ProductsContent() {
         </div>
         <button onClick={() => setDrawerOpen(true)} className="lg:hidden flex items-center gap-1.5 rounded-xl border bg-white px-3 py-2 text-sm font-medium hover:bg-gray-50 transition-colors flex-shrink-0 shadow-sm">
           <SlidersHorizontal className="h-4 w-4" />
-          Filters
+          {t.products.filters}
           {activeCount > 0 && <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">{activeCount}</span>}
         </button>
       </div>
@@ -602,7 +603,7 @@ function ProductsContent() {
       {/* Top filter bar — Language, Genre, Author, Publisher, Format only */}
       <div className="hidden lg:flex items-center gap-2 flex-wrap mb-4 pb-3 border-b border-gray-100">
         {/* Language */}
-        <FilterDropdown label={language ?? 'Language'} icon={Globe} active={!!language}>
+        <FilterDropdown label={language ?? t.books.language} icon={Globe} active={!!language}>
           <div className="p-2 space-y-0.5">
             {LANGUAGES.map(l => (
               <CheckRow key={l.value} label={l.label} active={filters.language === l.value} onClick={() => onFilter({ language: filters.language === l.value ? undefined : l.value })} />
@@ -612,7 +613,7 @@ function ProductsContent() {
 
         {/* Genre */}
         {(filterOptions?.genres?.length ?? 0) > 0 && (
-          <FilterDropdown label={genre ?? 'Genre'} icon={BookOpen} active={!!genre}>
+          <FilterDropdown label={genre ?? t.products.genre} icon={BookOpen} active={!!genre}>
             <div className="p-2 space-y-0.5">
               {(filterOptions?.genres ?? []).map(g => (
                 <CheckRow key={g} label={g} active={filters.genre === g} onClick={() => onFilter({ genre: filters.genre === g ? undefined : g })} />
@@ -623,7 +624,7 @@ function ProductsContent() {
 
         {/* Author */}
         {(filterOptions?.authors?.length ?? 0) > 0 && (
-          <FilterDropdown label={author ?? 'Author'} icon={Feather} active={!!author}>
+          <FilterDropdown label={author ?? t.products.author} icon={Feather} active={!!author}>
             <div className="p-2">
               <div className="relative mb-2">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
@@ -640,7 +641,7 @@ function ProductsContent() {
 
         {/* Publisher */}
         {(filterOptions?.publishers?.length ?? 0) > 0 && (
-          <FilterDropdown label={publisher ?? 'Publisher'} icon={Building2} active={!!publisher}>
+          <FilterDropdown label={publisher ?? t.products.publisher} icon={Building2} active={!!publisher}>
             <div className="p-2 space-y-0.5">
               {(filterOptions?.publishers ?? []).map(p => (
                 <CheckRow key={p as string} label={p as string} active={filters.publisher === p} onClick={() => onFilter({ publisher: filters.publisher === p ? undefined : p as string })} />
@@ -650,7 +651,7 @@ function ProductsContent() {
         )}
 
         {/* Format / Binding */}
-        <FilterDropdown label={binding ?? 'Format'} icon={BookMarked} active={!!binding}>
+        <FilterDropdown label={binding ?? t.products.format} icon={BookMarked} active={!!binding}>
           <div className="p-2 space-y-0.5">
             {BINDINGS.map(b => (
               <CheckRow key={b.value} label={b.label} active={filters.binding === b.value} onClick={() => onFilter({ binding: filters.binding === b.value ? undefined : b.value })} />
@@ -672,14 +673,14 @@ function ProductsContent() {
               <span className="hidden sm:block text-xs text-gray-400 whitespace-nowrap font-medium">Sort:</span>
               <div className="relative flex-1 max-w-[200px]">
                 <select value={`${sortBy}:${sortOrder}`} onChange={e => { const [sb, so] = e.target.value.split(':'); setParams({ sortBy: sb, sortOrder: so }); }} className="w-full appearance-none rounded-lg border bg-gray-50 pl-2.5 pr-7 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer font-medium">
-                  <option value="createdAt:desc">Newest First</option>
-                  <option value="createdAt:asc">Oldest First</option>
-                  <option value="basePrice:asc">Price: Low → High</option>
-                  <option value="basePrice:desc">Price: High → Low</option>
-                  <option value="name:asc">Name A–Z</option>
-                  <option value="name:desc">Name Z–A</option>
-                  <option value="salePrice:desc">Highest Original Price</option>
-                  <option value="stockQuantity:desc">Most Stock</option>
+                  <option value="createdAt:desc">{t.products.sortNewestFirst}</option>
+                  <option value="createdAt:asc">{t.products.sortOldestFirst}</option>
+                  <option value="basePrice:asc">{t.products.sortPriceLow}</option>
+                  <option value="basePrice:desc">{t.products.sortPriceHigh}</option>
+                  <option value="name:asc">{t.products.sortNameAZ}</option>
+                  <option value="name:desc">{t.products.sortNameZA}</option>
+                  <option value="salePrice:desc">{t.products.sortHighestPrice}</option>
+                  <option value="stockQuantity:desc">{t.products.sortMostStock}</option>
                 </select>
                 <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
               </div>
@@ -710,9 +711,9 @@ function ProductsContent() {
               {author && <Chip label={author} onRemove={() => onFilter({ author: undefined })} />}
               {publisher && <Chip label={publisher} onRemove={() => onFilter({ publisher: undefined })} />}
               {binding && <Chip label={binding} onRemove={() => onFilter({ binding: undefined })} />}
-              {tags.map(tag => <Chip key={tag} label={TAG_OPTIONS.find(t => t.value === tag)?.label ?? tag} onRemove={() => onFilter({ tags: tags.filter(t => t !== tag) })} />)}
+              {tags.map(tag => <Chip key={tag} label={lang === 'bn' ? (TAG_OPTIONS.find(x => x.value === tag)?.labelBn ?? tag) : (TAG_OPTIONS.find(x => x.value === tag)?.label ?? tag)} onRemove={() => onFilter({ tags: tags.filter(x => x !== tag) })} />)}
               <button onClick={clearAllFilters} className="flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-500 hover:bg-red-100 transition-colors">
-                <RotateCcw className="w-3 h-3" /> Clear all
+                <RotateCcw className="w-3 h-3" /> {t.products.clearAll}
               </button>
             </div>
           )}
@@ -725,7 +726,7 @@ function ProductsContent() {
               <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center"><Package className="w-8 h-8 text-gray-300" /></div>
               <p className="text-base font-bold text-gray-700">{t.products.noProductsFound}</p>
               <p className="text-sm text-gray-400">{t.products.tryAdjustingFilters}</p>
-              {activeCount > 0 && <button onClick={clearAllFilters} className="mt-1 text-sm text-primary font-semibold hover:underline flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> Clear all filters</button>}
+              {activeCount > 0 && <button onClick={clearAllFilters} className="mt-1 text-sm text-primary font-semibold hover:underline flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> {t.products.clearAllFilters}</button>}
             </div>
           ) : gridCols === 'list' ? (
             <div className="space-y-2.5">{(data?.data ?? []).map(product => <ProductCard key={product.id} product={product} listView />)}</div>
