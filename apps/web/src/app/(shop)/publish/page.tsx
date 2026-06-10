@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {
   BookOpen, TrendingUp, Zap, ArrowRight, Star,
   LayoutDashboard, Clock, ShieldCheck, CheckCircle,
-  DollarSign, Users, Globe, BookMarked, Smartphone, Lock,
+  DollarSign, Users, Globe, BookMarked, Lock,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { sellerApi } from '@/lib/api/seller';
@@ -85,6 +85,80 @@ function SmartCTA() {
         className="inline-flex items-center justify-center gap-2 border-2 border-gray-600 hover:border-gray-400 text-gray-300 hover:text-white font-bold py-4 px-8 rounded-2xl text-lg transition-all">
         কিভাবে কাজ করে?
       </a>
+    </div>
+  );
+}
+
+// ─── Final CTA (auth-aware, same as SmartCTA) ────────────────
+
+function FinalCTA() {
+  const { isAuthenticated } = useAuthStore();
+
+  const { data: seller, isLoading } = useQuery({
+    queryKey: ['seller', 'me-status'],
+    queryFn: sellerApi.myStatus,
+    enabled: isAuthenticated,
+    retry: false,
+  });
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <Link href="/login?redirect=/seller/apply"
+          className="inline-flex items-center gap-3 bg-primary text-white font-black py-4 px-10 rounded-2xl text-lg hover:bg-primary/90 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30">
+          <BookOpen className="w-6 h-6" /> সেলার হিসেবে নিবন্ধন করুন
+        </Link>
+        <Link href="/login?redirect=/publish/submit"
+          className="inline-flex items-center gap-3 border-2 border-gray-600 hover:border-gray-400 text-gray-300 hover:text-white font-bold py-4 px-8 rounded-2xl text-lg transition-all">
+          <Zap className="w-5 h-5" /> সরাসরি বই জমা দিন
+        </Link>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return <div className="flex justify-center"><div className="w-64 h-14 bg-white/10 animate-pulse rounded-2xl" /></div>;
+  }
+
+  if (seller?.status === 'ACTIVE') {
+    return (
+      <div className="flex flex-wrap gap-3 justify-center">
+        <Link href="/seller/dashboard"
+          className="inline-flex items-center gap-2 bg-primary text-white font-black py-4 px-8 rounded-2xl text-lg hover:bg-primary/90 transition-all hover:-translate-y-0.5">
+          <LayoutDashboard className="w-5 h-5" /> ড্যাশবোর্ড
+        </Link>
+        <Link href="/publish/submit"
+          className="inline-flex items-center gap-3 border-2 border-gray-600 hover:border-gray-400 text-gray-300 hover:text-white font-bold py-4 px-8 rounded-2xl text-lg transition-all">
+          <BookOpen className="w-5 h-5" /> + বই জমা দিন
+        </Link>
+      </div>
+    );
+  }
+
+  if (seller?.status === 'PENDING') {
+    return (
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex items-center gap-2 bg-yellow-500/20 border border-yellow-500/30 rounded-full px-5 py-3 text-yellow-300 font-semibold">
+          <Clock className="w-4 h-4" /> আপনার আবেদন পর্যালোচনাধীন
+        </div>
+        <Link href="/seller/dashboard"
+          className="inline-flex items-center gap-2 border-2 border-gray-600 hover:border-gray-400 text-gray-300 font-bold py-3 px-6 rounded-2xl transition-all">
+          ড্যাশবোর্ড দেখুন <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <Link href="/seller/apply"
+        className="inline-flex items-center gap-3 bg-primary text-white font-black py-4 px-10 rounded-2xl text-lg hover:bg-primary/90 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30">
+        <BookOpen className="w-6 h-6" /> সেলার হিসেবে নিবন্ধন করুন
+      </Link>
+      <Link href="/publish/submit"
+        className="inline-flex items-center gap-3 border-2 border-gray-600 hover:border-gray-400 text-gray-300 hover:text-white font-bold py-4 px-8 rounded-2xl text-lg transition-all">
+        <Zap className="w-5 h-5" /> সরাসরি বই জমা দিন
+      </Link>
     </div>
   );
 }
@@ -405,16 +479,7 @@ export default function SellOnUnkoraPage() {
           <p className="text-gray-400 text-lg mb-10">
             No setup fee. No monthly charge. Only pay when you sell.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/seller/apply"
-              className="inline-flex items-center gap-3 bg-primary text-white font-black py-4 px-10 rounded-2xl text-lg hover:bg-primary/90 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30">
-              <BookOpen className="w-6 h-6" /> সেলার হিসেবে নিবন্ধন করুন
-            </Link>
-            <Link href="/publish/submit"
-              className="inline-flex items-center gap-3 border-2 border-gray-600 hover:border-gray-400 text-gray-300 hover:text-white font-bold py-4 px-8 rounded-2xl text-lg transition-all">
-              <Zap className="w-5 h-5" /> সরাসরি বই জমা দিন
-            </Link>
-          </div>
+          <FinalCTA />
         </div>
       </section>
 
