@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { EmailService } from '../email/email.service';
 
 export interface CreateEmailCampaignDto {
   name: string;
@@ -19,7 +20,10 @@ export interface UpdateEmailCampaignDto {
 
 @Injectable()
 export class EmailCampaignsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   async findAll(params: { page?: number; limit?: number; status?: string }) {
     const { page = 1, limit = 20, status } = params;
@@ -89,25 +93,38 @@ export class EmailCampaignsService {
   async send(id: string) {
     const campaign = await this.findOne(id);
 
-    // Determine sentCount by audience
-    let sentCount = 0;
+    // Get target users' emails
+    let users: Array<{ email: string; firstName: string }> = [];
     try {
       const audience = campaign.audience as string;
-      if (audience === 'ALL') {
-        sentCount = await this.prisma.user.count({
-          where: { email: { not: undefined } },
-        });
-      } else if (audience === 'BUYERS') {
-        sentCount = await this.prisma.user.count({
-          where: { role: 'CUSTOMER' },
-        });
-      } else if (audience === 'SELLERS') {
-        sentCount = await this.prisma.user.count({
-          where: { seller: { isNot: null } },
-        });
-      }
+      const where: any = { email: { not: null } };
+      if (audience === 'BUYERS') where.role = 'CUSTOMER';
+      else if (audience === 'SELLERS') where.seller = { isNot: null };
+
+      users = await this.prisma.user.findMany({
+        where,
+        select: { email: true, firstName: true },
+        take: 5000,
+      });
     } catch {
-      sentCount = 0;
+      users = [];
+    }
+
+    // Send in batches of 50 to avoid overwhelming SMTP
+    const batchSize = 50;
+    let sentCount = 0;
+    for (let i = 0; i < users.length; i += batchSize) {
+      const batch = users.slice(i, i + batchSize);
+      await Promise.allSettled(
+        batch.map(u =>
+          this.emailService.sendCampaign(u.email, {
+            firstName: u.firstName ?? '',
+            subject: campaign.subject as string,
+            htmlContent: campaign.htmlContent as string,
+          }),
+        ),
+      );
+      sentCount += batch.length;
     }
 
     return (this.prisma as any).emailCampaign.update({
