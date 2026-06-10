@@ -710,7 +710,7 @@ export function Header() {
       ? featured
       : [...apiCategories].sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99)).slice(0, 8);
     if (source.length === 0) return NAV_CATEGORIES;
-    return source.map(c => {
+    const result = source.map(c => {
       const meta = SLUG_TO_NAV[c.slug];
       return {
         nameKey: (meta?.nameKey ?? 'books') as NavCategory['nameKey'],
@@ -720,6 +720,17 @@ export function Header() {
         subnav: meta?.subnav ?? [],
       };
     });
+    // Always ensure books appears first in the nav strip
+    const booksIdx = result.findIndex(c => c.slug === 'books');
+    if (booksIdx > 0) {
+      const booksCat = result[booksIdx]!;
+      return [booksCat, ...result.filter((_, i) => i !== booksIdx)];
+    }
+    if (booksIdx === -1) {
+      // Books not in API results — prepend static entry
+      return [NAV_CATEGORIES[0]!, ...result.slice(0, 7)];
+    }
+    return result;
   })();
 
 
@@ -1090,7 +1101,7 @@ export function Header() {
 
               {/* ── Mega Menu Dropdown ── */}
               {megaOpen && (
-                <div className="absolute top-full left-0 z-50 shadow-2xl rounded-b-2xl overflow-hidden border border-gray-100 flex flex-col bg-white" style={{ width: '960px' }}>
+                <div className="absolute top-full left-0 z-50 shadow-2xl rounded-b-2xl overflow-hidden border border-gray-100 flex flex-col bg-white" style={{ width: 'min(960px, calc(100vw - 1.5rem))' }}>
                   {/* Top accent */}
                   <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-primary flex-shrink-0" />
 
