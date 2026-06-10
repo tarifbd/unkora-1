@@ -323,13 +323,14 @@ export default function AdminDashboard() {
       </div>
 
       {/* ── Row 2: Mini Stats ─────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
         <MiniStat label="Today Revenue" value={formatCurrency(todayRevenue)} icon={<TrendingUp className="w-4 h-4" />} color="#10b981" />
         <MiniStat label="This Month" value={formatCurrency(stats?.revenue.thisMonth ?? 0)} icon={<CreditCard className="w-4 h-4" />} color="#6366f1" />
         <MiniStat label="Categories" value={String(stats?.categories?.total ?? 0)} icon={<LayoutGrid className="w-4 h-4" />} color="#8b5cf6" />
         <MiniStat label="Low Stock" value={String(lowStockCount)} icon={<AlertTriangle className="w-4 h-4" />} color="#ef4444" />
         <MiniStat label="New Customers" value={String(stats?.customers.newThisMonth ?? 0)} icon={<Users className="w-4 h-4" />} color="#3b82f6" />
         <MiniStat label="Pending Orders" value={String(stats?.orders.pending ?? 0)} icon={<Clock className="w-4 h-4" />} color="#f59e0b" />
+        <MiniStat label="Abandoned Carts" value={String(stats?.orders?.abandonedCarts ?? 0)} icon={<ShoppingCart className="w-4 h-4" />} color="#f97316" />
       </div>
 
       {/* ── Row 3: Revenue Chart ──────────────────────────────────────── */}

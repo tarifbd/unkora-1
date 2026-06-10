@@ -193,6 +193,8 @@ model User {
   segmentMemberships   CustomerSegmentMember[]
   supportTickets       SupportTicket[]
   ticketMessages       TicketMessage[]
+  productQuestions     ProductQuestion[]
+  productAnswers       ProductAnswer[]
 
   @@index([email])
   @@index([phone])
@@ -341,6 +343,7 @@ model Product {
   posOrderItems   PosOrderItem[]
   returnItems     ReturnItem[]
   preorderConfig  PreorderConfig?
+  questions       ProductQuestion[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -551,6 +554,8 @@ model Review {
   body        String?
   isVerified  Boolean  @default(false)
   isPublished Boolean  @default(false)
+  images      String[] @default([])
+  helpfulCount Int     @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -2794,4 +2799,49 @@ model SeoSettings {
   updatedAt              DateTime @updatedAt
 
   @@map("seo_settings")
+}
+
+// ─────────────────────────────────────────────────────────────
+// PRODUCT Q&A
+// ─────────────────────────────────────────────────────────────
+
+enum QuestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ProductQuestion {
+  id        String         @id @default(cuid())
+  productId String
+  userId    String?
+  guestName String?
+  body      String         @db.Text
+  status    QuestionStatus @default(PENDING)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  product  Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user     User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  answers  ProductAnswer[]
+
+  @@index([productId])
+  @@index([status])
+  @@map("product_questions")
+}
+
+model ProductAnswer {
+  id         String   @id @default(cuid())
+  questionId String
+  userId     String?
+  isAdmin    Boolean  @default(false)
+  body       String   @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  question ProductQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([questionId])
+  @@map("product_answers")
 }

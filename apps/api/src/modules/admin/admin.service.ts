@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 import * as argon2 from 'argon2';
 
@@ -28,6 +28,7 @@ export class AdminService {
       totalCategories,
       orderStatusCounts,
       paymentMethodCounts,
+      abandonedCarts,
     ] = await Promise.all([
       this.prisma.order.aggregate({ where: { paymentStatus: 'PAID' }, _sum: { total: true } }),
       this.prisma.order.aggregate({ where: { paymentStatus: 'PAID', createdAt: { gte: startOfMonth } }, _sum: { total: true } }),
@@ -59,6 +60,13 @@ export class AdminService {
         by: ['paymentMethod'],
         _count: { id: true },
       }),
+      this.prisma.cart.count({
+        where: {
+          userId: { not: null },
+          updatedAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+          items: { some: {} },
+        },
+      }),
     ]);
 
     const byStatus: Record<string, number> = {};
@@ -78,6 +86,7 @@ export class AdminService {
         pending: pendingOrders,
         byStatus,
         byPayment,
+        abandonedCarts,
       },
       products: {
         total: totalProducts,
@@ -150,13 +159,41 @@ export class AdminService {
   }
 
   async getUserById(id: string) {
-    return this.prisma.user.findUnique({
-      where: { id },
-      include: {
-        address: true,
-        _count: { select: { orders: true, reviews: true, wishlists: true } },
-      },
-    });
+    const [user, orders, ltv] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { id },
+        include: {
+          address: true,
+          profile: true,
+          _count: { select: { orders: true, reviews: true, wishlists: true } },
+        },
+      }),
+      this.prisma.order.findMany({
+        where: { userId: id },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: {
+          id: true, orderNumber: true, status: true, paymentStatus: true,
+          total: true, createdAt: true, paymentMethod: true,
+          items: { select: { productName: true, quantity: true } },
+        },
+      }),
+      this.prisma.order.aggregate({
+        where: { userId: id, paymentStatus: 'PAID' },
+        _sum: { total: true },
+        _count: { id: true },
+      }),
+    ]);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    const { passwordHash: _, ...safeUser } = user;
+    return {
+      ...safeUser,
+      recentOrders: orders,
+      lifetimeValue: Number(ltv._sum.total ?? 0),
+      paidOrderCount: ltv._count.id,
+    };
   }
 
   async updateUser(id: string, dto: { role?: string; status?: string }) {

@@ -11,6 +11,7 @@ import { useCart } from '@/lib/hooks/use-cart';
 import { useCartStore } from '@/store/cart.store';
 import { formatCurrency } from '@/lib/utils';
 import { ProductReviews } from '@/components/product/product-reviews';
+import { ProductQA } from '@/components/product/product-qa';
 import { ProductCard } from '@/components/product/product-card';
 import { WishlistButton } from '@/components/product/wishlist-button';
 import { PreorderCTA } from '@/components/product/preorder-cta';
@@ -220,6 +221,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
       </div>
 
       <ProductReviews productId={product.id} />
+
+      <ProductQA productId={product.id} />
 
       <RelatedProducts categorySlug={product.category.slug} currentId={product.id} />
 
