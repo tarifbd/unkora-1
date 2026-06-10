@@ -12,7 +12,7 @@ import {
   DollarSign, RefreshCw, Bell as BellIcon, Mail, Search, Wallet,
   Users2, PieChart, UserCog, Palette, Sparkles, Bot, Library, ScrollText, Cpu,
   ClipboardList, BookMarked, LayoutList, LifeBuoy, Maximize2, Puzzle, MapPin, Map, Rocket, Megaphone,
-  FileCode2, Percent, LineChart, Gift, Database, Lock, Radio, Sun,
+  FileCode2, Percent, LineChart, Gift, Database, Lock, Radio, Sun, ImageIcon,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -22,14 +22,19 @@ import { useQueryClient } from '@tanstack/react-query';
 /* ─── Nav tree structure ─────────────────────────────────────── */
 type NavLeaf = { href: string; label: string; icon: React.ElementType; exact?: boolean };
 type NavParent = { label: string; icon: React.ElementType; children: NavLeaf[] };
-type NavItem = NavLeaf | NavParent;
+type NavDivider = { type: 'divider'; label: string };
+type NavItem = NavLeaf | NavParent | NavDivider;
 
 function isParent(item: NavItem): item is NavParent {
-  return 'children' in item;
+  return 'children' in item && !('type' in item);
+}
+function isDivider(item: NavItem): item is NavDivider {
+  return 'type' in item && item.type === 'divider';
 }
 
 const NAV: NavItem[] = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
+  { type: 'divider', label: 'STORE' },
   {
     label: 'Catalogue & Stock', icon: Package,
     children: [
@@ -77,6 +82,7 @@ const NAV: NavItem[] = [
       { href: '/admin/shiprocket',                    label: 'Shiprocket',          icon: Rocket },
     ],
   },
+  { type: 'divider', label: 'CUSTOMERS' },
   {
     label: 'Customers', icon: Users,
     children: [
@@ -89,14 +95,17 @@ const NAV: NavItem[] = [
       { href: '/admin/classifieds',       label: 'Classifieds',        icon: LayoutList },
     ],
   },
+  { type: 'divider', label: 'CONTENT' },
   {
     label: 'Content', icon: FileText,
     children: [
-      { href: '/admin/cms',       label: 'CMS Pages',  icon: FileCode2 },
-      { href: '/admin/blog',      label: 'Blog',       icon: FileText },
-      { href: '/admin/blog/new',  label: 'New Post',   icon: Plus },
+      { href: '/admin/cms',          label: 'Static Pages',      icon: FileCode2 },
+      { href: '/admin/cms/banners',  label: 'Banners & Sliders', icon: ImageIcon },
+      { href: '/admin/blog',         label: 'Blog',              icon: FileText },
+      { href: '/admin/blog/new',     label: 'New Post',          icon: Plus },
     ],
   },
+  { type: 'divider', label: 'MARKETING' },
   {
     label: 'Marketing', icon: TrendingUp,
     children: [
@@ -112,6 +121,7 @@ const NAV: NavItem[] = [
       { href: '/admin/smart-bar',                        label: 'Smart Bar',          icon: Megaphone },
     ],
   },
+  { type: 'divider', label: 'CHANNELS' },
   {
     label: 'Sales Channels', icon: Share2,
     children: [
@@ -122,6 +132,7 @@ const NAV: NavItem[] = [
       { href: '/admin/channels/live',        label: 'Live Commerce',   icon: Radio },
     ],
   },
+  { type: 'divider', label: 'VISIBILITY' },
   {
     label: 'Visibility', icon: Search,
     children: [
@@ -132,10 +143,13 @@ const NAV: NavItem[] = [
       { href: '/admin/seo/redirects',            label: 'Redirects',        icon: RotateCcw },
       { href: '/admin/seo/products',             label: 'Product SEO',      icon: Package },
       { href: '/admin/seo/categories',           label: 'Category SEO',     icon: Layers },
-      { href: '/admin/seo/advanced-search',      label: 'Advanced Search',  icon: Search },
+      { href: '/admin/seo/aeo',                  label: 'AEO',              icon: Bot },
+      { href: '/admin/seo/geo',                  label: 'GEO',              icon: Globe },
       { href: '/admin/seo/aio',                  label: 'AI Overview (AIO)', icon: Bot },
+      { href: '/admin/seo/advanced-search',      label: 'Advanced Search',  icon: Search },
     ],
   },
+  { type: 'divider', label: 'INTELLIGENCE' },
   {
     label: 'Intelligence', icon: Sparkles,
     children: [
@@ -151,6 +165,7 @@ const NAV: NavItem[] = [
       { href: '/admin/advanced-reports',     label: 'Advanced Reports', icon: PieChart },
     ],
   },
+  { type: 'divider', label: 'FINANCE' },
   {
     label: 'Finance', icon: Wallet,
     children: [
@@ -162,6 +177,7 @@ const NAV: NavItem[] = [
       { href: '/admin/finance/store-credit',     label: 'Store Credit',     icon: Gift },
     ],
   },
+  { type: 'divider', label: 'SYSTEM' },
   {
     label: 'System', icon: Settings,
     children: [
@@ -336,7 +352,9 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/finance/payment-gateways': 'Payment Gateways',
   '/admin/finance/payments': 'Payment Transactions',
   '/admin/courier/setup': 'Courier Setup',
-  '/admin/cms': 'CMS Pages',
+  '/admin/cms': 'Static Pages',
+  '/admin/cms/pages': 'CMS Pages',
+  '/admin/cms/banners': 'Banners & Sliders',
   '/admin/channels/facebook': 'Facebook Channel',
   '/admin/channels/instagram': 'Instagram Channel',
   '/admin/channels/google': 'Google Shopping',
@@ -350,6 +368,8 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/security/audit': 'Audit Logs',
   '/admin/security/rbac': 'Role-Based Access Control',
   '/admin/deal-of-the-day': 'Deal of the Day',
+  '/admin/seo/aeo': 'Answer Engine Optimization (AEO)',
+  '/admin/seo/geo': 'Generative Engine Optimization (GEO)',
   '/admin/seo/aio': 'AI Overview Optimization (AIO)',
 };
 
@@ -359,6 +379,7 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
   const { user } = useAuthStore();
   const router = useRouter();
   const { clearAuth } = useAuthStore();
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Accordion: only one group open at a time
   const [openGroup, setOpenGroup] = useState<string | null>(() => {
@@ -369,8 +390,9 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
     return null;
   });
 
-  // When route changes, open the matching group
+  // When route changes, open the matching group and clear search
   useEffect(() => {
+    setSearchQuery('');
     for (const item of NAV) {
       if (isParent(item) && groupIsActive(item.children, pathname)) {
         setOpenGroup(item.label);
@@ -412,23 +434,85 @@ function SidebarContent({ onClose }: { onClose?: () => void }) {
         )}
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5 overscroll-contain">
-        {NAV.map((item, i) =>
-          isParent(item) ? (
-            <NavGroupItem
-              key={i}
-              item={item}
-              pathname={pathname}
-              isOpen={openGroup === item.label}
-              onToggle={() => handleToggle(item.label)}
-              onClose={onClose}
-            />
-          ) : (
-            <NavLeafItem key={item.href} item={item} pathname={pathname} onClose={onClose} />
-          )
-        )}
-      </nav>
+      {/* Search */}
+      <div className="px-3 pt-3 pb-2 border-b border-white/8 flex-shrink-0">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/30 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search menu..."
+            className="w-full bg-white/8 border border-white/10 rounded-lg pl-8 pr-7 py-1.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-white/30 focus:bg-white/12 transition-all"
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+              <X className="h-3 w-3" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Nav — search results or full tree */}
+      {searchQuery.trim() ? (
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 overscroll-contain">
+          {(() => {
+            const q = searchQuery.toLowerCase();
+            const results: { leaf: NavLeaf; parent: string }[] = [];
+            for (const item of NAV) {
+              if (isParent(item)) {
+                item.children.forEach(child => {
+                  if (child.label.toLowerCase().includes(q) || item.label.toLowerCase().includes(q)) {
+                    results.push({ leaf: child, parent: item.label });
+                  }
+                });
+              }
+            }
+            if (results.length === 0) {
+              return <p className="px-3 py-6 text-xs text-white/30 text-center">No results for "{searchQuery}"</p>;
+            }
+            return results.map(({ leaf, parent }) => (
+              <Link
+                key={leaf.href}
+                href={leaf.href}
+                onClick={() => { setSearchQuery(''); onClose?.(); }}
+                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-xs transition-all ${
+                  pathname === leaf.href ? 'bg-white/15 text-white font-semibold' : 'text-white/60 hover:bg-white/8 hover:text-white/90'
+                }`}
+              >
+                <leaf.icon className="h-3.5 w-3.5 flex-shrink-0 text-white/40" />
+                <div className="min-w-0">
+                  <div className="font-medium truncate">{leaf.label}</div>
+                  <div className="text-[9px] opacity-40 truncate">{parent}</div>
+                </div>
+              </Link>
+            ));
+          })()}
+        </div>
+      ) : (
+        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 overscroll-contain">
+          {NAV.map((item, i) =>
+            isDivider(item) ? (
+              <div key={`div-${i}`} className="pt-4 pb-1 px-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.15em]" style={{ color: 'rgba(255,255,255,0.22)' }}>
+                  {item.label}
+                </p>
+              </div>
+            ) : isParent(item) ? (
+              <NavGroupItem
+                key={i}
+                item={item}
+                pathname={pathname}
+                isOpen={openGroup === item.label}
+                onToggle={() => handleToggle(item.label)}
+                onClose={onClose}
+              />
+            ) : (
+              <NavLeafItem key={item.href} item={item} pathname={pathname} onClose={onClose} />
+            )
+          )}
+        </nav>
+      )}
 
       {/* User + logout */}
       <div className="border-t border-white/10 px-3 py-3 space-y-2 flex-shrink-0">
