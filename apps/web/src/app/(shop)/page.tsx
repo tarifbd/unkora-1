@@ -711,7 +711,7 @@ export default function HomePage() {
       {/* ═══ AD BANNER ═══ */}
       <section className="py-3 px-3 md:px-4">
         <div className="max-w-[1400px] mx-auto">
-          <a href="/products" className="block group">
+          <Link href="/products" className="block group">
             <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 shadow-lg">
               {/* decorative circles */}
               <div className="absolute -top-8 -right-8 w-48 h-48 bg-white/10 rounded-full" />
@@ -751,7 +751,7 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-          </a>
+          </Link>
         </div>
       </section>
 
