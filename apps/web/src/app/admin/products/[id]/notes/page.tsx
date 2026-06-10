@@ -34,7 +34,7 @@ export default function ProductNotesPage() {
 
   const { data: notes = [], isLoading } = useQuery<ProductNote[]>({
     queryKey: ['product-notes', productId],
-    queryFn: () => api.get<ProductNote[]>(`/product-notes/product/${productId}`).then(r => r.data.data as ProductNote[]),
+    queryFn: () => api.get(`/product-notes/product/${productId}`).then(r => r.data.data as ProductNote[]),
     enabled: !!productId,
   });
 
