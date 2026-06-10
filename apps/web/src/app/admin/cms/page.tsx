@@ -1,10 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { FileCode2, ChevronDown, ChevronRight, Plus, Trash2, Save, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import api from '@/lib/api';
 
 interface CmsPage {
+  id?: string;
   key: string;
   title: string;
   slug: string;
@@ -12,36 +15,63 @@ interface CmsPage {
   isDirty: boolean;
 }
 
-interface FaqItem {
+interface ApiFaq {
   id: string;
   question: string;
   answer: string;
+  sortOrder: number;
+}
+
+interface FaqItem extends ApiFaq {
   isExpanded: boolean;
 }
 
-const DEFAULT_PAGES: Omit<CmsPage, 'isDirty'>[] = [
-  { key: 'home',            title: 'Home Page',         slug: '/',                content: '' },
-  { key: 'about',           title: 'About Us',          slug: '/about',           content: '' },
-  { key: 'contact',         title: 'Contact Us',        slug: '/contact',         content: '' },
-  { key: 'privacy',         title: 'Privacy Policy',    slug: '/privacy-policy',  content: '' },
-  { key: 'terms',           title: 'Terms of Service',  slug: '/terms',           content: '' },
-  { key: 'shipping',        title: 'Shipping Policy',   slug: '/shipping-policy', content: '' },
-  { key: 'returns',         title: 'Return Policy',     slug: '/return-policy',   content: '' },
-  { key: 'faq',             title: 'FAQ Page',          slug: '/faq',             content: '' },
+const STATIC_PAGES = [
+  { key: 'home',     title: 'Home Page',         slug: 'home' },
+  { key: 'about',    title: 'About Us',           slug: 'about' },
+  { key: 'contact',  title: 'Contact Us',         slug: 'contact' },
+  { key: 'privacy',  title: 'Privacy Policy',     slug: 'privacy-policy' },
+  { key: 'terms',    title: 'Terms of Service',   slug: 'terms' },
+  { key: 'shipping', title: 'Shipping Policy',     slug: 'shipping-policy' },
+  { key: 'returns',  title: 'Return Policy',      slug: 'return-policy' },
+  { key: 'faq',      title: 'FAQ Page',           slug: 'faq' },
 ];
 
-const DEFAULT_FAQS: FaqItem[] = [
-  { id: '1', question: 'কিভাবে অর্ডার করব?', answer: 'পণ্য পেজ থেকে কার্টে যোগ করুন এবং চেকআউট করুন।', isExpanded: false },
-  { id: '2', question: 'ডেলিভারি কতদিনে পাব?', answer: 'ঢাকায় ১-২ দিন, বাইরে ৩-৫ দিন।', isExpanded: false },
-  { id: '3', question: 'রিটার্ন পলিসি কী?', answer: 'পণ্য পাওয়ার ৭ দিনের মধ্যে রিটার্ন করা যাবে।', isExpanded: false },
-];
-
-export default function CmsPage() {
-  const [pages, setPages] = useState<CmsPage[]>(DEFAULT_PAGES.map(p => ({ ...p, isDirty: false })));
+export default function CmsEditorPage() {
+  const qc = useQueryClient();
   const [selectedKey, setSelectedKey] = useState<string>('about');
-  const [faqs, setFaqs] = useState<FaqItem[]>(DEFAULT_FAQS);
+  const [pages, setPages] = useState<CmsPage[]>(
+    STATIC_PAGES.map(p => ({ ...p, content: '', isDirty: false }))
+  );
+  const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [newFaq, setNewFaq] = useState({ question: '', answer: '' });
-  const [saving, setSaving] = useState(false);
+
+  // Load all pages from API
+  const { isLoading: loadingPages, data: pagesData } = useQuery<{ data: Array<{ id: string; slug: string; content: string }> }>({
+    queryKey: ['cms-all-pages'],
+    queryFn: () => api.get('/cms/pages?limit=100').then(r => r.data),
+  });
+
+  useEffect(() => {
+    if (!pagesData?.data) return;
+    setPages(prev =>
+      prev.map(p => {
+        const found = pagesData.data.find(a => a.slug === p.slug);
+        return found ? { ...p, id: found.id, content: found.content, isDirty: false } : p;
+      })
+    );
+  }, [pagesData]);
+
+  // Load FAQs
+  const { isLoading: loadingFaqs, data: faqsData } = useQuery<ApiFaq[]>({
+    queryKey: ['cms-faqs'],
+    queryFn: () => api.get('/cms/faqs').then(r => r.data),
+  });
+
+  useEffect(() => {
+    if (!faqsData) return;
+    setFaqs(faqsData.map(f => ({ ...f, isExpanded: false })));
+  }, [faqsData]);
 
   const selectedPage = pages.find(p => p.key === selectedKey);
 
@@ -49,27 +79,62 @@ export default function CmsPage() {
     setPages(ps => ps.map(p => p.key === key ? { ...p, content, isDirty: true } : p));
   };
 
+  const [saving, setSaving] = useState(false);
   const savePage = async (key: string) => {
+    const page = pages.find(p => p.key === key);
+    if (!page) return;
     setSaving(true);
-    await new Promise(r => setTimeout(r, 600));
-    setPages(ps => ps.map(p => p.key === key ? { ...p, isDirty: false } : p));
-    setSaving(false);
-    toast.success('Page saved successfully');
+    try {
+      await api.put(`/cms/pages/by-slug/${page.slug}`, {
+        title: page.title,
+        content: page.content,
+        status: 'PUBLISHED',
+      });
+      setPages(ps => ps.map(p => p.key === key ? { ...p, isDirty: false } : p));
+      void qc.invalidateQueries({ queryKey: ['cms-all-pages'] });
+      toast.success('Page saved successfully');
+    } catch {
+      toast.error('Failed to save page');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  // FAQ mutations
+  const addFaqMutation = useMutation({
+    mutationFn: (data: { question: string; answer: string }) =>
+      api.post('/cms/faqs', data).then(r => r.data),
+    onSuccess: (created: ApiFaq) => {
+      setFaqs(fs => [...fs, { ...created, isExpanded: false }]);
+      setNewFaq({ question: '', answer: '' });
+      toast.success('FAQ added');
+    },
+    onError: () => toast.error('Failed to add FAQ'),
+  });
+
+  const deleteFaqMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/cms/faqs/${id}`),
+    onSuccess: (_: unknown, id: string) => {
+      setFaqs(fs => fs.filter(f => f.id !== id));
+      toast.success('FAQ removed');
+    },
+    onError: () => toast.error('Failed to remove FAQ'),
+  });
+
+  const updateFaqMutation = useMutation({
+    mutationFn: ({ id, answer }: { id: string; answer: string }) =>
+      api.patch(`/cms/faqs/${id}`, { answer }).then(r => r.data),
+    onSuccess: (updated: ApiFaq) => {
+      setFaqs(fs => fs.map(f => f.id === updated.id ? { ...updated, isExpanded: f.isExpanded } : f));
+    },
+  });
 
   const addFaq = () => {
     if (!newFaq.question.trim() || !newFaq.answer.trim()) {
       toast.error('Question and answer are required');
       return;
     }
-    setFaqs(fs => [...fs, { id: Date.now().toString(), ...newFaq, isExpanded: false }]);
-    setNewFaq({ question: '', answer: '' });
-    toast.success('FAQ added');
-  };
-
-  const removeFaq = (id: string) => {
-    setFaqs(fs => fs.filter(f => f.id !== id));
-    toast.success('FAQ removed');
+    addFaqMutation.mutate(newFaq);
   };
 
   const toggleFaq = (id: string) => {
@@ -77,6 +142,14 @@ export default function CmsPage() {
   };
 
   const inputCls = 'w-full rounded-xl border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50';
+
+  if (loadingPages || loadingFaqs) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-7 w-7 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -119,7 +192,7 @@ export default function CmsPage() {
               <div className="flex items-center justify-between px-5 py-3 border-b bg-gray-50">
                 <div>
                   <h2 className="font-bold text-sm text-gray-900">{selectedPage.title}</h2>
-                  <p className="text-xs text-gray-400 mt-0.5 font-mono">{selectedPage.slug}</p>
+                  <p className="text-xs text-gray-400 mt-0.5 font-mono">/{selectedPage.slug}</p>
                 </div>
                 <button
                   onClick={() => savePage(selectedPage.key)}
@@ -176,7 +249,8 @@ export default function CmsPage() {
                     : <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />}
                 </button>
                 <button
-                  onClick={() => removeFaq(faq.id)}
+                  onClick={() => deleteFaqMutation.mutate(faq.id)}
+                  disabled={deleteFaqMutation.isPending}
                   className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -186,10 +260,15 @@ export default function CmsPage() {
                 <div className="mt-2 ml-8 pl-3 border-l-2 border-gray-100">
                   <textarea
                     value={faq.answer}
-                    onChange={e => setFaqs(fs => fs.map(f => f.id === faq.id ? { ...f, answer: e.target.value } : f))}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setFaqs(fs => fs.map(f => f.id === faq.id ? { ...f, answer: val } : f));
+                    }}
+                    onBlur={e => updateFaqMutation.mutate({ id: faq.id, answer: e.target.value })}
                     rows={3}
                     className="w-full rounded-lg border bg-gray-50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none text-gray-600"
                   />
+                  <p className="text-xs text-gray-400 mt-1">Auto-saved on blur</p>
                 </div>
               )}
             </div>
@@ -219,9 +298,11 @@ export default function CmsPage() {
             <div className="flex justify-end">
               <button
                 onClick={addFaq}
-                className="flex items-center gap-1.5 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors"
+                disabled={addFaqMutation.isPending}
+                className="flex items-center gap-1.5 bg-primary text-primary-foreground px-4 py-2 rounded-xl text-xs font-bold hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
-                <Plus className="w-3.5 h-3.5" /> Add FAQ
+                {addFaqMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+                Add FAQ
               </button>
             </div>
           </div>

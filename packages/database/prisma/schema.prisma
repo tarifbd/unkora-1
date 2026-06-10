@@ -743,6 +743,42 @@ model DeliveryBoy {
 }
 
 // ─────────────────────────────────────────────────────────────
+// CMS
+// ─────────────────────────────────────────────────────────────
+
+enum CmsPageStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model CmsPage {
+  id        String        @id @default(cuid())
+  title     String
+  slug      String        @unique
+  content   String        @db.Text
+  status    CmsPageStatus @default(DRAFT)
+  metaTitle String?
+  metaDesc  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@map("cms_pages")
+}
+
+model CmsFaq {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cms_faqs")
+}
+
+// ─────────────────────────────────────────────────────────────
 // BLOG
 // ─────────────────────────────────────────────────────────────
 

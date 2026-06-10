@@ -70,6 +70,7 @@ import { PreordersModule } from './modules/preorders/preorders.module';
 import { ClassifiedsModule } from './modules/classifieds/classifieds.module';
 import { AddonsModule } from './modules/addons/addons.module';
 import { PopupsModule } from './modules/popups/popups.module';
+import { CmsModule } from './modules/cms/cms.module';
 
 @Module({
   imports: [
@@ -148,6 +149,7 @@ import { PopupsModule } from './modules/popups/popups.module';
     ClassifiedsModule,
     AddonsModule,
     PopupsModule,
+    CmsModule,
   ],
 })
 export class AppModule {}
