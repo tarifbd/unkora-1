@@ -335,7 +335,7 @@ export default function AdminDashboard() {
   const activityFeed = recentOrders.slice(0, 6).map(o => ({
     id: o.id,
     type: o.status === 'CANCELLED' ? 'cancelled' : o.status === 'DELIVERED' ? 'delivered' : 'new',
-    text: `#${o.orderNumber} — ${o.user.firstName} ${o.user.lastName}`,
+    text: `#${o.orderNumber} — ${o.user?.firstName ?? ''} ${o.user?.lastName ?? ''}`.trim(),
     sub: o.status,
     amount: formatCurrency(Number(o.total)),
   }));
@@ -531,7 +531,7 @@ export default function AdminDashboard() {
                 <div key={order.id} className="flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors">
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-sm text-gray-800">#{order.orderNumber}</p>
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">{order.user.firstName} {order.user.lastName}</p>
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">{order.user?.firstName} {order.user?.lastName}</p>
                   </div>
                   <div className="flex items-center gap-2.5 flex-shrink-0 ml-3">
                     <StatusBadge status={order.status} />
