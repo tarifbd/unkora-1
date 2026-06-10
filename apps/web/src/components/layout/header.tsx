@@ -751,7 +751,7 @@ export function Header() {
 
         {/* ── Tier 1: Utility bar ── */}
         <div className="bg-[#1a1a1a] py-1.5 hidden md:block">
-          <div className="max-w-7xl mx-auto px-4 flex justify-between items-center text-[11px] text-gray-300 font-medium">
+          <div className="max-w-[1400px] mx-auto px-4 flex justify-between items-center text-[11px] text-gray-300 font-medium">
             <div className="flex items-center gap-4">
               {/* ── Sell on Unkora animated button — LEFT side ── */}
               <Link href="/publish" className="sell-border-wrapper normal-case hover:scale-105 transition-transform duration-200 group self-center -my-1.5">
@@ -821,7 +821,7 @@ export function Header() {
         </div>
 
         {/* ── Tier 2: Main bar ── */}
-        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 relative z-50 bg-white">
+        <div className="max-w-[1400px] mx-auto px-4 py-3 md:py-4 relative z-50 bg-white">
           <div className="flex items-center justify-between gap-4 md:gap-6 lg:gap-8">
 
             {/* Mobile toggle + Logo */}
@@ -1073,7 +1073,7 @@ export function Header() {
 
         {/* ── Tier 3: Category nav (desktop) ── */}
         <div className="bg-white hidden lg:block border-b border-gray-200 relative z-30" ref={megaRef}>
-          <div className="max-w-7xl mx-auto pl-4 flex items-center relative">
+          <div className="max-w-[1400px] mx-auto pl-4 flex items-center relative">
 
             {/* All Departments button */}
             <div className="relative h-[48px] flex items-center mr-6 shrink-0">
@@ -1305,7 +1305,7 @@ export function Header() {
 
         {/* ── Tier 4: Subnav ── */}
         <div className="hidden">
-          <div className="max-w-7xl mx-auto px-4">
+          <div className="max-w-[1400px] mx-auto px-4">
             <nav className="flex items-center gap-6 h-[44px] overflow-x-auto hide-scrollbar">
               {activeCategory!.subnav.map(sub => {
                 const dropdown = SUBNAV_DROPDOWNS[sub];

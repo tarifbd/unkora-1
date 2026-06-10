@@ -266,15 +266,19 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 function RelatedProducts({ categorySlug, currentId }: { categorySlug: string; currentId: string }) {
   const { data } = useQuery({
     queryKey: ['related-products', categorySlug],
-    queryFn: () => productsApi.getAll({ categorySlug, limit: 6 }),
+    queryFn: () => productsApi.getAll({ categorySlug, limit: 12 }),
   });
   const related = (data?.data ?? []).filter(p => p.id !== currentId);
   if (!related.length) return null;
   return (
     <div className="mt-12 border-t pt-10">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">আপনার পছন্দ হতে পারে</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {related.map(p => <ProductCard key={p.id} product={p} />)}
+      <h2 className="text-xl font-bold text-gray-900 mb-4">আপনার পছন্দ হতে পারে</h2>
+      <div className="flex gap-3 overflow-x-auto pb-3 [scrollbar-width:thin] [scrollbar-color:#e5e7eb_transparent]">
+        {related.map(p => (
+          <div key={p.id} className="flex-shrink-0 w-44">
+            <ProductCard product={p} mini />
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useRef, useCallback, useEffect } from 'react';
+import React, { Suspense, useState, useRef, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Loader2, X, LayoutGrid, Grid3X3, Grid2X2, List,
@@ -366,6 +366,38 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
   );
 }
 
+// ─── Filter Dropdown ──────────────────────────────────────────────────────────
+function FilterDropdown({ label, icon: Icon, active, children }: {
+  label: string; icon?: React.ElementType; active: boolean; children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+  return (
+    <div ref={ref} className="relative flex-shrink-0">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold whitespace-nowrap transition-all shadow-sm ${
+          active ? 'bg-primary text-white border-primary shadow-primary/30' : 'bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+        }`}
+      >
+        {Icon && <Icon className="w-3.5 h-3.5 flex-shrink-0" />}
+        <span>{label}</span>
+        <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="absolute top-full left-0 mt-1.5 z-50 bg-white border rounded-2xl shadow-xl min-w-[220px] max-h-80 overflow-y-auto">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Chip ─────────────────────────────────────────────────────────────────────
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
@@ -385,6 +417,7 @@ function ProductsContent() {
 
   const [gridCols, setGridCols] = useState<GridCols>(3);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [dropAuthorSearch, setDropAuthorSearch] = useState('');
 
   const page = parseInt(searchParams.get('page') ?? '1', 10);
   const categorySlug = searchParams.get('categorySlug') ?? undefined;
@@ -565,97 +598,196 @@ function ProductsContent() {
         )}
       </div>
 
-      <div className="flex gap-5 items-start">
-        {/* Desktop sidebar */}
-        <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-4">
-          <FilterPanel {...filterPanelProps} />
-        </aside>
+      {/* Desktop filter bar — dropdowns */}
+      <div className="hidden lg:flex items-center gap-2 flex-wrap mb-4 pb-3 border-b border-gray-100">
+        {/* Category */}
+        <FilterDropdown label={activeCategoryName ?? 'Category'} icon={BookMarked} active={!!categorySlug}>
+          <div className="p-2 space-y-0.5">
+            <button onClick={() => onFilter({ categorySlug: undefined })} className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm text-left transition-colors ${!categorySlug ? 'bg-primary text-white font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}>All Categories</button>
+            {(categories as CategoryWithChildren[] | undefined)?.filter(c => !('parentId' in c) || !(c as unknown as { parentId: string }).parentId).map(cat => (
+              <button key={cat.id} onClick={() => onFilter({ categorySlug: cat.slug })} className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-sm text-left transition-colors ${filters.categorySlug === cat.slug ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}>
+                <span>{cat.name}</span>
+                {cat._count?.products !== undefined && <span className="text-xs opacity-50">{cat._count.products}</span>}
+              </button>
+            ))}
+          </div>
+        </FilterDropdown>
 
-        <div className="min-w-0 flex-1">
-          {/* Sort bar */}
-          <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border bg-white px-3 py-2 sm:px-4 shadow-sm">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <span className="hidden sm:block text-xs text-gray-400 whitespace-nowrap font-medium">Sort:</span>
-              <div className="relative flex-1 max-w-[200px]">
-                <select value={`${sortBy}:${sortOrder}`} onChange={e => { const [sb, so] = e.target.value.split(':'); setParams({ sortBy: sb, sortOrder: so }); }} className="w-full appearance-none rounded-lg border bg-gray-50 pl-2.5 pr-7 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer font-medium">
-                  <option value="createdAt:desc">Newest First</option>
-                  <option value="createdAt:asc">Oldest First</option>
-                  <option value="basePrice:asc">Price: Low → High</option>
-                  <option value="basePrice:desc">Price: High → Low</option>
-                  <option value="name:asc">Name A–Z</option>
-                  <option value="name:desc">Name Z–A</option>
-                  <option value="salePrice:desc">Highest Original Price</option>
-                  <option value="stockQuantity:desc">Most Stock</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
-              </div>
-            </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              {([2, 3, 4, 'list'] as const).map(v => (
-                <button key={v} onClick={() => setGridCols(v)} className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg border transition-colors ${gridCols === v ? 'border-gray-800 bg-gray-800 text-white' : 'bg-gray-50 hover:bg-gray-100 text-gray-500'}`}>
-                  {v === 2 && <Grid2X2 className="h-3.5 w-3.5" />}
-                  {v === 3 && <LayoutGrid className="h-3.5 w-3.5" />}
-                  {v === 4 && <Grid3X3 className="h-3.5 w-3.5" />}
-                  {v === 'list' && <List className="h-3.5 w-3.5" />}
-                </button>
+        {/* Price */}
+        <FilterDropdown label={(minPrice || maxPrice) ? `৳${(minPrice ?? 0).toLocaleString()}–${maxPrice ? '৳' + maxPrice.toLocaleString() : '∞'}` : 'Price'} icon={Tag} active={!!(minPrice || maxPrice)}>
+          <div className="p-2 space-y-1">
+            <button onClick={() => onFilter({ minPrice: undefined, maxPrice: undefined })} className={`w-full text-left rounded-lg px-3 py-1.5 text-xs transition-colors ${!minPrice && !maxPrice ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}>All Prices</button>
+            {PRICE_PRESETS.map(p => (
+              <button key={p.label} onClick={() => onFilter({ minPrice: p.min > 0 ? p.min : undefined, maxPrice: p.max < PRICE_MAX ? p.max : undefined })} className={`w-full text-left rounded-lg px-3 py-1.5 text-xs transition-colors ${minPrice === (p.min || undefined) && maxPrice === (p.max < PRICE_MAX ? p.max : undefined) ? 'bg-primary/10 text-primary font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}>{p.label}</button>
+            ))}
+          </div>
+        </FilterDropdown>
+
+        {/* Language */}
+        <FilterDropdown label={language ?? 'Language'} icon={Globe} active={!!language}>
+          <div className="p-2 space-y-0.5">
+            {LANGUAGES.map(l => (
+              <CheckRow key={l.value} label={l.label} active={filters.language === l.value} onClick={() => onFilter({ language: filters.language === l.value ? undefined : l.value })} />
+            ))}
+          </div>
+        </FilterDropdown>
+
+        {/* Genre */}
+        {(filterOptions?.genres?.length ?? 0) > 0 && (
+          <FilterDropdown label={genre ?? 'Genre'} icon={BookOpen} active={!!genre}>
+            <div className="p-2 space-y-0.5">
+              {(filterOptions?.genres ?? []).map(g => (
+                <CheckRow key={g} label={g} active={filters.genre === g} onClick={() => onFilter({ genre: filters.genre === g ? undefined : g })} />
               ))}
             </div>
-          </div>
+          </FilterDropdown>
+        )}
 
-          {/* Active filter chips */}
-          {activeCount > 0 && (
-            <div className="mb-3 flex flex-wrap gap-1.5 items-center">
-              {categorySlug && <Chip label={activeCategoryName ?? categorySlug} onRemove={() => onFilter({ categorySlug: undefined })} />}
-              {(minPrice || maxPrice) && <Chip label={`৳${(minPrice ?? 0).toLocaleString()} – ৳${maxPrice ? maxPrice.toLocaleString() : '∞'}`} onRemove={() => onFilter({ minPrice: undefined, maxPrice: undefined })} />}
-              {isFeatured && <Chip label="Featured" onRemove={() => onFilter({ isFeatured: false })} />}
-              {inStock && <Chip label="In Stock" onRemove={() => onFilter({ inStock: false })} />}
-              {hasDiscount && <Chip label="On Sale" onRemove={() => onFilter({ hasDiscount: false })} />}
-              {preorder && <Chip label="Pre-Order" onRemove={() => onFilter({ preorder: false })} />}
-              {language && <Chip label={language} onRemove={() => onFilter({ language: undefined })} />}
-              {genre && <Chip label={genre} onRemove={() => onFilter({ genre: undefined })} />}
-              {author && <Chip label={author} onRemove={() => onFilter({ author: undefined })} />}
-              {publisher && <Chip label={publisher} onRemove={() => onFilter({ publisher: undefined })} />}
-              {binding && <Chip label={binding} onRemove={() => onFilter({ binding: undefined })} />}
-              {tags.map(tag => <Chip key={tag} label={TAG_OPTIONS.find(t => t.value === tag)?.label ?? tag} onRemove={() => onFilter({ tags: tags.filter(t => t !== tag) })} />)}
-              <button onClick={clearAllFilters} className="flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-500 hover:bg-red-100 transition-colors">
-                <RotateCcw className="w-3 h-3" /> Clear all
-              </button>
-            </div>
-          )}
-
-          {/* Grid */}
-          {isLoading ? (
-            <div className={`grid gap-3 sm:gap-4 ${gridClass}`}>{Array.from({ length: 8 }).map((_, i) => <div key={i} className="aspect-[3/4] animate-pulse rounded-xl bg-gray-100" />)}</div>
-          ) : (data?.data ?? []).length === 0 ? (
-            <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center"><Package className="w-8 h-8 text-gray-300" /></div>
-              <p className="text-base font-bold text-gray-700">{t.products.noProductsFound}</p>
-              <p className="text-sm text-gray-400">{t.products.tryAdjustingFilters}</p>
-              {activeCount > 0 && <button onClick={clearAllFilters} className="mt-1 text-sm text-primary font-semibold hover:underline flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> Clear all filters</button>}
-            </div>
-          ) : gridCols === 'list' ? (
-            <div className="space-y-2.5">{(data?.data ?? []).map(product => <ProductCard key={product.id} product={product} listView />)}</div>
-          ) : (
-            <div className={`grid gap-3 sm:gap-4 ${gridClass}`}>{(data?.data ?? []).map(product => <ProductCard key={product.id} product={product} />)}</div>
-          )}
-
-          {/* Pagination */}
-          {data && data.meta.totalPages > 1 && (
-            <div className="mt-8 flex flex-wrap justify-center gap-1.5">
-              <button onClick={() => setParams({ page: String(page - 1) })} disabled={page === 1} className="rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-50 disabled:opacity-40">‹ Prev</button>
-              {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1)
-                .filter(p => p === 1 || p === data.meta.totalPages || Math.abs(p - page) <= 2)
-                .reduce<(number | 'ellipsis')[]>((acc, p, i, arr) => { if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('ellipsis'); acc.push(p); return acc; }, [])
-                .map((p, i) => p === 'ellipsis' ? (
-                  <span key={`e${i}`} className="flex h-9 w-9 items-center justify-center text-sm text-gray-400">…</span>
-                ) : (
-                  <button key={p} onClick={() => setParams({ page: String(p) })} className={`h-9 w-9 rounded-lg text-sm font-semibold transition-colors ${p === page ? 'bg-primary text-white' : 'border hover:bg-gray-50'}`}>{p}</button>
+        {/* Author */}
+        {(filterOptions?.authors?.length ?? 0) > 0 && (
+          <FilterDropdown label={author ?? 'Author'} icon={Feather} active={!!author}>
+            <div className="p-2">
+              <div className="relative mb-2">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                <input type="text" placeholder="Search author..." value={dropAuthorSearch} onChange={e => setDropAuthorSearch(e.target.value)} className="w-full border rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/30" />
+              </div>
+              <div className="space-y-0.5">
+                {(filterOptions?.authors ?? []).filter(a => !dropAuthorSearch || a.toLowerCase().includes(dropAuthorSearch.toLowerCase())).map(a => (
+                  <CheckRow key={a} label={a} active={filters.author === a} onClick={() => onFilter({ author: filters.author === a ? undefined : a })} />
                 ))}
-              <button onClick={() => setParams({ page: String(page + 1) })} disabled={page === data.meta.totalPages} className="rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-50 disabled:opacity-40">Next ›</button>
+              </div>
             </div>
-          )}
+          </FilterDropdown>
+        )}
+
+        {/* Publisher */}
+        {(filterOptions?.publishers?.length ?? 0) > 0 && (
+          <FilterDropdown label={publisher ?? 'Publisher'} icon={Building2} active={!!publisher}>
+            <div className="p-2 space-y-0.5">
+              {(filterOptions?.publishers ?? []).map(p => (
+                <CheckRow key={p as string} label={p as string} active={filters.publisher === p} onClick={() => onFilter({ publisher: filters.publisher === p ? undefined : p as string })} />
+              ))}
+            </div>
+          </FilterDropdown>
+        )}
+
+        {/* Format / Binding */}
+        <FilterDropdown label={binding ?? 'Format'} icon={BookMarked} active={!!binding}>
+          <div className="p-2 space-y-0.5">
+            {BINDINGS.map(b => (
+              <CheckRow key={b.value} label={b.label} active={filters.binding === b.value} onClick={() => onFilter({ binding: filters.binding === b.value ? undefined : b.value })} />
+            ))}
+          </div>
+        </FilterDropdown>
+
+        {/* Type / Tags / Availability */}
+        <FilterDropdown
+          label="Type"
+          icon={Tag}
+          active={tags.length > 0 || hasDiscount || inStock || preorder || isFeatured}
+        >
+          <div className="p-2 space-y-0.5">
+            {TAG_OPTIONS.map(t => {
+              const act = filters.tags.includes(t.value);
+              return <CheckRow key={t.value} label={t.label} active={act} onClick={() => { const next = act ? filters.tags.filter(x => x !== t.value) : [...filters.tags, t.value]; onFilter({ tags: next }); }} icon={t.icon} iconClass={t.color} />;
+            })}
+            <CheckRow label="On Sale / Discounted" active={filters.hasDiscount} onClick={() => onFilter({ hasDiscount: !filters.hasDiscount })} icon={Tag} iconClass="text-red-400" />
+            <CheckRow label="In Stock Only" active={filters.inStock} onClick={() => onFilter({ inStock: !filters.inStock })} />
+            <CheckRow label="Pre-Order Available" active={filters.preorder} onClick={() => onFilter({ preorder: !filters.preorder })} icon={CalendarClock} iconClass="text-emerald-500" />
+            <CheckRow label="Featured" active={filters.isFeatured} onClick={() => onFilter({ isFeatured: !filters.isFeatured })} icon={Star} iconClass="text-yellow-400" />
+          </div>
+        </FilterDropdown>
+
+        {/* Clear all */}
+        {activeCount > 0 && (
+          <button onClick={clearAllFilters} className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 transition-colors ml-auto">
+            <RotateCcw className="w-3.5 h-3.5" /> Clear ({activeCount})
+          </button>
+        )}
+      </div>
+
+      {/* Sort bar + product count */}
+      <div className="mb-3 flex items-center justify-between gap-2 rounded-xl border bg-white px-3 py-2 sm:px-4 shadow-sm">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <span className="hidden sm:block text-xs text-gray-400 whitespace-nowrap font-medium">Sort:</span>
+          <div className="relative flex-1 max-w-[200px]">
+            <select value={`${sortBy}:${sortOrder}`} onChange={e => { const [sb, so] = e.target.value.split(':'); setParams({ sortBy: sb, sortOrder: so }); }} className="w-full appearance-none rounded-lg border bg-gray-50 pl-2.5 pr-7 py-1.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 cursor-pointer font-medium">
+              <option value="createdAt:desc">Newest First</option>
+              <option value="createdAt:asc">Oldest First</option>
+              <option value="basePrice:asc">Price: Low → High</option>
+              <option value="basePrice:desc">Price: High → Low</option>
+              <option value="name:asc">Name A–Z</option>
+              <option value="name:desc">Name Z–A</option>
+              <option value="salePrice:desc">Highest Original Price</option>
+              <option value="stockQuantity:desc">Most Stock</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+          </div>
+        </div>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          {([2, 3, 4, 'list'] as const).map(v => (
+            <button key={v} onClick={() => setGridCols(v)} className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg border transition-colors ${gridCols === v ? 'border-gray-800 bg-gray-800 text-white' : 'bg-gray-50 hover:bg-gray-100 text-gray-500'}`}>
+              {v === 2 && <Grid2X2 className="h-3.5 w-3.5" />}
+              {v === 3 && <LayoutGrid className="h-3.5 w-3.5" />}
+              {v === 4 && <Grid3X3 className="h-3.5 w-3.5" />}
+              {v === 'list' && <List className="h-3.5 w-3.5" />}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Active filter chips */}
+      {activeCount > 0 && (
+        <div className="mb-3 flex flex-wrap gap-1.5 items-center">
+          {categorySlug && <Chip label={activeCategoryName ?? categorySlug} onRemove={() => onFilter({ categorySlug: undefined })} />}
+          {(minPrice || maxPrice) && <Chip label={`৳${(minPrice ?? 0).toLocaleString()} – ৳${maxPrice ? maxPrice.toLocaleString() : '∞'}`} onRemove={() => onFilter({ minPrice: undefined, maxPrice: undefined })} />}
+          {isFeatured && <Chip label="Featured" onRemove={() => onFilter({ isFeatured: false })} />}
+          {inStock && <Chip label="In Stock" onRemove={() => onFilter({ inStock: false })} />}
+          {hasDiscount && <Chip label="On Sale" onRemove={() => onFilter({ hasDiscount: false })} />}
+          {preorder && <Chip label="Pre-Order" onRemove={() => onFilter({ preorder: false })} />}
+          {language && <Chip label={language} onRemove={() => onFilter({ language: undefined })} />}
+          {genre && <Chip label={genre} onRemove={() => onFilter({ genre: undefined })} />}
+          {author && <Chip label={author} onRemove={() => onFilter({ author: undefined })} />}
+          {publisher && <Chip label={publisher} onRemove={() => onFilter({ publisher: undefined })} />}
+          {binding && <Chip label={binding} onRemove={() => onFilter({ binding: undefined })} />}
+          {tags.map(tag => <Chip key={tag} label={TAG_OPTIONS.find(t => t.value === tag)?.label ?? tag} onRemove={() => onFilter({ tags: tags.filter(t => t !== tag) })} />)}
+          <button onClick={clearAllFilters} className="flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-500 hover:bg-red-100 transition-colors">
+            <RotateCcw className="w-3 h-3" /> Clear all
+          </button>
+        </div>
+      )}
+
+      {/* Grid */}
+      {isLoading ? (
+        <div className={`grid gap-3 sm:gap-4 ${gridClass}`}>{Array.from({ length: 8 }).map((_, i) => <div key={i} className="aspect-[3/4] animate-pulse rounded-xl bg-gray-100" />)}</div>
+      ) : (data?.data ?? []).length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center"><Package className="w-8 h-8 text-gray-300" /></div>
+          <p className="text-base font-bold text-gray-700">{t.products.noProductsFound}</p>
+          <p className="text-sm text-gray-400">{t.products.tryAdjustingFilters}</p>
+          {activeCount > 0 && <button onClick={clearAllFilters} className="mt-1 text-sm text-primary font-semibold hover:underline flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> Clear all filters</button>}
+        </div>
+      ) : gridCols === 'list' ? (
+        <div className="space-y-2.5">{(data?.data ?? []).map(product => <ProductCard key={product.id} product={product} listView />)}</div>
+      ) : (
+        <div className={`grid gap-3 sm:gap-4 ${gridClass}`}>{(data?.data ?? []).map(product => <ProductCard key={product.id} product={product} />)}</div>
+      )}
+
+      {/* Pagination */}
+      {data && data.meta.totalPages > 1 && (
+        <div className="mt-8 flex flex-wrap justify-center gap-1.5">
+          <button onClick={() => setParams({ page: String(page - 1) })} disabled={page === 1} className="rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-50 disabled:opacity-40">‹ Prev</button>
+          {Array.from({ length: data.meta.totalPages }, (_, i) => i + 1)
+            .filter(p => p === 1 || p === data.meta.totalPages || Math.abs(p - page) <= 2)
+            .reduce<(number | 'ellipsis')[]>((acc, p, i, arr) => { if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push('ellipsis'); acc.push(p); return acc; }, [])
+            .map((p, i) => p === 'ellipsis' ? (
+              <span key={`e${i}`} className="flex h-9 w-9 items-center justify-center text-sm text-gray-400">…</span>
+            ) : (
+              <button key={p} onClick={() => setParams({ page: String(p) })} className={`h-9 w-9 rounded-lg text-sm font-semibold transition-colors ${p === page ? 'bg-primary text-white' : 'border hover:bg-gray-50'}`}>{p}</button>
+            ))}
+          <button onClick={() => setParams({ page: String(page + 1) })} disabled={page === data.meta.totalPages} className="rounded-lg border px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-50 disabled:opacity-40">Next ›</button>
+        </div>
+      )}
     </div>
   );
 }

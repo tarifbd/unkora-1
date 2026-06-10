@@ -123,7 +123,7 @@ function PromoBannerRow({ banners }: { banners: PromoBannerItem[] }) {
   if (banners.length === 0) return null;
   return (
     <section className="py-3 px-3 md:px-4">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="max-w-[1400px] mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
         {banners.slice(0, 3).map(b =>
           b.linkUrl ? (
             <Link key={b.id} href={b.linkUrl}
@@ -494,7 +494,7 @@ export default function HomePage() {
           HERO SECTION — keep as is
       ═══════════════════════════════════════════════════════════════ */}
       <section className="w-full bg-gray-100 py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto flex flex-col xl:flex-row items-stretch gap-3">
+        <div className="max-w-[1400px] mx-auto flex flex-col xl:flex-row items-stretch gap-3">
 
           {/* Hero Banner */}
           <div className="relative rounded-xl overflow-hidden flex-shrink-0 h-[220px] sm:h-[280px] xl:w-[360px] xl:h-auto xl:min-h-[440px] cursor-pointer group"
@@ -616,7 +616,7 @@ export default function HomePage() {
           CATEGORIES STRIP — auto-updates from API
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'বিভাগ অনুযায়ী কেনাকাটা করুন' : 'Shop by Category'}</h2>
             <Link href="/products" className="text-[11px] font-bold text-orange-500 flex items-center gap-0.5 hover:underline">
@@ -664,7 +664,7 @@ export default function HomePage() {
           FLASH DEALS
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-5 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 bg-red-500 text-white px-3 py-1.5 rounded-full shadow-lg shadow-red-200 animate-pulse">
@@ -712,7 +712,7 @@ export default function HomePage() {
           BOOK WORLD — tabbed shelf
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-2 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3">
               <div className="w-1 h-6 bg-blue-600 rounded-full" />
@@ -752,7 +752,7 @@ export default function HomePage() {
           ISLAMIC LIFESTYLE BANNER — right after book world
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1400px] mx-auto">
           <a href="/islamic-lifestyle" className="block rounded-2xl overflow-hidden relative group cursor-pointer"
             style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 40%, #047857 100%)' }}>
             <div className="absolute inset-0 opacity-10"
@@ -794,7 +794,7 @@ export default function HomePage() {
           NEW ARRIVALS — 6-column grid
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="নতুন আগমন" titleEn="New Arrivals" href="/products?sortBy=createdAt&sortOrder=desc" accentColor="#f97316" lang={lang} />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {newArrivals.length > 0
@@ -812,7 +812,7 @@ export default function HomePage() {
           BEST SELLERS — tabbed 6-column grid
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3">
               <div className="w-1 h-6 bg-violet-600 rounded-full" />
@@ -846,7 +846,7 @@ export default function HomePage() {
           RANKINGS — 3 column
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1400px] mx-auto">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-1 h-6 bg-amber-500 rounded-full" />
             <h2 className="text-base font-black text-gray-900">📊 {lang === 'bn' ? 'র‍্যাংকিং' : 'Rankings'}</h2>
@@ -876,7 +876,7 @@ export default function HomePage() {
           LEATHER PRODUCTS BANNER
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1400px] mx-auto">
           <Link href="/categories/leather-products" className="block rounded-2xl overflow-hidden relative group cursor-pointer"
             style={{ background: 'linear-gradient(135deg, #1c0a00 0%, #3b1a08 40%, #5c2d0e 100%)' }}>
             <div className="absolute inset-0 opacity-10"
@@ -917,7 +917,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════════ */}
       {leatherProducts.length > 0 && (
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="চামড়া পণ্য" titleEn="Leather Products" href="/products?categorySlug=leather-products" accentColor="#92400e" lang={lang} />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {leatherProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
@@ -931,7 +931,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════════ */}
       {handicraftProducts.length > 0 && (
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="হস্তশিল্প" titleEn="Handicrafts" href="/products?categorySlug=handicrafts" accentColor="#7c3aed" lang={lang} />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {handicraftProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
@@ -945,7 +945,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════════ */}
       {electronicsProducts.length > 0 && (
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="ইলেকট্রনিক্স" titleEn="Electronics" href="/products?categorySlug=electronics" accentColor="#0284c7" lang={lang} />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {electronicsProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
@@ -959,7 +959,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════════ */}
       {dailyProducts.length > 0 && (
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="দৈনিক পণ্য" titleEn="Daily Needs" href="/products?categorySlug=daily-needs" accentColor="#f59e0b" lang={lang} />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {dailyProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
@@ -973,7 +973,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════════ */}
       {babyProducts.length > 0 && (
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="শিশু পণ্য" titleEn="Baby Products" href="/products?categorySlug=baby-products" accentColor="#ec4899" lang={lang} />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {babyProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
@@ -987,7 +987,7 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════════ */}
       {organicProducts.length > 0 && (
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="অর্গানিক পণ্য" titleEn="Organic Products" href="/categories/organic-foods" accentColor="#16a34a" lang={lang} />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {organicProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
@@ -1000,7 +1000,7 @@ export default function HomePage() {
           AUTHORS
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-1 h-6 bg-pink-500 rounded-full" />
@@ -1030,7 +1030,7 @@ export default function HomePage() {
           BROWSE BY GENRE
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-1 h-6 bg-indigo-500 rounded-full" />
             <h2 className="text-base font-black text-gray-900">{lang === 'bn' ? 'বিষয় অনুযায়ী বই' : 'Browse by Genre'}</h2>
@@ -1051,7 +1051,7 @@ export default function HomePage() {
           CUSTOMER REVIEWS
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-5">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-5">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-1 h-6 bg-yellow-500 rounded-full" />
             <h2 className="text-base font-black text-gray-900">{lang === 'bn' ? '⭐ ক্রেতাদের মতামত' : '⭐ Customer Reviews'}</h2>
@@ -1087,7 +1087,7 @@ export default function HomePage() {
           NEWSLETTER
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-4 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #1e3a5f, #0f2340)' }}>
+        <div className="max-w-[1400px] mx-auto rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #1e3a5f, #0f2340)' }}>
           <div className="max-w-xl mx-auto px-6 py-10 text-center">
             <div className="text-3xl mb-2">📬</div>
             <h2 className="text-lg font-black text-white mb-1">{lang === 'bn' ? 'অফার মিস করতে চান না?' : 'Never Miss a Deal?'}</h2>
@@ -1126,7 +1126,7 @@ export default function HomePage() {
           SERVICE FEATURES
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-4 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl px-6 py-5">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl px-6 py-5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
             {[
               { icon: Truck,       color: '#2563eb', bg: '#dbeafe', titleBn: 'দ্রুত ডেলিভারি',    titleEn: 'Fast Delivery',   subBn: 'ঢাকায় ২৪ ঘন্টায়', subEn: 'Dhaka in 24 hours' },

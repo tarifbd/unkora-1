@@ -16,9 +16,10 @@ interface ProductCardProps {
   product: Product;
   className?: string;
   listView?: boolean;
+  mini?: boolean;
 }
 
-export function ProductCard({ product, className, listView }: ProductCardProps) {
+export function ProductCard({ product, className, listView, mini }: ProductCardProps) {
   const { addItem } = useCart();
   const { lang } = useLanguage();
 
@@ -213,9 +214,27 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
 
         {/* ── Buttons ── always pinned at bottom */}
         {preorder ? (
-          /* Pre-order takes over the whole action row */
           <div className="mt-auto pt-2">
             <PreorderButton productSlug={product.slug} lang={lang} full />
+          </div>
+        ) : mini ? (
+          /* Compact single button for narrow cards (related products) */
+          <div className="mt-auto pt-2 flex gap-1.5">
+            <button
+              onClick={handleAddToCart}
+              disabled={addItem.isPending}
+              className="flex-1 flex items-center justify-center gap-1 h-8 rounded-xl text-[11px] font-black transition-all bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-md shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10"
+            >
+              <ShoppingCart className="w-3 h-3 flex-shrink-0" />
+              <span>{lang === 'bn' ? 'কার্টে' : 'Add'}</span>
+            </button>
+            <Link
+              href={`/checkout?productSlug=${product.slug}&qty=1`}
+              onClick={e => e.stopPropagation()}
+              className="flex items-center justify-center h-8 w-8 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl shadow-md shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20 flex-shrink-0"
+            >
+              <Zap className="w-3.5 h-3.5" />
+            </Link>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-1.5 mt-auto pt-2">
