@@ -327,7 +327,7 @@ function LoginContent() {
 
           <div className="mt-6 text-center">
             <span className="text-sm text-gray-500">{t.noAccount} </span>
-            <Link href="/register" className="text-sm font-bold text-primary hover:underline">{t.register}</Link>
+            <Link href={`/register${redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : ''}`} className="text-sm font-bold text-primary hover:underline">{t.register}</Link>
           </div>
 
           <div className="mt-4 pt-4 border-t border-gray-100 text-center">
