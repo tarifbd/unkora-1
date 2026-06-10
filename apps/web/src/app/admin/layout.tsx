@@ -347,7 +347,7 @@ function NavLeafItem({
 }: {
   item: NavLeaf; pathname: string; depth?: number; onClose?: () => void;
 }) {
-  const active = isActive(item.href, pathname, item.exact);
+  const active = pathname === item.href;
   return (
     <Link
       href={item.href}
