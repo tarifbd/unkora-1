@@ -41,8 +41,8 @@ export class SeoController {
   @Get('dashboard')
   @Version('1')
   @ApiOperation({ summary: 'Get SEO dashboard overview' })
-  async getDashboard() {
-    return { success: true, data: await this.seoService.getDashboard() };
+  getDashboard() {
+    return this.seoService.getDashboard();
   }
 
   // ─── Legacy endpoints (keep for backward compatibility) ───────────────────────
@@ -94,16 +94,16 @@ export class SeoController {
   @Get('products/:id/full')
   @Version('1')
   @ApiOperation({ summary: 'Get full product SEO data with metadata' })
-  async getProductSeoFull(@Param('id') id: string) {
-    return { success: true, data: await this.seoService.getProductSeo(id) };
+  getProductSeoFull(@Param('id') id: string) {
+    return this.seoService.getProductSeo(id);
   }
 
   @Post('products/:id/audit')
   @Version('1')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Run SEO audit on a product' })
-  async auditProduct(@Param('id') id: string, @Query('url') url?: string) {
-    return { success: true, data: await this.seoService.auditEntity('PRODUCT', id, url) };
+  auditProduct(@Param('id') id: string, @Query('url') url?: string) {
+    return this.seoService.auditEntity('PRODUCT', id, url);
   }
 
   @Post('products/:id/generate-ai')
@@ -117,12 +117,10 @@ export class SeoController {
   ) {
     const product = await this.seoService.getProductSeo(id);
     const productName = dto.productName ?? (product as any).name ?? '';
-
-    const result = await this.aiStudioService.generateProductSeo(
+    return this.aiStudioService.generateProductSeo(
       { productName, targetKeywords: dto.targetKeywords },
       userId,
     );
-    return { success: true, data: result };
   }
 
   // ─── Category SEO ─────────────────────────────────────────────────────────────
@@ -130,33 +128,30 @@ export class SeoController {
   @Get('categories')
   @Version('1')
   @ApiOperation({ summary: 'List categories with SEO metadata' })
-  async getCategoriesSeo(@Query('page') page = 1, @Query('limit') limit = 20) {
-    return {
-      success: true,
-      data: await this.seoService.getCategoriesSeo({ page: +page, limit: +limit }),
-    };
+  getCategoriesSeo(@Query('page') page = 1, @Query('limit') limit = 20) {
+    return this.seoService.getCategoriesSeo({ page: +page, limit: +limit });
   }
 
   @Get('categories/:id')
   @Version('1')
   @ApiOperation({ summary: 'Get category SEO data' })
-  async getCategorySeo(@Param('id') id: string) {
-    return { success: true, data: await this.seoService.getCategorySeo(id) };
+  getCategorySeo(@Param('id') id: string) {
+    return this.seoService.getCategorySeo(id);
   }
 
   @Patch('categories/:id')
   @Version('1')
   @ApiOperation({ summary: 'Update category SEO metadata' })
-  async updateCategorySeo(@Param('id') id: string, @Body() dto: UpsertSeoMetadataDto) {
-    return { success: true, data: await this.seoService.updateCategorySeo(id, dto) };
+  updateCategorySeo(@Param('id') id: string, @Body() dto: UpsertSeoMetadataDto) {
+    return this.seoService.updateCategorySeo(id, dto);
   }
 
   @Post('categories/:id/audit')
   @Version('1')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Run SEO audit on a category' })
-  async auditCategory(@Param('id') id: string, @Query('url') url?: string) {
-    return { success: true, data: await this.seoService.auditEntity('CATEGORY', id, url) };
+  auditCategory(@Param('id') id: string, @Query('url') url?: string) {
+    return this.seoService.auditEntity('CATEGORY', id, url);
   }
 
   @Post('categories/:id/generate-ai')
@@ -170,12 +165,10 @@ export class SeoController {
   ) {
     const category = await this.seoService.getCategorySeo(id);
     const categoryName = dto.categoryName ?? (category as any).name ?? '';
-
-    const result = await this.aiStudioService.generateCategorySeo(
+    return this.aiStudioService.generateCategorySeo(
       { categoryName, targetKeywords: dto.targetKeywords },
       userId,
     );
-    return { success: true, data: result };
   }
 
   // ─── SEO Metadata ─────────────────────────────────────────────────────────────
@@ -183,40 +176,37 @@ export class SeoController {
   @Get('metadata')
   @Version('1')
   @ApiOperation({ summary: 'List all SEO metadata records' })
-  async listMetadata(
+  listMetadata(
     @Query('entityType') entityType?: string,
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ) {
-    return {
-      success: true,
-      data: await this.seoService.listMetadata({ entityType, page: +page, limit: +limit }),
-    };
+    return this.seoService.listMetadata({ entityType, page: +page, limit: +limit });
   }
 
   @Post('metadata')
   @Version('1')
   @ApiOperation({ summary: 'Create SEO metadata record' })
-  async createMetadata(
+  createMetadata(
     @Body()
     dto: UpsertSeoMetadataDto & { entityType: string; entityId: string },
   ) {
     const { entityType, entityId, ...rest } = dto;
-    return { success: true, data: await this.seoService.createMetadata(entityType, entityId, rest) };
+    return this.seoService.createMetadata(entityType, entityId, rest);
   }
 
   @Get('metadata/:id')
   @Version('1')
   @ApiOperation({ summary: 'Get a SEO metadata record' })
-  async getMetadata(@Param('id') id: string) {
-    return { success: true, data: await this.seoService.getMetadata(id) };
+  getMetadata(@Param('id') id: string) {
+    return this.seoService.getMetadata(id);
   }
 
   @Patch('metadata/:id')
   @Version('1')
   @ApiOperation({ summary: 'Update a SEO metadata record' })
-  async updateMetadata(@Param('id') id: string, @Body() dto: UpsertSeoMetadataDto) {
-    return { success: true, data: await this.seoService.updateMetadata(id, dto) };
+  updateMetadata(@Param('id') id: string, @Body() dto: UpsertSeoMetadataDto) {
+    return this.seoService.updateMetadata(id, dto);
   }
 
   @Delete('metadata/:id')
@@ -224,7 +214,7 @@ export class SeoController {
   @ApiOperation({ summary: 'Delete a SEO metadata record' })
   async deleteMetadata(@Param('id') id: string) {
     await this.seoService.deleteMetadata(id);
-    return { success: true, message: 'SEO metadata deleted' };
+    return { message: 'SEO metadata deleted' };
   }
 
   // ─── Audits ───────────────────────────────────────────────────────────────────
@@ -232,30 +222,27 @@ export class SeoController {
   @Get('audits')
   @Version('1')
   @ApiOperation({ summary: 'List SEO audits' })
-  async listAudits(
+  listAudits(
     @Query('entityType') entityType?: string,
     @Query('page') page = 1,
     @Query('limit') limit = 50,
   ) {
-    return {
-      success: true,
-      data: await this.seoService.listAudits({ entityType, page: +page, limit: +limit }),
-    };
+    return this.seoService.listAudits({ entityType, page: +page, limit: +limit });
   }
 
   @Get('audits/:id')
   @Version('1')
   @ApiOperation({ summary: 'Get a specific audit' })
-  async getAudit(@Param('id') id: string) {
-    return { success: true, data: await this.seoService.getAudit(id) };
+  getAudit(@Param('id') id: string) {
+    return this.seoService.getAudit(id);
   }
 
   @Post('audit/bulk')
   @Version('1')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Run bulk SEO audit for all entities of a type' })
-  async bulkAudit(@Body() dto: { entityType: string }) {
-    return { success: true, data: await this.seoService.bulkAudit(dto.entityType) };
+  bulkAudit(@Body() dto: { entityType: string }) {
+    return this.seoService.bulkAudit(dto.entityType);
   }
 
   // ─── Redirects ────────────────────────────────────────────────────────────────
@@ -263,40 +250,37 @@ export class SeoController {
   @Get('redirects')
   @Version('1')
   @ApiOperation({ summary: 'List SEO redirects' })
-  async listRedirects(
+  listRedirects(
     @Query('page') page = 1,
     @Query('limit') limit = 50,
     @Query('isActive') isActive?: string,
   ) {
-    return {
-      success: true,
-      data: await this.seoService.listRedirects({
-        page: +page,
-        limit: +limit,
-        isActive: isActive !== undefined ? isActive === 'true' : undefined,
-      }),
-    };
+    return this.seoService.listRedirects({
+      page: +page,
+      limit: +limit,
+      isActive: isActive !== undefined ? isActive === 'true' : undefined,
+    });
   }
 
   @Post('redirects')
   @Version('1')
   @ApiOperation({ summary: 'Create a SEO redirect' })
-  async createRedirect(@Body() dto: CreateRedirectDto) {
-    return { success: true, data: await this.seoService.createRedirect(dto) };
+  createRedirect(@Body() dto: CreateRedirectDto) {
+    return this.seoService.createRedirect(dto);
   }
 
   @Get('redirects/:id')
   @Version('1')
   @ApiOperation({ summary: 'Get a SEO redirect' })
-  async getRedirect(@Param('id') id: string) {
-    return { success: true, data: await this.seoService.getRedirect(id) };
+  getRedirect(@Param('id') id: string) {
+    return this.seoService.getRedirect(id);
   }
 
   @Patch('redirects/:id')
   @Version('1')
   @ApiOperation({ summary: 'Update a SEO redirect' })
-  async updateRedirect(@Param('id') id: string, @Body() dto: Partial<CreateRedirectDto>) {
-    return { success: true, data: await this.seoService.updateRedirect(id, dto) };
+  updateRedirect(@Param('id') id: string, @Body() dto: Partial<CreateRedirectDto>) {
+    return this.seoService.updateRedirect(id, dto);
   }
 
   @Delete('redirects/:id')
@@ -304,7 +288,7 @@ export class SeoController {
   @ApiOperation({ summary: 'Delete a SEO redirect' })
   async deleteRedirect(@Param('id') id: string) {
     await this.seoService.deleteRedirect(id);
-    return { success: true, message: 'Redirect deleted' };
+    return { message: 'Redirect deleted' };
   }
 
   // ─── Sitemap ──────────────────────────────────────────────────────────────────
@@ -312,30 +296,30 @@ export class SeoController {
   @Get('sitemap')
   @Version('1')
   @ApiOperation({ summary: 'Get sitemap entries' })
-  async getSitemap() {
-    return { success: true, data: await this.seoService.getSitemap() };
+  getSitemap() {
+    return this.seoService.getSitemap();
   }
 
   @Post('sitemap/regenerate')
   @Version('1')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Regenerate sitemap from live data' })
-  async regenerateSitemap() {
-    return { success: true, data: await this.seoService.regenerateSitemap() };
+  regenerateSitemap() {
+    return this.seoService.regenerateSitemap();
   }
 
   @Patch('sitemap/entries/:id')
   @Version('1')
   @ApiOperation({ summary: 'Update a sitemap entry' })
-  async updateSitemapEntry(@Param('id') id: string, @Body() dto: UpdateSitemapEntryDto) {
-    return { success: true, data: await this.seoService.updateSitemapEntry(id, dto) };
+  updateSitemapEntry(@Param('id') id: string, @Body() dto: UpdateSitemapEntryDto) {
+    return this.seoService.updateSitemapEntry(id, dto);
   }
 
   @Get('sitemap/xml')
   @Version('1')
   @Header('Content-Type', 'application/xml')
   @ApiOperation({ summary: 'Get XML sitemap (public endpoint)' })
-  async getSitemapXml() {
+  getSitemapXml() {
     return this.seoService.generateSitemapXml();
   }
 
@@ -344,15 +328,15 @@ export class SeoController {
   @Get('robots')
   @Version('1')
   @ApiOperation({ summary: 'Get robots.txt content' })
-  async getRobots() {
-    return { success: true, data: await this.seoService.getRobots() };
+  getRobots() {
+    return this.seoService.getRobots();
   }
 
   @Patch('robots')
   @Version('1')
   @ApiOperation({ summary: 'Update robots.txt content' })
-  async updateRobots(@Body() dto: { robotsTxt: string }) {
-    return { success: true, data: await this.seoService.updateRobots(dto.robotsTxt) };
+  updateRobots(@Body() dto: { robotsTxt: string }) {
+    return this.seoService.updateRobots(dto.robotsTxt);
   }
 
   // ─── Image Alts ───────────────────────────────────────────────────────────────
@@ -360,27 +344,24 @@ export class SeoController {
   @Get('image-alts')
   @Version('1')
   @ApiOperation({ summary: 'List image alt text records' })
-  async listImageAlts(
+  listImageAlts(
     @Query('entityType') entityType?: string,
     @Query('entityId') entityId?: string,
     @Query('page') page = 1,
     @Query('limit') limit = 50,
   ) {
-    return {
-      success: true,
-      data: await this.seoService.listImageAlts({
-        entityType,
-        entityId,
-        page: +page,
-        limit: +limit,
-      }),
-    };
+    return this.seoService.listImageAlts({
+      entityType,
+      entityId,
+      page: +page,
+      limit: +limit,
+    });
   }
 
   @Post('image-alts')
   @Version('1')
   @ApiOperation({ summary: 'Create image alt text record' })
-  async createImageAlt(
+  createImageAlt(
     @Body() dto: {
       entityType: string;
       entityId: string;
@@ -389,17 +370,17 @@ export class SeoController {
       titleText?: string;
     },
   ) {
-    return { success: true, data: await this.seoService.createImageAlt(dto) };
+    return this.seoService.createImageAlt(dto);
   }
 
   @Patch('image-alts/:id')
   @Version('1')
   @ApiOperation({ summary: 'Update image alt text record' })
-  async updateImageAlt(
+  updateImageAlt(
     @Param('id') id: string,
     @Body() dto: { altText?: string; titleText?: string },
   ) {
-    return { success: true, data: await this.seoService.updateImageAlt(id, dto) };
+    return this.seoService.updateImageAlt(id, dto);
   }
 
   // ─── SEO Settings ─────────────────────────────────────────────────────────────
@@ -407,14 +388,14 @@ export class SeoController {
   @Get('settings')
   @Version('1')
   @ApiOperation({ summary: 'Get SEO global settings' })
-  async getSettings() {
-    return { success: true, data: await this.seoService.getSettings() };
+  getSettings() {
+    return this.seoService.getSettings();
   }
 
   @Patch('settings')
   @Version('1')
   @ApiOperation({ summary: 'Update SEO global settings' })
-  async updateSettings(@Body() dto: UpdateSeoSettingsDto) {
-    return { success: true, data: await this.seoService.updateSettings(dto) };
+  updateSettings(@Body() dto: UpdateSeoSettingsDto) {
+    return this.seoService.updateSettings(dto);
   }
 }

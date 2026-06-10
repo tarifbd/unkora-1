@@ -50,9 +50,8 @@ export default function SeoRedirectsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const seoPayload = (data as any)?.data ?? {};
-  const redirects = seoPayload?.data ?? [];
-  const total     = seoPayload?.total ?? 0;
+  const redirects = (data as any)?.data ?? [];
+  const total     = (data as any)?.total ?? 0;
   const totalPages = Math.ceil(total / LIMIT);
 
   return (

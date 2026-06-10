@@ -32,9 +32,8 @@ export default function PreorderOrdersPage() {
     queryFn: () => preordersApi.listOrders({ status: statusFilter || undefined, page }),
   });
 
-  const preorderPayload = (data as any)?.data ?? {};
-  const orders = preorderPayload?.data ?? [];
-  const total = preorderPayload?.total ?? 0;
+  const orders = data?.data ?? [];
+  const total = data?.total ?? 0;
   const totalPages = Math.ceil(total / 20);
 
   const statuses: (PreorderOrderStatus | '')[] = [

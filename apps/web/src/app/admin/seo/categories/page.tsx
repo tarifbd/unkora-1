@@ -43,8 +43,8 @@ export default function CategorySeoPage() {
     onError: () => toast.error('Audit failed'),
   });
 
-  const seoPayload = (data as any)?.data ?? {};
-  const categories: CategorySeoRow[] = (seoPayload?.data ?? []).map((c: any) => ({
+  const raw = data as { data?: any[]; meta?: { totalPages?: number } } | undefined;
+  const categories: CategorySeoRow[] = (raw?.data ?? []).map((c: any) => ({
     id: c.id,
     name: c.name,
     slug: c.slug,
@@ -53,7 +53,7 @@ export default function CategorySeoPage() {
     focusKeyword: c.seoMetadata?.focusKeyword ?? c.focusKeyword ?? null,
     seoScore: c.seoMetadata?.seoScore ?? c.seoScore ?? null,
   }));
-  const totalPages = seoPayload?.meta?.totalPages ?? 1;
+  const totalPages = raw?.meta?.totalPages ?? 1;
 
   const startEdit = (c: CategorySeoRow) => {
     setEditingId(c.id);
