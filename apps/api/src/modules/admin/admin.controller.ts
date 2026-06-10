@@ -65,6 +65,13 @@ export class AdminController {
     return this.adminService.updateUser(id, dto);
   }
 
+  @Patch('users/:id/credentials')
+  @Roles('SUPER_ADMIN')
+  @ApiOperation({ summary: 'Reset user email and/or password (SUPER_ADMIN only)' })
+  resetCredentials(@Param('id') id: string, @Body() dto: { email?: string; password?: string }) {
+    return this.adminService.resetUserCredentials(id, dto);
+  }
+
   @Delete('users/:id')
   @ApiOperation({ summary: 'Soft-delete user (set status to SUSPENDED)' })
   deleteUser(@Param('id') id: string) {

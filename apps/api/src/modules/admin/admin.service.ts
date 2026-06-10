@@ -314,4 +314,15 @@ export class AdminService {
       orderCount: r._count.id,
     }));
   }
+
+  async resetUserCredentials(id: string, dto: { email?: string; password?: string }) {
+    const data: any = {};
+    if (dto.email) data.email = dto.email;
+    if (dto.password) data.passwordHash = await argon2.hash(dto.password);
+    return this.prisma.user.update({
+      where: { id },
+      data,
+      select: { id: true, email: true },
+    });
+  }
 }

@@ -7,7 +7,7 @@ import {
   Calendar, Phone, Mail, Shield, ShieldAlert, ShieldCheck,
   ChevronRight, UserCheck, UserX, Crown, Ban, CheckCircle2,
   AlertTriangle, Clock, TrendingUp, Package, MoreVertical,
-  Plus, Trash2, Eye, EyeOff,
+  Plus, Trash2, Eye, EyeOff, KeyRound,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { adminApi } from '@/lib/api/admin';
@@ -273,6 +273,129 @@ function CreateUserModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+interface ResetCredsForm { email: string; password: string; confirmPassword: string }
+
+function ResetCredentialsModal({ userId, currentEmail, onClose }: { userId: string; currentEmail: string; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [form, setForm] = useState<ResetCredsForm>({ email: currentEmail, password: '', confirmPassword: '' });
+  const [showPw, setShowPw] = useState(false);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  const resetMutation = useMutation({
+    mutationFn: (payload: { email?: string; password?: string }) =>
+      api.patch(`/admin/users/${userId}/credentials`, payload).then(r => r.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin-users'] });
+      void qc.invalidateQueries({ queryKey: ['admin-user-detail', userId] });
+      toast.success('Credentials updated successfully');
+      onClose();
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message ?? 'Failed to update credentials';
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (form.password && form.password !== form.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (!form.email && !form.password) {
+      toast.error('Enter a new email or password');
+      return;
+    }
+    const payload: { email?: string; password?: string } = {};
+    if (form.email && form.email !== currentEmail) payload.email = form.email.trim();
+    if (form.password) payload.password = form.password;
+    if (!payload.email && !payload.password) {
+      toast.error('No changes detected');
+      return;
+    }
+    resetMutation.mutate(payload);
+  };
+
+  const inputCls = 'w-full rounded-xl border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50';
+
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onClick={e => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="w-full max-w-sm rounded-2xl border bg-white shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b bg-gray-50">
+          <div className="flex items-center gap-2">
+            <KeyRound className="w-4 h-4 text-primary" />
+            <h2 className="font-bold text-sm text-gray-900">Reset Email / Password</h2>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors">
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600">New Email</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              className={inputCls}
+              placeholder="Leave unchanged if not updating"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600">New Password <span className="text-gray-400 font-normal">(optional)</span></label>
+            <div className="relative">
+              <input
+                type={showPw ? 'text' : 'password'}
+                value={form.password}
+                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                placeholder="Leave blank to keep current"
+                className={`${inputCls} pr-10`}
+              />
+              <button type="button" onClick={() => setShowPw(s => !s)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+          {form.password && (
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Confirm Password</label>
+              <input
+                type="password"
+                value={form.confirmPassword}
+                onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                className={inputCls}
+                placeholder="Re-enter new password"
+              />
+            </div>
+          )}
+          <div className="flex justify-end gap-3 pt-1">
+            <button type="button" onClick={onClose}
+              className="rounded-xl border px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors">
+              Cancel
+            </button>
+            <button type="submit" disabled={resetMutation.isPending}
+              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
+              {resetMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function CustomerModal({ user, onClose }: { user: UserDetail; onClose: () => void }) {
   const qc = useQueryClient();
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -296,6 +419,8 @@ function CustomerModal({ user, onClose }: { user: UserDetail; onClose: () => voi
     mutationFn: (status: string) => api.patch(`/admin/users/${u.id}`, { status }).then(r => r.data.data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-users'] }); qc.invalidateQueries({ queryKey: ['admin-user-detail', u.id] }); },
   });
+
+  const [showResetCreds, setShowResetCreds] = useState(false);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -515,8 +640,21 @@ function CustomerModal({ user, onClose }: { user: UserDetail; onClose: () => voi
                   </button>
                 )}
               </div>
+              <button
+                onClick={() => setShowResetCreds(true)}
+                className="mt-2 w-full flex items-center justify-center gap-1.5 bg-primary/10 text-primary rounded-xl py-2.5 text-xs font-bold hover:bg-primary/20 transition-colors border border-primary/20"
+              >
+                <KeyRound className="w-3.5 h-3.5" /> Reset Email / Password
+              </button>
             </div>
           </div>
+        )}
+        {showResetCreds && (
+          <ResetCredentialsModal
+            userId={u.id}
+            currentEmail={u.email}
+            onClose={() => setShowResetCreds(false)}
+          />
         )}
       </div>
     </div>

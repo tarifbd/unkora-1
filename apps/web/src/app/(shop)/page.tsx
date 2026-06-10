@@ -292,7 +292,7 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
   const inStock = product.stockQuantity > 0;
   if (imgErr || !img) return null;
   return (
-    <div className="flex-shrink-0 w-[160px] group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
+    <div className="flex-shrink-0 w-[175px] group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
       <Link href={`/products/${product.slug}`} className="relative h-[170px] bg-gray-50 overflow-hidden flex-shrink-0 block">
         <Image src={img} alt={product.name} fill
           className="object-cover group-hover:scale-110 transition-transform duration-500"
@@ -455,6 +455,12 @@ export default function HomePage() {
   const dailyProducts = dailyData?.data ?? [];
   const { data: babyData } = useQuery({ queryKey: ['products', 'baby-products'], queryFn: () => productsApi.getAll({ categorySlug: 'baby-products', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
   const babyProducts = babyData?.data ?? [];
+  const { data: leatherData } = useQuery({ queryKey: ['products', 'leather-products'], queryFn: () => productsApi.getAll({ categorySlug: 'leather-products', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
+  const leatherProducts = leatherData?.data ?? [];
+  const { data: handicraftsData } = useQuery({ queryKey: ['products', 'handicrafts'], queryFn: () => productsApi.getAll({ categorySlug: 'handicrafts', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
+  const handicraftProducts = handicraftsData?.data ?? [];
+  const { data: electronicsData } = useQuery({ queryKey: ['products', 'electronics'], queryFn: () => productsApi.getAll({ categorySlug: 'electronics', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
+  const electronicsProducts = electronicsData?.data ?? [];
   const { data: flashData, isError: flashError } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]) });
   const flashProducts = (flashData?.data ?? []).filter(p => p.salePrice && Number(p.salePrice) < Number(p.basePrice) && p.images?.[0]?.url).slice(0, 12);
 
@@ -685,7 +691,7 @@ export default function HomePage() {
             {flashProducts.length > 0
               ? flashProducts.map(p => <FlashCard key={p.id} product={p} lang={lang} />)
               : Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-[165px] animate-pulse">
+                <div key={i} className="flex-shrink-0 w-[175px] animate-pulse">
                   <div className="w-full h-[200px] rounded-2xl bg-gray-200 mb-2" />
                   <div className="h-3 bg-gray-200 rounded mb-1 mx-2" />
                   <div className="h-3 bg-gray-200 rounded w-2/3 mx-2 mb-2" />
@@ -905,49 +911,88 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
+          LEATHER PRODUCTS GRID
+      ═══════════════════════════════════════════════════════════════ */}
+      {leatherProducts.length > 0 && (
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="চামড়া পণ্য" titleEn="Leather Products" href="/products?categorySlug=leather-products" accentColor="#92400e" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {leatherProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          HANDICRAFTS
+      ═══════════════════════════════════════════════════════════════ */}
+      {handicraftProducts.length > 0 && (
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="হস্তশিল্প" titleEn="Handicrafts" href="/products?categorySlug=handicrafts" accentColor="#7c3aed" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {handicraftProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          ELECTRONICS
+      ═══════════════════════════════════════════════════════════════ */}
+      {electronicsProducts.length > 0 && (
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="ইলেকট্রনিক্স" titleEn="Electronics" href="/products?categorySlug=electronics" accentColor="#0284c7" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {electronicsProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
           DAILY NEEDS
       ═══════════════════════════════════════════════════════════════ */}
+      {dailyProducts.length > 0 && (
       <section className="py-3 px-3 md:px-4">
         <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="দৈনিক পণ্য" titleEn="Daily Needs" href="/products?categorySlug=daily-needs" accentColor="#f59e0b" lang={lang} />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {dailyProducts.length > 0
-              ? dailyProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)
-              : Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-            }
+            {dailyProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
           </div>
         </div>
       </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           BABY PRODUCTS
       ═══════════════════════════════════════════════════════════════ */}
+      {babyProducts.length > 0 && (
       <section className="py-3 px-3 md:px-4">
         <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="শিশু পণ্য" titleEn="Baby Products" href="/products?categorySlug=baby-products" accentColor="#ec4899" lang={lang} />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {babyProducts.length > 0
-              ? babyProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)
-              : Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-            }
+            {babyProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
           </div>
         </div>
       </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           ORGANIC PRODUCTS
       ═══════════════════════════════════════════════════════════════ */}
+      {organicProducts.length > 0 && (
       <section className="py-3 px-3 md:px-4">
         <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="অর্গানিক পণ্য" titleEn="Organic Products" href="/categories/organic-foods" accentColor="#16a34a" lang={lang} />
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {organicProducts.length > 0
-              ? organicProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)
-              : Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-            }
+            {organicProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
           </div>
         </div>
       </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           AUTHORS
