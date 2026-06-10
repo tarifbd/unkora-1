@@ -131,7 +131,7 @@ export function HeroSlider({ lang = 'en' }: { lang?: 'en' | 'bn' }) {
   return (
     <div
       className="relative w-full overflow-hidden rounded-xl bg-gray-900 select-none"
-      style={{ height: 'clamp(220px, 40vw, 480px)' }}
+      style={{ height: 'clamp(180px, 30vw, 360px)' }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
