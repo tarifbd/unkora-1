@@ -37,13 +37,12 @@ export default function KnowledgeBasePage() {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  const { data: statsData } = useQuery<{ data: Stats }>({
+  const { data: stats } = useQuery<Stats | undefined>({
     queryKey: ['rag-stats'],
-    queryFn: () => api.get('/rag/admin/documents/stats'),
+    queryFn: () => api.get('/rag/admin/documents/stats').then(r => r.data.data as Stats),
   });
-  const stats = statsData?.data?.data ?? statsData?.data;
 
-  const { data: docsData, isLoading } = useQuery<{ data: { data: RagDocument[] } }>({
+  const { data: docsData, isLoading } = useQuery({
     queryKey: ['rag-documents', categoryFilter, statusFilter],
     queryFn: () =>
       api.get('/rag/admin/documents', {
@@ -52,9 +51,9 @@ export default function KnowledgeBasePage() {
           ...(statusFilter && { status: statusFilter }),
           limit: 100,
         },
-      }),
+      }).then(r => r.data.data),
   });
-  const documents: RagDocument[] = docsData?.data?.data?.data ?? docsData?.data?.data ?? [];
+  const documents: RagDocument[] = Array.isArray(docsData) ? docsData : docsData?.data ?? [];
 
   const createMutation = useMutation({
     mutationFn: (dto: typeof form) => api.post('/rag/admin/documents', dto),
