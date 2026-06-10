@@ -965,8 +965,8 @@ export function Header() {
                         { icon: CalendarClock, label: 'My Pre-orders',   labelBn: 'প্রি-অর্ডার',      href: '/account/preorders' },
                         { icon: Heart,         label: 'My Wishlist',      labelBn: 'উইশলিস্ট',        href: '/account/wishlist' },
                         { icon: Truck,         label: 'Track Order',      labelBn: 'অর্ডার ট্র্যাক',  href: '/track-order' },
-                        { icon: CreditCard,    label: 'Payment',          labelBn: 'পেমেন্ট',          href: '/account/orders' },
-                        { icon: Gift,          label: 'My Coupons',       labelBn: 'কুপন',             href: '/account' },
+                        { icon: CreditCard,    label: 'Payment',          labelBn: 'পেমেন্ট',          href: '/account/payment' },
+                        { icon: Gift,          label: 'My Coupons',       labelBn: 'কুপন',             href: '/account/coupons' },
                         { icon: Store,         label: 'Seller Panel',     labelBn: 'সেলার প্যানেল',    href: '/seller/dashboard' },
                       ].map(item => (
                         <Link
@@ -986,7 +986,7 @@ export function Header() {
                     {/* Secondary links */}
                     <div className="py-1 pb-2">
                       {[
-                        { label: 'Settings',              labelBn: 'সেটিংস',             href: '/account', authOnly: true },
+                        { label: 'Settings',              labelBn: 'সেটিংস',             href: '/account/profile', authOnly: true },
                         { label: 'Seller Login',          labelBn: 'সেলার লগইন',          href: '/seller/login' },
                         { label: 'Become a Seller',      labelBn: 'সেলার হিসেবে যোগ দিন', href: '/seller/register' },
                         { label: 'Return & Refund Policy',labelBn: 'রিটার্ন ও রিফান্ড',   href: '/refund-policy' },

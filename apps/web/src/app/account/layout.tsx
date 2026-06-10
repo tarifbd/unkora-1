@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import {
   LayoutDashboard, Package, Heart, MapPin, User, LogOut,
   ChevronRight, ShoppingBag, CalendarClock, Search, ArrowLeft, BookOpen,
+  CreditCard, Tag,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +17,8 @@ const NAV_ITEMS = [
   { href: '/account/preorders',  icon: CalendarClock,    label: 'প্রি-অর্ডার',   en: 'Pre-orders' },
   { href: '/account/my-books',   icon: BookOpen,         label: 'আমার বই',       en: 'My Books' },
   { href: '/account/wishlist',   icon: Heart,            label: 'উইশলিস্ট',      en: 'Wishlist' },
+  { href: '/account/payment',    icon: CreditCard,       label: 'পেমেন্ট',        en: 'Payment' },
+  { href: '/account/coupons',    icon: Tag,              label: 'কুপন',            en: 'Coupons' },
   { href: '/account/addresses',  icon: MapPin,           label: 'ঠিকানা',         en: 'Addresses' },
   { href: '/account/profile',    icon: User,             label: 'প্রোফাইল',       en: 'Profile' },
 ];
