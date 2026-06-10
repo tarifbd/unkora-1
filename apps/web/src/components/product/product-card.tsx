@@ -141,10 +141,10 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
         </div>
 
         {/* Wishlist */}
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-2 right-2">
           <WishlistButton
             productId={product.id}
-            className="p-1.5 bg-white rounded-full shadow-md hover:bg-red-50 hover:text-red-500 transition-colors"
+            className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-md hover:bg-red-50 transition-colors"
           />
         </div>
 

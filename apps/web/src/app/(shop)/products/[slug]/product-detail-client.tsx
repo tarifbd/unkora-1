@@ -92,6 +92,13 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
             ) : (
               <div className="flex h-full items-center justify-center text-6xl">📦</div>
             )}
+            {/* Wishlist button on image */}
+            <div className="absolute top-3 right-3">
+              <WishlistButton
+                productId={product.id}
+                className="p-2.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-red-50 transition-colors"
+              />
+            </div>
           </div>
           {product.images.length > 1 && (
             <div className="flex gap-2 overflow-x-auto">

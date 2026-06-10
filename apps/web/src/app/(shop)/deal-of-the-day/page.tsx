@@ -8,6 +8,7 @@ import { Sun, Clock, Flame, ShoppingCart, Zap, ArrowRight } from 'lucide-react';
 import { productsApi, type Product } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { WishlistButton } from '@/components/product/wishlist-button';
 
 function pad(n: number) { return String(n).padStart(2, '0'); }
 
@@ -126,7 +127,11 @@ export default function DealOfTheDayPage() {
               const discount = Math.round((1 - salePrice / basePrice) * 100);
               const inStock = p.stockQuantity > 0;
               return (
-                <div key={p.id} className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group">
+                <div key={p.id} className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group relative">
+                  {/* Wishlist button */}
+                  <div className="absolute top-2 right-2 z-10">
+                    <WishlistButton productId={p.id} className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-md hover:bg-red-50 transition-colors" />
+                  </div>
                   <Link href={`/products/${p.slug}`} className="relative h-44 bg-gray-50 overflow-hidden flex-shrink-0 block">
                     {img ? (
                       <Image src={img} alt={p.name} fill

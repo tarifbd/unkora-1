@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, Loader2, ChevronDown, ChevronUp, Upload, X, ImageIcon, Link as LinkIcon } from 'lucide-react';
+import { ArrowLeft, Loader2, ChevronDown, ChevronUp, Upload, X, ImageIcon, Link as LinkIcon, Video, Package, Search } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
@@ -37,6 +37,19 @@ const productSchema = z.object({
   binding: z.string().optional(),
   translator: z.string().optional(),
   series: z.string().optional(),
+  // Product Video
+  videoUrl: z.string().optional(),
+  // Product Specifications
+  brand: z.string().optional(),
+  weight: z.string().optional(),
+  dimensions: z.string().optional(),
+  material: z.string().optional(),
+  warranty: z.string().optional(),
+  countryOfOrigin: z.string().optional(),
+  // SEO
+  metaTitle: z.string().optional(),
+  metaDescription: z.string().optional(),
+  metaKeywords: z.string().optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -50,6 +63,8 @@ function isBookCategory(name: string) {
 export default function NewProductPage() {
   const router = useRouter();
   const [bookSectionOpen, setBookSectionOpen] = useState(false);
+  const [specsSectionOpen, setSpecsSectionOpen] = useState(false);
+  const [seoSectionOpen, setSeoSectionOpen] = useState(false);
 
   // Image state
   const [primaryImageUrl, setPrimaryImageUrl] = useState('');
@@ -78,6 +93,8 @@ export default function NewProductPage() {
   const selectedCategoryId = watch('categoryId');
   const selectedCategory = categories?.find((c: { id: string; name: string }) => c.id === selectedCategoryId);
   const showBookSection = selectedCategory ? isBookCategory(selectedCategory.name) : bookSectionOpen;
+  const metaTitleValue = watch('metaTitle') ?? '';
+  const metaDescValue = watch('metaDescription') ?? '';
 
   const uploadFile = useCallback(async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -180,6 +197,30 @@ export default function NewProductPage() {
         ...(data.binding && { binding: data.binding }),
         ...(data.translator && { translator: data.translator }),
         ...(data.series && { series: data.series }),
+      };
+    }
+
+    // Product Video
+    if (data.videoUrl) payload.videoUrl = data.videoUrl;
+
+    // Product Specifications
+    if (data.brand || data.weight || data.dimensions || data.material || data.warranty || data.countryOfOrigin) {
+      payload.specifications = {
+        ...(data.brand && { brand: data.brand }),
+        ...(data.weight && { weight: data.weight }),
+        ...(data.dimensions && { dimensions: data.dimensions }),
+        ...(data.material && { material: data.material }),
+        ...(data.warranty && { warranty: data.warranty }),
+        ...(data.countryOfOrigin && { countryOfOrigin: data.countryOfOrigin }),
+      };
+    }
+
+    // SEO
+    if (data.metaTitle || data.metaDescription || data.metaKeywords) {
+      payload.seo = {
+        ...(data.metaTitle && { metaTitle: data.metaTitle }),
+        ...(data.metaDescription && { metaDescription: data.metaDescription }),
+        ...(data.metaKeywords && { metaKeywords: data.metaKeywords }),
       };
     }
 
@@ -324,6 +365,22 @@ export default function NewProductPage() {
           <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
         </div>
 
+        {/* Product Video */}
+        <div className="rounded-xl border bg-card p-5 space-y-4">
+          <h2 className="font-semibold flex items-center gap-2">
+            <Video className="h-4 w-4 text-muted-foreground" /> Product Video
+          </h2>
+          <div>
+            <label className={labelCls}>Product Video URL</label>
+            <input
+              type="url"
+              {...register('videoUrl')}
+              className={inputCls()}
+              placeholder="https://youtube.com/watch?v=... or direct video URL"
+            />
+          </div>
+        </div>
+
         {/* Basic Info */}
         <div className="rounded-xl border bg-card p-5 space-y-4">
           <h2 className="font-semibold">Basic Info</h2>
@@ -378,6 +435,62 @@ export default function NewProductPage() {
             <label className={labelCls}>Tags (comma-separated)</label>
             <input {...register('tags')} className={inputCls()} placeholder="fiction, bestseller, new-arrival" />
           </div>
+        </div>
+
+        {/* Product Specifications */}
+        <div className="rounded-xl border bg-card overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setSpecsSectionOpen(o => !o)}
+            className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-muted/20 transition-colors"
+          >
+            <div>
+              <h2 className="font-semibold flex items-center gap-2">
+                <Package className="h-4 w-4 text-muted-foreground" /> Product Specifications
+              </h2>
+              <p className="text-xs text-muted-foreground">Optional — brand, weight, dimensions, etc.</p>
+            </div>
+            {specsSectionOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </button>
+
+          {specsSectionOpen && (
+            <div className="border-t px-5 pb-5 pt-4 space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={labelCls}>Brand</label>
+                  <input {...register('brand')} className={inputCls()} placeholder="e.g. Samsung, Nike" />
+                </div>
+                <div>
+                  <label className={labelCls}>Weight</label>
+                  <input {...register('weight')} className={inputCls()} placeholder="e.g. 500g, 1.2kg" />
+                </div>
+                <div>
+                  <label className={labelCls}>Dimensions</label>
+                  <input {...register('dimensions')} className={inputCls()} placeholder="e.g. 25 × 18 × 3 cm" />
+                </div>
+                <div>
+                  <label className={labelCls}>Material</label>
+                  <input {...register('material')} className={inputCls()} placeholder="e.g. Cotton, Plastic, Metal" />
+                </div>
+                <div>
+                  <label className={labelCls}>Warranty</label>
+                  <select {...register('warranty')} className={inputCls()}>
+                    <option value="">No Warranty</option>
+                    <option value="7-day return">7-day return</option>
+                    <option value="30-day return">30-day return</option>
+                    <option value="3 months">3 months</option>
+                    <option value="6 months">6 months</option>
+                    <option value="1 year">1 year</option>
+                    <option value="2 years">2 years</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>Country of Origin</label>
+                  <input {...register('countryOfOrigin')} className={inputCls()} placeholder="e.g. Bangladesh, China" />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Pricing & Stock */}
@@ -481,6 +594,55 @@ export default function NewProductPage() {
                     <option value="Board Book">Board Book</option>
                   </select>
                 </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* SEO */}
+        <div className="rounded-xl border bg-card overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setSeoSectionOpen(o => !o)}
+            className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-muted/20 transition-colors"
+          >
+            <div>
+              <h2 className="font-semibold flex items-center gap-2">
+                <Search className="h-4 w-4 text-muted-foreground" /> SEO
+              </h2>
+              <p className="text-xs text-muted-foreground">Optional — meta title, description, keywords</p>
+            </div>
+            {seoSectionOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          </button>
+
+          {seoSectionOpen && (
+            <div className="border-t px-5 pb-5 pt-4 space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className={labelCls}>Meta Title</label>
+                  <span className={`text-xs ${metaTitleValue.length > 60 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                    {metaTitleValue.length}/60
+                  </span>
+                </div>
+                <input {...register('metaTitle')} className={inputCls()} placeholder="SEO page title" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className={labelCls}>Meta Description</label>
+                  <span className={`text-xs ${metaDescValue.length > 160 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                    {metaDescValue.length}/160
+                  </span>
+                </div>
+                <textarea
+                  {...register('metaDescription')}
+                  rows={2}
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                  placeholder="Brief description for search engines"
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Meta Keywords</label>
+                <input {...register('metaKeywords')} className={inputCls()} placeholder="keyword1, keyword2, keyword3" />
               </div>
             </div>
           )}
