@@ -928,29 +928,31 @@ export function Header() {
 
                 {/* Account Dropdown */}
                 {accountOpen && (
-                  <div className="absolute top-full right-0 z-[60] bg-white shadow-2xl rounded-xl border border-gray-100 overflow-hidden" style={{ width: '240px', marginTop: '0px' }}>
+                  <div
+                    className="absolute top-full right-0 z-[60] bg-white shadow-2xl rounded-xl border border-gray-100 overflow-hidden"
+                    style={{ width: '240px', marginTop: '4px' }}
+                    onClick={e => e.stopPropagation()}
+                  >
                     {/* Top accent */}
                     <div className="h-0.5 w-full bg-gradient-to-r from-primary to-secondary" />
 
                     {/* Guest: Sign in / Register */}
                     {!isAuthenticated && (
                       <div className="px-4 pt-4 pb-3">
-                        <Link
-                          href="/login"
-                          onClick={() => setAccountOpen(false)}
+                        <button
+                          onClick={() => { setAccountOpen(false); router.push('/login'); }}
                           className="block w-full text-center bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 rounded-full text-sm transition-colors"
                         >
                           {lang === 'bn' ? 'সাইন ইন' : 'Sign in'}
-                        </Link>
+                        </button>
                         <div className="text-center mt-2">
                           <span className="text-xs text-gray-500">{lang === 'bn' ? 'নতুন? ' : 'New? '}</span>
-                          <Link
-                            href="/register"
-                            onClick={() => setAccountOpen(false)}
+                          <button
+                            onClick={() => { setAccountOpen(false); router.push('/register'); }}
                             className="text-xs text-primary font-bold hover:underline"
                           >
                             {lang === 'bn' ? 'রেজিস্টার করুন' : 'Register'}
-                          </Link>
+                          </button>
                         </div>
                       </div>
                     )}
@@ -968,9 +970,12 @@ export function Header() {
                               : user?.role === 'SELLER' ? (lang === 'bn' ? 'সেলার' : 'Seller')
                               : (lang === 'bn' ? 'গ্রাহক' : 'Customer'))}
                           </p>
-                          <Link href="/account" onClick={() => setAccountOpen(false)} className="text-[11px] text-primary hover:underline font-medium">
+                          <button
+                            onClick={() => { setAccountOpen(false); router.push('/account'); }}
+                            className="text-[11px] text-primary hover:underline font-medium"
+                          >
                             {lang === 'bn' ? 'প্রোফাইল দেখুন' : 'View profile'}
-                          </Link>
+                          </button>
                         </div>
                       </div>
                     )}
@@ -988,15 +993,14 @@ export function Header() {
                         { icon: Gift,          label: 'My Coupons',       labelBn: 'কুপন',             href: '/account/coupons' },
                         { icon: Store,         label: 'Seller Panel',     labelBn: 'সেলার প্যানেল',    href: '/seller/dashboard' },
                       ].map(item => (
-                        <Link
-                          key={item.href + item.label}
-                          href={item.href}
-                          onClick={() => setAccountOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
+                        <button
+                          key={item.href}
+                          onClick={() => { setAccountOpen(false); router.push(item.href); }}
+                          className="flex items-center gap-3 w-full px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
                         >
                           <item.icon className="w-4 h-4 text-gray-400 flex-shrink-0" />
                           {lang === 'bn' ? item.labelBn : item.label}
-                        </Link>
+                        </button>
                       ))}
                     </div>
 
@@ -1005,25 +1009,24 @@ export function Header() {
                     {/* Secondary links */}
                     <div className="py-1 pb-2">
                       {[
-                        { label: 'Settings',              labelBn: 'সেটিংস',             href: '/account/profile', authOnly: true },
-                        { label: 'Seller Login',          labelBn: 'সেলার লগইন',          href: '/seller/login' },
-                        { label: 'Become a Seller',      labelBn: 'সেলার হিসেবে যোগ দিন', href: '/seller/register' },
-                        { label: 'Return & Refund Policy',labelBn: 'রিটার্ন ও রিফান্ড',   href: '/refund-policy' },
-                        { label: 'Help Center',           labelBn: 'সাহায্য কেন্দ্র',     href: '/help' },
-                        { label: 'Contact Us',            labelBn: 'যোগাযোগ করুন',        href: '/support' },
+                        { label: 'Settings',               labelBn: 'সেটিংস',              href: '/account/profile', authOnly: true },
+                        { label: 'Seller Login',           labelBn: 'সেলার লগইন',           href: '/seller/login' },
+                        { label: 'Become a Seller',        labelBn: 'সেলার হিসেবে যোগ দিন', href: '/seller/register' },
+                        { label: 'Return & Refund Policy', labelBn: 'রিটার্ন ও রিফান্ড',    href: '/refund-policy' },
+                        { label: 'Help Center',            labelBn: 'সাহায্য কেন্দ্র',      href: '/help' },
+                        { label: 'Contact Us',             labelBn: 'যোগাযোগ করুন',         href: '/support' },
                       ].filter(item => {
                         if ('authOnly' in item && item.authOnly && !isAuthenticated) return false;
-                        if ('adminOnly' in item && item.adminOnly && user?.role === 'CUSTOMER') return false;
+                        if ('adminOnly' in item && (item as { adminOnly?: boolean }).adminOnly && user?.role === 'CUSTOMER') return false;
                         return true;
                       }).map(item => (
-                        <Link
+                        <button
                           key={item.label}
-                          href={item.href}
-                          onClick={() => setAccountOpen(false)}
-                          className="block px-4 py-2 text-xs text-gray-500 hover:text-primary hover:bg-gray-50 transition-colors"
+                          onClick={() => { setAccountOpen(false); router.push(item.href); }}
+                          className="block w-full text-left px-4 py-2 text-xs text-gray-500 hover:text-primary hover:bg-gray-50 transition-colors"
                         >
                           {lang === 'bn' ? item.labelBn : item.label}
-                        </Link>
+                        </button>
                       ))}
                       {isAuthenticated && (
                         <button
