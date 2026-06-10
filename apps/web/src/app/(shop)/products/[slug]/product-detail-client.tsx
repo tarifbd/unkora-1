@@ -79,7 +79,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   };
 
   return (
-    <div className="container py-8">
+    <div className="container py-4 sm:py-8">
       <Link href="/products" className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="h-4 w-4" /> {t.productDetail.backToProducts}
       </Link>
@@ -168,20 +168,20 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           {/* Qty + Add to Cart + Wishlist */}
           {product.stockQuantity > 0 && (
             <div ref={buyBtnRef} className="flex flex-col gap-2">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 rounded-md border px-3 py-2">
-                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="hover:text-brand-600 transition-colors"><Minus className="h-4 w-4" /></button>
-                  <span className="min-w-[24px] text-center font-medium">{qty}</span>
-                  <button onClick={() => setQty(Math.min(product.stockQuantity, qty + 1))} className="hover:text-brand-600 transition-colors"><Plus className="h-4 w-4" /></button>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 rounded-md border px-2 sm:px-3 py-2 flex-shrink-0">
+                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="hover:text-brand-600 transition-colors p-0.5"><Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></button>
+                  <span className="min-w-[24px] text-center font-medium text-sm">{qty}</span>
+                  <button onClick={() => setQty(Math.min(product.stockQuantity, qty + 1))} className="hover:text-brand-600 transition-colors p-0.5"><Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></button>
                 </div>
                 <button onClick={handleAddToCart} disabled={addItem.isPending}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-slate-700 to-slate-900 py-2.5 text-sm font-black text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-[0.98] disabled:opacity-50 transition-all ring-1 ring-white/10">
+                  className="flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-gradient-to-b from-slate-700 to-slate-900 py-2.5 text-xs sm:text-sm font-black text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-[0.98] disabled:opacity-50 transition-all ring-1 ring-white/10">
                   {addItem.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
                   {t.productDetail.addToCart}
                 </button>
                 <WishlistButton
                   productId={product.id}
-                  className="h-10 w-10 rounded-md border hover:bg-accent transition-colors"
+                  className="h-10 w-10 rounded-md border hover:bg-accent transition-colors flex-shrink-0"
                 />
               </div>
               <Link

@@ -838,7 +838,7 @@ export default function HomePage() {
             <div className="w-1 h-6 bg-amber-500 rounded-full" />
             <h2 className="text-base font-black text-gray-900">📊 {lang === 'bn' ? 'র‍্যাংকিং' : 'Rankings'}</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {RANK_SECTIONS.map(sec => (
               <div key={sec.id} className="bg-white rounded-xl overflow-hidden">
                 <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100"
@@ -1043,7 +1043,7 @@ export default function HomePage() {
             <div className="w-1 h-6 bg-yellow-500 rounded-full" />
             <h2 className="text-base font-black text-gray-900">{lang === 'bn' ? '⭐ ক্রেতাদের মতামত' : '⭐ Customer Reviews'}</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             {[
               { name: 'রাকিব হাসান',    nameEn: 'Rakib Hasan',   loc: 'ঢাকা',      locEn: 'Dhaka',      rating: 5, textBn: 'অসাধারণ সার্ভিস! অর্ডার করার ২৪ ঘন্টার মধ্যে বই পেয়ে গেছি। প্যাকেজিং একদম পারফেক্ট।', textEn: 'Amazing service! Got my book within 24 hours. Packaging was perfect.' },
               { name: 'তানিয়া আক্তার',  nameEn: 'Tania Akter',  loc: 'চট্টগ্রাম', locEn: 'Chittagong', rating: 5, textBn: 'দাম অনেক কম, বই একদম অরিজিনাল। UNKORA থেকেই এখন সব বই কিনি।', textEn: 'Great prices, genuine books. I buy all my books from UNKORA now.' },
@@ -1114,20 +1114,20 @@ export default function HomePage() {
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-4 px-3 md:px-4">
         <div className="max-w-[1400px] mx-auto bg-white rounded-xl px-6 py-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
             {[
               { icon: Truck,       color: '#2563eb', bg: '#dbeafe', titleBn: 'দ্রুত ডেলিভারি',    titleEn: 'Fast Delivery',   subBn: 'ঢাকায় ২৪ ঘন্টায়', subEn: 'Dhaka in 24 hours' },
               { icon: RotateCcw,   color: '#d97706', bg: '#fef3c7', titleBn: '৭ দিনে রিটার্ন',   titleEn: '7-Day Returns',   subBn: 'সহজ রিটার্ন পলিসি', subEn: 'Easy return policy' },
               { icon: ShieldCheck, color: '#16a34a', bg: '#dcfce7', titleBn: '১০০% অরিজিনাল',   titleEn: '100% Original',   subBn: 'গ্যারান্টিড অরিজিনাল', subEn: 'Guaranteed genuine' },
               { icon: Headphones,  color: '#7c3aed', bg: '#ede9fe', titleBn: '২৪/৭ সাপোর্ট',    titleEn: '24/7 Support',    subBn: 'সার্বক্ষণিক সহায়তা', subEn: 'Always available' },
             ].map(({ icon: Icon, color, bg, titleBn, titleEn, subBn, subEn }) => (
-              <div key={titleEn} className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: bg }}>
-                  <Icon className="w-5 h-5" style={{ color }} />
+              <div key={titleEn} className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 text-center sm:text-left">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: bg }}>
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color }} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-gray-900">{lang === 'bn' ? titleBn : titleEn}</p>
-                  <p className="text-[10px] text-gray-400">{lang === 'bn' ? subBn : subEn}</p>
+                  <p className="text-[11px] sm:text-xs font-bold text-gray-900">{lang === 'bn' ? titleBn : titleEn}</p>
+                  <p className="text-[9px] sm:text-[10px] text-gray-400 hidden sm:block">{lang === 'bn' ? subBn : subEn}</p>
                 </div>
               </div>
             ))}
