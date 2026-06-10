@@ -205,7 +205,7 @@ export function HeroSlider({ lang = 'en' }: { lang?: 'en' | 'bn' }) {
 
   return (
     <div
-      className="relative w-full overflow-hidden rounded-xl bg-gray-900 select-none h-[220px] sm:h-[300px] md:h-[390px] lg:h-[460px] xl:h-[520px]"
+      className="relative w-full overflow-hidden rounded-xl bg-gray-900 select-none h-[180px] sm:h-[250px] md:h-[320px] lg:h-[380px] xl:h-[440px]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
