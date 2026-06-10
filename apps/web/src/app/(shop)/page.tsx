@@ -657,6 +657,41 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ═══ AD BANNER ═══ */}
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto">
+          <Link href="/products" className="block group">
+            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 shadow-lg">
+              <div className="absolute -top-8 -right-8 w-48 h-48 bg-white/10 rounded-full" />
+              <div className="absolute -bottom-10 right-32 w-32 h-32 bg-white/10 rounded-full" />
+              <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 md:px-10 md:py-6">
+                <div className="text-center sm:text-left">
+                  <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-1">
+                    {lang === 'bn' ? '🎉 বিশেষ অফার' : '🎉 SPECIAL OFFER'}
+                  </p>
+                  <h3 className="text-white font-black text-xl md:text-2xl leading-tight">
+                    {lang === 'bn' ? 'প্রথম অর্ডারে ১৫% ছাড়!' : 'Get 15% off your first order!'}
+                  </h3>
+                  <p className="text-white/70 text-sm mt-1">
+                    {lang === 'bn' ? 'কোড: UNKORA15 • ৳৫০০+ অর্ডারে প্রযোজ্য' : 'Use code UNKORA15 · Min. order ৳500'}
+                  </p>
+                </div>
+                <div className="hidden md:flex flex-col items-center justify-center bg-white/20 rounded-2xl px-8 py-4 text-white text-center backdrop-blur-sm border border-white/20">
+                  <span className="font-mono font-black text-2xl tracking-widest">UNKORA15</span>
+                  <span className="text-xs text-white/70 mt-0.5">{lang === 'bn' ? 'কুপন কোড' : 'Coupon Code'}</span>
+                </div>
+                <div className="flex-shrink-0">
+                  <span className="inline-flex items-center gap-2 bg-white text-emerald-700 font-black text-sm px-6 py-3 rounded-full shadow-md group-hover:shadow-lg group-hover:bg-emerald-50 transition-all duration-200">
+                    {lang === 'bn' ? 'এখনই কিনুন' : 'Shop Now'}
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </section>
+
       {/* PROMO ROW 1 — after categories */}
       <PromoBannerRow banners={promo1} />
 
@@ -707,53 +742,6 @@ export default function HomePage() {
 
       {/* PROMO ROW 2 — after flash deals */}
       <PromoBannerRow banners={promo2} />
-
-      {/* ═══ AD BANNER ═══ */}
-      <section className="py-3 px-3 md:px-4">
-        <div className="max-w-[1400px] mx-auto">
-          <Link href="/products" className="block group">
-            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 shadow-lg">
-              {/* decorative circles */}
-              <div className="absolute -top-8 -right-8 w-48 h-48 bg-white/10 rounded-full" />
-              <div className="absolute -bottom-10 right-32 w-32 h-32 bg-white/10 rounded-full" />
-              <div className="absolute top-3 left-1/3 w-16 h-16 bg-white/5 rounded-full" />
-
-              <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 md:px-10 md:py-6">
-                {/* Left copy */}
-                <div className="text-center sm:text-left">
-                  <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-1">
-                    {lang === 'bn' ? '🎉 বিশেষ অফার' : '🎉 SPECIAL OFFER'}
-                  </p>
-                  <h3 className="text-white font-black text-xl md:text-2xl leading-tight">
-                    {lang === 'bn' ? 'প্রথম অর্ডারে ১৫% ছাড়!' : 'Get 15% off your first order!'}
-                  </h3>
-                  <p className="text-white/70 text-sm mt-1">
-                    {lang === 'bn'
-                      ? 'কোড: UNKORA15 • ৳৫০০+ অর্ডারে প্রযোজ্য'
-                      : 'Use code UNKORA15 · Min. order ৳500'}
-                  </p>
-                </div>
-
-                {/* Center badge */}
-                <div className="hidden md:flex flex-col items-center justify-center bg-white/20 rounded-2xl px-8 py-4 text-white text-center backdrop-blur-sm border border-white/20">
-                  <span className="font-mono font-black text-2xl tracking-widest">UNKORA15</span>
-                  <span className="text-xs text-white/70 mt-0.5">
-                    {lang === 'bn' ? 'কুপন কোড' : 'Coupon Code'}
-                  </span>
-                </div>
-
-                {/* CTA */}
-                <div className="flex-shrink-0">
-                  <span className="inline-flex items-center gap-2 bg-white text-emerald-700 font-black text-sm px-6 py-3 rounded-full shadow-md group-hover:shadow-lg group-hover:bg-emerald-50 transition-all duration-200">
-                    {lang === 'bn' ? 'এখনই কিনুন' : 'Shop Now'}
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </span>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-      </section>
 
       {/* ═══════════════════════════════════════════════════════════════
           BOOK WORLD — tabbed shelf
