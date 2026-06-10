@@ -62,7 +62,7 @@ export default function PreordersDashboard() {
     );
   }
 
-  const { stats, recentOrders } = data;
+  const { stats, recentOrders = [] } = data;
   if (!stats) return null;
 
   return (

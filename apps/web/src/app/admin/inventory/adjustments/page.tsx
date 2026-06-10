@@ -85,7 +85,7 @@ export default function AdjustmentsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {data.data.map(adj => {
+                {(data?.data ?? []).map(adj => {
                   const cfg = STATUS_CFG[adj.status] ?? STATUS_CFG.PENDING;
                   return (
                     <tr key={adj.id} className="hover:bg-gray-50/40">

@@ -23,7 +23,7 @@ const TEXT_COLORS = [
   '#000000', '#374151', '#6b7280', '#ef4444', '#f97316',
   '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899',
   '#dc2626', '#d97706', '#059669', '#2563eb', '#7c3aed',
-  '#ffffff', '#fef3c7', '#dbeafe', '# dcfce7', '#fce7f3',
+  '#ffffff', '#fef3c7', '#dbeafe', '#dcfce7', '#fce7f3',
 ];
 
 const TEXT_SIZES = [

@@ -117,7 +117,7 @@ export default function AlertsPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {data.data.map((alert: InventoryAlert) => {
+          {(data?.data ?? []).map((alert: InventoryAlert) => {
             const cfg = ALERT_CFG[alert.type] ?? ALERT_CFG.LOW_STOCK!;
             const img = alert.product?.images?.[0]?.url;
             return (
