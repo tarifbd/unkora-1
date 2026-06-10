@@ -76,7 +76,6 @@ export class OrdersCronService {
             product: {
               select: {
                 name: true,
-                price: true,
                 salePrice: true,
                 images: { where: { isPrimary: true }, take: 1, select: { url: true } },
               },

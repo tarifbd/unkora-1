@@ -22,7 +22,7 @@ export class BundlesService {
         include: {
           items: {
             include: {
-              product: { select: { id: true, name: true, slug: true, salePrice: true, price: true, images: { where: { isPrimary: true }, take: 1 } } },
+              product: { select: { id: true, name: true, slug: true, salePrice: true, images: { where: { isPrimary: true }, take: 1 } } },
             },
           },
           _count: { select: { items: true } },
@@ -40,7 +40,7 @@ export class BundlesService {
       include: {
         items: {
           include: {
-            product: { select: { id: true, name: true, slug: true, price: true, salePrice: true, images: { where: { isPrimary: true }, take: 1 } } },
+            product: { select: { id: true, name: true, slug: true, salePrice: true, images: { where: { isPrimary: true }, take: 1 } } },
           },
         },
       },
@@ -64,7 +64,7 @@ export class BundlesService {
       include: {
         items: {
           include: {
-            product: { select: { id: true, name: true, slug: true, price: true, salePrice: true, images: { where: { isPrimary: true }, take: 1 } } },
+            product: { select: { id: true, name: true, slug: true, salePrice: true, images: { where: { isPrimary: true }, take: 1 } } },
           },
         },
       },
