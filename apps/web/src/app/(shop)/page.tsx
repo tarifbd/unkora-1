@@ -6,13 +6,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   ChevronLeft, ChevronRight, Truck, RotateCcw, ShieldCheck, Headphones,
-  Flame, Star, ArrowRight, ShoppingCart, Zap, CheckCircle, Heart,
+  Flame, Star, ArrowRight, ShoppingCart, Zap, CheckCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { productsApi, categoriesApi, type Product, type Category } from '@/lib/api/products';
 import api from '@/lib/api';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useCart } from '@/lib/hooks/use-cart';
+import { WishlistButton } from '@/components/product/wishlist-button';
 
 /* ─────────────────────── static data ─────────────────────────────── */
 
@@ -234,13 +235,10 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
             <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
             {lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}
           </button>
-          <button
-            onClick={e => { e.preventDefault(); e.stopPropagation(); }}
-            aria-label="Wishlist"
-            className="w-9 h-9 flex-shrink-0 rounded-xl border border-orange-200 bg-gradient-to-b from-orange-50 to-orange-100 flex items-center justify-center hover:from-orange-100 hover:to-orange-200 shadow-sm transition-all active:scale-95"
-          >
-            <Heart className="w-4 h-4 text-orange-500" fill="currentColor" />
-          </button>
+          <WishlistButton
+            productId={product.id}
+            className="w-9 h-9 flex-shrink-0 rounded-xl border border-gray-200 bg-white hover:bg-red-50 shadow-sm"
+          />
         </div>
 
         {/* BUY NOW */}
@@ -333,12 +331,10 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
             <ShoppingCart className="w-3 h-3 flex-shrink-0" />
             <span>{lang === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
           </button>
-          <button
-            onClick={e => { e.preventDefault(); e.stopPropagation(); }}
-            aria-label="Wishlist"
-            className="w-8 h-8 flex-shrink-0 rounded-lg bg-gradient-to-b from-orange-50 to-orange-100 border border-orange-200 flex items-center justify-center hover:from-orange-100 hover:to-orange-200 shadow-sm transition-all active:scale-95">
-            <Heart className="w-3.5 h-3.5 text-orange-500" fill="currentColor" />
-          </button>
+          <WishlistButton
+            productId={product.id}
+            className="w-8 h-8 flex-shrink-0 rounded-lg border border-gray-200 bg-white hover:bg-red-50 shadow-sm"
+          />
         </div>
         {inStock ? (
           <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}

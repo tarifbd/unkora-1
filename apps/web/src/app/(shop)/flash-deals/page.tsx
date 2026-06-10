@@ -4,11 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Flame, ShoppingCart, Zap, ChevronLeft, ChevronRight, Clock, Heart } from 'lucide-react';
+import { Flame, ShoppingCart, Zap, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import api from '@/lib/api';
 import { productsApi, type Product } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { WishlistButton } from '@/components/product/wishlist-button';
 
 /* ── Countdown ── */
 function pad(n: number) { return String(n).padStart(2, '0'); }
@@ -90,11 +91,10 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
             <ShoppingCart className="w-3.5 h-3.5" />
             {lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}
           </button>
-          <button
-            aria-label="Wishlist"
-            className="w-9 h-9 flex-shrink-0 rounded-xl bg-gradient-to-b from-orange-50 to-orange-100 border border-orange-200 flex items-center justify-center hover:from-orange-100 hover:to-orange-200 shadow-sm transition-all active:scale-95">
-            <Heart className="w-4 h-4 text-orange-500" fill="currentColor" />
-          </button>
+          <WishlistButton
+            productId={product.id}
+            className="w-9 h-9 flex-shrink-0 rounded-xl border border-gray-200 bg-white hover:bg-red-50 shadow-sm"
+          />
         </div>
 
         {/* BUY NOW */}

@@ -60,6 +60,12 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
               -{discountPct}%
             </span>
           )}
+          <div className="absolute top-1 right-1">
+            <WishlistButton
+              productId={product.id}
+              className="p-1 bg-white/90 backdrop-blur-sm rounded-full shadow hover:bg-red-50 transition-colors"
+            />
+          </div>
         </div>
 
         {/* Info */}
