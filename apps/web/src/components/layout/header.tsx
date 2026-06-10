@@ -1454,22 +1454,22 @@ export function Header() {
           <div className="h-0.5 w-full bg-gradient-to-r from-primary to-secondary" />
           {!isAuthenticated && (
             <div className="px-4 pt-4 pb-3">
-              <a
+              <Link
                 href="/login"
                 onClick={() => setAccountOpen(false)}
                 className="block w-full text-center bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 rounded-full text-sm transition-colors"
               >
                 {lang === 'bn' ? 'সাইন ইন' : 'Sign in'}
-              </a>
+              </Link>
               <div className="text-center mt-2">
                 <span className="text-xs text-gray-500">{lang === 'bn' ? 'নতুন? ' : 'New? '}</span>
-                <a
+                <Link
                   href="/register"
                   onClick={() => setAccountOpen(false)}
                   className="text-xs text-primary font-bold hover:underline"
                 >
                   {lang === 'bn' ? 'রেজিস্টার করুন' : 'Register'}
-                </a>
+                </Link>
               </div>
             </div>
           )}
@@ -1485,13 +1485,13 @@ export function Header() {
                     : user?.role === 'SELLER' ? (lang === 'bn' ? 'সেলার' : 'Seller')
                     : (lang === 'bn' ? 'গ্রাহক' : 'Customer'))}
                 </p>
-                <a
+                <Link
                   href="/account"
                   onClick={() => setAccountOpen(false)}
                   className="text-[11px] text-primary hover:underline font-medium"
                 >
                   {lang === 'bn' ? 'প্রোফাইল দেখুন' : 'View profile'}
-                </a>
+                </Link>
               </div>
             </div>
           )}
@@ -1506,7 +1506,7 @@ export function Header() {
               { icon: Gift,          label: 'My Coupons',    labelBn: 'কুপন',            href: '/account/coupons' },
               { icon: Store,         label: 'Seller Panel',  labelBn: 'সেলার প্যানেল',   href: '/seller/dashboard' },
             ].map(item => (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setAccountOpen(false)}
@@ -1514,7 +1514,7 @@ export function Header() {
               >
                 <item.icon className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 {lang === 'bn' ? item.labelBn : item.label}
-              </a>
+              </Link>
             ))}
           </div>
           <div className="h-px bg-gray-100 mx-3 my-1" />
@@ -1527,14 +1527,14 @@ export function Header() {
               { label: 'Help Center',            labelBn: 'সাহায্য কেন্দ্র',      href: '/help' },
               { label: 'Contact Us',             labelBn: 'যোগাযোগ করুন',         href: '/support' },
             ].filter(item => !('authOnly' in item && item.authOnly && !isAuthenticated)).map(item => (
-              <a
+              <Link
                 key={item.label}
                 href={item.href}
                 onClick={() => setAccountOpen(false)}
                 className="block px-4 py-2 text-xs text-gray-500 hover:text-primary hover:bg-gray-50 transition-colors"
               >
                 {lang === 'bn' ? item.labelBn : item.label}
-              </a>
+              </Link>
             ))}
             {isAuthenticated && (
               <button

@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Routes that require login. Note: /checkout and /cart are intentionally NOT
-// here — guests can shop and check out without an account (guest cart +
-// guest order API). Only account-area pages (orders, profile, addresses) are gated.
-const PROTECTED_ROUTES = ['/account'];
-// Guest-friendly pages that live inside an otherwise-protected section.
-// The wishlist page fully supports guests (localStorage + /products/by-ids).
-const GUEST_ALLOWED_ROUTES = ['/account/wishlist'];
+// Account routes are protected client-side by account/layout.tsx (Zustand
+// hydration guard + refresh-token awareness). We deliberately do NOT gate
+// them in middleware because the middleware only sees the access_token cookie
+// and would incorrectly bounce users whose short-lived cookie has expired but
+// whose refresh_token (in localStorage) is still valid.
+const PROTECTED_ROUTES: string[] = [];
+const GUEST_ALLOWED_ROUTES: string[] = [];
 const ADMIN_ROUTES = ['/admin'];
 const AUTH_ROUTES = ['/login', '/register'];
 
