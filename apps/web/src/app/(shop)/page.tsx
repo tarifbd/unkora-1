@@ -24,6 +24,18 @@ const CAT_EMOJI: Record<string, string> = {
   'daily-needs': '🛒', 'islamic-lifestyle': '🕌', default: '🏷️',
 };
 
+const CAT_META: Record<string, { from: string; to: string; shadow: string }> = {
+  books:              { from: '#1d4ed8', to: '#3b82f6', shadow: '#3b82f630' },
+  'baby-products':    { from: '#be185d', to: '#ec4899', shadow: '#ec489930' },
+  'leather-products': { from: '#78350f', to: '#b45309', shadow: '#b4530930' },
+  'organic-foods':    { from: '#15803d', to: '#22c55e', shadow: '#22c55e30' },
+  handicrafts:        { from: '#6d28d9', to: '#a78bfa', shadow: '#a78bfa30' },
+  'islamic-lifestyle':{ from: '#064e3b', to: '#059669', shadow: '#05996930' },
+  electronics:        { from: '#0f172a', to: '#334155', shadow: '#33415530' },
+  'daily-needs':      { from: '#c2410c', to: '#f97316', shadow: '#f9731630' },
+  default:            { from: '#374151', to: '#6b7280', shadow: '#6b728030' },
+};
+
 const AUTHORS = [
   { name: 'হুমায়ূন আহমেদ', nameEn: 'Humayun Ahmed',     image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop', href: '/books?author=হুমায়ূন আহমেদ' },
   { name: 'আরিফ আজাদ',      nameEn: 'Arif Azad',         image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop', href: '/books?author=আরিফ আজাদ' },
@@ -518,44 +530,70 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════════════
           CATEGORIES STRIP — auto-updates from API
       ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-3 px-3 md:px-4">
-        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'বিভাগ অনুযায়ী কেনাকাটা করুন' : 'Shop by Category'}</h2>
-            <Link href="/products" className="text-[11px] font-bold text-orange-500 flex items-center gap-0.5 hover:underline">
-              {lang === 'bn' ? 'সব দেখুন' : 'All'} <ArrowRight className="w-3 h-3" />
+      <section className="py-4 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-2xl px-5 py-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-black text-gray-900 text-base leading-tight">{lang === 'bn' ? 'বিভাগ অনুযায়ী কেনাকাটা করুন' : 'Shop by Category'}</h2>
+              <p className="text-[11px] text-gray-400 mt-0.5">{lang === 'bn' ? 'আপনার পছন্দের ক্যাটাগরি বেছে নিন' : 'Browse all categories'}</p>
+            </div>
+            <Link href="/products" className="text-xs font-bold text-orange-500 flex items-center gap-0.5 hover:text-orange-600 transition-colors">
+              {lang === 'bn' ? 'সব দেখুন' : 'View All'} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-3 sm:gap-5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {(allCategories.length > 0
               ? allCategories.slice(0, 12) as (Category & { children?: Category[] })[]
               : [
-                { id:'1', slug:'books',              name: lang === 'bn' ? 'বই' : 'Books',           imageUrl: undefined, color: '#2563eb' },
-                { id:'2', slug:'baby-products',      name: lang === 'bn' ? 'শিশু পণ্য' : 'Baby',     imageUrl: undefined, color: '#ec4899' },
-                { id:'3', slug:'leather-products',   name: lang === 'bn' ? 'লেদার' : 'Leather',       imageUrl: undefined, color: '#92400e' },
-                { id:'4', slug:'organic-foods',      name: lang === 'bn' ? 'অর্গানিক' : 'Organic',   imageUrl: undefined, color: '#16a34a' },
-                { id:'5', slug:'handicrafts',        name: lang === 'bn' ? 'হস্তশিল্প' : 'Crafts',   imageUrl: undefined, color: '#7c3aed' },
-                { id:'6', slug:'islamic-lifestyle',  name: lang === 'bn' ? 'ইসলামিক' : 'Islamic',    imageUrl: undefined, color: '#065f46' },
-                { id:'7', slug:'daily-needs',        name: lang === 'bn' ? 'দৈনন্দিন' : 'Daily',     imageUrl: undefined, color: '#b45309' },
-                { id:'8', slug:'default',            name: lang === 'bn' ? 'আরো' : 'More',            imageUrl: undefined, color: '#6b7280' },
+                { id:'1', slug:'books',              name: lang === 'bn' ? 'বই' : 'Books',              imageUrl: undefined, color: '#2563eb' },
+                { id:'2', slug:'baby-products',      name: lang === 'bn' ? 'শিশু পণ্য' : 'Baby Prods',  imageUrl: undefined, color: '#ec4899' },
+                { id:'3', slug:'leather-products',   name: lang === 'bn' ? 'চামড়া পণ্য' : 'Leather',   imageUrl: undefined, color: '#92400e' },
+                { id:'4', slug:'organic-foods',      name: lang === 'bn' ? 'অর্গানিক' : 'Organic',      imageUrl: undefined, color: '#16a34a' },
+                { id:'5', slug:'handicrafts',        name: lang === 'bn' ? 'হস্তশিল্প' : 'Handicrafts', imageUrl: undefined, color: '#7c3aed' },
+                { id:'6', slug:'islamic-lifestyle',  name: lang === 'bn' ? 'ইসলামিক' : 'Islamic',       imageUrl: undefined, color: '#065f46' },
+                { id:'7', slug:'electronics',        name: lang === 'bn' ? 'ইলেকট্রনিক্স' : 'Electronics', imageUrl: undefined, color: '#0f172a' },
+                { id:'8', slug:'daily-needs',        name: lang === 'bn' ? 'দৈনন্দিন' : 'Daily Needs',  imageUrl: undefined, color: '#b45309' },
               ] as (Category & { children?: Category[] })[]
-            ).map(cat => (
-              <Link key={cat.id}
-                href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : cat.slug === 'default' ? '/categories' : `/products?categorySlug=${cat.slug}`}
-                className="flex-shrink-0 flex flex-col items-center gap-2 group">
-                <div
-                  className="w-16 h-16 rounded-full overflow-hidden flex items-center justify-center text-2xl transition-transform group-hover:scale-105 shadow-sm border-2 border-white"
-                  style={{ backgroundColor: cat.color ?? '#f3f4f6' }}
+            ).map(cat => {
+              const meta = CAT_META[cat.slug] ?? CAT_META.default!;
+              return (
+                <Link key={cat.id}
+                  href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : cat.slug === 'default' ? '/categories' : `/products?categorySlug=${cat.slug}`}
+                  className="flex-shrink-0 flex flex-col items-center gap-2.5 group"
                 >
-                  {cat.imageUrl ? (
-                    <Image src={cat.imageUrl} alt={cat.name} width={64} height={64} className="object-cover w-full h-full" unoptimized />
-                  ) : (
-                    <span>{CAT_EMOJI[cat.slug] ?? CAT_EMOJI.default}</span>
-                  )}
-                </div>
-                <span className="text-[10px] font-semibold text-gray-700 text-center w-16 leading-tight truncate">{cat.name}</span>
-              </Link>
-            ))}
+                  {/* Icon bubble */}
+                  <div className="relative">
+                    <div
+                      className="w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1"
+                      style={{
+                        background: `linear-gradient(135deg, ${meta.from}, ${meta.to})`,
+                        boxShadow: `0 8px 24px ${meta.shadow}, 0 2px 8px ${meta.shadow}`,
+                      }}
+                    >
+                      {cat.imageUrl ? (
+                        <Image src={cat.imageUrl} alt={cat.name} width={80} height={80} className="object-cover w-full h-full" unoptimized />
+                      ) : (
+                        <span className="text-3xl sm:text-4xl drop-shadow-sm select-none" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.25))' }}>
+                          {CAT_EMOJI[cat.slug] ?? CAT_EMOJI.default}
+                        </span>
+                      )}
+                    </div>
+                    {/* Glow ring on hover */}
+                    <div
+                      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                      style={{ boxShadow: `0 0 0 3px ${meta.to}55` }}
+                    />
+                  </div>
+                  {/* Label */}
+                  <span
+                    className="text-[11px] sm:text-xs font-bold text-center w-[72px] sm:w-20 leading-tight line-clamp-2 group-hover:text-gray-900 transition-colors"
+                    style={{ color: '#374151' }}
+                  >
+                    {cat.name}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
