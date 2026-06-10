@@ -1462,123 +1462,104 @@ export function Header() {
         >
           <div className="h-0.5 w-full bg-gradient-to-r from-primary to-secondary" />
 
-          {/* ── GUEST VIEW ── */}
+          {/* ── Not logged in: Sign In + Register ── */}
           {!isAuthenticated && (
-            <>
-              <div className="px-4 pt-4 pb-3">
-                <Link
-                  href="/login"
-                  onClick={() => setAccountOpen(false)}
-                  className="block w-full text-center bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 rounded-full text-sm transition-colors"
-                >
-                  {lang === 'bn' ? 'সাইন ইন' : 'Sign in'}
-                </Link>
-                <div className="text-center mt-2">
-                  <span className="text-xs text-gray-500">{lang === 'bn' ? 'নতুন? ' : 'New? '}</span>
-                  <Link
-                    href="/register"
-                    onClick={() => setAccountOpen(false)}
-                    className="text-xs text-primary font-bold hover:underline"
-                  >
-                    {lang === 'bn' ? 'রেজিস্টার করুন' : 'Register'}
-                  </Link>
-                </div>
-              </div>
-              <div className="h-px bg-gray-100 mx-3 my-1" />
-              <div className="py-1 pb-2">
-                {[
-                  { icon: Truck,     label: 'Track Order',        labelBn: 'অর্ডার ট্র্যাক',        href: '/track-order' },
-                  { icon: Store,     label: 'Seller Login',       labelBn: 'সেলার লগইন',             href: '/seller/login' },
-                  { icon: Package,   label: 'Become a Seller',    labelBn: 'সেলার হিসেবে যোগ দিন',  href: '/seller/register' },
-                  { icon: HelpCircle, label: 'Help Center',       labelBn: 'সাহায্য কেন্দ্র',        href: '/help' },
-                  { icon: Phone,     label: 'Contact Us',         labelBn: 'যোগাযোগ করুন',           href: '/support' },
-                ].map(item => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setAccountOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2 text-xs text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors"
-                  >
-                    <item.icon className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                    {lang === 'bn' ? item.labelBn : item.label}
-                  </Link>
-                ))}
-              </div>
-            </>
-          )}
-
-          {/* ── AUTHENTICATED VIEW ── */}
-          {isAuthenticated && (
-            <>
-              <div className="px-4 pt-3 pb-2 flex items-center gap-3 bg-gray-50">
-                <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-gray-900 leading-tight truncate">
-                    {user?.firstName || user?.name ||
-                      (user?.role === 'ADMIN' ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')
-                      : user?.role === 'SELLER' ? (lang === 'bn' ? 'সেলার' : 'Seller')
-                      : (lang === 'bn' ? 'গ্রাহক' : 'Customer'))}
-                  </p>
-                  <Link
-                    href="/account"
-                    onClick={() => setAccountOpen(false)}
-                    className="text-[11px] text-primary hover:underline font-medium"
-                  >
-                    {lang === 'bn' ? 'প্রোফাইল দেখুন' : 'View profile'}
-                  </Link>
-                </div>
-              </div>
-              <div className="h-px bg-gray-100 mx-3 my-1" />
-              <div className="py-1">
-                {[
-                  { icon: Package,       label: 'My Orders',     labelBn: 'আমার অর্ডার',    href: '/account/orders' },
-                  { icon: CalendarClock, label: 'My Pre-orders', labelBn: 'প্রি-অর্ডার',     href: '/account/preorders' },
-                  { icon: Heart,         label: 'My Wishlist',   labelBn: 'উইশলিস্ট',       href: '/account/wishlist' },
-                  { icon: Truck,         label: 'Track Order',   labelBn: 'অর্ডার ট্র্যাক', href: '/track-order' },
-                  { icon: CreditCard,    label: 'Payment',       labelBn: 'পেমেন্ট',         href: '/account/payment' },
-                  { icon: Gift,          label: 'My Coupons',    labelBn: 'কুপন',            href: '/account/coupons' },
-                  { icon: Store,         label: 'Seller Panel',  labelBn: 'সেলার প্যানেল',   href: '/seller/dashboard' },
-                ].map(item => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setAccountOpen(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
-                  >
-                    <item.icon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    {lang === 'bn' ? item.labelBn : item.label}
-                  </Link>
-                ))}
-              </div>
-              <div className="h-px bg-gray-100 mx-3 my-1" />
-              <div className="py-1 pb-2">
-                {[
-                  { label: 'Settings',               labelBn: 'সেটিংস',           href: '/account/profile' },
-                  { label: 'Return & Refund Policy', labelBn: 'রিটার্ন ও রিফান্ড', href: '/refund-policy' },
-                  { label: 'Help Center',            labelBn: 'সাহায্য কেন্দ্র',   href: '/help' },
-                  { label: 'Contact Us',             labelBn: 'যোগাযোগ করুন',      href: '/support' },
-                ].map(item => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    onClick={() => setAccountOpen(false)}
-                    className="block px-4 py-2 text-xs text-gray-500 hover:text-primary hover:bg-gray-50 transition-colors"
-                  >
-                    {lang === 'bn' ? item.labelBn : item.label}
-                  </Link>
-                ))}
+            <div className="px-4 pt-4 pb-3">
+              <button
+                onClick={() => { setAccountOpen(false); router.push('/login'); }}
+                className="block w-full text-center bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 rounded-full text-sm transition-colors"
+              >
+                {lang === 'bn' ? 'সাইন ইন' : 'Sign in'}
+              </button>
+              <div className="text-center mt-2">
+                <span className="text-xs text-gray-500">{lang === 'bn' ? 'নতুন? ' : 'New? '}</span>
                 <button
-                  onClick={() => { void logout.mutate(); setAccountOpen(false); }}
-                  className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors"
+                  onClick={() => { setAccountOpen(false); router.push('/register'); }}
+                  className="text-xs text-primary font-bold hover:underline"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
-                  {lang === 'bn' ? 'সাইন আউট' : 'Sign out'}
+                  {lang === 'bn' ? 'রেজিস্টার করুন' : 'Register'}
                 </button>
               </div>
-            </>
+            </div>
           )}
+
+          {/* ── Logged in: user header ── */}
+          {isAuthenticated && (
+            <div className="px-4 pt-3 pb-2 flex items-center gap-3 bg-gray-50">
+              <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                <User className="w-5 h-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-gray-900 leading-tight truncate">
+                  {user?.firstName || user?.name ||
+                    (user?.role === 'ADMIN' ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')
+                    : user?.role === 'SELLER' ? (lang === 'bn' ? 'সেলার' : 'Seller')
+                    : (lang === 'bn' ? 'গ্রাহক' : 'Customer'))}
+                </p>
+                <button
+                  onClick={() => { setAccountOpen(false); router.push('/account'); }}
+                  className="text-[11px] text-primary hover:underline font-medium"
+                >
+                  {lang === 'bn' ? 'প্রোফাইল দেখুন' : 'View profile'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="h-px bg-gray-100 mx-3 my-1" />
+
+          {/* ── Main nav items — always shown (auth-gating handled by destination pages) ── */}
+          <div className="py-1">
+            {[
+              { icon: Package,       label: 'My Orders',     labelBn: 'আমার অর্ডার',    href: '/account/orders' },
+              { icon: CalendarClock, label: 'My Pre-orders', labelBn: 'প্রি-অর্ডার',     href: '/account/preorders' },
+              { icon: Heart,         label: 'My Wishlist',   labelBn: 'উইশলিস্ট',       href: '/account/wishlist' },
+              { icon: Truck,         label: 'Track Order',   labelBn: 'অর্ডার ট্র্যাক', href: '/track-order' },
+              { icon: CreditCard,    label: 'Payment',       labelBn: 'পেমেন্ট',         href: '/account/payment' },
+              { icon: Gift,          label: 'My Coupons',    labelBn: 'কুপন',            href: '/account/coupons' },
+              { icon: Store,         label: 'Seller Panel',  labelBn: 'সেলার প্যানেল',   href: '/seller/dashboard' },
+            ].map(item => (
+              <button
+                key={item.href}
+                onClick={() => { setAccountOpen(false); router.push(item.href); }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors text-left"
+              >
+                <item.icon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                {lang === 'bn' ? item.labelBn : item.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="h-px bg-gray-100 mx-3 my-1" />
+
+          {/* ── Secondary links ── */}
+          <div className="py-1 pb-2">
+            {[
+              { label: 'Settings',               labelBn: 'সেটিংস',              href: '/account/profile', authOnly: true },
+              { label: 'Seller Login',           labelBn: 'সেলার লগইন',           href: '/seller/login',    authOnly: false },
+              { label: 'Become a Seller',        labelBn: 'সেলার হিসেবে যোগ দিন', href: '/seller/register', authOnly: false },
+              { label: 'Return & Refund Policy', labelBn: 'রিটার্ন ও রিফান্ড',    href: '/refund-policy',   authOnly: false },
+              { label: 'Help Center',            labelBn: 'সাহায্য কেন্দ্র',      href: '/help',            authOnly: false },
+              { label: 'Contact Us',             labelBn: 'যোগাযোগ করুন',         href: '/support',         authOnly: false },
+            ].filter(item => !item.authOnly || isAuthenticated).map(item => (
+              <button
+                key={item.label}
+                onClick={() => { setAccountOpen(false); router.push(item.href); }}
+                className="w-full block px-4 py-2 text-xs text-gray-500 hover:text-primary hover:bg-gray-50 transition-colors text-left"
+              >
+                {lang === 'bn' ? item.labelBn : item.label}
+              </button>
+            ))}
+            {isAuthenticated && (
+              <button
+                onClick={() => { void logout.mutate(); setAccountOpen(false); }}
+                className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                {lang === 'bn' ? 'সাইন আউট' : 'Sign out'}
+              </button>
+            )}
+          </div>
         </div>,
         document.body
       )}
