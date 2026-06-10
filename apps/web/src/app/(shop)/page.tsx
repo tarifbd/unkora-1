@@ -229,15 +229,15 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
             disabled={!inStock}
-            className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-[11px] font-black transition-all ${inStock ? 'bg-[#1e293b] text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+            className={`relative flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-[11px] font-black transition-all overflow-hidden ${inStock ? 'bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
           >
             <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-            {lang === 'bn' ? 'কার্টে যোগ' : 'ADD TO CART'}
+            {lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}
           </button>
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation(); }}
             aria-label="Wishlist"
-            className="w-9 h-9 flex-shrink-0 rounded-xl border border-orange-200 bg-orange-50 flex items-center justify-center hover:bg-orange-100 transition-colors"
+            className="w-9 h-9 flex-shrink-0 rounded-xl border border-orange-200 bg-gradient-to-b from-orange-50 to-orange-100 flex items-center justify-center hover:from-orange-100 hover:to-orange-200 shadow-sm transition-all active:scale-95"
           >
             <Heart className="w-4 h-4 text-orange-500" fill="currentColor" />
           </button>
@@ -246,7 +246,7 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
         {/* BUY NOW */}
         {inStock ? (
           <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
-            className="flex items-center justify-center gap-1.5 h-9 bg-orange-500 text-white rounded-xl text-[11px] font-black hover:bg-orange-600 active:scale-95 transition-all">
+            className="flex items-center justify-center gap-1.5 h-9 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl text-[11px] font-black shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20">
             <Zap className="w-3.5 h-3.5 flex-shrink-0" />
             {lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}
           </Link>
@@ -329,20 +329,20 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
             disabled={!inStock}
-            className={`flex-1 flex items-center justify-center gap-1 h-8 rounded-lg text-[10px] font-black transition-all ${inStock ? 'bg-[#1e293b] text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+            className={`flex-1 flex items-center justify-center gap-1 h-8 rounded-lg text-[10px] font-black transition-all overflow-hidden ${inStock ? 'bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-md shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
             <ShoppingCart className="w-3 h-3 flex-shrink-0" />
-            <span>{lang === 'bn' ? 'কার্টে' : 'Cart'}</span>
+            <span>{lang === 'bn' ? 'কার্টে যোগ করুন' : 'Add to Cart'}</span>
           </button>
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation(); }}
             aria-label="Wishlist"
-            className="w-8 h-8 flex-shrink-0 rounded-lg border border-orange-200 bg-orange-50 flex items-center justify-center hover:bg-orange-100 transition-colors">
+            className="w-8 h-8 flex-shrink-0 rounded-lg bg-gradient-to-b from-orange-50 to-orange-100 border border-orange-200 flex items-center justify-center hover:from-orange-100 hover:to-orange-200 shadow-sm transition-all active:scale-95">
             <Heart className="w-3.5 h-3.5 text-orange-500" fill="currentColor" />
           </button>
         </div>
         {inStock ? (
           <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
-            className="flex items-center justify-center gap-1 h-8 bg-orange-500 text-white rounded-lg text-[10px] font-black hover:bg-orange-600 active:scale-95 transition-all">
+            className="flex items-center justify-center gap-1 h-8 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-lg text-[10px] font-black shadow-md shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20">
             <Zap className="w-3 h-3 flex-shrink-0" />
             <span>{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
           </Link>
@@ -727,9 +727,9 @@ export default function HomePage() {
           </div>
           <div ref={shelfRef} className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
             {shelfBooks.length > 0 ? shelfBooks.map(p => (
-              <div key={p.id} className="flex-shrink-0 w-[150px]"><MiniCard product={p} lang={lang} /></div>
+              <div key={p.id} className="flex-shrink-0 w-[190px]"><MiniCard product={p} lang={lang} /></div>
             )) : Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[150px]"><SkeletonCard /></div>
+              <div key={i} className="flex-shrink-0 w-[190px]"><SkeletonCard /></div>
             ))}
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100 flex justify-center">
@@ -737,6 +737,45 @@ export default function HomePage() {
               {lang === 'bn' ? 'সব বই দেখুন' : 'View All Books'} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          ISLAMIC LIFESTYLE BANNER — right after book world
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-7xl mx-auto">
+          <a href="/islamic-lifestyle" className="block rounded-2xl overflow-hidden relative group cursor-pointer"
+            style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 40%, #047857 100%)' }}>
+            <div className="absolute inset-0 opacity-10"
+              style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #10b981 0%, transparent 50%), radial-gradient(circle at 80% 20%, #34d399 0%, transparent 40%)' }} />
+            <div className="relative flex flex-col sm:flex-row items-center justify-between px-6 py-6 gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">🕌</span>
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-widest">Islamic Lifestyle</span>
+                </div>
+                <h2 className="text-white font-black text-xl sm:text-2xl leading-tight mb-1">
+                  {lang === 'bn' ? 'ইসলামিক লাইফস্টাইল' : 'Islamic Lifestyle'}
+                </h2>
+                <p className="text-emerald-200 text-sm max-w-md">
+                  {lang === 'bn'
+                    ? 'নামাজের সরঞ্জাম, ইসলামিক বই, আতর, তাসবিহ ও আরও অনেক কিছু'
+                    : 'Prayer essentials, Islamic books, perfumes, tasbih and more'}
+                </p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {['🕌 নামাজ', '📖 বই', '✨ কুরআন', '🌹 আতর', '📿 তাসবিহ'].map(tag => (
+                    <span key={tag} className="text-xs bg-white/10 text-emerald-100 px-2.5 py-1 rounded-full border border-white/20">{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex-shrink-0 flex items-center gap-2 bg-white text-emerald-800 font-bold px-5 py-2.5 rounded-xl group-hover:bg-emerald-50 transition-colors text-sm">
+                {lang === 'bn' ? 'দেখুন' : 'Explore'}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-700/20 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          </a>
         </div>
       </section>
 
@@ -862,44 +901,6 @@ export default function HomePage() {
             {/* subtle top-right decorative circle like Islamic banner */}
             <div className="absolute top-0 right-0 w-48 h-48 bg-amber-700/20 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
           </Link>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          ISLAMIC LIFESTYLE BANNER
-      ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto">
-          <a href="/islamic-lifestyle" className="block rounded-2xl overflow-hidden relative group cursor-pointer"
-            style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 40%, #047857 100%)' }}>
-            <div className="absolute inset-0 opacity-10"
-              style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #10b981 0%, transparent 50%), radial-gradient(circle at 80% 20%, #34d399 0%, transparent 40%)' }} />
-            <div className="relative flex flex-col sm:flex-row items-center justify-between px-6 py-6 gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">🕌</span>
-                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-widest">Islamic Lifestyle</span>
-                </div>
-                <h2 className="text-white font-black text-xl sm:text-2xl leading-tight mb-1">
-                  {lang === 'bn' ? 'ইসলামিক লাইফস্টাইল' : 'Islamic Lifestyle'}
-                </h2>
-                <p className="text-emerald-200 text-sm max-w-md">
-                  {lang === 'bn'
-                    ? 'নামাজের সরঞ্জাম, ইসলামিক বই, আতর, তাসবিহ ও আরও অনেক কিছু'
-                    : 'Prayer essentials, Islamic books, perfumes, tasbih and more'}
-                </p>
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {['🕌 নামাজ', '📖 বই', '✨ কুরআন', '🌹 আতর', '📿 তাসবিহ'].map(tag => (
-                    <span key={tag} className="text-xs bg-white/10 text-emerald-100 px-2.5 py-1 rounded-full border border-white/20">{tag}</span>
-                  ))}
-                </div>
-              </div>
-              <div className="flex-shrink-0 flex items-center gap-2 bg-white text-emerald-800 font-bold px-5 py-2.5 rounded-xl group-hover:bg-emerald-50 transition-colors text-sm">
-                {lang === 'bn' ? 'দেখুন' : 'Explore'}
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </div>
-            </div>
-          </a>
         </div>
       </section>
 

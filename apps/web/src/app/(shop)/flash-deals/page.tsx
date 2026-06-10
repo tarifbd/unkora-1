@@ -85,14 +85,14 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
           <button
             disabled={!inStock}
             onClick={() => inStock && addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } })}
-            className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-xs font-black transition-all ${inStock ? 'bg-[#1e293b] text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+            className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-xs font-black transition-all overflow-hidden ${inStock ? 'bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
           >
             <ShoppingCart className="w-3.5 h-3.5" />
-            {lang === 'bn' ? 'কার্টে যোগ' : 'ADD TO CART'}
+            {lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}
           </button>
           <button
             aria-label="Wishlist"
-            className="w-9 h-9 flex-shrink-0 rounded-xl border border-orange-200 bg-orange-50 flex items-center justify-center hover:bg-orange-100 transition-colors">
+            className="w-9 h-9 flex-shrink-0 rounded-xl bg-gradient-to-b from-orange-50 to-orange-100 border border-orange-200 flex items-center justify-center hover:from-orange-100 hover:to-orange-200 shadow-sm transition-all active:scale-95">
             <Heart className="w-4 h-4 text-orange-500" fill="currentColor" />
           </button>
         </div>
@@ -100,7 +100,7 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
         {/* BUY NOW */}
         {inStock ? (
           <Link href={`/checkout?productId=${product.id}&qty=1`}
-            className="flex items-center justify-center gap-1.5 h-9 bg-orange-500 text-white rounded-xl text-xs font-black hover:bg-orange-600 active:scale-95 transition-all">
+            className="flex items-center justify-center gap-1.5 h-9 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl text-xs font-black shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20">
             <Zap className="w-3.5 h-3.5" />
             {lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}
           </Link>
