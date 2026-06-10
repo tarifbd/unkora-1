@@ -476,6 +476,9 @@ export default function HomePage() {
   const promo3 = (promo3Raw ?? []).filter(b => b.isActive);
   const promo4 = (promo4Raw ?? []).filter(b => b.isActive);
 
+  const { data: bannersData } = useQuery<any[]>({ queryKey: ['design-banners-public'], queryFn: () => api.get('/design/banners').then(r => (r.data?.data ?? r.data ?? [])).catch(() => []), staleTime: 60_000 });
+  const offerBanner = (bannersData ?? []).find((b: any) => b.position === 'OFFER_BANNER' && b.isActive);
+
   // Show a banner when all main product queries fail (API unreachable)
   const apiDown = newArrivalsError && bestError && flashError && featuredError && shelfError;
 
@@ -601,7 +604,7 @@ export default function HomePage() {
       {/* ═══ AD BANNER ═══ */}
       <section className="py-3 px-3 md:px-4">
         <div className="max-w-[1400px] mx-auto">
-          <Link href="/products" className="block group">
+          <Link href={offerBanner?.linkUrl ?? '/products'} className="block group">
             <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 shadow-lg">
               <div className="absolute -top-8 -right-8 w-48 h-48 bg-white/10 rounded-full" />
               <div className="absolute -bottom-10 right-32 w-32 h-32 bg-white/10 rounded-full" />
@@ -611,16 +614,22 @@ export default function HomePage() {
                     {lang === 'bn' ? '🎉 বিশেষ অফার' : '🎉 SPECIAL OFFER'}
                   </p>
                   <h3 className="text-white font-black text-xl md:text-2xl leading-tight">
-                    {lang === 'bn' ? 'প্রথম অর্ডারে ১৫% ছাড়!' : 'Get 15% off your first order!'}
+                    {lang === 'bn'
+                      ? (offerBanner?.title || 'প্রথম অর্ডারে ১৫% ছাড়!')
+                      : (offerBanner?.subtitle || 'Get 15% off your first order!')}
                   </h3>
                   <p className="text-white/70 text-sm mt-1">
-                    {lang === 'bn' ? 'কোড: UNKORA15 • ৳৫০০+ অর্ডারে প্রযোজ্য' : 'Use code UNKORA15 · Min. order ৳500'}
+                    {lang === 'bn'
+                      ? `কোড: ${offerBanner?.ctaText ?? 'UNKORA15'} • ৳${offerBanner?.imageUrl ?? '৫০০'}+ অর্ডারে প্রযোজ্য`
+                      : `Use code ${offerBanner?.ctaText ?? 'UNKORA15'} · Min. order ৳${offerBanner?.imageUrl ?? '500'}`}
                   </p>
                 </div>
-                <div className="hidden md:flex flex-col items-center justify-center bg-white/20 rounded-2xl px-8 py-4 text-white text-center backdrop-blur-sm border border-white/20">
-                  <span className="font-mono font-black text-2xl tracking-widest">UNKORA15</span>
-                  <span className="text-xs text-white/70 mt-0.5">{lang === 'bn' ? 'কুপন কোড' : 'Coupon Code'}</span>
-                </div>
+                {(offerBanner?.ctaText ?? 'UNKORA15') && (
+                  <div className="hidden md:flex flex-col items-center justify-center bg-white/20 rounded-2xl px-8 py-4 text-white text-center backdrop-blur-sm border border-white/20">
+                    <span className="font-mono font-black text-2xl tracking-widest">{offerBanner?.ctaText ?? 'UNKORA15'}</span>
+                    <span className="text-xs text-white/70 mt-0.5">{lang === 'bn' ? 'কুপন কোড' : 'Coupon Code'}</span>
+                  </div>
+                )}
                 <div className="flex-shrink-0">
                   <span className="inline-flex items-center gap-2 bg-white text-emerald-700 font-black text-sm px-6 py-3 rounded-full shadow-md group-hover:shadow-lg group-hover:bg-emerald-50 transition-all duration-200">
                     {lang === 'bn' ? 'এখনই কিনুন' : 'Shop Now'}

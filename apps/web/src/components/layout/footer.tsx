@@ -7,12 +7,8 @@ import {
   MessageSquare, CheckCircle, Send, ArrowRight,
 } from 'lucide-react';
 import { useLanguage } from '@/lib/i18n/language-context';
-
-const SOCIAL_LINKS = [
-  { Icon: Facebook,  label: 'Facebook',  href: 'https://facebook.com/unkora.shop',  color: '#1877F2' },
-  { Icon: Instagram, label: 'Instagram', href: 'https://instagram.com/unkora.shop', color: '#E1306C' },
-  { Icon: Youtube,   label: 'YouTube',   href: 'https://youtube.com/@unkorashop',   color: '#FF0000' },
-];
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/api';
 
 const PAYMENT_METHODS = [
   { name: 'bKash',  color: '#E2136E', text: 'white' },
@@ -28,6 +24,23 @@ export function Footer() {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const currentYear = new Date().getFullYear();
+
+  const { data: settings } = useQuery({
+    queryKey: ['site-settings-footer'],
+    queryFn: () => api.get('/settings/store').then(r => r.data.data as Record<string, string>).catch(() => ({} as Record<string, string>)),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+
+  const socialLinks = [
+    { Icon: Facebook,  label: 'Facebook',  href: settings?.['social.facebook']  || 'https://facebook.com/unkora.shop',  color: '#1877F2' },
+    { Icon: Instagram, label: 'Instagram', href: settings?.['social.instagram'] || 'https://instagram.com/unkora.shop', color: '#E1306C' },
+    { Icon: Youtube,   label: 'YouTube',   href: settings?.['social.youtube']   || 'https://youtube.com/@unkorashop',   color: '#FF0000' },
+  ];
+
+  const contactPhone   = settings?.['site.phone']   || '+880 1911-369686';
+  const contactEmail   = settings?.['site.email']   || 'support@unkora.shop';
+  const contactAddress = settings?.['site.address'] || '160, Hasan Nagar,\nDhaka-1211';
 
   const quickLinks = [
     { label: f.home,          href: '/' },
@@ -127,7 +140,7 @@ export function Footer() {
             <p className="text-gray-500 text-sm leading-relaxed mb-6">{f.tagline}</p>
             {/* Social links */}
             <div className="flex gap-2.5">
-              {SOCIAL_LINKS.map(({ Icon, label, href, color }) => (
+              {socialLinks.map(({ Icon, label, href, color }) => (
                 <a
                   key={label}
                   href={href}
@@ -186,25 +199,25 @@ export function Footer() {
           <div>
             <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wide mb-5">{f.contactUs}</h4>
             <div className="space-y-3.5">
-              <a href="tel:+8801911369686" className="flex items-center gap-3 group">
+              <a href={`tel:${contactPhone.replace(/\s+/g, '')}`} className="flex items-center gap-3 group">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary group-hover:text-white transition-all duration-150">
                   <Phone className="w-3.5 h-3.5 text-primary group-hover:text-white transition-colors" />
                 </div>
-                <span className="text-gray-600 text-sm group-hover:text-primary transition-colors">+880 1911-369686</span>
+                <span className="text-gray-600 text-sm group-hover:text-primary transition-colors">{contactPhone}</span>
               </a>
-              <a href="mailto:support@unkora.shop" className="flex items-center gap-3 group">
+              <a href={`mailto:${contactEmail}`} className="flex items-center gap-3 group">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary group-hover:text-white transition-all duration-150">
                   <Mail className="w-3.5 h-3.5 text-primary group-hover:text-white transition-colors" />
                 </div>
-                <span className="text-gray-600 text-sm group-hover:text-primary transition-colors">support@unkora.shop</span>
+                <span className="text-gray-600 text-sm group-hover:text-primary transition-colors">{contactEmail}</span>
               </a>
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <MapPin className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <span className="text-gray-600 text-sm leading-relaxed">160, Hasan Nagar,<br />Dhaka-1211</span>
+                <span className="text-gray-600 text-sm leading-relaxed">{contactAddress.split('\n').map((line, i) => <span key={i}>{line}{i < contactAddress.split('\n').length - 1 && <br />}</span>)}</span>
               </div>
-              <a href="https://wa.me/8801911369686" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 group">
+              <a href={`https://wa.me/${contactPhone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 group">
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary group-hover:text-white transition-all duration-150">
                   <MessageSquare className="w-3.5 h-3.5 text-primary group-hover:text-white transition-colors" />
                 </div>

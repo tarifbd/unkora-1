@@ -20,6 +20,7 @@ import { useGuestWishlist } from '@/store/guest-wishlist.store';
 import { wishlistApi } from '@/lib/api/wishlist';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useLanguage } from '@/lib/i18n/language-context';
+import api from '@/lib/api';
 import type { LucideIcon } from 'lucide-react';
 
 interface NavCategory {
@@ -717,6 +718,16 @@ export function Header() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: barBanner } = useQuery({
+    queryKey: ['announcement-bar'],
+    queryFn: () => api.get('/design/banners').then(r => {
+      const list: Array<{position: string; isActive: boolean; title?: string; subtitle?: string; linkUrl?: string; imageUrl?: string; ctaText?: string}> = r.data?.data ?? r.data ?? [];
+      return list.find(b => b.position === 'ANNOUNCEMENT_BAR' && b.isActive) ?? null;
+    }).catch(() => null),
+    staleTime: 60_000,
+    retry: false,
+  });
+
   useEffect(() => {
     const q = searchParams.get('q');
     setSearchQuery(q ?? '');
@@ -795,6 +806,25 @@ export function Header() {
 
   return (
     <>
+      {/* Announcement Bar */}
+      {barBanner && (
+        barBanner.linkUrl ? (
+          <a
+            href={barBanner.linkUrl}
+            className="block w-full text-center py-2 px-4 text-sm font-semibold transition-opacity hover:opacity-90"
+            style={{ background: barBanner.imageUrl ?? '#1d4ed8', color: barBanner.ctaText ?? '#ffffff' }}
+          >
+            {lang === 'bn' ? (barBanner.title ?? '') : (barBanner.subtitle ?? barBanner.title ?? '')}
+          </a>
+        ) : (
+          <div
+            className="w-full text-center py-2 px-4 text-sm font-semibold"
+            style={{ background: barBanner.imageUrl ?? '#1d4ed8', color: barBanner.ctaText ?? '#ffffff' }}
+          >
+            {lang === 'bn' ? (barBanner.title ?? '') : (barBanner.subtitle ?? barBanner.title ?? '')}
+          </div>
+        )
+      )}
       <header className="sticky top-0 z-50 w-full shadow-sm border-b border-gray-200 bg-white">
 
         {/* ── Tier 1: Utility bar ── */}

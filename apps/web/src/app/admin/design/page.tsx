@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Palette, Image as ImageIcon, Layout, Plus, Pencil, Trash2, Check,
-  ChevronUp, ChevronDown, Loader2, X, Zap, Type,
+  ChevronUp, ChevronDown, Loader2, X, Zap, Type, Megaphone, Gift,
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -459,6 +459,8 @@ function BannerModal({ initial, onSave, onClose }: { initial?: Banner; onSave: (
               <label className="mb-1 block text-xs font-semibold text-muted-foreground">Position</label>
               <select value={form.position} onChange={set('position')} className={inp}>
                 <option value="HERO_SLIDER">🎯 Hero Slider — Homepage main banner</option>
+                <option value="ANNOUNCEMENT_BAR">📢 Announcement Bar — header strip</option>
+                <option value="OFFER_BANNER">🎁 Offer Banner — homepage coupon section</option>
                 <option value="PROMO_1">🟠 Promo Row 1 — Categories-এর পরে</option>
                 <option value="PROMO_2">🟠 Promo Row 2 — Flash Deals-এর পরে</option>
                 <option value="PROMO_3">🟠 Promo Row 3 — Book World-এর পরে</option>
@@ -537,24 +539,28 @@ function BannersTab() {
   };
 
   const positionColor: Record<string, string> = {
-    HERO_SLIDER: 'bg-indigo-100 text-indigo-700',
-    PROMO_1: 'bg-orange-100 text-orange-700',
-    PROMO_2: 'bg-orange-100 text-orange-700',
-    PROMO_3: 'bg-orange-100 text-orange-700',
-    PROMO_4: 'bg-orange-100 text-orange-700',
-    hero:    'bg-blue-100 text-blue-700',
-    top:     'bg-green-100 text-green-700',
-    sidebar: 'bg-purple-100 text-purple-700',
-    bottom:  'bg-gray-100 text-gray-700',
-    popup:   'bg-red-100 text-red-700',
+    HERO_SLIDER:       'bg-indigo-100 text-indigo-700',
+    PROMO_1:           'bg-orange-100 text-orange-700',
+    PROMO_2:           'bg-orange-100 text-orange-700',
+    PROMO_3:           'bg-orange-100 text-orange-700',
+    PROMO_4:           'bg-orange-100 text-orange-700',
+    ANNOUNCEMENT_BAR:  'bg-yellow-100 text-yellow-700',
+    OFFER_BANNER:      'bg-emerald-100 text-emerald-700',
+    hero:              'bg-blue-100 text-blue-700',
+    top:               'bg-green-100 text-green-700',
+    sidebar:           'bg-purple-100 text-purple-700',
+    bottom:            'bg-gray-100 text-gray-700',
+    popup:             'bg-red-100 text-red-700',
   };
 
   const positionLabel: Record<string, string> = {
-    HERO_SLIDER: '🎯 Hero Slider',
-    PROMO_1: 'Promo Row 1',
-    PROMO_2: 'Promo Row 2',
-    PROMO_3: 'Promo Row 3',
-    PROMO_4: 'Promo Row 4',
+    HERO_SLIDER:      '🎯 Hero Slider',
+    PROMO_1:          'Promo Row 1',
+    PROMO_2:          'Promo Row 2',
+    PROMO_3:          'Promo Row 3',
+    PROMO_4:          'Promo Row 4',
+    ANNOUNCEMENT_BAR: '📢 Announcement Bar',
+    OFFER_BANNER:     '🎁 Offer Banner',
   };
 
   if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -971,15 +977,270 @@ function HeroSliderTab() {
   );
 }
 
+// ─── Announcement Bar Tab ─────────────────────────────────────
+function AnnouncementBarTab() {
+  const qc = useQueryClient();
+  const { data: banners = [], isLoading } = useQuery<Banner[]>({
+    queryKey: ['design-banners'],
+    queryFn: designApi.getBanners,
+  });
+
+  const bar = banners.find(b => b.position === 'ANNOUNCEMENT_BAR');
+
+  const createMut = useMutation({ mutationFn: designApi.createBanner, onSuccess: () => qc.invalidateQueries({ queryKey: ['design-banners'] }) });
+  const updateMut = useMutation({ mutationFn: ({ id, data }: { id: string; data: Partial<BannerFormData> }) => designApi.updateBanner(id, data), onSuccess: () => qc.invalidateQueries({ queryKey: ['design-banners'] }) });
+  const deleteMut = useMutation({ mutationFn: designApi.deleteBanner, onSuccess: () => qc.invalidateQueries({ queryKey: ['design-banners'] }) });
+
+  const [form, setForm] = useState({
+    textBn: '', textEn: '', link: '', bgColor: '#1d4ed8', textColor: '#ffffff', active: true,
+  });
+  const [synced, setSynced] = useState(false);
+
+  if (bar && !synced) {
+    setSynced(true);
+    setForm({
+      textBn: bar.title ?? '',
+      textEn: bar.subtitle ?? '',
+      link: bar.linkUrl ?? '',
+      bgColor: bar.imageUrl?.startsWith('#') ? bar.imageUrl : '#1d4ed8',
+      textColor: bar.ctaText?.startsWith('#') ? bar.ctaText : '#ffffff',
+      active: bar.isActive,
+    });
+  }
+
+  const handleSave = () => {
+    const data: BannerFormData = {
+      title: form.textBn,
+      subtitle: form.textEn,
+      linkUrl: form.link,
+      imageUrl: form.bgColor,
+      ctaText: form.textColor,
+      position: 'ANNOUNCEMENT_BAR',
+      order: 0,
+      isActive: form.active,
+    };
+    if (bar) {
+      updateMut.mutate({ id: bar.id, data });
+    } else {
+      createMut.mutate(data);
+    }
+  };
+
+  if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
+
+  const isPending = createMut.isPending || updateMut.isPending;
+
+  return (
+    <div className="space-y-5 max-w-2xl">
+      <div className="rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm">
+        <p className="font-bold text-yellow-800">📢 Announcement Bar — Header Strip</p>
+        <p className="text-yellow-700 mt-0.5">A colored banner shown at the very top of every page. Use it for promotions, shipping notices, or important announcements.</p>
+      </div>
+
+      {/* Live preview */}
+      <div className="rounded-xl border overflow-hidden">
+        <p className="text-xs font-semibold text-muted-foreground px-3 py-2 border-b bg-muted/30">Preview</p>
+        <div
+          className="px-4 py-2.5 text-sm font-semibold text-center"
+          style={{ background: form.bgColor, color: form.textColor }}
+        >
+          {form.textBn || 'আপনার ঘোষণা এখানে আসবে'} {form.link && '→'}
+        </div>
+      </div>
+
+      <div className="rounded-xl border bg-card px-5 py-4 space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Bengali Text</label>
+            <input value={form.textBn} onChange={e => setForm(f => ({ ...f, textBn: e.target.value }))} className={inp} placeholder="বিশেষ অফার চলছে!" />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">English Text</label>
+            <input value={form.textEn} onChange={e => setForm(f => ({ ...f, textEn: e.target.value }))} className={inp} placeholder="Special offer running!" />
+          </div>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Link URL (optional)</label>
+          <input value={form.link} onChange={e => setForm(f => ({ ...f, link: e.target.value }))} className={inp} placeholder="/products" />
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Background Color</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={form.bgColor} onChange={e => setForm(f => ({ ...f, bgColor: e.target.value }))}
+                className="h-9 w-12 cursor-pointer rounded border p-0.5 flex-shrink-0" />
+              <input value={form.bgColor} onChange={e => setForm(f => ({ ...f, bgColor: e.target.value }))} className={inp + ' font-mono'} />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Text Color</label>
+            <div className="flex items-center gap-2">
+              <input type="color" value={form.textColor} onChange={e => setForm(f => ({ ...f, textColor: e.target.value }))}
+                className="h-9 w-12 cursor-pointer rounded border p-0.5 flex-shrink-0" />
+              <input value={form.textColor} onChange={e => setForm(f => ({ ...f, textColor: e.target.value }))} className={inp + ' font-mono'} />
+            </div>
+          </div>
+        </div>
+        <label className="flex items-center gap-2.5 cursor-pointer">
+          <input type="checkbox" checked={form.active} onChange={e => setForm(f => ({ ...f, active: e.target.checked }))} className="h-4 w-4 rounded border" />
+          <span className="text-sm font-medium">Show announcement bar on site</span>
+        </label>
+      </div>
+
+      <div className="flex items-center justify-between">
+        {bar && (
+          <button onClick={() => { deleteMut.mutate(bar.id); setSynced(false); }}
+            disabled={deleteMut.isPending}
+            className="text-sm text-red-600 hover:text-red-800 hover:underline">
+            Remove bar
+          </button>
+        )}
+        <button onClick={handleSave} disabled={isPending}
+          className="ml-auto flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+          Save Announcement Bar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Offer Banner Tab ─────────────────────────────────────────
+function OfferBannerTab() {
+  const qc = useQueryClient();
+  const { data: banners = [], isLoading } = useQuery<Banner[]>({
+    queryKey: ['design-banners'],
+    queryFn: designApi.getBanners,
+  });
+
+  const offer = banners.find(b => b.position === 'OFFER_BANNER');
+
+  const createMut = useMutation({ mutationFn: designApi.createBanner, onSuccess: () => qc.invalidateQueries({ queryKey: ['design-banners'] }) });
+  const updateMut = useMutation({ mutationFn: ({ id, data }: { id: string; data: Partial<BannerFormData> }) => designApi.updateBanner(id, data), onSuccess: () => qc.invalidateQueries({ queryKey: ['design-banners'] }) });
+  const deleteMut = useMutation({ mutationFn: designApi.deleteBanner, onSuccess: () => qc.invalidateQueries({ queryKey: ['design-banners'] }) });
+
+  const [form, setForm] = useState({
+    headlineBn: '', headlineEn: '', couponCode: '', minOrder: '500', link: '/products', bgFrom: '#059669', active: true,
+  });
+  const [synced, setSynced] = useState(false);
+
+  if (offer && !synced) {
+    setSynced(true);
+    setForm({
+      headlineBn: offer.title ?? '',
+      headlineEn: offer.subtitle ?? '',
+      couponCode: offer.ctaText ?? '',
+      minOrder: offer.imageUrl ?? '500',
+      link: offer.linkUrl ?? '/products',
+      bgFrom: '#059669',
+      active: offer.isActive,
+    });
+  }
+
+  const handleSave = () => {
+    const data: BannerFormData = {
+      title: form.headlineBn,
+      subtitle: form.headlineEn,
+      ctaText: form.couponCode,
+      imageUrl: form.minOrder,
+      linkUrl: form.link,
+      position: 'OFFER_BANNER',
+      order: 0,
+      isActive: form.active,
+    };
+    if (offer) {
+      updateMut.mutate({ id: offer.id, data });
+    } else {
+      createMut.mutate(data);
+    }
+  };
+
+  if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
+
+  const isPending = createMut.isPending || updateMut.isPending;
+
+  return (
+    <div className="space-y-5 max-w-2xl">
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm">
+        <p className="font-bold text-emerald-800">🎁 Offer Banner — Homepage Coupon Section</p>
+        <p className="text-emerald-700 mt-0.5">A prominent offer strip on the homepage showing a coupon code. Leave inactive to hide it.</p>
+      </div>
+
+      {/* Preview */}
+      <div className="rounded-xl border overflow-hidden">
+        <p className="text-xs font-semibold text-muted-foreground px-3 py-2 border-b bg-muted/30">Preview</p>
+        <div className="flex items-center justify-between gap-4 px-5 py-4 bg-gradient-to-r from-emerald-600 to-teal-600">
+          <div>
+            <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-0.5">🎉 বিশেষ অফার</p>
+            <p className="text-white font-black text-lg">{form.headlineBn || 'প্রথম অর্ডারে ১৫% ছাড়!'}</p>
+            <p className="text-white/70 text-xs mt-0.5">কোড: {form.couponCode || 'UNKORA15'} • ৳{form.minOrder}+ অর্ডারে প্রযোজ্য</p>
+          </div>
+          <div className="hidden sm:block bg-white/20 rounded-xl px-4 py-2 text-center border border-white/20">
+            <span className="font-mono font-black text-white text-lg">{form.couponCode || 'UNKORA15'}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border bg-card px-5 py-4 space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Bengali Headline</label>
+            <input value={form.headlineBn} onChange={e => setForm(f => ({ ...f, headlineBn: e.target.value }))} className={inp} placeholder="প্রথম অর্ডারে ১৫% ছাড়!" />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">English Headline</label>
+            <input value={form.headlineEn} onChange={e => setForm(f => ({ ...f, headlineEn: e.target.value }))} className={inp} placeholder="Get 15% off your first order!" />
+          </div>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Coupon Code</label>
+            <input value={form.couponCode} onChange={e => setForm(f => ({ ...f, couponCode: e.target.value.toUpperCase() }))} className={inp + ' font-mono'} placeholder="UNKORA15" />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">Min Order Amount (৳)</label>
+            <input type="number" min="0" value={form.minOrder} onChange={e => setForm(f => ({ ...f, minOrder: e.target.value }))} className={inp} />
+          </div>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">CTA Link URL</label>
+          <input value={form.link} onChange={e => setForm(f => ({ ...f, link: e.target.value }))} className={inp} placeholder="/products" />
+        </div>
+        <label className="flex items-center gap-2.5 cursor-pointer">
+          <input type="checkbox" checked={form.active} onChange={e => setForm(f => ({ ...f, active: e.target.checked }))} className="h-4 w-4 rounded border" />
+          <span className="text-sm font-medium">Show offer banner on homepage</span>
+        </label>
+      </div>
+
+      <div className="flex items-center justify-between">
+        {offer && (
+          <button onClick={() => { deleteMut.mutate(offer.id); setSynced(false); }}
+            disabled={deleteMut.isPending}
+            className="text-sm text-red-600 hover:text-red-800 hover:underline">
+            Remove offer banner
+          </button>
+        )}
+        <button onClick={handleSave} disabled={isPending}
+          className="ml-auto flex items-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+          {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+          Save Offer Banner
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────
 
-type TabId = 'themes' | 'hero-slider' | 'banners' | 'homepage';
+type TabId = 'themes' | 'hero-slider' | 'announcement-bar' | 'offer-banner' | 'banners' | 'homepage';
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
-  { id: 'themes',      label: 'Themes & Colors',  icon: Palette },
-  { id: 'hero-slider', label: 'Hero Slider',       icon: ImageIcon },
-  { id: 'banners',     label: 'All Banners',       icon: Layout },
-  { id: 'homepage',    label: 'Homepage Sections', icon: Layout },
+  { id: 'themes',            label: 'Themes & Colors',  icon: Palette },
+  { id: 'hero-slider',       label: 'Hero Slider',       icon: ImageIcon },
+  { id: 'announcement-bar',  label: 'Announcement Bar',  icon: Megaphone },
+  { id: 'offer-banner',      label: 'Offer Banner',      icon: Gift },
+  { id: 'banners',           label: 'All Banners',       icon: Layout },
+  { id: 'homepage',          label: 'Homepage Sections', icon: Layout },
 ];
 
 export default function DesignPage() {
@@ -1008,10 +1269,12 @@ export default function DesignPage() {
         ))}
       </div>
 
-      {tab === 'themes'      && <ThemesTab />}
-      {tab === 'hero-slider' && <HeroSliderTab />}
-      {tab === 'banners'     && <BannersTab />}
-      {tab === 'homepage'    && <SectionsTab />}
+      {tab === 'themes'            && <ThemesTab />}
+      {tab === 'hero-slider'       && <HeroSliderTab />}
+      {tab === 'announcement-bar'  && <AnnouncementBarTab />}
+      {tab === 'offer-banner'      && <OfferBannerTab />}
+      {tab === 'banners'           && <BannersTab />}
+      {tab === 'homepage'          && <SectionsTab />}
     </div>
   );
 }
