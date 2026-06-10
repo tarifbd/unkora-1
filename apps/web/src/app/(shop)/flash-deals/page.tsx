@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Flame, ShoppingCart, Zap, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { Flame, ShoppingCart, Zap, ChevronLeft, ChevronRight, Clock, Heart } from 'lucide-react';
 import api from '@/lib/api';
 import { productsApi, type Product } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
@@ -36,7 +36,6 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
   const hasDiscount = product.salePrice && salePrice < basePrice;
   const discount = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
   const inStock = product.stockQuantity > 0;
-  const saved = hasDiscount ? basePrice - salePrice : 0;
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group">
@@ -50,14 +49,7 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
           <div className="absolute inset-0 flex items-center justify-center text-5xl bg-gray-100">📦</div>
         )}
         {hasDiscount && (
-          <div className="absolute top-2 left-2 flex flex-col gap-1">
-            <span className="bg-red-500 text-white text-[11px] font-black px-2.5 py-1 rounded-full shadow-sm">-{discount}%</span>
-            {saved > 0 && (
-              <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                ৳{saved.toLocaleString('en-BD')} {lang === 'bn' ? 'সাশ্রয়' : 'off'}
-              </span>
-            )}
-          </div>
+          <span className="absolute top-2 left-2 bg-orange-500 text-white text-[11px] font-black px-2.5 py-1 rounded-full shadow-sm">-{discount}%</span>
         )}
         {!inStock && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
@@ -69,8 +61,11 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
       </Link>
 
       <div className="p-3 flex flex-col flex-1">
+        {product.category?.name && (
+          <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1 truncate">{product.category.name}</p>
+        )}
         <Link href={`/products/${product.slug}`} className="flex-1">
-          <p className="text-sm font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors">
+          <p className="text-sm font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
             {product.name}
           </p>
           {product.bookDetail?.author && (
@@ -78,34 +73,42 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
           )}
         </Link>
 
-        <div className="flex items-baseline gap-2 mt-2">
-          <span className="text-lg font-black text-primary">৳{salePrice.toLocaleString('en-BD')}</span>
+        <div className="flex items-baseline gap-2 mt-2 mb-3">
+          <span className="text-lg font-black text-gray-900">৳{salePrice.toLocaleString('en-BD')}</span>
           {hasDiscount && (
             <span className="text-sm text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-2 mt-3">
+        {/* ADD TO CART + Wishlist */}
+        <div className="flex gap-2 mb-2">
           <button
             disabled={!inStock}
             onClick={() => inStock && addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } })}
-            className={`flex items-center justify-center gap-1.5 h-9 rounded-xl text-xs font-bold transition-all ${inStock ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
+            className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-xs font-black transition-all ${inStock ? 'bg-[#1e293b] text-white hover:bg-gray-800' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
           >
             <ShoppingCart className="w-3.5 h-3.5" />
-            {lang === 'bn' ? 'কার্টে' : 'Cart'}
+            {lang === 'bn' ? 'কার্টে যোগ' : 'ADD TO CART'}
           </button>
-          {inStock ? (
-            <Link href={`/checkout?productId=${product.id}&qty=1`}
-              className="flex items-center justify-center gap-1.5 h-9 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 transition-all">
-              <Zap className="w-3.5 h-3.5" />
-              {lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}
-            </Link>
-          ) : (
-            <div className="flex items-center justify-center h-9 rounded-xl bg-gray-100 text-gray-400 text-xs font-bold">
-              {lang === 'bn' ? 'অনুপলব্ধ' : 'N/A'}
-            </div>
-          )}
+          <button
+            aria-label="Wishlist"
+            className="w-9 h-9 flex-shrink-0 rounded-xl border border-orange-200 bg-orange-50 flex items-center justify-center hover:bg-orange-100 transition-colors">
+            <Heart className="w-4 h-4 text-orange-500" fill="currentColor" />
+          </button>
         </div>
+
+        {/* BUY NOW */}
+        {inStock ? (
+          <Link href={`/checkout?productId=${product.id}&qty=1`}
+            className="flex items-center justify-center gap-1.5 h-9 bg-orange-500 text-white rounded-xl text-xs font-black hover:bg-orange-600 active:scale-95 transition-all">
+            <Zap className="w-3.5 h-3.5" />
+            {lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}
+          </Link>
+        ) : (
+          <div className="h-9 flex items-center justify-center rounded-xl bg-gray-100 text-gray-400 text-xs font-black">
+            {lang === 'bn' ? 'অনুপলব্ধ' : 'OUT OF STOCK'}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -114,16 +117,18 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
 /* ── Skeleton ── */
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 animate-pulse">
-      <div className="h-52 bg-gray-200" />
-      <div className="p-3 space-y-2">
+    <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 animate-pulse flex flex-col">
+      <div className="h-52 bg-gray-200 flex-shrink-0" />
+      <div className="p-3 flex flex-col gap-2 flex-1">
+        <div className="h-2 bg-gray-200 rounded w-1/3" />
         <div className="h-4 bg-gray-200 rounded w-full" />
         <div className="h-3 bg-gray-200 rounded w-3/4" />
-        <div className="h-5 bg-gray-200 rounded w-1/3 mt-2" />
-        <div className="grid grid-cols-2 gap-2 mt-2">
-          <div className="h-9 bg-gray-200 rounded-xl" />
-          <div className="h-9 bg-gray-200 rounded-xl" />
+        <div className="h-5 bg-gray-200 rounded w-2/5 mt-1" />
+        <div className="flex gap-2 mt-1">
+          <div className="flex-1 h-9 bg-gray-200 rounded-xl" />
+          <div className="w-9 h-9 bg-gray-200 rounded-xl flex-shrink-0" />
         </div>
+        <div className="h-9 bg-gray-200 rounded-xl" />
       </div>
     </div>
   );
