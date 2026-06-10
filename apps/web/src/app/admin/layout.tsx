@@ -12,7 +12,7 @@ import {
   DollarSign, RefreshCw, Bell as BellIcon, Mail, Search, Wallet,
   Users2, PieChart, UserCog, Palette, Sparkles, Bot, Library, ScrollText, Cpu,
   ClipboardList, BookMarked, LayoutList, LifeBuoy, Maximize2, Puzzle, MapPin, Map, Rocket, Megaphone,
-  FileCode2, Percent, LineChart, Gift, Database, Lock, Radio,
+  FileCode2, Percent, LineChart, Gift, Database, Lock, Radio, Sun,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { authApi } from '@/lib/api/auth';
@@ -57,6 +57,7 @@ const NAV: NavItem[] = [
       { href: '/admin/coupons',                       label: 'Coupons',             icon: Ticket },
       { href: '/admin/promotions',                    label: 'Promotions',          icon: Zap },
       { href: '/admin/flash-deals',                   label: 'Flash Deals',         icon: Zap },
+      { href: '/admin/deal-of-the-day',              label: 'Deal of the Day',     icon: Sun },
       { href: '/admin/refunds',                       label: 'Refunds',             icon: RotateCcw },
       { href: '/admin/wholesale',                     label: 'Wholesale',           icon: Layers },
       { href: '/admin/gift-cards',                    label: 'Gift Cards',          icon: CreditCard },
@@ -132,6 +133,7 @@ const NAV: NavItem[] = [
       { href: '/admin/seo/products',             label: 'Product SEO',      icon: Package },
       { href: '/admin/seo/categories',           label: 'Category SEO',     icon: Layers },
       { href: '/admin/seo/advanced-search',      label: 'Advanced Search',  icon: Search },
+      { href: '/admin/seo/aio',                  label: 'AI Overview (AIO)', icon: Bot },
     ],
   },
   {
@@ -347,6 +349,8 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/finance/store-credit': 'Store Credit',
   '/admin/security/audit': 'Audit Logs',
   '/admin/security/rbac': 'Role-Based Access Control',
+  '/admin/deal-of-the-day': 'Deal of the Day',
+  '/admin/seo/aio': 'AI Overview Optimization (AIO)',
 };
 
 /* ─── Sidebar content ────────────────────────────────────────── */

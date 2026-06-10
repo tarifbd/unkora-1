@@ -86,10 +86,10 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
               <button
                 onClick={handleAddToCart}
                 disabled={addItem.isPending}
-                className="flex items-center gap-1 px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-lg text-xs font-bold text-primary hover:bg-primary hover:text-white transition-all flex-shrink-0"
+                className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-b from-slate-700 to-slate-900 text-white rounded-lg text-xs font-bold shadow-md shadow-slate-900/30 hover:from-slate-600 hover:to-slate-800 active:scale-95 transition-all flex-shrink-0 ring-1 ring-white/10"
               >
                 <ShoppingCart className="w-3.5 h-3.5" />
-                {lang === 'bn' ? 'কার্ট' : 'Cart'}
+                {lang === 'bn' ? 'কার্টে যোগ' : 'Add'}
               </button>
             ) : (
               <span className="text-xs text-gray-400 font-medium">{lang === 'bn' ? 'স্টক নেই' : 'Out of stock'}</span>
@@ -206,14 +206,14 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
             onClick={handleAddToCart}
             disabled={!inStock || addItem.isPending}
             className={cn(
-              'flex items-center justify-center gap-1 h-9 rounded-lg text-xs font-bold transition-all',
+              'flex items-center justify-center gap-1 h-9 rounded-xl text-xs font-black transition-all',
               inStock
-                ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white hover:border-primary active:scale-95'
+                ? 'bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             )}
           >
             <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
+            <span>{lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}</span>
           </button>
 
           {/* Buy Now */}
@@ -221,10 +221,10 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
             <Link
               href={`/checkout?productSlug=${product.slug}&qty=1`}
               onClick={e => e.stopPropagation()}
-              className="flex items-center justify-center gap-1 h-9 bg-orange-500 text-white rounded-lg text-xs font-bold hover:bg-orange-600 active:scale-95 transition-all"
+              className="flex items-center justify-center gap-1 h-9 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl text-xs font-black shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20"
             >
               <Zap className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>{lang === 'bn' ? 'এখনই কিনুন' : 'Buy Now'}</span>
+              <span>{lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}</span>
             </Link>
           ) : (
             <div className="flex items-center justify-center h-9 rounded-lg bg-gray-100 text-gray-400 text-xs font-bold">

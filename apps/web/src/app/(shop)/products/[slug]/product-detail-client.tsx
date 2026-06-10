@@ -167,7 +167,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                   <button onClick={() => setQty(Math.min(product.stockQuantity, qty + 1))} className="hover:text-brand-600 transition-colors"><Plus className="h-4 w-4" /></button>
                 </div>
                 <button onClick={handleAddToCart} disabled={addItem.isPending}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-b from-slate-700 to-slate-900 py-2.5 text-sm font-black text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-[0.98] disabled:opacity-50 transition-all ring-1 ring-white/10">
                   {addItem.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
                   {t.productDetail.addToCart}
                 </button>
@@ -178,7 +178,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
               </div>
               <Link
                 href={`/checkout?productSlug=${product.slug}&qty=${qty}`}
-                className="flex items-center justify-center gap-2 w-full py-3.5 bg-orange-500 text-white rounded-xl font-bold text-sm hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-200"
+                className="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl font-black text-sm shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-[0.98] transition-all ring-1 ring-white/20"
               >
                 <Zap className="h-4 w-4" /> এখনই কিনুন
               </Link>

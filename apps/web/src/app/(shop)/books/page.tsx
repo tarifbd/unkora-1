@@ -1,16 +1,112 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { booksApi } from '@/lib/api/products';
 import { ProductGrid } from '@/components/product/product-grid';
 import { useLanguage } from '@/lib/i18n/language-context';
-import { BookOpen, ChevronDown, X } from 'lucide-react';
+import {
+  BookOpen, ChevronDown, X, Globe, BookMarked, PenLine,
+  Building2, Layers, SlidersHorizontal, Check,
+} from 'lucide-react';
+
+const FILTER_ICONS: Record<string, React.ElementType> = {
+  language: Globe,
+  genre: BookMarked,
+  author: PenLine,
+  publisher: Building2,
+  binding: Layers,
+};
+
+const FILTER_LABELS_EN: Record<string, string> = {
+  language: 'Language',
+  genre: 'Genre',
+  author: 'Author',
+  publisher: 'Publisher',
+  binding: 'Format / Binding',
+};
+
+const FILTER_LABELS_BN: Record<string, string> = {
+  language: 'ভাষা',
+  genre: 'ঘরানা',
+  author: 'লেখক',
+  publisher: 'প্রকাশক',
+  binding: 'বাঁধাই',
+};
+
+const FILTER_KEYS = ['language', 'genre', 'author', 'publisher', 'binding'] as const;
+type FilterKey = typeof FILTER_KEYS[number];
+
+interface DropdownFilterProps {
+  filterKey: FilterKey;
+  options: string[];
+  value: string;
+  onChange: (v: string) => void;
+  lang: string;
+}
+
+function DropdownFilter({ filterKey, options, value, onChange, lang }: DropdownFilterProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const Icon = FILTER_ICONS[filterKey] as React.ElementType;
+  const label = lang === 'bn' ? FILTER_LABELS_BN[filterKey] : FILTER_LABELS_EN[filterKey];
+  const hasValue = !!value;
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all whitespace-nowrap ${
+          hasValue
+            ? 'border-primary bg-primary text-white shadow-sm'
+            : 'border-gray-200 bg-white text-gray-700 hover:border-primary/50 hover:text-primary'
+        }`}
+      >
+        <Icon className="w-4 h-4 flex-shrink-0" />
+        <span>{hasValue ? value : label}</span>
+        {hasValue ? (
+          <X
+            className="w-3.5 h-3.5 ml-1 opacity-80 hover:opacity-100"
+            onClick={e => { e.stopPropagation(); onChange(''); }}
+          />
+        ) : (
+          <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
+        )}
+      </button>
+
+      {open && options.length > 0 && (
+        <div className="absolute top-full left-0 mt-2 z-40 w-56 bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden">
+          <div className="max-h-64 overflow-y-auto py-1">
+            {options.map(opt => (
+              <button
+                key={opt}
+                onClick={() => { onChange(opt === value ? '' : opt); setOpen(false); }}
+                className="w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-gray-50 transition-colors text-left"
+              >
+                <span className={value === opt ? 'font-bold text-primary' : 'text-gray-700'}>{opt}</span>
+                {value === opt && <Check className="w-4 h-4 text-primary flex-shrink-0" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function BooksPageInner() {
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [page, setPage] = useState(1);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const searchParams = useSearchParams();
   const { lang, t } = useLanguage();
   const b = t.books;
@@ -68,81 +164,136 @@ function BooksPageInner() {
   };
   const clearAll = () => { setFilters({}); setPage(1); };
 
-  const activeCount = Object.keys(filters).length;
-  const activeLabel = filters.genre ?? filters.author ?? filters.language ?? null;
+  const activeCount = Object.keys(filters).filter(k => !['sortBy','sortOrder'].includes(k)).length;
 
-  const SelectFilter = ({ k, label, options }: { k: string; label: string; options: string[] }) => (
-    <div className="relative">
-      <select
-        value={filters[k] ?? ''}
-        onChange={e => setFilter(k, e.target.value)}
-        className="w-full appearance-none rounded-md border-2 border-gray-200 bg-white py-2 pl-3 pr-8 text-sm focus:outline-none focus:border-primary transition-colors"
-      >
-        <option value="">{label}</option>
-        {options.map(o => <option key={o} value={o}>{o}</option>)}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-    </div>
-  );
+  const filterOptions: Record<FilterKey, string[]> = {
+    language:  opts?.languages ?? [],
+    genre:     opts?.genres ?? [],
+    author:    opts?.authors ?? [],
+    publisher: (opts?.publishers ?? []).filter(Boolean) as string[],
+    binding:   (opts?.bindings ?? []).filter(Boolean) as string[],
+  };
 
   return (
-    <div className="bg-white min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 py-6">
 
-        {/* Page title */}
-        <div className="mb-6 flex items-center gap-3">
-          <BookOpen className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-black text-gray-900">{b.title}</h1>
-          {data && (
-            <span className="text-sm text-gray-500 font-medium">
-              ({data.meta.total} {lang === 'bn' ? 'টি বই' : 'books'})
-            </span>
-          )}
+        {/* Page header */}
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <BookOpen className="h-6 w-6 text-primary" />
+            <h1 className="text-2xl font-black text-gray-900">{b.title}</h1>
+            {data && (
+              <span className="text-sm text-gray-400 font-medium">
+                ({data.meta.total} {lang === 'bn' ? 'টি বই' : 'books'})
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Active filter breadcrumb chip */}
-        {activeLabel && (
-          <div className="mb-4 flex items-center gap-2">
-            <span className="text-sm text-gray-500 font-medium">{b.showingFor}</span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-green-100 text-green-800 border border-green-300 px-3 py-1 text-sm font-bold">
-              {activeLabel}
-              <button onClick={clearAll} className="ml-1 hover:text-green-600 transition-colors" aria-label="Clear filter">
-                <X className="h-3.5 w-3.5" />
+        {/* ── Filter Bar ── */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm px-4 py-3 mb-5">
+          {/* Desktop: horizontal dropdown filter bar */}
+          <div className="hidden sm:flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 mr-2">
+              <SlidersHorizontal className="w-4 h-4 text-gray-400" />
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                {lang === 'bn' ? 'ফিল্টার' : 'Filter by'}
+              </span>
+            </div>
+            {FILTER_KEYS.map(key => (
+              <DropdownFilter
+                key={key}
+                filterKey={key}
+                options={filterOptions[key]}
+                value={filters[key] ?? ''}
+                onChange={v => setFilter(key, v)}
+                lang={lang}
+              />
+            ))}
+            {activeCount > 0 && (
+              <button
+                onClick={clearAll}
+                className="ml-2 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-red-500 hover:bg-red-50 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+                {lang === 'bn' ? 'সব মুছুন' : 'Clear all'}
               </button>
-            </span>
-          </div>
-        )}
-
-        {/* Filters */}
-        <div className="mb-6 rounded-xl border border-gray-100 bg-gray-50 p-4">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5">
-            <SelectFilter k="author"    label={b.allAuthors} options={opts?.authors ?? []} />
-            <SelectFilter k="genre"     label={b.allGenres}  options={opts?.genres ?? []} />
-            <SelectFilter k="language"  label={b.language}   options={opts?.languages ?? []} />
-            <SelectFilter k="publisher" label={b.publisher}  options={(opts?.publishers ?? []).filter(Boolean) as string[]} />
-            <SelectFilter k="binding"   label={b.binding}    options={(opts?.bindings ?? []).filter(Boolean) as string[]} />
+            )}
           </div>
 
-          {activeCount > 0 && (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {Object.entries(filters).map(([k, v]) => (
-                <span
-                  key={k}
-                  className="flex items-center gap-1 rounded-full bg-white border-2 border-green-200 text-green-800 px-3 py-0.5 text-xs font-semibold"
-                >
-                  {v}
-                  <button onClick={() => setFilter(k, '')} className="hover:text-green-600 transition-colors">
-                    <X className="h-3 w-3" />
-                  </button>
+          {/* Mobile: filter toggle button */}
+          <div className="flex sm:hidden items-center justify-between">
+            <button
+              onClick={() => setShowMobileFilters(o => !o)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-700"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+              {lang === 'bn' ? 'ফিল্টার' : 'Filters'}
+              {activeCount > 0 && (
+                <span className="bg-primary text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">
+                  {activeCount}
                 </span>
-              ))}
-              <button onClick={clearAll} className="text-xs text-red-500 hover:text-red-700 font-semibold hover:underline">
-                {b.clearAll}
+              )}
+            </button>
+            {activeCount > 0 && (
+              <button onClick={clearAll} className="text-xs text-red-500 font-semibold hover:underline">
+                {lang === 'bn' ? 'সব মুছুন' : 'Clear all'}
               </button>
+            )}
+          </div>
+
+          {/* Mobile: expanded filter panels */}
+          {showMobileFilters && (
+            <div className="mt-3 pt-3 border-t border-gray-100 flex flex-col gap-2 sm:hidden">
+              {FILTER_KEYS.map(key => {
+                const Icon = FILTER_ICONS[key] as React.ElementType;
+                const label = lang === 'bn' ? FILTER_LABELS_BN[key] : FILTER_LABELS_EN[key];
+                return (
+                  <div key={key}>
+                    <p className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5">
+                      <Icon className="w-3.5 h-3.5" />{label}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {filterOptions[key].slice(0, 10).map(opt => (
+                        <button
+                          key={opt}
+                          onClick={() => setFilter(key, opt === filters[key] ? '' : opt)}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                            filters[key] === opt
+                              ? 'bg-primary text-white border-primary'
+                              : 'bg-white text-gray-600 border-gray-200 hover:border-primary/50'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Active filter chips */}
+          {activeCount > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap items-center gap-2">
+              <span className="text-xs text-gray-400 font-medium">{lang === 'bn' ? 'সক্রিয়:' : 'Active:'}</span>
+              {Object.entries(filters)
+                .filter(([k]) => !['sortBy','sortOrder'].includes(k))
+                .map(([k, v]) => (
+                  <span key={k} className="flex items-center gap-1 rounded-full bg-primary/10 text-primary border border-primary/20 px-3 py-0.5 text-xs font-semibold">
+                    {v}
+                    <button onClick={() => setFilter(k, '')} className="hover:text-red-500 transition-colors">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
             </div>
           )}
         </div>
 
+        {/* Product grid */}
         <ProductGrid products={data?.data ?? []} loading={isLoading} />
 
         {data && data.meta.totalPages > 1 && (
@@ -172,6 +323,7 @@ export default function BooksPage() {
     <Suspense fallback={
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-6" />
+        <div className="h-14 bg-white rounded-2xl animate-pulse mb-5" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-64 bg-gray-100 rounded-lg animate-pulse" />
