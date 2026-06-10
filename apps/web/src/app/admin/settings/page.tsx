@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Store, Truck, CreditCard, Zap, Globe, Info,
   Save, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff,
-  Search, Share2,
+  Search, Share2, FileText,
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -18,7 +18,7 @@ const storeSettingsApi = {
 };
 
 /* ─── shared components ───────────────────────────────────────── */
-type TabId = 'general' | 'store' | 'payment' | 'shipping' | 'seo' | 'social';
+type TabId = 'general' | 'store' | 'payment' | 'shipping' | 'seo' | 'social' | 'invoice';
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'general',  label: 'General',   icon: Store },
@@ -27,6 +27,7 @@ const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'shipping', label: 'Shipping',  icon: Truck },
   { id: 'seo',      label: 'SEO',       icon: Search },
   { id: 'social',   label: 'Social',    icon: Share2 },
+  { id: 'invoice',  label: 'Invoice',   icon: FileText },
 ];
 
 function FieldRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
@@ -595,6 +596,111 @@ function SocialTab({ settings, onSave }: { settings: Record<string, string>; onS
   );
 }
 
+/* ─── Invoice Tab ────────────────────────────────────────────── */
+function InvoiceTab({ settings, onSave }: { settings: Record<string, string>; onSave: (d: Record<string, string>) => Promise<void> }) {
+  const [form, setForm] = useState({
+    'invoice_logo_url':      settings['invoice_logo_url']      ?? '',
+    'invoice_store_name':    settings['invoice_store_name']    ?? 'UNKORA',
+    'invoice_store_address': settings['invoice_store_address'] ?? '',
+    'invoice_phone':         settings['invoice_phone']         ?? '',
+    'invoice_email':         settings['invoice_email']         ?? '',
+    'invoice_footer_text':   settings['invoice_footer_text']   ?? 'Thank you for shopping with us!',
+    'invoice_return_policy': settings['invoice_return_policy'] ?? '',
+  });
+  const [dirty, setDirty] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm(f => ({ ...f, [k]: e.target.value }));
+    setDirty(true); setSuccess(false);
+  };
+
+  const handleSave = async () => {
+    setPending(true);
+    try {
+      await onSave(form);
+      setDirty(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      // error visible in the UI via mutation state
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="mb-5">
+        <h2 className="font-bold text-lg">Invoice Settings</h2>
+        <p className="text-sm text-muted-foreground">Customize the branding and content printed on customer invoices</p>
+      </div>
+      <div className="rounded-xl border bg-card px-5">
+        <FieldRow label="Logo URL" hint="URL of your store logo shown on invoice header">
+          <div className="space-y-2">
+            <input
+              type="url"
+              value={form['invoice_logo_url']}
+              onChange={set('invoice_logo_url')}
+              className={inp}
+              placeholder="https://cdn.unkora.com/logo.png"
+            />
+            {form['invoice_logo_url'] && (
+              <div className="rounded-lg border bg-muted/30 p-2 inline-block">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={form['invoice_logo_url']}
+                  alt="Invoice logo preview"
+                  className="h-12 max-w-[180px] object-contain"
+                  onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                />
+              </div>
+            )}
+          </div>
+        </FieldRow>
+        <FieldRow label="Store Name" hint="Printed at the top of every invoice">
+          <input value={form['invoice_store_name']} onChange={set('invoice_store_name')} className={inp} placeholder="UNKORA" />
+        </FieldRow>
+        <FieldRow label="Store Address" hint="Business address shown on invoice">
+          <textarea
+            value={form['invoice_store_address']}
+            onChange={set('invoice_store_address')}
+            rows={3}
+            className={inp + ' resize-none'}
+            placeholder={"House 12, Road 5\nDhanmondi, Dhaka-1205\nBangladesh"}
+          />
+        </FieldRow>
+        <FieldRow label="Contact Phone">
+          <input value={form['invoice_phone']} onChange={set('invoice_phone')} className={inp} placeholder="+880 1700-000000" />
+        </FieldRow>
+        <FieldRow label="Contact Email">
+          <input type="email" value={form['invoice_email']} onChange={set('invoice_email')} className={inp} placeholder="support@unkora.com" />
+        </FieldRow>
+        <FieldRow label="Footer Text" hint="Message printed at the bottom of every invoice">
+          <textarea
+            value={form['invoice_footer_text']}
+            onChange={set('invoice_footer_text')}
+            rows={2}
+            className={inp + ' resize-none'}
+            placeholder="Thank you for shopping with us!"
+          />
+        </FieldRow>
+        <FieldRow label="Return Policy" hint="Return / refund policy text printed on invoice">
+          <textarea
+            value={form['invoice_return_policy']}
+            onChange={set('invoice_return_policy')}
+            rows={4}
+            className={inp + ' resize-none'}
+            placeholder="Returns accepted within 7 days of delivery. Item must be unused and in original packaging."
+          />
+        </FieldRow>
+      </div>
+      <SaveBar isDirty={dirty} onSave={handleSave} isPending={pending} success={success} />
+    </div>
+  );
+}
+
 /* ─── Main Page ──────────────────────────────────────────────── */
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabId>('general');
@@ -632,6 +738,7 @@ export default function SettingsPage() {
     shipping: <ShippingTab settings={settings} onSave={handleSave} />,
     seo:      <SeoTab      settings={settings} onSave={handleSave} />,
     social:   <SocialTab   settings={settings} onSave={handleSave} />,
+    invoice:  <InvoiceTab  settings={settings} onSave={handleSave} />,
   };
 
   return (

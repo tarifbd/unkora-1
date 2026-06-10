@@ -344,6 +344,7 @@ model Product {
   returnItems     ReturnItem[]
   preorderConfig  PreorderConfig?
   questions       ProductQuestion[]
+  bundleItems     BundleOfferItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2844,4 +2845,44 @@ model ProductAnswer {
 
   @@index([questionId])
   @@map("product_answers")
+}
+
+// ─────────────────────────────────────────────────────────────
+// BUNDLE OFFERS
+// ─────────────────────────────────────────────────────────────
+
+model BundleOffer {
+  id            String       @id @default(cuid())
+  title         String
+  description   String?
+  isActive      Boolean      @default(true)
+  discountType  DiscountType @default(PERCENTAGE)
+  discountValue Decimal      @db.Decimal(10, 2)
+  minItems      Int          @default(2)
+  maxUses       Int?
+  usedCount     Int          @default(0)
+  startDate     DateTime?
+  endDate       DateTime?
+  imageUrl      String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  items BundleOfferItem[]
+
+  @@index([isActive])
+  @@map("bundle_offers")
+}
+
+model BundleOfferItem {
+  id            String @id @default(cuid())
+  bundleOfferId String
+  productId     String
+  quantity      Int    @default(1)
+
+  bundle  BundleOffer @relation(fields: [bundleOfferId], references: [id], onDelete: Cascade)
+  product Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([bundleOfferId, productId])
+  @@index([bundleOfferId])
+  @@map("bundle_offer_items")
 }

@@ -53,6 +53,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { ProductsModule } from './modules/products/products.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { QuestionsModule } from './modules/questions/questions.module';
+import { BundlesModule } from './modules/bundles/bundles.module';
 import { SearchModule } from './modules/search/search.module';
 import { FlashDealsModule } from './modules/flash-deals/flash-deals.module';
 import { RefundsModule } from './modules/refunds/refunds.module';
@@ -103,6 +104,7 @@ import { CmsModule } from './modules/cms/cms.module';
     HealthModule,
     ReviewsModule,
     QuestionsModule,
+    BundlesModule,
     WishlistModule,
     CouponsModule,
     UploadModule,
