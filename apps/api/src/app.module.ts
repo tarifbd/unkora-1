@@ -158,6 +158,8 @@ import { VirtualTryOnModule } from './modules/virtual-tryon/virtual-tryon.module
     AddonsModule,
     PopupsModule,
     CmsModule,
+    RagModule,
+    VirtualTryOnModule,
   ],
 })
 export class AppModule {}

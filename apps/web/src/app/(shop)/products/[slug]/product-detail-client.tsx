@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
-import { ShoppingCart, Minus, Plus, Loader2, ArrowLeft, BookOpen, Package, Zap } from 'lucide-react';
+import { ShoppingCart, Minus, Plus, Loader2, ArrowLeft, BookOpen, Package, Zap, Shirt } from 'lucide-react';
 import Link from 'next/link';
 
 import { productsApi } from '@/lib/api/products';
@@ -190,6 +190,14 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
               >
                 <Zap className="h-4 w-4" /> {t.productDetail.buyNow}
               </Link>
+              {product.images?.length > 0 && (
+                <Link
+                  href={`/try-on?productId=${product.id}&productName=${encodeURIComponent(product.name)}&productImage=${encodeURIComponent(product.images[0]?.url ?? '')}`}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-orange-300 text-orange-600 text-sm font-semibold hover:bg-orange-50 active:scale-[0.98] transition-all"
+                >
+                  <Shirt className="h-4 w-4" /> Virtual Try-On
+                </Link>
+              )}
             </div>
           )}
           {product.stockQuantity === 0 && (
