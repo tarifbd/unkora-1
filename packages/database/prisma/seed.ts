@@ -158,6 +158,27 @@ async function main() {
     create: { name: 'Non-Fiction', slug: 'non-fiction', parentId: booksCat.id, sortOrder: 6 },
   });
 
+  // ── Islamic Lifestyle (matches the storefront /islamic-lifestyle section) ──
+  const islamicLifestyleCat = await prisma.category.upsert({
+    where: { slug: 'islamic-lifestyle' },
+    update: {},
+    create: { name: 'Islamic Lifestyle', slug: 'islamic-lifestyle', description: 'ইসলামিক লাইফস্টাইল পণ্য', sortOrder: 8, color: 'bg-emerald-100 text-emerald-700', icon: '🕌', isFeatured: true },
+  });
+  const islamicLifestyleSubs = [
+    { name: 'Prayer Essentials', slug: 'prayer-essentials',  sortOrder: 1 },
+    { name: 'Quran Accessories', slug: 'quran-accessories',  sortOrder: 2 },
+    { name: 'Islamic Clothing',  slug: 'islamic-clothing',   sortOrder: 3 },
+    { name: 'Perfumes & Oud',    slug: 'perfumes-oud',       sortOrder: 4 },
+    { name: 'Tasbih & Decor',    slug: 'tasbih-decor',       sortOrder: 5 },
+  ];
+  for (const sub of islamicLifestyleSubs) {
+    await prisma.category.upsert({
+      where: { slug: sub.slug },
+      update: {},
+      create: { ...sub, parentId: islamicLifestyleCat.id },
+    });
+  }
+
   console.log('✓ Categories');
 
   void electronicsCat; void dailyNeedsCat;
