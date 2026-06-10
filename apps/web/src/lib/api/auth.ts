@@ -1,4 +1,4 @@
-import api, { saveAuthTokens, clearAuthTokens } from '@/lib/api';
+import api, { saveAuthTokens, saveUserRole, clearAuthTokens } from '@/lib/api';
 import type { AuthUser } from '@/store/auth.store';
 
 interface ApiUser {
@@ -19,6 +19,7 @@ export const authApi = {
     api.post<{ data: AuthResponse }>('/auth/register', data).then(r => {
       const { tokens, user } = r.data.data;
       saveAuthTokens(tokens.accessToken, tokens.refreshToken);
+      saveUserRole(user.role);
       return { tokens, user: mapUser(user) };
     }),
 
@@ -26,6 +27,7 @@ export const authApi = {
     api.post<{ data: AuthResponse }>('/auth/login', { email, password }).then(r => {
       const { tokens, user } = r.data.data;
       saveAuthTokens(tokens.accessToken, tokens.refreshToken);
+      saveUserRole(user.role);
       return { tokens, user: mapUser(user) };
     }),
 
