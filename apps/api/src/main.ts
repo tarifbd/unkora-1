@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cors from '@fastify/cors';
 import multipart from '@fastify/multipart';
 
 import { AppModule } from './app.module';
@@ -29,6 +30,13 @@ async function bootstrap() {
   const isProd = process.env['NODE_ENV'] === 'production';
 
   // Register multipart for file uploads
+  await app.register(cors, {
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+ });
+
   await app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } });
 
   // Security headers via Fastify hook (replaces helmet for Fastify)
@@ -55,13 +63,6 @@ async function bootstrap() {
   app.setGlobalPrefix(apiPrefix);
   app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
 
-  // CORS
-  app.enableCors({
-  origin: true,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-});
   });
 
   // Global pipes, filters, interceptors
