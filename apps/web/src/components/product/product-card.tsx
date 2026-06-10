@@ -190,19 +190,17 @@ export function ProductCard({ product, className, listView, mini }: ProductCardP
           <p className="text-[10px] text-gray-400 truncate">{product.bookDetail.author}</p>
         )}
 
-        {/* Stars */}
-        {reviewCount > 0 && (
-          <div className="flex items-center gap-1">
-            <div className="flex">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <svg key={i} className={cn('w-3 h-3', i < 4 ? 'text-yellow-400' : 'text-gray-200')} fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
-            </div>
-            <span className="text-[9px] text-gray-400">({reviewCount})</span>
+        {/* Stars — always visible */}
+        <div className="flex items-center gap-1">
+          <div className="flex">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <svg key={i} className={cn('w-3 h-3', reviewCount > 0 && i < 4 ? 'text-yellow-400' : 'text-gray-200')} fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            ))}
           </div>
-        )}
+          <span className="text-[9px] text-gray-400">({reviewCount})</span>
+        </div>
 
         {/* Price */}
         <div className="flex items-baseline gap-1.5 mt-1">
@@ -218,21 +216,22 @@ export function ProductCard({ product, className, listView, mini }: ProductCardP
             <PreorderButton productSlug={product.slug} lang={lang} full />
           </div>
         ) : mini ? (
-          /* Compact single button for narrow cards (related products) */
-          <div className="mt-auto pt-2 flex gap-1.5">
+          /* Full buttons for related/recommended product cards */
+          <div className="mt-auto pt-2 grid grid-cols-2 gap-1.5">
             <button
               onClick={handleAddToCart}
               disabled={addItem.isPending}
-              className="flex-1 flex items-center justify-center gap-1 h-8 rounded-xl text-[11px] font-black transition-all bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-md shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10"
+              className="flex items-center justify-center gap-1 h-9 rounded-xl text-[11px] font-black transition-all bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-md shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10"
             >
               <ShoppingCart className="w-3 h-3 flex-shrink-0" />
-              <span>{lang === 'bn' ? 'কার্টে' : 'Add'}</span>
+              <span>{lang === 'bn' ? 'কার্টে' : 'Cart'}</span>
             </button>
             <button
               onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/checkout?productSlug=${product.slug}&qty=1`; }}
-              className="flex items-center justify-center h-8 w-8 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl shadow-md shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20 flex-shrink-0"
+              className="flex items-center justify-center gap-1 h-9 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl text-[11px] font-black shadow-md shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20"
             >
-              <Zap className="w-3.5 h-3.5" />
+              <Zap className="w-3 h-3 flex-shrink-0" />
+              <span>{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
             </button>
           </div>
         ) : (

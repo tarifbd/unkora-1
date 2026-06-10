@@ -308,7 +308,7 @@ function RelatedProducts({ categorySlug, currentId }: { categorySlug: string; cu
       <h2 className="text-xl font-bold text-gray-900 mb-4">{t.productDetail.relatedProducts}</h2>
       <div className="flex gap-3 overflow-x-auto pb-3 [scrollbar-width:thin] [scrollbar-color:#e5e7eb_transparent]">
         {related.map(p => (
-          <div key={p.id} className="flex-shrink-0 w-44">
+          <div key={p.id} className="flex-shrink-0 w-48">
             <ProductCard product={p} mini />
           </div>
         ))}
