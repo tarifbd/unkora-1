@@ -192,6 +192,7 @@ const NAV: NavItem[] = [
     label: 'Analytics', icon: TrendingUp,
     children: [
       { href: '/admin/analytics',                label: 'Analytics Hub',     icon: TrendingUp, keywords: ['stats', 'metrics', 'insights'] },
+      { href: '/admin/advanced-reports/pivot',   label: 'Report Builder',    icon: LayoutGrid, keywords: ['pivot', 'breakdown', 'custom report', 'region', 'fb ads manager'] },
       { href: '/admin/analytics/live-traffic',   label: 'Live Traffic',      icon: Activity,   keywords: ['realtime', 'visitors', 'live', 'monitor'] },
       { href: '/admin/analytics/heatmap',        label: 'Heatmap Analysis',  icon: LayoutGrid, keywords: ['click map', 'scroll', 'user behavior'] },
       { href: '/admin/analytics/conversion',     label: 'Conversion Funnel', icon: Filter,     keywords: ['funnel', 'drop off', 'checkout'] },
@@ -578,6 +579,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/admin/finance/pnl': 'P&L Report',
   '/admin/finance/wallet': 'Digital Wallet',
   '/admin/finance/store-credit': 'Store Credit',
+  '/admin/advanced-reports/pivot': 'Report Builder',
   '/admin/advanced-reports': 'Advanced Reports',
   // SYSTEM
   '/admin/settings': 'Settings',
