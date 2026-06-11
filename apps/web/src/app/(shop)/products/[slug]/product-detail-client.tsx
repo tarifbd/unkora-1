@@ -249,11 +249,11 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
         </div>
       </div>
 
+      <RelatedProducts categorySlug={product.category.slug} currentId={product.id} />
+
       <ProductReviews productId={product.id} />
 
       <ProductQA productId={product.id} />
-
-      <RelatedProducts categorySlug={product.category.slug} currentId={product.id} />
 
       {/* ── Mobile sticky buy bar — shows when main button scrolls out of view ── */}
       {product.stockQuantity > 0 && (
