@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   TrendingUp, TrendingDown, Minus, Sparkles, Loader2, Calendar,
   Package, AlertTriangle, Flame, Trash2, ChevronDown, ChevronUp,
-  FileText, XCircle,
+  FileText, XCircle, Rocket, Globe2, RefreshCw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
@@ -21,6 +21,37 @@ const TREND_BADGE: Record<string, string> = {
   FALLING: 'bg-red-100 text-red-700',
   STABLE: 'bg-gray-100 text-gray-600',
 };
+
+const EMERGING_BADGE: Record<string, string> = {
+  EXPLOSIVE: 'bg-red-100 text-red-700',
+  EMERGING: 'bg-violet-100 text-violet-700',
+  RISING: 'bg-green-100 text-green-700',
+  STEADY: 'bg-gray-100 text-gray-600',
+  DECLINING: 'bg-slate-100 text-slate-500',
+};
+
+const DIRECTION_BADGE: Record<string, string> = {
+  HOT: 'bg-red-100 text-red-700',
+  RISING: 'bg-green-100 text-green-700',
+  EMERGING: 'bg-violet-100 text-violet-700',
+  COOLING: 'bg-blue-100 text-blue-600',
+};
+
+// Tiny inline sparkline for 8-week sales series
+function Sparkline({ data }: { data: number[] }) {
+  const max = Math.max(1, ...data);
+  return (
+    <div className="flex items-end gap-[2px] h-6">
+      {data.map((v, i) => (
+        <div
+          key={i}
+          className={`w-1.5 rounded-sm ${i >= data.length - 2 ? 'bg-orange-500' : 'bg-orange-200 dark:bg-orange-900/50'}`}
+          style={{ height: `${Math.max(8, (v / max) * 100)}%` }}
+        />
+      ))}
+    </div>
+  );
+}
 
 function heatClass(value: number, max: number) {
   if (!value || max <= 0) return 'bg-gray-50 dark:bg-gray-700/40 text-gray-400';
@@ -80,6 +111,21 @@ export default function PredictionsPage() {
     onError: () => toast.error('Failed to generate forecast'),
   });
 
+  const marketTrendsMutation = useMutation({
+    mutationFn: () => api.post('/predictions/admin/market-trends/generate').then(r => r.data.data),
+    onSuccess: (res: any) => {
+      if (res?.configured === false) {
+        toast.error('No AI provider configured — set an API key in AI Studio settings');
+      } else if (res?.error) {
+        toast.error(res.error);
+      } else {
+        toast.success('Market trend radar updated');
+      }
+      qc.invalidateQueries({ queryKey: ['predictions-dashboard'] });
+    },
+    onError: () => toast.error('Failed to generate market trends'),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/predictions/admin/reports/${id}`),
     onSuccess: () => {
@@ -91,6 +137,9 @@ export default function PredictionsPage() {
 
   const festivals: any[] = dashboard?.festivals ?? [];
   const trending: any[] = dashboard?.trending ?? [];
+  const emerging: any[] = dashboard?.emerging ?? [];
+  const marketTrends: any[] = dashboard?.marketTrends?.trends ?? [];
+  const marketGeneratedAt: string | null = dashboard?.marketTrends?.generatedAt ?? null;
   const seasonalMonths: string[] = dashboard?.seasonal?.months ?? [];
   const seasonalCategories: any[] = dashboard?.seasonal?.categories ?? [];
   const stats = dashboard?.stats ?? {};
@@ -262,6 +311,149 @@ export default function PredictionsPage() {
             </div>
           )}
         </div>
+      </section>
+
+      {/* Predicted to trend — next 30 days */}
+      <section>
+        <h2 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-3 flex items-center gap-2">
+          <Rocket className="h-4 w-4 text-violet-500" /> Predicted to Trend — Next 30 Days
+        </h2>
+        <p className="text-xs text-gray-500 -mt-2 mb-3">
+          Momentum model over 8 weekly buckets — catches products that are accelerating before they become bestsellers
+        </p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {emerging.length === 0 ? (
+            <div className="p-8 text-center text-sm text-gray-400">
+              Not enough weekly sales data yet — predictions appear with more order history.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-xs text-gray-500 uppercase">
+                    <th className="px-4 py-3">Product</th>
+                    <th className="px-4 py-3">Category</th>
+                    <th className="px-4 py-3">8-Week Pattern</th>
+                    <th className="px-4 py-3 text-right">Trend Score</th>
+                    <th className="px-4 py-3 text-right">Predicted 30d</th>
+                    <th className="px-4 py-3 text-right">Stock</th>
+                    <th className="px-4 py-3 text-center">Signal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {emerging.map((e: any) => {
+                    const underStocked = e.stockCoverage !== null && e.stockCoverage < 1;
+                    return (
+                      <tr key={e.productId} className="border-b border-gray-100 dark:border-gray-700/60 last:border-0">
+                        <td className="px-4 py-3 font-semibold text-gray-900 dark:text-white max-w-[240px] truncate">{e.name}</td>
+                        <td className="px-4 py-3 text-gray-500">{e.category}</td>
+                        <td className="px-4 py-3"><Sparkline data={e.weekly ?? []} /></td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="inline-flex items-center gap-2">
+                            <div className="w-16 h-1.5 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${e.trendScore >= 62 ? 'bg-violet-500' : e.trendScore >= 45 ? 'bg-green-500' : 'bg-gray-400'}`}
+                                style={{ width: `${e.trendScore}%` }}
+                              />
+                            </div>
+                            <span className="font-bold text-gray-900 dark:text-white w-7 text-right">{e.trendScore}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">
+                          ~{e.predicted30d} <span className="text-[10px] font-normal text-gray-400">units</span>
+                        </td>
+                        <td className={`px-4 py-3 text-right font-semibold ${underStocked ? 'text-red-600' : 'text-gray-900 dark:text-white'}`}>
+                          {e.stockQuantity}
+                          {underStocked && (
+                            <span className="block text-[10px] font-bold text-red-500">restock!</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${EMERGING_BADGE[e.label] ?? EMERGING_BADGE.STEADY}`}>
+                            {e.label === 'EXPLOSIVE' && <Flame className="h-3 w-3" />}
+                            {e.label === 'EMERGING' && <Rocket className="h-3 w-3" />}
+                            {e.label === 'RISING' && <TrendingUp className="h-3 w-3" />}
+                            {e.label === 'STEADY' && <Minus className="h-3 w-3" />}
+                            {e.label === 'DECLINING' && <TrendingDown className="h-3 w-3" />}
+                            {e.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Market-wide category trend radar */}
+      <section>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div>
+            <h2 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide flex items-center gap-2">
+              <Globe2 className="h-4 w-4 text-blue-500" /> Market Category Radar (AI)
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Predicts trending categories across ALL of Bangladesh e-commerce — including ones you don't sell yet
+              {marketGeneratedAt && ` · updated ${new Date(marketGeneratedAt).toLocaleDateString()}`}
+            </p>
+          </div>
+          <button
+            onClick={() => marketTrendsMutation.mutate()}
+            disabled={marketTrendsMutation.isPending}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/40 disabled:opacity-60 transition-colors"
+          >
+            {marketTrendsMutation.isPending
+              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              : <RefreshCw className="h-3.5 w-3.5" />}
+            {marketTrends.length ? 'Regenerate' : 'Generate Radar'}
+          </button>
+        </div>
+        {marketTrends.length === 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 text-center text-sm text-gray-400">
+            <Globe2 className="h-10 w-10 mx-auto mb-2 opacity-30" />
+            No market radar yet — click "Generate Radar" to predict next month's trending categories with AI.
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {marketTrends.map((t: any, i: number) => (
+              <div key={`${t.category}-${i}`} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-bold text-gray-900 dark:text-white truncate">{t.category}</p>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${DIRECTION_BADGE[t.direction] ?? DIRECTION_BADGE.RISING}`}>
+                        {t.direction}
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${t.inStore ? 'bg-green-50 text-green-600' : 'bg-amber-50 text-amber-600'}`}>
+                        {t.inStore ? 'In your store' : 'Opportunity — not in store'}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-2xl font-black text-gray-900 dark:text-white">{t.trendScore}</div>
+                    <div className="text-[10px] text-gray-400 -mt-0.5">score</div>
+                  </div>
+                </div>
+                {t.peakWindow && (
+                  <p className="text-[11px] font-semibold text-violet-600 mt-2">Peak: {t.peakWindow}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1.5 leading-relaxed">{t.reason}</p>
+                {Array.isArray(t.exampleProducts) && t.exampleProducts.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2.5">
+                    {t.exampleProducts.map((p: string) => (
+                      <span key={p} className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                        {p}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Seasonal pattern heatmap */}

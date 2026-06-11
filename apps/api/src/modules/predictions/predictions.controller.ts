@@ -27,6 +27,24 @@ export class PredictionsController {
     return this.svc.getTrendingProducts();
   }
 
+  @Get('admin/emerging')
+  @ApiOperation({ summary: '[Admin] Products predicted to trend within 30 days (momentum model)' })
+  getEmerging() {
+    return this.svc.getEmergingProducts();
+  }
+
+  @Get('admin/market-trends')
+  @ApiOperation({ summary: '[Admin] Market-wide category trend radar (cached)' })
+  getMarketTrends() {
+    return this.svc.getMarketTrends();
+  }
+
+  @Post('admin/market-trends/generate')
+  @ApiOperation({ summary: '[Admin] Generate fresh AI market-wide category trends' })
+  generateMarketTrends() {
+    return this.svc.generateMarketTrends();
+  }
+
   @Get('admin/festivals')
   @ApiOperation({ summary: '[Admin] Upcoming festivals & seasons' })
   getFestivals() {
