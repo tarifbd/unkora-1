@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { DollarSign, Clock, CheckCircle, XCircle, Download, Filter } from 'lucide-react';
 
-const PAYOUTS = [
+type PayoutStatus = 'paid' | 'processing' | 'pending' | 'failed';
+
+const PAYOUTS: { id: string; seller: string; method: string; amount: number; period: string; status: PayoutStatus; date: string | null }[] = [
   { id: 'PO-4891', seller: 'TechZone BD', method: 'bKash', amount: 18_450, period: 'Jun 1–15, 2026', status: 'paid', date: '2026-06-16' },
   { id: 'PO-4892', seller: 'Fashion World', method: 'Nagad', amount: 12_200, period: 'Jun 1–15, 2026', status: 'paid', date: '2026-06-16' },
   { id: 'PO-4893', seller: 'Grocery Hub', method: 'Bank Transfer', amount: 8_750, period: 'Jun 1–15, 2026', status: 'processing', date: '2026-06-17' },
@@ -14,7 +16,7 @@ const PAYOUTS = [
   { id: 'PO-4898', seller: 'Sports Arena', method: 'Nagad', amount: 5_280, period: 'Jun 1–15, 2026', status: 'processing', date: '2026-06-17' },
 ];
 
-const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
+const STATUS_META: Record<PayoutStatus, { label: string; color: string; bg: string; icon: React.ElementType }> = {
   paid:       { label: 'Paid',       color: 'text-green-700', bg: 'bg-green-100',  icon: CheckCircle },
   processing: { label: 'Processing', color: 'text-blue-700',  bg: 'bg-blue-100',   icon: Clock },
   pending:    { label: 'Pending',    color: 'text-yellow-700',bg: 'bg-yellow-100', icon: Clock },

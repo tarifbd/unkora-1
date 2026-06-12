@@ -111,7 +111,7 @@ export default function LiveTrafficPage() {
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                       <div
                         className="h-full rounded-full bg-primary/70 transition-all"
-                        style={{ width: `${(p.views / PAGES[0].views) * 100}%` }}
+                        style={{ width: `${(p.views / (PAGES[0]?.views ?? 1)) * 100}%` }}
                       />
                     </div>
                   </div>

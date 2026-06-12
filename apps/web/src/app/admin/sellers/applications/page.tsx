@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { CheckCircle, XCircle, Clock, Store, Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
 
-const APPS = [
+type AppStatus = 'pending' | 'review' | 'approved' | 'rejected';
+
+const APPS: { id: string; name: string; owner: string; email: string; phone: string; city: string; category: string; status: AppStatus; applied: string; docs: boolean }[] = [
   { id: 'SA001', name: 'Rofiqul Electronics', owner: 'Rofiqul Islam', email: 'rofiq@electronics.bd', phone: '01711-223344', city: 'Dhaka', category: 'Electronics', status: 'pending', applied: '2026-06-10', docs: true },
   { id: 'SA002', name: 'Tasmin Fashion House', owner: 'Tasmin Akter', email: 'tasmin@fashion.bd', phone: '01912-334455', city: 'Chittagong', category: 'Fashion', status: 'pending', applied: '2026-06-09', docs: true },
   { id: 'SA003', name: 'Rahman Grocery', owner: 'Abdur Rahman', email: 'rahman@grocery.bd', phone: '01815-445566', city: 'Sylhet', category: 'Grocery', status: 'review', applied: '2026-06-08', docs: false },
@@ -13,7 +15,7 @@ const APPS = [
   { id: 'SA007', name: 'Arif Home Decor', owner: 'Arif Hossain', email: 'arif@decor.bd', phone: '01700-889900', city: 'Comilla', category: 'Home', status: 'review', applied: '2026-06-07', docs: true },
 ];
 
-const STATUS_META: Record<string, { label: string; color: string; bg: string; icon: React.ElementType }> = {
+const STATUS_META: Record<AppStatus, { label: string; color: string; bg: string; icon: React.ElementType }> = {
   pending:  { label: 'Pending',  color: 'text-yellow-700', bg: 'bg-yellow-100', icon: Clock },
   review:   { label: 'In Review',color: 'text-blue-700',   bg: 'bg-blue-100',   icon: Clock },
   approved: { label: 'Approved', color: 'text-green-700',  bg: 'bg-green-100',  icon: CheckCircle },

@@ -29,8 +29,8 @@ const EXIT_PAGES = [
 
 export default function ConversionPage() {
   const [period, setPeriod] = useState('Last 30 days');
-  const maxCount = FUNNEL_STEPS[0].count;
-  const overallRate = ((FUNNEL_STEPS[4].count / FUNNEL_STEPS[0].count) * 100).toFixed(2);
+  const maxCount = FUNNEL_STEPS[0]?.count ?? 1;
+  const overallRate = (((FUNNEL_STEPS[4]?.count ?? 0) / maxCount) * 100).toFixed(2);
 
   return (
     <div className="space-y-5">
@@ -109,7 +109,7 @@ export default function ConversionPage() {
                   </div>
                   {i < FUNNEL_STEPS.length - 1 && (
                     <div className="mt-1 ml-7 text-xs text-muted-foreground">
-                      {FUNNEL_STEPS[i + 1].count.toLocaleString()} of {step.count.toLocaleString()} continued →
+                      {(FUNNEL_STEPS[i + 1]?.count ?? 0).toLocaleString()} of {step.count.toLocaleString()} continued →
                     </div>
                   )}
                 </div>

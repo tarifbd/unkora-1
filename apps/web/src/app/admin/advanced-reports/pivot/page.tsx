@@ -112,7 +112,7 @@ export default function PivotReportPage() {
     setRows(p.rows);
     setMetrics(p.metrics);
     setCol(p.col ?? '');
-    setSortBy(p.metrics[0]);
+    setSortBy(p.metrics[0] ?? 'revenue');
     setSortDir('desc');
   };
 
