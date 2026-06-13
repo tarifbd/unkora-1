@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   MousePointerClick, ShieldAlert, ShieldX,
   ScanBarcode, ScanSearch, Printer,
@@ -30,6 +31,7 @@ interface Feature {
   stats: { label: string; value: string }[];
   benefits: string[];
   cta: string;
+  href?: string;
 }
 
 const FEATURES: Feature[] = [
@@ -66,11 +68,12 @@ const FEATURES: Feature[] = [
     ],
     benefits: [
       'AI-চালিত রিস্ক স্কোরিং',
-      'ফোন নম্বর যাচাইকরণ',
-      'ডিভাইস ফিঙ্গারপ্রিন্টিং',
-      'ব্ল্যাকলিস্ট ডেটাবেজ চেক',
+      'OTP ফোন ভেরিফিকেশন',
+      'IP ট্র্যাকিং ও VPN/প্রক্সি ডিটেকশন',
+      'ডিভাইস ফিঙ্গারপ্রিন্ট + ব্ল্যাকলিস্ট চেক',
     ],
     cta: 'ডিটেক্টর চালু করুন',
+    href: '/seller/fraud-detection',
   },
   {
     id: 'fraud-blocker',
@@ -87,9 +90,10 @@ const FEATURES: Feature[] = [
       'অটো-ব্লক রুলস ইঞ্জিন',
       'এরিয়া / পিন-কোড ফিল্টার',
       'রিপিট ফেইক নম্বর ব্লকলিস্ট',
-      'ম্যানুয়াল রিভিউ কিউ',
+      'বাল্ক একশনসহ ম্যানুয়াল রিভিউ কিউ',
     ],
     cta: 'ব্লকার সেটআপ করুন',
+    href: '/seller/fraud-detection',
   },
   {
     id: 'duplicate-finder',
@@ -301,9 +305,15 @@ function DetailPanel({ feature }: { feature: Feature }) {
               </li>
             ))}
           </ul>
-          <button className="mt-5 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-400 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-sm shadow-amber-200">
-            {feature.cta} <ArrowRight className="w-4 h-4" />
-          </button>
+          {feature.href ? (
+            <Link href={feature.href} className="mt-5 inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-400 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-sm shadow-amber-200">
+              {feature.cta} <ArrowRight className="w-4 h-4" />
+            </Link>
+          ) : (
+            <button className="mt-5 flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-400 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:opacity-90 transition-opacity shadow-sm shadow-amber-200">
+              {feature.cta} <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Right: stats */}
