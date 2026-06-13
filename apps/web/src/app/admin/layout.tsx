@@ -1016,6 +1016,14 @@ function QuickNavBar() {
   );
 }
 
+/* ─── Mobile bottom-nav quick tabs ───────────────────────────── */
+const ADMIN_MOBILE_TABS: { href: string; icon: React.ElementType; label: string; exact?: boolean }[] = [
+  { href: '/admin',             icon: LayoutDashboard, label: 'হোম', exact: true },
+  { href: '/admin/orders',      icon: ShoppingBag,     label: 'অর্ডার' },
+  { href: '/admin/products',    icon: Package,         label: 'পণ্য' },
+  { href: '/admin/fulfillment', icon: Warehouse,       label: 'ফুলফিল' },
+];
+
 /* ─── Layout ─────────────────────────────────────────────────── */
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -1147,8 +1155,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </header>
 
         <QuickNavBar />
-        <main className="flex-1 p-3 sm:p-6">{children}</main>
+        <main className="flex-1 p-3 pb-24 sm:p-6 lg:pb-6">{children}</main>
       </div>
+
+      {/* Premium mobile bottom nav (admin) */}
+      <nav
+        className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t border-white/10 bg-[#0d1535]/95 backdrop-blur-xl shadow-[0_-8px_30px_-12px_rgba(0,0,0,0.5)]"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div className="flex items-stretch justify-around px-1.5 pt-1.5 pb-1">
+          {ADMIN_MOBILE_TABS.map(tab => {
+            const active = isActive(tab.href, pathname, tab.exact);
+            const Icon = tab.icon;
+            return (
+              <Link key={tab.href} href={tab.href} className="group relative flex flex-1 flex-col items-center gap-1 py-1 min-w-0">
+                <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 h-9 ${active ? 'w-12 bg-indigo-500/20' : 'w-11'}`}>
+                  <Icon className={`w-[22px] h-[22px] transition-all duration-200 ${active ? 'text-indigo-300 scale-105' : 'text-white/45 group-active:scale-90'}`} />
+                </span>
+                <span className={`text-[10px] font-bold leading-none truncate max-w-full ${active ? 'text-indigo-300' : 'text-white/55'}`}>{tab.label}</span>
+              </Link>
+            );
+          })}
+          <button onClick={() => setSidebarOpen(true)} className="group relative flex flex-1 flex-col items-center gap-1 py-1 min-w-0">
+            <span className="relative flex items-center justify-center rounded-2xl transition-all duration-200 h-9 w-11">
+              <Menu className="w-[22px] h-[22px] text-white/45 group-active:scale-90" />
+            </span>
+            <span className="text-[10px] font-bold leading-none text-white/55">মেনু</span>
+          </button>
+        </div>
+      </nav>
 
       {/* AI Assistant — floating chat widget */}
       <AiAssistant />

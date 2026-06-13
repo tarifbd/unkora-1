@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { MobileTabBar, type TabGroup } from '@/components/layout/mobile-tab-bar';
 
 type NavLeaf = { href: string; icon: React.ElementType; label: string; en: string; badge?: string };
 type NavGroup = { group: string; items: NavLeaf[] };
@@ -69,8 +70,19 @@ const NAV: NavGroup[] = [
   },
 ];
 
-const FLAT_NAV = NAV.flatMap(g => g.items);
 const PUBLIC_PATHS = ['/seller/login', '/seller/register', '/seller/apply'];
+
+/* Premium mobile bottom nav config */
+const MOBILE_PRIMARY = [
+  { href: '/seller/dashboard', icon: LayoutDashboard, label: 'হোম' },
+  { href: '/seller/orders',    icon: ShoppingBag,     label: 'অর্ডার' },
+  { href: '/seller/products',  icon: BookOpen,        label: 'পণ্য' },
+  { href: '/seller/earnings',  icon: TrendingUp,      label: 'আয়' },
+];
+const MOBILE_GROUPS: TabGroup[] = NAV.map(g => ({
+  group: g.group,
+  items: g.items.map(i => ({ href: i.href, icon: i.icon, label: i.label, sublabel: i.en, badge: i.badge })),
+}));
 
 export default function SellerLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuthStore();
@@ -214,28 +226,34 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
           </div>
         </aside>
 
-        {/* Mobile bottom tab nav */}
-        <div className="md:hidden w-full mb-1 fixed bottom-0 left-0 right-0 z-30 px-2 pb-2">
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-gray-200 p-1 flex overflow-x-auto gap-0.5 shadow-lg [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {FLAT_NAV.slice(0, 8).map(item => {
-              const active = pathname.startsWith(item.href);
-              return (
-                <Link key={item.href} href={item.href}
-                  className={cn(
-                    'flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-[9px] font-bold flex-shrink-0 transition-all',
-                    active ? 'bg-primary text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
-                  )}>
-                  <item.icon className="w-3.5 h-3.5" />
-                  <span className="whitespace-nowrap">{item.en.split(' ')[0]}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-
         {/* Main content */}
-        <main className="flex-1 min-w-0 pb-20 md:pb-0">{children}</main>
+        <main className="flex-1 min-w-0 pb-24 md:pb-0">{children}</main>
       </div>
+
+      {/* Premium mobile bottom nav */}
+      <MobileTabBar
+        primary={MOBILE_PRIMARY}
+        groups={MOBILE_GROUPS}
+        sheetTitle="সেলার মেনু"
+        footer={
+          <div className="space-y-1 pt-1 border-t border-gray-100 mt-1">
+            <Link href="/seller/products/new"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm font-bold text-primary hover:bg-primary/5 transition-colors">
+              <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10 text-primary flex-shrink-0">
+                <Plus className="w-[18px] h-[18px]" />
+              </span>
+              নতুন পণ্য যোগ করুন
+            </Link>
+            <button onClick={() => router.push('/')}
+              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 transition-colors">
+              <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-red-50 text-red-500 flex-shrink-0">
+                <LogOut className="w-[18px] h-[18px]" />
+              </span>
+              সাইন আউট
+            </button>
+          </div>
+        }
+      />
     </div>
   );
 }
