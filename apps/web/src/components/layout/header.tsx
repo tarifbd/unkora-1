@@ -906,31 +906,32 @@ export function Header() {
           </div>
         </div>
 
-        {/* ── Mobile utility strip (location / track order / support) ── */}
+        {/* ── Mobile utility strip (phone left / track + support right) ── */}
         <div className="md:hidden bg-[#f8f4ef] border-b border-gray-100 px-4 py-1.5">
           <div className="flex items-center justify-between text-[11px] text-gray-600 font-medium">
-            <Link href={isAuthenticated ? '/account/addresses' : '/login'} className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
-              <span className="text-primary font-bold">ঢাকা</span>
-              <span className="text-gray-400 ml-0.5">এ ডেলিভারি</span>
-            </Link>
+            {/* Left: phone number */}
+            {supportPhone ? (
+              <a href={`tel:+${supportPhone}`} className="flex items-center gap-1 text-primary font-bold">
+                <Phone className="w-3 h-3 flex-shrink-0" />
+                <span>+{supportPhone}</span>
+              </a>
+            ) : (
+              <a href="tel:+8801700000000" className="flex items-center gap-1 text-primary font-bold">
+                <Phone className="w-3 h-3 flex-shrink-0" />
+                <span>+880 1700-000000</span>
+              </a>
+            )}
+            {/* Right: track order + support */}
             <div className="flex items-center gap-3">
               <Link href="/track-order" className="flex items-center gap-1 hover:text-primary transition-colors">
                 <Package className="w-3 h-3" />
                 <span>ট্র্যাক অর্ডার</span>
               </Link>
               <div className="w-px h-3 bg-gray-300" />
-              {supportPhone ? (
-                <a href={`tel:+${supportPhone}`} className="flex items-center gap-1 hover:text-primary transition-colors">
-                  <Phone className="w-3 h-3" />
-                  <span className="font-semibold text-primary">+{supportPhone}</span>
-                </a>
-              ) : (
-                <Link href="/support" className="flex items-center gap-1 hover:text-primary transition-colors">
-                  <Phone className="w-3 h-3" />
-                  <span>সাপোর্ট</span>
-                </Link>
-              )}
+              <Link href="/support" className="flex items-center gap-1 hover:text-primary transition-colors">
+                <HelpCircle className="w-3 h-3" />
+                <span>সাপোর্ট</span>
+              </Link>
             </div>
           </div>
         </div>
