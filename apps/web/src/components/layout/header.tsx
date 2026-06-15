@@ -898,6 +898,28 @@ export function Header() {
           </div>
         </div>
 
+        {/* ── Mobile utility strip (location / track order / support) ── */}
+        <div className="md:hidden bg-[#f8f4ef] border-b border-gray-100 px-4 py-1.5">
+          <div className="flex items-center justify-between text-[11px] text-gray-600 font-medium">
+            <Link href={isAuthenticated ? '/account/addresses' : '/login'} className="flex items-center gap-1">
+              <MapPin className="w-3 h-3 text-primary flex-shrink-0" />
+              <span className="text-primary font-bold">ঢাকা</span>
+              <span className="text-gray-400 ml-0.5">এ ডেলিভারি</span>
+            </Link>
+            <div className="flex items-center gap-3">
+              <Link href="/track-order" className="flex items-center gap-1 hover:text-primary transition-colors">
+                <Package className="w-3 h-3" />
+                <span>ট্র্যাক অর্ডার</span>
+              </Link>
+              <div className="w-px h-3 bg-gray-300" />
+              <Link href="/support" className="flex items-center gap-1 hover:text-primary transition-colors">
+                <Phone className="w-3 h-3" />
+                <span>সাপোর্ট</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+
         {/* ── Tier 2: Main bar ── */}
         <div className="max-w-[1400px] mx-auto px-4 py-3 md:py-4 relative z-50 bg-white">
           <div className="flex items-center justify-between gap-4 md:gap-6 lg:gap-8">
