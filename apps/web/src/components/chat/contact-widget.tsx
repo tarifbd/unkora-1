@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Send, Sparkles, X } from 'lucide-react';
+import { Send, Sparkles, X, Phone } from 'lucide-react';
 import api from '@/lib/api';
 
 interface ChatMsg {
@@ -128,6 +128,15 @@ export function ContactWidget() {
           >
             <Sparkles className="h-6 w-6" />
           </button>
+        )}
+        {whatsapp && (
+          <a
+            href={`tel:+${whatsapp}`}
+            aria-label="Call us directly"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg transition-transform hover:scale-110"
+          >
+            <Phone className="h-6 w-6" />
+          </a>
         )}
       </div>
 
