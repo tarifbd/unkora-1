@@ -101,6 +101,48 @@ export function ShopBottomNav() {
     }
   };
 
+  /* Build the speed-dial actions from whatever is configured */
+  const dialActions: Array<{
+    key: string;
+    bg: string;
+    icon: React.ReactNode;
+    onClick?: () => void;
+    href?: string;
+    external?: boolean;
+  }> = [];
+
+  if (whatsapp) {
+    dialActions.push({
+      key: 'whatsapp', bg: 'bg-[#25D366]', icon: <WhatsAppIcon />,
+      href: `https://wa.me/${whatsapp}`, external: true,
+    });
+  }
+  if (messenger) {
+    dialActions.push({
+      key: 'messenger', bg: 'bg-[#0084FF]', icon: <MessengerIcon />,
+      href: `https://m.me/${messenger}`, external: true,
+    });
+  }
+  if (botEnabled) {
+    dialActions.push({
+      key: 'ai', bg: 'bg-gradient-to-br from-orange-400 to-orange-600',
+      icon: <Sparkles className="h-6 w-6" />,
+      onClick: () => { setMenuOpen(false); setChatOpen(true); },
+    });
+  }
+  if (whatsapp) {
+    dialActions.push({
+      key: 'call', bg: 'bg-emerald-500', icon: <Phone className="h-6 w-6" />,
+      href: `tel:+${whatsapp}`,
+    });
+  }
+  if (dialActions.length === 0) {
+    dialActions.push({
+      key: 'support', bg: 'bg-primary', icon: <Phone className="h-6 w-6" />,
+      href: '/support',
+    });
+  }
+
   return (
     <>
       {/* ── AI Chat popup (mobile) ── */}
@@ -169,116 +211,46 @@ export function ShopBottomNav() {
         </div>
       )}
 
-      {/* ── Contact menu overlay ── */}
+      {/* ── Speed-dial: only the circular icons fan out above the Message tab ── */}
       {menuOpen && (
         <>
-          {/* backdrop */}
+          {/* tap-anywhere backdrop */}
           <div
-            className="md:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px]"
+            className="md:hidden fixed inset-0 z-40"
             onClick={() => setMenuOpen(false)}
           />
-          {/* card */}
           <div
-            className="md:hidden fixed left-3 right-3 z-50 rounded-2xl bg-white shadow-2xl border overflow-hidden"
-            style={{ bottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}
+            className="md:hidden fixed right-4 z-50 flex flex-col items-center gap-3"
+            style={{ bottom: 'calc(4.75rem + env(safe-area-inset-bottom))' }}
           >
-            <div className="px-4 py-3 border-b bg-gray-50 flex items-center justify-between">
-              <span className="text-sm font-bold text-gray-800">আমাদের সাথে কথা বলুন</span>
-              <button type="button" onClick={() => setMenuOpen(false)} className="p-1 rounded-full hover:bg-gray-200">
-                <X className="h-4 w-4 text-gray-500" />
-              </button>
-            </div>
-
-            <div className="p-2 grid grid-cols-2 gap-1">
-              {/* WhatsApp */}
-              {whatsapp && (
-                <a
-                  href={`https://wa.me/${whatsapp}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-green-50 transition-colors"
-                >
-                  <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-sm">
-                    <WhatsAppIcon />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">WhatsApp</p>
-                    <p className="text-[11px] text-gray-500 truncate">+{whatsapp}</p>
-                  </div>
-                </a>
-              )}
-
-              {/* Messenger */}
-              {messenger && (
-                <a
-                  href={`https://m.me/${messenger}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-blue-50 transition-colors"
-                >
-                  <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#0084FF] text-white shadow-sm">
-                    <MessengerIcon />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">Messenger</p>
-                    <p className="text-[11px] text-gray-500 truncate">@{messenger}</p>
-                  </div>
-                </a>
-              )}
-
-              {/* Unkora AI */}
-              {botEnabled && (
-                <button
-                  type="button"
-                  onClick={() => { setMenuOpen(false); setChatOpen(true); }}
-                  className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-orange-50 transition-colors text-left"
-                >
-                  <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-sm">
-                    <Sparkles className="h-6 w-6" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">Unkora AI</p>
-                    <p className="text-[11px] text-gray-500">AI চ্যাট</p>
-                  </div>
+            {dialActions.map((a, i) => {
+              const cls = cn(
+                'flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg',
+                'animate-in fade-in zoom-in slide-in-from-bottom-2 duration-200',
+                a.bg,
+              );
+              const style = { animationDelay: `${i * 45}ms`, animationFillMode: 'backwards' as const };
+              if (a.href) {
+                return (
+                  <a
+                    key={a.key}
+                    href={a.href}
+                    target={a.external ? '_blank' : undefined}
+                    rel={a.external ? 'noopener noreferrer' : undefined}
+                    onClick={() => setMenuOpen(false)}
+                    className={cls}
+                    style={style}
+                  >
+                    {a.icon}
+                  </a>
+                );
+              }
+              return (
+                <button key={a.key} type="button" onClick={a.onClick} className={cls} style={style}>
+                  {a.icon}
                 </button>
-              )}
-
-              {/* Direct call */}
-              {whatsapp && (
-                <a
-                  href={`tel:+${whatsapp}`}
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-xl px-3 py-3 hover:bg-emerald-50 transition-colors"
-                >
-                  <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
-                    <Phone className="h-6 w-6" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">সরাসরি কল</p>
-                    <p className="text-[11px] text-gray-500">+{whatsapp}</p>
-                  </div>
-                </a>
-              )}
-
-              {/* Fallback when nothing configured */}
-              {!whatsapp && !messenger && !botEnabled && (
-                <Link
-                  href="/support"
-                  onClick={() => setMenuOpen(false)}
-                  className="col-span-2 flex items-center gap-3 rounded-xl px-4 py-3 hover:bg-gray-50 transition-colors"
-                >
-                  <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-sm">
-                    <Phone className="h-6 w-6" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800">সাপোর্ট</p>
-                    <p className="text-[11px] text-gray-500">সাহায্য পেতে ক্লিক করুন</p>
-                  </div>
-                </Link>
-              )}
-            </div>
+              );
+            })}
           </div>
         </>
       )}
@@ -327,25 +299,6 @@ export function ShopBottomNav() {
             <span className="text-[10px] text-gray-500 -mt-1 mb-1.5 font-medium">সার্চ</span>
           </div>
 
-          {/* Message toggle button */}
-          <button
-            type="button"
-            onClick={() => { setMenuOpen(o => !o); setChatOpen(false); }}
-            className="flex-1 flex flex-col items-center justify-end pb-2 pt-1 gap-0.5 group"
-          >
-            <span className={cn(
-              'flex items-center justify-center w-10 h-7 rounded-full transition-all duration-200',
-              menuOpen ? 'bg-primary/10 text-primary scale-110' : 'text-gray-400 group-hover:text-gray-600',
-            )}>
-              {menuOpen
-                ? <X className="w-5 h-5 stroke-[2.2px]" />
-                : <MessageCircle className="w-5 h-5" />}
-            </span>
-            <span className={cn('text-[10px] font-medium transition-colors', menuOpen ? 'text-primary' : 'text-gray-400')}>
-              মেসেজ
-            </span>
-          </button>
-
           {/* Right: Account */}
           {RIGHT_TABS.map(tab => {
             const active = isActive(tab.href);
@@ -368,6 +321,25 @@ export function ShopBottomNav() {
               </Link>
             );
           })}
+
+          {/* Last: Message toggle (speed-dial trigger) */}
+          <button
+            type="button"
+            onClick={() => { setMenuOpen(o => !o); setChatOpen(false); }}
+            className="flex-1 flex flex-col items-center justify-end pb-2 pt-1 gap-0.5 group"
+          >
+            <span className={cn(
+              'flex items-center justify-center w-10 h-7 rounded-full transition-all duration-200',
+              menuOpen ? 'bg-primary/10 text-primary scale-110' : 'text-gray-400 group-hover:text-gray-600',
+            )}>
+              {menuOpen
+                ? <X className="w-5 h-5 stroke-[2.2px]" />
+                : <MessageCircle className="w-5 h-5" />}
+            </span>
+            <span className={cn('text-[10px] font-medium transition-colors', menuOpen ? 'text-primary' : 'text-gray-400')}>
+              মেসেজ
+            </span>
+          </button>
 
         </div>
       </nav>
