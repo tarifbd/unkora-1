@@ -718,6 +718,14 @@ export function Header() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: contactConfig } = useQuery<Record<string, string>>({
+    queryKey: ['chatbot-config'],
+    queryFn: () => api.get('/chatbot/config').then(r => (r.data?.data ?? {}) as Record<string, string>),
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+  const supportPhone = contactConfig?.['contact.whatsappNumber']?.trim();
+
   const { data: barBanner } = useQuery({
     queryKey: ['announcement-bar'],
     queryFn: () => api.get('/design/banners').then(r => {
@@ -912,10 +920,17 @@ export function Header() {
                 <span>ট্র্যাক অর্ডার</span>
               </Link>
               <div className="w-px h-3 bg-gray-300" />
-              <Link href="/support" className="flex items-center gap-1 hover:text-primary transition-colors">
-                <Phone className="w-3 h-3" />
-                <span>সাপোর্ট</span>
-              </Link>
+              {supportPhone ? (
+                <a href={`tel:+${supportPhone}`} className="flex items-center gap-1 hover:text-primary transition-colors">
+                  <Phone className="w-3 h-3" />
+                  <span className="font-semibold text-primary">+{supportPhone}</span>
+                </a>
+              ) : (
+                <Link href="/support" className="flex items-center gap-1 hover:text-primary transition-colors">
+                  <Phone className="w-3 h-3" />
+                  <span>সাপোর্ট</span>
+                </Link>
+              )}
             </div>
           </div>
         </div>
