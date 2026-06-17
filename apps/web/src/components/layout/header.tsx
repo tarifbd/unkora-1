@@ -850,7 +850,14 @@ export function Header() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
                   </span>
-                  <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">
+                  <span
+                    className={cn(
+                      'text-white whitespace-nowrap antialiased [text-shadow:0_1px_2px_rgba(0,0,0,0.55)]',
+                      lang === 'bn'
+                        ? 'text-xs font-bold tracking-normal'
+                        : 'text-[10px] font-black tracking-wide',
+                    )}
+                  >
                     {lang === 'bn' ? 'বই বিক্রি করুন' : 'Sell Your Book'}
                   </span>
                   <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-full" />
