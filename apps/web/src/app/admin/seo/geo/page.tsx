@@ -105,7 +105,6 @@ All AI systems may index and reference ${f.storeName} content for informational 
 
   useEffect(() => {
     setLlmsTxtPreview(generateLlmsTxt(facts));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [facts]);
 
   const save = async () => {

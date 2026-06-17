@@ -649,7 +649,6 @@ function InvoiceTab({ settings, onSave }: { settings: Record<string, string>; on
             />
             {form['invoice_logo_url'] && (
               <div className="rounded-lg border bg-muted/30 p-2 inline-block">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={form['invoice_logo_url']}
                   alt="Invoice logo preview"

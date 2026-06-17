@@ -12,6 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import { createHmac, timingSafeEqual } from 'crypto';
 import { PaymentStatus } from '@prisma/client';
 import type { Request } from 'express';
@@ -25,6 +26,7 @@ import { StripeService } from './stripe.service';
 
 @ApiTags('payments')
 @Controller('payments')
+@SkipThrottle() // gateway callbacks/IPN/webhooks are server-to-server — never rate-limit them
 export class PaymentsController {
   constructor(
     private readonly paymentsService: PaymentsService,

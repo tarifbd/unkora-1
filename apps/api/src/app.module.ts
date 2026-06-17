@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
@@ -164,6 +165,11 @@ import { PredictionsModule } from './modules/predictions/predictions.module';
     VirtualTryOnModule,
     ChatbotModule,
     PredictionsModule,
+  ],
+  providers: [
+    // Enforce rate limiting globally across every controller.
+    // Machine-to-machine endpoints (payment callbacks, health) opt out with @SkipThrottle().
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule {}
