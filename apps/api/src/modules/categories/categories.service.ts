@@ -1,23 +1,40 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 
 import { PrismaService } from '../../database/prisma.service';
 import type { CreateCategoryDto } from './dto/create-category.dto';
 import type { UpdateCategoryDto } from './dto/update-category.dto';
 
+const ROOTS_CACHE_KEY = 'categories:roots';
+const ALL_CACHE_KEY   = 'categories:all';
+const CACHE_TTL       = 10 * 60 * 1000; // 10 minutes
+
 @Injectable()
 export class CategoriesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+  ) {}
 
   async findAll(includeInactive = false) {
-    return this.prisma.category.findMany({
+    if (!includeInactive) {
+      const cached = await this.cacheManager.get(ALL_CACHE_KEY);
+      if (cached) return cached;
+    }
+    const result = await this.prisma.category.findMany({
       where: includeInactive ? {} : { isActive: true },
       include: { parent: true, children: { where: { isActive: true } }, _count: { select: { products: true } } },
       orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     });
+    if (!includeInactive) await this.cacheManager.set(ALL_CACHE_KEY, result, CACHE_TTL);
+    return result;
   }
 
   async findRoots() {
-    return this.prisma.category.findMany({
+    const cached = await this.cacheManager.get(ROOTS_CACHE_KEY);
+    if (cached) return cached;
+    const result = await this.prisma.category.findMany({
       where: { parentId: null, isActive: true },
       include: {
         children: { where: { isActive: true }, orderBy: { sortOrder: 'asc' } },
@@ -25,6 +42,15 @@ export class CategoriesService {
       },
       orderBy: { sortOrder: 'asc' },
     });
+    await this.cacheManager.set(ROOTS_CACHE_KEY, result, CACHE_TTL);
+    return result;
+  }
+
+  private async invalidateCache() {
+    await Promise.all([
+      this.cacheManager.del(ROOTS_CACHE_KEY),
+      this.cacheManager.del(ALL_CACHE_KEY),
+    ]);
   }
 
   async findBySlug(slug: string) {
@@ -57,7 +83,9 @@ export class CategoriesService {
       await this.findById(dto.parentId);
     }
 
-    return this.prisma.category.create({ data: dto });
+    const result = await this.prisma.category.create({ data: dto });
+    await this.invalidateCache();
+    return result;
   }
 
   async update(id: string, dto: UpdateCategoryDto) {
@@ -68,13 +96,17 @@ export class CategoriesService {
       if (existing && existing.id !== id) throw new ConflictException('Slug already exists');
     }
 
-    return this.prisma.category.update({ where: { id }, data: dto });
+    const result = await this.prisma.category.update({ where: { id }, data: dto });
+    await this.invalidateCache();
+    return result;
   }
 
   async remove(id: string) {
     await this.findById(id);
     const productCount = await this.prisma.product.count({ where: { categoryId: id } });
     if (productCount > 0) throw new ConflictException(`Cannot delete — ${productCount} products use this category`);
-    return this.prisma.category.delete({ where: { id } });
+    const result = await this.prisma.category.delete({ where: { id } });
+    await this.invalidateCache();
+    return result;
   }
 }

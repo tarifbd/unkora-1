@@ -355,6 +355,7 @@ model Product {
   @@index([categoryId])
   @@index([brandId])
   @@index([isActive, isFeatured])
+  @@index([isActive, createdAt])
   @@index([source])
   @@index([sku])
   @@index([deletedAt])
@@ -510,6 +511,7 @@ model OrderItem {
   product Product @relation(fields: [productId], references: [id])
 
   @@index([orderId])
+  @@index([orderId, productId])
   @@map("order_items")
 }
 
@@ -568,6 +570,7 @@ model Review {
 
   @@unique([productId, userId])
   @@index([productId])
+  @@index([productId, isPublished])
   @@map("reviews")
 }
 
@@ -651,6 +654,7 @@ model FlashDeal {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([isActive, endsAt])
+  @@index([isActive, startsAt, endsAt])
   @@map("flash_deals")
 }
 
@@ -2326,6 +2330,7 @@ model InventoryStock {
   @@index([productId])
   @@index([warehouseId])
   @@index([status])
+  @@index([status, updatedAt])
   @@map("inventory_stocks")
 }
 
