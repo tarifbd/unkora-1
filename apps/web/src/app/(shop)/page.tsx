@@ -796,6 +796,59 @@ export default function HomePage() {
       <PromoBannerRow banners={promo4} />
 
       {/* ═══════════════════════════════════════════════════════════════
+          LEATHER PRODUCTS BANNER
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto">
+          <Link href="/categories/leather-products" className="block rounded-2xl overflow-hidden relative group cursor-pointer"
+            style={{ background: 'linear-gradient(135deg, #1c0a00 0%, #3b1a08 40%, #5c2d0e 100%)' }}>
+            <div className="absolute inset-0 opacity-10"
+              style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #b45309 0%, transparent 50%), radial-gradient(circle at 80% 20%, #d97706 0%, transparent 40%)' }} />
+            <div className="relative flex flex-col sm:flex-row items-center justify-between px-6 py-6 gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">👜</span>
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Leather Collection</span>
+                </div>
+                <h2 className="text-white font-black text-xl sm:text-2xl leading-tight mb-1">
+                  {lang === 'bn' ? 'লেদার পণ্য সংগ্রহ' : 'Leather Products'}
+                </h2>
+                <p className="text-amber-200 text-sm max-w-md">
+                  {lang === 'bn'
+                    ? 'প্রিমিয়াম চামড়ার ব্যাগ, ওয়ালেট, বেল্ট ও আরও অনেক কিছু'
+                    : 'Premium leather bags, wallets, belts and much more'}
+                </p>
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {['👜 ব্যাগ', '👛 ওয়ালেট', '🧣 বেল্ট', '🎒 ব্যাকপ্যাক', '💼 অফিস ব্যাগ'].map(tag => (
+                    <span key={tag} className="text-xs bg-white/10 text-amber-100 px-2.5 py-1 rounded-full border border-white/20">{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex-shrink-0 flex items-center gap-2 bg-white text-amber-900 font-bold px-5 py-2.5 rounded-xl group-hover:bg-amber-50 transition-colors text-sm">
+                {lang === 'bn' ? 'দেখুন' : 'Explore'}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-700/20 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          </Link>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          LEATHER PRODUCTS GRID
+      ═══════════════════════════════════════════════════════════════ */}
+      {leatherProducts.length > 0 && (
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="চামড়া পণ্য" titleEn="Leather Products" href="/products?categorySlug=leather-products" accentColor="#92400e" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {leatherProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
           BEST SELLERS — tabbed 6-column grid
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
@@ -858,60 +911,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          LEATHER PRODUCTS BANNER
-      ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-3 px-3 md:px-4">
-        <div className="max-w-[1400px] mx-auto">
-          <Link href="/categories/leather-products" className="block rounded-2xl overflow-hidden relative group cursor-pointer"
-            style={{ background: 'linear-gradient(135deg, #1c0a00 0%, #3b1a08 40%, #5c2d0e 100%)' }}>
-            <div className="absolute inset-0 opacity-10"
-              style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #b45309 0%, transparent 50%), radial-gradient(circle at 80% 20%, #d97706 0%, transparent 40%)' }} />
-            <div className="relative flex flex-col sm:flex-row items-center justify-between px-6 py-6 gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">👜</span>
-                  <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Leather Collection</span>
-                </div>
-                <h2 className="text-white font-black text-xl sm:text-2xl leading-tight mb-1">
-                  {lang === 'bn' ? 'লেদার পণ্য সংগ্রহ' : 'Leather Products'}
-                </h2>
-                <p className="text-amber-200 text-sm max-w-md">
-                  {lang === 'bn'
-                    ? 'প্রিমিয়াম চামড়ার ব্যাগ, ওয়ালেট, বেল্ট ও আরও অনেক কিছু'
-                    : 'Premium leather bags, wallets, belts and much more'}
-                </p>
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {['👜 ব্যাগ', '👛 ওয়ালেট', '🧣 বেল্ট', '🎒 ব্যাকপ্যাক', '💼 অফিস ব্যাগ'].map(tag => (
-                    <span key={tag} className="text-xs bg-white/10 text-amber-100 px-2.5 py-1 rounded-full border border-white/20">{tag}</span>
-                  ))}
-                </div>
-              </div>
-              <div className="flex-shrink-0 flex items-center gap-2 bg-white text-amber-900 font-bold px-5 py-2.5 rounded-xl group-hover:bg-amber-50 transition-colors text-sm">
-                {lang === 'bn' ? 'দেখুন' : 'Explore'}
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </div>
-            </div>
-            {/* subtle top-right decorative circle like Islamic banner */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-700/20 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          </Link>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          LEATHER PRODUCTS GRID
-      ═══════════════════════════════════════════════════════════════ */}
-      {leatherProducts.length > 0 && (
-      <section className="py-3 px-3 md:px-4">
-        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
-          <SectionHeader titleBn="চামড়া পণ্য" titleEn="Leather Products" href="/products?categorySlug=leather-products" accentColor="#92400e" lang={lang} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {leatherProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
-          </div>
-        </div>
-      </section>
-      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           HANDICRAFTS
