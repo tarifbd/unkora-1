@@ -66,7 +66,6 @@ export function ProductQA({ productId }: { productId: string; lang?: string }) {
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
 
   const toggleAnswers = (id: string) => {

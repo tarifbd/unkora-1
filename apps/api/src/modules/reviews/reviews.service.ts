@@ -41,22 +41,38 @@ export class ReviewsService {
     });
   }
 
-  async findByProduct(productId: string) {
-    const reviews = await this.prisma.review.findMany({
-      where: { productId, isPublished: true },
-      include: {
-        user: { select: { firstName: true, lastName: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  async findByProduct(productId: string, page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
 
-    const totalCount = reviews.length;
-    const averageRating =
-      totalCount > 0
-        ? Math.round((reviews.reduce((sum, r) => sum + r.rating, 0) / totalCount) * 10) / 10
-        : 0;
+    // Run paginated review fetch + aggregate in parallel — avoids full table scan
+    const [reviews, agg] = await Promise.all([
+      this.prisma.review.findMany({
+        where: { productId, isPublished: true },
+        include: { user: { select: { firstName: true, lastName: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip,
+      }),
+      this.prisma.review.aggregate({
+        where: { productId, isPublished: true },
+        _avg: { rating: true },
+        _count: { id: true },
+      }),
+    ]);
 
-    return { reviews, averageRating, totalCount };
+    const totalCount = agg._count.id;
+    const averageRating = agg._avg.rating
+      ? Math.round(agg._avg.rating * 10) / 10
+      : 0;
+
+    return {
+      reviews,
+      averageRating,
+      totalCount,
+      page,
+      limit,
+      totalPages: Math.ceil(totalCount / limit),
+    };
   }
 
   async findMyReview(userId: string, productId: string) {

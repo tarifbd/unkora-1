@@ -183,7 +183,7 @@ function SectionHeader({ titleBn, titleEn, href, accentColor = '#f97316', lang }
   );
 }
 
-/* ── Product card — matches screenshot design ── */
+/* ── Product card — mobile-first ── */
 function MiniCard({ product, lang }: { product: Product; lang: string }) {
   const { addItem } = useCart();
   const img = product.images?.[0]?.url;
@@ -194,23 +194,23 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
   const inStock = product.stockQuantity > 0;
 
   return (
-    <div className="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
+    <div className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl hover:-translate-y-0.5 sm:hover:-translate-y-1 transition-all duration-300 flex flex-col">
       {/* Image */}
-      <Link href={`/products/${product.slug}`} className="relative h-44 bg-gray-50 overflow-hidden flex-shrink-0 block">
+      <Link href={`/products/${product.slug}`} className="relative h-36 sm:h-44 bg-gray-50 overflow-hidden flex-shrink-0 block">
         {img ? (
           <Image src={img} alt={product.name} fill
             className="object-cover group-hover:scale-110 transition-transform duration-500"
             sizes="(max-width:640px) 50vw, (max-width:1024px) 25vw, 180px"
             unoptimized={img.includes('unsplash')} />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-4xl">📦</div>
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-3xl sm:text-4xl">📦</div>
         )}
         {hasDiscount && (
-          <span className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">-{discountPct}%</span>
+          <span className="absolute top-1.5 left-1.5 bg-orange-500 text-white text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full shadow">-{discountPct}%</span>
         )}
         {!inStock && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-            <span className="bg-gray-800 text-white text-[10px] font-bold px-3 py-1 rounded-full">
+            <span className="bg-gray-800 text-white text-[10px] font-bold px-2.5 sm:px-3 py-1 rounded-full">
               {lang === 'bn' ? 'স্টক নেই' : 'Out of Stock'}
             </span>
           </div>
@@ -218,53 +218,53 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
       </Link>
 
       {/* Info */}
-      <div className="p-3 flex flex-col flex-1">
+      <div className="p-2 sm:p-3 flex flex-col flex-1">
         {product.category?.name && (
-          <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-1 truncate">
+          <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-0.5 truncate">
             {product.category.name}
           </p>
         )}
         <Link href={`/products/${product.slug}`} className="flex-1">
-          <p className="text-xs font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+          <p className="text-[11px] sm:text-xs font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
             {product.name}
           </p>
           {product.bookDetail?.author && (
-            <p className="text-[10px] text-gray-400 truncate mt-0.5">{product.bookDetail.author}</p>
+            <p className="text-[9px] sm:text-[10px] text-gray-400 truncate mt-0.5">{product.bookDetail.author}</p>
           )}
         </Link>
 
-        <div className="flex items-baseline gap-1.5 mt-2 mb-2.5">
-          <span className="text-sm font-black text-gray-900">৳{salePrice.toLocaleString('en-BD')}</span>
-          {hasDiscount && <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
+        <div className="flex items-baseline gap-1 sm:gap-1.5 mt-1.5 sm:mt-2 mb-2">
+          <span className="text-[13px] sm:text-sm font-black text-gray-900">৳{salePrice.toLocaleString('en-BD')}</span>
+          {hasDiscount && <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
         </div>
 
         {/* ADD TO CART + Wishlist */}
-        <div className="flex gap-2 mb-2">
+        <div className="flex gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
             disabled={!inStock}
-            className={`relative flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-[11px] font-black transition-all overflow-hidden ${inStock ? 'bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+            className={`relative flex-1 flex items-center justify-center gap-1 sm:gap-1.5 h-8 sm:h-9 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-black transition-all overflow-hidden ${inStock ? 'bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-md sm:shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
           >
-            <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-            <span className="hidden sm:inline">{lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}</span>
+            <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+            <span className="hidden sm:inline">{lang === 'bn' ? 'কার্টে যোগ' : 'ADD TO CART'}</span>
             <span className="sm:hidden">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
           </button>
           <WishlistButton
             productId={product.id}
-            className="w-9 h-9 flex-shrink-0 rounded-xl border border-gray-200 bg-white hover:bg-red-50 shadow-sm"
+            className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 rounded-lg sm:rounded-xl border border-gray-200 bg-white hover:bg-red-50 shadow-sm"
           />
         </div>
 
         {/* BUY NOW */}
         {inStock ? (
           <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
-            className="flex items-center justify-center gap-1.5 h-9 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl text-[11px] font-black shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20">
-            <Zap className="w-3.5 h-3.5 flex-shrink-0" />
+            className="flex items-center justify-center gap-1 sm:gap-1.5 h-8 sm:h-9 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-black shadow-md sm:shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20">
+            <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
             <span className="hidden sm:inline">{lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}</span>
             <span className="sm:hidden">{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
           </Link>
         ) : (
-          <div className="h-9 flex items-center justify-center rounded-xl bg-gray-100 text-gray-400 text-[11px] font-black">
+          <div className="h-8 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 text-gray-400 text-[10px] sm:text-[11px] font-black">
             {lang === 'bn' ? 'স্টক নেই' : 'OUT OF STOCK'}
           </div>
         )}
@@ -276,8 +276,8 @@ function MiniCard({ product, lang }: { product: Product; lang: string }) {
 /* ── Skeleton card ── */
 function SkeletonCard() {
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden animate-pulse flex flex-col">
-      <div className="h-44 bg-gray-200 flex-shrink-0" />
+    <div className="bg-white border border-gray-100 rounded-xl sm:rounded-2xl overflow-hidden animate-pulse flex flex-col">
+      <div className="h-36 sm:h-44 bg-gray-200 flex-shrink-0" />
       <div className="p-3 flex flex-col gap-2 flex-1">
         <div className="h-2 bg-gray-200 rounded w-1/3" />
         <div className="h-3 bg-gray-200 rounded w-full" />
@@ -305,8 +305,8 @@ function FlashCard({ product, lang }: { product: Product; lang: string }) {
   const inStock = product.stockQuantity > 0;
   if (imgErr || !img) return null;
   return (
-    <div className="flex-shrink-0 w-[175px] group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
-      <Link href={`/products/${product.slug}`} className="relative h-[170px] bg-gray-50 overflow-hidden flex-shrink-0 block">
+    <div className="flex-shrink-0 w-[150px] sm:w-[175px] group bg-white border border-gray-100 rounded-xl sm:rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
+      <Link href={`/products/${product.slug}`} className="relative h-[145px] sm:h-[170px] bg-gray-50 overflow-hidden flex-shrink-0 block">
         <Image src={img} alt={product.name} fill
           className="object-cover group-hover:scale-110 transition-transform duration-500"
           unoptimized={img.includes('unsplash') || img.includes('picsum')}
@@ -399,8 +399,8 @@ function FeaturedItem({ p, lang }: { product?: never; p: Product; lang: string }
   const discountPct = hasDiscount ? Math.round((1 - Number(p.salePrice) / Number(p.basePrice)) * 100) : 0;
   return (
     <Link href={`/products/${p.slug}`}
-      className="flex-shrink-0 w-[115px] group flex flex-col">
-      <div className="relative w-full h-[150px] rounded-xl overflow-hidden bg-gray-100 mb-1.5 flex-shrink-0">
+      className="flex-shrink-0 w-[100px] sm:w-[115px] group flex flex-col">
+      <div className="relative w-full h-[130px] sm:h-[150px] rounded-xl overflow-hidden bg-gray-100 mb-1.5 flex-shrink-0">
         <Image src={url} alt={p.name} fill
           className="object-cover group-hover:scale-105 transition-transform duration-400"
           sizes="115px" unoptimized={url.includes('unsplash')}
@@ -485,7 +485,7 @@ export default function HomePage() {
   const apiDown = newArrivalsError && bestError && flashError && featuredError && shelfError;
 
   return (
-    <div style={{ backgroundColor: '#f5f5f5' }}>
+    <div style={{ backgroundColor: '#f5f5f5' }} className="pb-20 lg:pb-0">
       {/* API unreachable banner */}
       {apiDown && (
         <div className="w-full bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-center gap-2 text-sm text-amber-800">
@@ -507,8 +507,8 @@ export default function HomePage() {
           FEATURED PRODUCTS — below hero slider
       ═══════════════════════════════════════════════════════════════ */}
       <section className="w-full bg-gray-100 pb-1 px-3 md:px-4">
-        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
             <div className="flex items-center gap-2">
               <div className="w-1 h-5 bg-blue-600 rounded-full" />
               <h3 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'ফিচার্ড পণ্য' : 'Featured Products'}</h3>
@@ -535,8 +535,8 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════════════
           CATEGORIES STRIP — auto-updates from API
       ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-4 px-3 md:px-4">
-        <div className="max-w-[1400px] mx-auto bg-white rounded-2xl px-5 py-5 shadow-sm">
+      <section className="py-2.5 sm:py-4 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl sm:rounded-2xl px-3 sm:px-5 py-3 sm:py-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="font-black text-gray-900 text-base leading-tight">{lang === 'bn' ? 'বিভাগ অনুযায়ী কেনাকাটা করুন' : 'Shop by Category'}</h2>
@@ -546,7 +546,7 @@ export default function HomePage() {
               {lang === 'bn' ? 'সব দেখুন' : 'View All'} <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          <div className="flex gap-3 sm:gap-5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-2 sm:gap-5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
             {(allCategories.length > 0
               ? allCategories.slice(0, 12) as (Category & { children?: Category[] })[]
               : [
@@ -569,7 +569,7 @@ export default function HomePage() {
                   {/* Icon bubble */}
                   <div className="relative">
                     <div
-                      className="w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1"
+                      className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1"
                       style={{
                         background: `linear-gradient(135deg, ${meta.from}, ${meta.to})`,
                         boxShadow: `0 8px 24px ${meta.shadow}, 0 2px 8px ${meta.shadow}`,
@@ -578,20 +578,20 @@ export default function HomePage() {
                       {cat.imageUrl ? (
                         <Image src={cat.imageUrl} alt={cat.name} width={80} height={80} className="object-cover w-full h-full" unoptimized />
                       ) : (
-                        <span className="text-3xl sm:text-4xl drop-shadow-sm select-none" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.25))' }}>
+                        <span className="text-2xl sm:text-4xl drop-shadow-sm select-none" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.25))' }}>
                           {CAT_EMOJI[cat.slug] ?? CAT_EMOJI.default}
                         </span>
                       )}
                     </div>
                     {/* Glow ring on hover */}
                     <div
-                      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                      className="absolute inset-0 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                       style={{ boxShadow: `0 0 0 3px ${meta.to}55` }}
                     />
                   </div>
                   {/* Label */}
                   <span
-                    className="text-[11px] sm:text-xs font-bold text-center w-[72px] sm:w-20 leading-tight line-clamp-2 group-hover:text-gray-900 transition-colors"
+                    className="text-[10px] sm:text-xs font-bold text-center w-14 sm:w-20 leading-tight line-clamp-2 group-hover:text-gray-900 transition-colors"
                     style={{ color: '#374151' }}
                   >
                     {cat.name}
@@ -615,7 +615,7 @@ export default function HomePage() {
                   <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-1">
                     {lang === 'bn' ? '🎉 বিশেষ অফার' : '🎉 SPECIAL OFFER'}
                   </p>
-                  <h3 className="text-white font-black text-xl md:text-2xl leading-tight">
+                  <h3 className="text-white font-black text-base sm:text-xl md:text-2xl leading-tight">
                     {lang === 'bn'
                       ? (offerBanner?.title || 'প্রথম অর্ডারে ১৫% ছাড়!')
                       : (offerBanner?.subtitle || 'Get 15% off your first order!')}
@@ -650,9 +650,9 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════════════════════════
           FLASH DEALS
       ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-5 px-3 md:px-4">
-        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
-          <div className="flex flex-wrap items-center justify-between gap-y-2 mb-4">
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-3 sm:p-4">
+          <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3 sm:mb-4">
             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
               <div className="flex items-center gap-1.5 sm:gap-2 bg-red-500 text-white px-2.5 sm:px-3 py-1.5 rounded-full shadow-lg shadow-red-200 animate-pulse">
                 <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-bounce" />
@@ -680,8 +680,8 @@ export default function HomePage() {
             {flashProducts.length > 0
               ? flashProducts.map(p => <FlashCard key={p.id} product={p} lang={lang} />)
               : Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-[175px] animate-pulse">
-                  <div className="w-full h-[200px] rounded-2xl bg-gray-200 mb-2" />
+                <div key={i} className="flex-shrink-0 w-[150px] sm:w-[175px] animate-pulse">
+                  <div className="w-full h-[145px] sm:h-[200px] rounded-xl sm:rounded-2xl bg-gray-200 mb-2" />
                   <div className="h-3 bg-gray-200 rounded mb-1 mx-2" />
                   <div className="h-3 bg-gray-200 rounded w-2/3 mx-2 mb-2" />
                   <div className="h-7 bg-gray-200 rounded mx-2" />
@@ -750,7 +750,7 @@ export default function HomePage() {
                   <span className="text-2xl">🕌</span>
                   <span className="text-xs font-bold text-emerald-300 uppercase tracking-widest">Islamic Lifestyle</span>
                 </div>
-                <h2 className="text-white font-black text-xl sm:text-2xl leading-tight mb-1">
+                <h2 className="text-white font-black text-lg sm:text-2xl leading-tight mb-1">
                   {lang === 'bn' ? 'ইসলামিক লাইফস্টাইল' : 'Islamic Lifestyle'}
                 </h2>
                 <p className="text-emerald-200 text-sm max-w-md">
@@ -758,7 +758,7 @@ export default function HomePage() {
                     ? 'নামাজের সরঞ্জাম, ইসলামিক বই, আতর, তাসবিহ ও আরও অনেক কিছু'
                     : 'Prayer essentials, Islamic books, perfumes, tasbih and more'}
                 </p>
-                <div className="flex flex-wrap gap-2 mt-3">
+                <div className="hidden sm:flex flex-wrap gap-2 mt-3">
                   {['🕌 নামাজ', '📖 বই', '✨ কুরআন', '🌹 আতর', '📿 তাসবিহ'].map(tag => (
                     <span key={tag} className="text-xs bg-white/10 text-emerald-100 px-2.5 py-1 rounded-full border border-white/20">{tag}</span>
                   ))}
@@ -794,6 +794,59 @@ export default function HomePage() {
 
       {/* PROMO ROW 4 — after new arrivals */}
       <PromoBannerRow banners={promo4} />
+
+      {/* ═══════════════════════════════════════════════════════════════
+          LEATHER PRODUCTS BANNER
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto">
+          <Link href="/categories/leather-products" className="block rounded-2xl overflow-hidden relative group cursor-pointer"
+            style={{ background: 'linear-gradient(135deg, #1c0a00 0%, #3b1a08 40%, #5c2d0e 100%)' }}>
+            <div className="absolute inset-0 opacity-10"
+              style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #b45309 0%, transparent 50%), radial-gradient(circle at 80% 20%, #d97706 0%, transparent 40%)' }} />
+            <div className="relative flex flex-col sm:flex-row items-center justify-between px-6 py-6 gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">👜</span>
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Leather Collection</span>
+                </div>
+                <h2 className="text-white font-black text-lg sm:text-2xl leading-tight mb-1">
+                  {lang === 'bn' ? 'লেদার পণ্য সংগ্রহ' : 'Leather Products'}
+                </h2>
+                <p className="text-amber-200 text-sm max-w-md">
+                  {lang === 'bn'
+                    ? 'প্রিমিয়াম চামড়ার ব্যাগ, ওয়ালেট, বেল্ট ও আরও অনেক কিছু'
+                    : 'Premium leather bags, wallets, belts and much more'}
+                </p>
+                <div className="hidden sm:flex flex-wrap gap-2 mt-3">
+                  {['👜 ব্যাগ', '👛 ওয়ালেট', '🧣 বেল্ট', '🎒 ব্যাকপ্যাক', '💼 অফিস ব্যাগ'].map(tag => (
+                    <span key={tag} className="text-xs bg-white/10 text-amber-100 px-2.5 py-1 rounded-full border border-white/20">{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex-shrink-0 flex items-center gap-2 bg-white text-amber-900 font-bold px-5 py-2.5 rounded-xl group-hover:bg-amber-50 transition-colors text-sm">
+                {lang === 'bn' ? 'দেখুন' : 'Explore'}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-700/20 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          </Link>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          LEATHER PRODUCTS GRID
+      ═══════════════════════════════════════════════════════════════ */}
+      {leatherProducts.length > 0 && (
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="চামড়া পণ্য" titleEn="Leather Products" href="/products?categorySlug=leather-products" accentColor="#92400e" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {leatherProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
+          </div>
+        </div>
+      </section>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           BEST SELLERS — tabbed 6-column grid
@@ -858,60 +911,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          LEATHER PRODUCTS BANNER
-      ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-3 px-3 md:px-4">
-        <div className="max-w-[1400px] mx-auto">
-          <Link href="/categories/leather-products" className="block rounded-2xl overflow-hidden relative group cursor-pointer"
-            style={{ background: 'linear-gradient(135deg, #1c0a00 0%, #3b1a08 40%, #5c2d0e 100%)' }}>
-            <div className="absolute inset-0 opacity-10"
-              style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #b45309 0%, transparent 50%), radial-gradient(circle at 80% 20%, #d97706 0%, transparent 40%)' }} />
-            <div className="relative flex flex-col sm:flex-row items-center justify-between px-6 py-6 gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-2xl">👜</span>
-                  <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Leather Collection</span>
-                </div>
-                <h2 className="text-white font-black text-xl sm:text-2xl leading-tight mb-1">
-                  {lang === 'bn' ? 'লেদার পণ্য সংগ্রহ' : 'Leather Products'}
-                </h2>
-                <p className="text-amber-200 text-sm max-w-md">
-                  {lang === 'bn'
-                    ? 'প্রিমিয়াম চামড়ার ব্যাগ, ওয়ালেট, বেল্ট ও আরও অনেক কিছু'
-                    : 'Premium leather bags, wallets, belts and much more'}
-                </p>
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {['👜 ব্যাগ', '👛 ওয়ালেট', '🧣 বেল্ট', '🎒 ব্যাকপ্যাক', '💼 অফিস ব্যাগ'].map(tag => (
-                    <span key={tag} className="text-xs bg-white/10 text-amber-100 px-2.5 py-1 rounded-full border border-white/20">{tag}</span>
-                  ))}
-                </div>
-              </div>
-              <div className="flex-shrink-0 flex items-center gap-2 bg-white text-amber-900 font-bold px-5 py-2.5 rounded-xl group-hover:bg-amber-50 transition-colors text-sm">
-                {lang === 'bn' ? 'দেখুন' : 'Explore'}
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-              </div>
-            </div>
-            {/* subtle top-right decorative circle like Islamic banner */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-700/20 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          </Link>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          LEATHER PRODUCTS GRID
-      ═══════════════════════════════════════════════════════════════ */}
-      {leatherProducts.length > 0 && (
-      <section className="py-3 px-3 md:px-4">
-        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
-          <SectionHeader titleBn="চামড়া পণ্য" titleEn="Leather Products" href="/products?categorySlug=leather-products" accentColor="#92400e" lang={lang} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-            {leatherProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
-          </div>
-        </div>
-      </section>
-      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           HANDICRAFTS

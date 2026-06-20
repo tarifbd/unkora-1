@@ -1,14 +1,23 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { OrderStatus } from '@prisma/client';
 import * as argon2 from 'argon2';
+import type { Cache } from 'cache-manager';
 
 import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+  ) {}
 
   async getDashboardStats() {
+    const CACHE_KEY = 'admin:dashboard:stats';
+    const cached = await this.cacheManager.get(CACHE_KEY);
+    if (cached) return cached;
+
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -26,7 +35,8 @@ export class AdminService {
       recentOrders,
       topProducts,
       totalCategories,
-      orderStatusCounts,
+      // Single groupBy replaces 7 individual count() round-trips
+      orderStatusGroups,
       paymentMethodCounts,
       abandonedCarts,
     ] = await Promise.all([
@@ -42,7 +52,10 @@ export class AdminService {
       this.prisma.order.findMany({
         take: 10,
         orderBy: { createdAt: 'desc' },
-        include: { user: { select: { firstName: true, lastName: true, email: true } } },
+        select: {
+          id: true, orderNumber: true, total: true, status: true, createdAt: true,
+          user: { select: { firstName: true, lastName: true, email: true } },
+        },
       }),
       this.prisma.orderItem.groupBy({
         by: ['productId', 'productName'],
@@ -51,15 +64,8 @@ export class AdminService {
         take: 5,
       }),
       this.prisma.category.count({ where: { isActive: true } }),
-      Promise.all(
-        ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'].map(status =>
-          this.prisma.order.count({ where: { status: status as any } }).then(count => ({ status, count })),
-        ),
-      ),
-      this.prisma.order.groupBy({
-        by: ['paymentMethod'],
-        _count: { id: true },
-      }),
+      this.prisma.order.groupBy({ by: ['status'], _count: { id: true } }),
+      this.prisma.order.groupBy({ by: ['paymentMethod'], _count: { id: true } }),
       this.prisma.cart.count({
         where: {
           userId: { not: null },
@@ -70,12 +76,12 @@ export class AdminService {
     ]);
 
     const byStatus: Record<string, number> = {};
-    orderStatusCounts.forEach(({ status, count }) => { byStatus[status] = count; });
+    orderStatusGroups.forEach(({ status, _count }) => { byStatus[status] = _count.id; });
 
     const byPayment: Record<string, number> = {};
     paymentMethodCounts.forEach(r => { byPayment[r.paymentMethod] = r._count.id; });
 
-    return {
+    const result = {
       revenue: {
         total: Number(totalRevenue._sum.total ?? 0),
         thisMonth: Number(monthRevenue._sum.total ?? 0),
@@ -102,6 +108,9 @@ export class AdminService {
       recentOrders,
       topProducts,
     };
+
+    await this.cacheManager.set(CACHE_KEY, result, 60 * 1000);
+    return result;
   }
 
   async getRevenueChart(days = 30) {
