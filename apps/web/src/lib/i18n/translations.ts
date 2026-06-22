@@ -54,6 +54,11 @@ export const translations = {
       islamicLifestyle: 'ইসলামিক লাইফস্টাইল',
       healthSports: 'স্বাস্থ্য ও স্পোর্টস',
       fashionLifestyle: 'ফ্যাশন ও লাইফস্টাইল',
+      homeFurniture: 'হোম ও ফার্নিচার',
+      automotive: 'অটোমোটিভ',
+      agriculture: 'কৃষি',
+      toysGaming: 'খেলনা ও গেমিং',
+      travelBags: 'ট্রাভেল ও ব্যাগ',
     },
     booksSubnav: {
       Authors: 'লেখক',

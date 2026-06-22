@@ -7,7 +7,7 @@ import {
   Menu, X, Search, User, ShoppingCart, ChevronDown,
   MapPin, Phone, HelpCircle,
   Package, Heart, CreditCard, Settings, LogOut, Gift, Truck, CalendarClock, Store,
-  Dumbbell, Shirt,
+  Dumbbell, Shirt, Home, Car, Wheat, Gamepad2, Luggage,
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
@@ -43,6 +43,11 @@ const NAV_CATEGORIES: NavCategory[] = [
   { nameKey: 'dailyNeeds',         displayName: 'Daily Needs',         icon: ShoppingBag, slug: 'daily-needs',      subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery', 'Pet Care'] },
   { nameKey: 'healthSports',       displayName: 'Health & Sports',     icon: Dumbbell,  slug: 'health-sports',      subnav: ['Fitness Equipment', 'Sports', 'Supplements', 'Sportswear', 'Health Monitors', 'Yoga & Wellness'] },
   { nameKey: 'fashionLifestyle',   displayName: 'Fashion & Lifestyle', icon: Shirt,     slug: 'fashion-lifestyle',  subnav: ["Men's Fashion", "Women's Fashion", 'Footwear', 'Accessories', 'Beauty & Grooming', 'Kids Fashion'] },
+  { nameKey: 'homeFurniture',  displayName: 'Home & Furniture', icon: Home,     slug: 'home-furniture', subnav: ['Furniture', 'Home Decor', 'Bedding & Curtains', 'Kitchen & Dining', 'Lighting', 'Cleaning & Tools'] },
+  { nameKey: 'automotive',     displayName: 'Automotive',       icon: Car,      slug: 'automotive',     subnav: ['Car Accessories', 'Bike & Motorcycle', 'Helmets', 'Tools & Equipment', 'Car Care', 'Navigation & Electronics'] },
+  { nameKey: 'agriculture',    displayName: 'Agriculture',      icon: Wheat,    slug: 'agriculture',    subnav: ['Seeds & Plants', 'Fertilizers', 'Farming Tools', 'Irrigation', 'Organic Farming', 'Livestock'] },
+  { nameKey: 'toysGaming',     displayName: 'Toys & Gaming',    icon: Gamepad2, slug: 'toys-gaming',    subnav: ['Action Figures', 'Board Games', 'Video Games', 'Consoles & Accessories', 'Outdoor Toys', 'Educational Toys'] },
+  { nameKey: 'travelBags',     displayName: 'Travel & Bags',    icon: Luggage,  slug: 'travel-bags',    subnav: ['Luggage & Trolleys', 'Travel Accessories', 'Backpacks', 'Laptop Bags', 'Ladies Bags', 'Travel Pillows'] },
 ];
 
 const SLUG_TO_NAV: Record<string, Partial<NavCategory>> = {
@@ -56,6 +61,11 @@ const SLUG_TO_NAV: Record<string, Partial<NavCategory>> = {
   'daily-needs':        { nameKey: 'dailyNeeds',        icon: ShoppingBag, subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery'] },
   'health-sports':      { nameKey: 'healthSports',      icon: Dumbbell,  subnav: ['Fitness Equipment', 'Sports', 'Supplements', 'Sportswear', 'Health Monitors', 'Yoga & Wellness'] },
   'fashion-lifestyle':  { nameKey: 'fashionLifestyle',  icon: Shirt,     subnav: ["Men's Fashion", "Women's Fashion", 'Footwear', 'Accessories', 'Beauty & Grooming', 'Kids Fashion'] },
+  'home-furniture': { nameKey: 'homeFurniture',  icon: Home,     subnav: ['Furniture', 'Home Decor', 'Bedding & Curtains', 'Kitchen & Dining', 'Lighting', 'Cleaning & Tools'] },
+  'automotive':     { nameKey: 'automotive',     icon: Car,      subnav: ['Car Accessories', 'Bike & Motorcycle', 'Helmets', 'Tools & Equipment', 'Car Care', 'Navigation & Electronics'] },
+  'agriculture':    { nameKey: 'agriculture',    icon: Wheat,    subnav: ['Seeds & Plants', 'Fertilizers', 'Farming Tools', 'Irrigation', 'Organic Farming', 'Livestock'] },
+  'toys-gaming':    { nameKey: 'toysGaming',     icon: Gamepad2, subnav: ['Action Figures', 'Board Games', 'Video Games', 'Consoles & Accessories', 'Outdoor Toys', 'Educational Toys'] },
+  'travel-bags':    { nameKey: 'travelBags',     icon: Luggage,  subnav: ['Luggage & Trolleys', 'Travel Accessories', 'Backpacks', 'Laptop Bags', 'Ladies Bags', 'Travel Pillows'] },
 };
 
 function getSubnavHref(catSlug: string, sub: string): string {
@@ -336,6 +346,69 @@ const SUBNAV_DROPDOWNS: Record<string, { label: string; labelBn: string; href: s
     { label: 'Men\'s Grooming', labelBn: 'পুরুষ গ্রুমিং', href: '/products?categorySlug=fashion-lifestyle&sub=mens-grooming' },
     { label: 'All Beauty →',    labelBn: 'সব বিউটি →',    href: '/products?categorySlug=fashion-lifestyle' },
   ],
+  'Furniture': [
+    { label: 'Sofa & Sectionals',    labelBn: 'সোফা',                 href: '/products?categorySlug=home-furniture&sub=sofa' },
+    { label: 'Beds & Mattresses',    labelBn: 'বিছানা ও ম্যাট্রেস',   href: '/products?categorySlug=home-furniture&sub=beds' },
+    { label: 'Dining Table & Chairs',labelBn: 'ডাইনিং টেবিল',          href: '/products?categorySlug=home-furniture&sub=dining' },
+    { label: 'Wardrobes & Almirahs', labelBn: 'আলমারি',               href: '/products?categorySlug=home-furniture&sub=wardrobe' },
+    { label: 'Office Furniture',     labelBn: 'অফিস ফার্নিচার',        href: '/products?categorySlug=home-furniture&sub=office' },
+    { label: 'All Furniture →',      labelBn: 'সব আসবাবপত্র →',       href: '/products?categorySlug=home-furniture' },
+  ],
+  'Home Decor': [
+    { label: 'Wall Art & Clocks',   labelBn: 'ওয়াল আর্ট ও ঘড়ি',    href: '/products?categorySlug=home-furniture&sub=wall-art' },
+    { label: 'Vases & Showpieces',  labelBn: 'ভাস ও শোপিস',           href: '/products?categorySlug=home-furniture&sub=decor' },
+    { label: 'Curtains & Blinds',   labelBn: 'পর্দা',                  href: '/products?categorySlug=home-furniture&sub=curtains' },
+    { label: 'Rugs & Carpets',      labelBn: 'রাগ ও কার্পেট',         href: '/products?categorySlug=home-furniture&sub=rugs' },
+  ],
+  'Car Accessories': [
+    { label: 'Car Covers',          labelBn: 'কার কভার',              href: '/products?categorySlug=automotive&sub=car-cover' },
+    { label: 'Seat Covers',         labelBn: 'সিট কভার',              href: '/products?categorySlug=automotive&sub=seat-cover' },
+    { label: 'Car Perfume',         labelBn: 'কার পারফিউম',           href: '/products?categorySlug=automotive&sub=perfume' },
+    { label: 'Dash Cams',           labelBn: 'ড্যাশ ক্যাম',           href: '/products?categorySlug=automotive&sub=dashcam' },
+    { label: 'All Car Accessories →',labelBn: 'সব গাড়ির সামগ্রী →',   href: '/products?categorySlug=automotive' },
+  ],
+  'Bike & Motorcycle': [
+    { label: 'Bike Accessories',    labelBn: 'বাইক আনুষাঙ্গিক',       href: '/products?categorySlug=automotive&sub=bike-accessories' },
+    { label: 'Spare Parts',         labelBn: 'স্পেয়ার পার্টস',        href: '/products?categorySlug=automotive&sub=spare-parts' },
+    { label: 'Engine Oil',          labelBn: 'ইঞ্জিন অয়েল',           href: '/products?categorySlug=automotive&sub=engine-oil' },
+    { label: 'All Motorcycle →',    labelBn: 'সব মোটরসাইকেল →',      href: '/products?categorySlug=automotive' },
+  ],
+  'Seeds & Plants': [
+    { label: 'Vegetable Seeds',     labelBn: 'সবজির বীজ',             href: '/products?categorySlug=agriculture&sub=veg-seeds' },
+    { label: 'Flower Plants',       labelBn: 'ফুলের গাছ',             href: '/products?categorySlug=agriculture&sub=flower-plants' },
+    { label: 'Fruit Plants',        labelBn: 'ফলের গাছ',              href: '/products?categorySlug=agriculture&sub=fruit-plants' },
+    { label: 'Herb Seeds',          labelBn: 'ভেষজ বীজ',             href: '/products?categorySlug=agriculture&sub=herb-seeds' },
+  ],
+  'Farming Tools': [
+    { label: 'Hand Tools',          labelBn: 'হ্যান্ড টুলস',           href: '/products?categorySlug=agriculture&sub=hand-tools' },
+    { label: 'Sprayers',            labelBn: 'স্প্রেয়ার',              href: '/products?categorySlug=agriculture&sub=sprayer' },
+    { label: 'Irrigation Pipes',    labelBn: 'সেচ পাইপ',              href: '/products?categorySlug=agriculture&sub=irrigation' },
+    { label: 'All Tools →',         labelBn: 'সব সরঞ্জাম →',          href: '/products?categorySlug=agriculture' },
+  ],
+  'Video Games': [
+    { label: 'PlayStation Games',   labelBn: 'প্লেস্টেশন গেম',        href: '/products?categorySlug=toys-gaming&sub=ps-games' },
+    { label: 'Xbox Games',          labelBn: 'এক্সবক্স গেম',          href: '/products?categorySlug=toys-gaming&sub=xbox-games' },
+    { label: 'PC Games',            labelBn: 'পিসি গেম',              href: '/products?categorySlug=toys-gaming&sub=pc-games' },
+    { label: 'Mobile Games (Gift)', labelBn: 'মোবাইল গেম',            href: '/products?categorySlug=toys-gaming&sub=mobile-games' },
+  ],
+  'Consoles & Accessories': [
+    { label: 'PlayStation 5',       labelBn: 'প্লেস্টেশন ৫',          href: '/products?categorySlug=toys-gaming&sub=ps5' },
+    { label: 'Xbox Series',         labelBn: 'এক্সবক্স সিরিজ',        href: '/products?categorySlug=toys-gaming&sub=xbox' },
+    { label: 'Controllers',         labelBn: 'কন্ট্রোলার',             href: '/products?categorySlug=toys-gaming&sub=controllers' },
+    { label: 'All Consoles →',      labelBn: 'সব কনসোল →',            href: '/products?categorySlug=toys-gaming' },
+  ],
+  'Luggage & Trolleys': [
+    { label: 'Cabin Trolleys',      labelBn: 'ক্যাবিন ট্রলি',          href: '/products?categorySlug=travel-bags&sub=cabin' },
+    { label: 'Check-in Luggage',    labelBn: 'চেক-ইন লাগেজ',          href: '/products?categorySlug=travel-bags&sub=checkin' },
+    { label: 'Duffle Bags',         labelBn: 'ডাফেল ব্যাগ',            href: '/products?categorySlug=travel-bags&sub=duffle' },
+    { label: 'All Luggage →',       labelBn: 'সব লাগেজ →',            href: '/products?categorySlug=travel-bags' },
+  ],
+  'Travel Accessories': [
+    { label: 'Travel Pillows',      labelBn: 'ট্রাভেল বালিশ',          href: '/products?categorySlug=travel-bags&sub=pillow' },
+    { label: 'Passport Holders',    labelBn: 'পাসপোর্ট হোল্ডার',       href: '/products?categorySlug=travel-bags&sub=passport' },
+    { label: 'Travel Adapters',     labelBn: 'ট্রাভেল অ্যাডাপ্টার',    href: '/products?categorySlug=travel-bags&sub=adapter' },
+    { label: 'Packing Cubes',       labelBn: 'প্যাকিং কিউব',           href: '/products?categorySlug=travel-bags&sub=packing' },
+  ],
 };
 
 const BN_SUBNAV: Record<string, Record<string, string>> = {
@@ -348,6 +421,11 @@ const BN_SUBNAV: Record<string, Record<string, string>> = {
   'islamic-lifestyle':   { 'Prayer Essentials': 'নামাজের সরঞ্জাম', 'Islamic Books (Lifestyle)': 'ইসলামিক বই', 'Quran Accessories': 'কুরআন সামগ্রী', 'Islamic Clothing': 'ইসলামিক পোশাক', 'Perfumes & Oud': 'আতর ও আউড', 'Tasbih & Decor': 'তাসবিহ ও ডেকোর' },
   'health-sports':       { 'Fitness Equipment': 'ফিটনেস সরঞ্জাম', 'Sports': 'স্পোর্টস', 'Supplements': 'সাপ্লিমেন্ট', 'Sportswear': 'স্পোর্টসওয়্যার', 'Health Monitors': 'স্বাস্থ্য মনিটর', 'Yoga & Wellness': 'যোগব্যায়াম ও ওয়েলনেস' },
   'fashion-lifestyle':   { "Men's Fashion": 'পুরুষ ফ্যাশন', "Women's Fashion": 'নারী ফ্যাশন', 'Footwear': 'জুতা', 'Accessories': 'আনুষাঙ্গিক', 'Beauty & Grooming': 'বিউটি ও গ্রুমিং', 'Kids Fashion': 'শিশু ফ্যাশন' },
+  'home-furniture':  { 'Furniture': 'আসবাবপত্র', 'Home Decor': 'হোম ডেকোর', 'Bedding & Curtains': 'বেডিং ও পর্দা', 'Kitchen & Dining': 'কিচেন', 'Lighting': 'আলো', 'Cleaning & Tools': 'পরিষ্কার সরঞ্জাম' },
+  'automotive':      { 'Car Accessories': 'গাড়ির সামগ্রী', 'Bike & Motorcycle': 'বাইক ও মোটরসাইকেল', 'Helmets': 'হেলমেট', 'Tools & Equipment': 'সরঞ্জাম', 'Car Care': 'গাড়ির যত্ন', 'Navigation & Electronics': 'নেভিগেশন' },
+  'agriculture':     { 'Seeds & Plants': 'বীজ ও গাছপালা', 'Fertilizers': 'সার', 'Farming Tools': 'কৃষি সরঞ্জাম', 'Irrigation': 'সেচ', 'Organic Farming': 'জৈব চাষ', 'Livestock': 'গবাদি পশু' },
+  'toys-gaming':     { 'Action Figures': 'অ্যাকশন ফিগার', 'Board Games': 'বোর্ড গেমস', 'Video Games': 'ভিডিও গেমস', 'Consoles & Accessories': 'কনসোল', 'Outdoor Toys': 'আউটডোর খেলনা', 'Educational Toys': 'শিক্ষামূলক খেলনা' },
+  'travel-bags':     { 'Luggage & Trolleys': 'লাগেজ ও ট্রলি', 'Travel Accessories': 'ট্রাভেল সামগ্রী', 'Backpacks': 'ব্যাকপ্যাক', 'Laptop Bags': 'ল্যাপটপ ব্যাগ', 'Ladies Bags': 'লেডিস ব্যাগ', 'Travel Pillows': 'ট্রাভেল বালিশ' },
 };
 
 const MEGA_CATEGORIES = [
@@ -470,6 +548,69 @@ const MEGA_CATEGORIES = [
       { label: 'Beauty & Grooming',labelBn: 'বিউটি ও গ্রুমিং',   href: '/products?categorySlug=fashion-lifestyle&sub=beauty' },
       { label: 'Kids Fashion',     labelBn: 'শিশু ফ্যাশন',       href: '/products?categorySlug=fashion-lifestyle&sub=kids' },
       { label: 'All Fashion →',    labelBn: 'সব ফ্যাশন →',      href: '/products?categorySlug=fashion-lifestyle' },
+    ],
+  },
+  {
+    emoji: '🏠', name: 'Home & Furniture', nameBn: 'হোম ও ফার্নিচার',
+    href: '/products?categorySlug=home-furniture',
+    subs: [
+      { label: 'Sofas & Sectionals',    labelBn: 'সোফা',               href: '/products?categorySlug=home-furniture&sub=sofa' },
+      { label: 'Beds & Mattresses',     labelBn: 'বিছানা',              href: '/products?categorySlug=home-furniture&sub=beds' },
+      { label: 'Dining Sets',           labelBn: 'ডাইনিং সেট',          href: '/products?categorySlug=home-furniture&sub=dining' },
+      { label: 'Wardrobes',             labelBn: 'আলমারি',              href: '/products?categorySlug=home-furniture&sub=wardrobe' },
+      { label: 'Home Decor',            labelBn: 'হোম ডেকোর',           href: '/products?categorySlug=home-furniture&sub=decor' },
+      { label: 'Lighting',              labelBn: 'আলো',                 href: '/products?categorySlug=home-furniture&sub=lighting' },
+      { label: 'All Home & Furniture →',labelBn: 'সব পণ্য →',           href: '/products?categorySlug=home-furniture' },
+    ],
+  },
+  {
+    emoji: '🚗', name: 'Automotive', nameBn: 'অটোমোটিভ',
+    href: '/products?categorySlug=automotive',
+    subs: [
+      { label: 'Car Accessories',       labelBn: 'গাড়ির সামগ্রী',       href: '/products?categorySlug=automotive&sub=car' },
+      { label: 'Bike & Motorcycle',     labelBn: 'বাইক ও মোটরসাইকেল',  href: '/products?categorySlug=automotive&sub=bike' },
+      { label: 'Helmets',               labelBn: 'হেলমেট',              href: '/products?categorySlug=automotive&sub=helmet' },
+      { label: 'Tools & Equipment',     labelBn: 'সরঞ্জাম',             href: '/products?categorySlug=automotive&sub=tools' },
+      { label: 'Car Care',              labelBn: 'গাড়ির যত্ন',          href: '/products?categorySlug=automotive&sub=care' },
+      { label: 'All Automotive →',      labelBn: 'সব পণ্য →',           href: '/products?categorySlug=automotive' },
+    ],
+  },
+  {
+    emoji: '🌾', name: 'Agriculture', nameBn: 'কৃষি',
+    href: '/products?categorySlug=agriculture',
+    subs: [
+      { label: 'Seeds & Plants',        labelBn: 'বীজ ও গাছপালা',       href: '/products?categorySlug=agriculture&sub=seeds' },
+      { label: 'Fertilizers',           labelBn: 'সার',                 href: '/products?categorySlug=agriculture&sub=fertilizer' },
+      { label: 'Farming Tools',         labelBn: 'কৃষি সরঞ্জাম',        href: '/products?categorySlug=agriculture&sub=tools' },
+      { label: 'Irrigation',            labelBn: 'সেচ',                 href: '/products?categorySlug=agriculture&sub=irrigation' },
+      { label: 'Organic Farming',       labelBn: 'জৈব চাষ',             href: '/products?categorySlug=agriculture&sub=organic' },
+      { label: 'Livestock',             labelBn: 'গবাদি পশু',           href: '/products?categorySlug=agriculture&sub=livestock' },
+      { label: 'All Agriculture →',     labelBn: 'সব পণ্য →',           href: '/products?categorySlug=agriculture' },
+    ],
+  },
+  {
+    emoji: '🎮', name: 'Toys & Gaming', nameBn: 'খেলনা ও গেমিং',
+    href: '/products?categorySlug=toys-gaming',
+    subs: [
+      { label: 'Action Figures',        labelBn: 'অ্যাকশন ফিগার',       href: '/products?categorySlug=toys-gaming&sub=action' },
+      { label: 'Board Games',           labelBn: 'বোর্ড গেমস',          href: '/products?categorySlug=toys-gaming&sub=board' },
+      { label: 'Video Games',           labelBn: 'ভিডিও গেমস',          href: '/products?categorySlug=toys-gaming&sub=video' },
+      { label: 'Consoles',              labelBn: 'কনসোল',               href: '/products?categorySlug=toys-gaming&sub=console' },
+      { label: 'Outdoor Toys',          labelBn: 'আউটডোর খেলনা',        href: '/products?categorySlug=toys-gaming&sub=outdoor' },
+      { label: 'Educational Toys',      labelBn: 'শিক্ষামূলক খেলনা',    href: '/products?categorySlug=toys-gaming&sub=educational' },
+      { label: 'All Toys & Gaming →',   labelBn: 'সব পণ্য →',           href: '/products?categorySlug=toys-gaming' },
+    ],
+  },
+  {
+    emoji: '🧳', name: 'Travel & Bags', nameBn: 'ট্রাভেল ও ব্যাগ',
+    href: '/products?categorySlug=travel-bags',
+    subs: [
+      { label: 'Luggage & Trolleys',    labelBn: 'লাগেজ ও ট্রলি',       href: '/products?categorySlug=travel-bags&sub=luggage' },
+      { label: 'Travel Accessories',    labelBn: 'ট্রাভেল সামগ্রী',     href: '/products?categorySlug=travel-bags&sub=accessories' },
+      { label: 'Backpacks',             labelBn: 'ব্যাকপ্যাক',           href: '/products?categorySlug=travel-bags&sub=backpack' },
+      { label: 'Laptop Bags',           labelBn: 'ল্যাপটপ ব্যাগ',        href: '/products?categorySlug=travel-bags&sub=laptop-bag' },
+      { label: 'Ladies Bags',           labelBn: 'লেডিস ব্যাগ',         href: '/products?categorySlug=travel-bags&sub=ladies-bag' },
+      { label: 'All Travel & Bags →',   labelBn: 'সব পণ্য →',           href: '/products?categorySlug=travel-bags' },
     ],
   },
 ];
@@ -784,6 +925,181 @@ const MEGA_CONTENT = [
         { label: 'Fragrances',        labelBn: 'পারফিউম ও আতর',         href: '/products?categorySlug=fashion-lifestyle&sub=perfume' },
         { label: 'Kids Fashion',      labelBn: 'শিশু ফ্যাশন',           href: '/products?categorySlug=fashion-lifestyle&sub=kids' },
         { label: 'All Fashion →',     labelBn: 'সব পণ্য →',             href: '/products?categorySlug=fashion-lifestyle' },
+      ]},
+    ],
+  },
+  // 10 — Home & Furniture
+  {
+    columns: [
+      { heading: 'Furniture', headingBn: 'আসবাবপত্র', links: [
+        { label: 'Sofa & Sectionals',     labelBn: 'সোফা',               href: '/products?categorySlug=home-furniture&sub=sofa' },
+        { label: 'Beds & Mattresses',     labelBn: 'বিছানা',              href: '/products?categorySlug=home-furniture&sub=beds' },
+        { label: 'Dining Table & Chairs', labelBn: 'ডাইনিং সেট',          href: '/products?categorySlug=home-furniture&sub=dining' },
+        { label: 'Wardrobes & Almirahs',  labelBn: 'আলমারি',              href: '/products?categorySlug=home-furniture&sub=wardrobe' },
+        { label: 'Bookshelves',           labelBn: 'বুকশেলফ',             href: '/products?categorySlug=home-furniture&sub=bookshelf' },
+        { label: 'TV Units',              labelBn: 'টিভি ইউনিট',           href: '/products?categorySlug=home-furniture&sub=tv-unit' },
+        { label: 'Office Chairs',         labelBn: 'অফিস চেয়ার',          href: '/products?categorySlug=home-furniture&sub=office-chair' },
+        { label: 'All Furniture →',       labelBn: 'সব আসবাবপত্র →',      href: '/products?categorySlug=home-furniture' },
+      ]},
+      { heading: 'Home Decor & Bedding', headingBn: 'হোম ডেকোর ও বেডিং', links: [
+        { label: 'Wall Art & Clocks',     labelBn: 'ওয়াল আর্ট ও ঘড়ি',    href: '/products?categorySlug=home-furniture&sub=wall-art' },
+        { label: 'Curtains & Blinds',     labelBn: 'পর্দা',               href: '/products?categorySlug=home-furniture&sub=curtains' },
+        { label: 'Bedsheets & Pillows',   labelBn: 'বেডশিট ও বালিশ',      href: '/products?categorySlug=home-furniture&sub=bedsheet' },
+        { label: 'Rugs & Carpets',        labelBn: 'রাগ ও কার্পেট',       href: '/products?categorySlug=home-furniture&sub=rugs' },
+        { label: 'Vases & Showpieces',    labelBn: 'ভাস ও শোপিস',         href: '/products?categorySlug=home-furniture&sub=vases' },
+        { label: 'Photo Frames',          labelBn: 'ফটো ফ্রেম',            href: '/products?categorySlug=home-furniture&sub=frames' },
+        { label: 'Mirrors',               labelBn: 'আয়না',                href: '/products?categorySlug=home-furniture&sub=mirrors' },
+        { label: 'All Decor →',           labelBn: 'সব ডেকোর →',          href: '/products?categorySlug=home-furniture' },
+      ]},
+      { heading: 'Kitchen & Lighting', headingBn: 'কিচেন ও আলো', links: [
+        { label: 'Cookware Sets',         labelBn: 'কুকওয়্যার সেট',       href: '/products?categorySlug=home-furniture&sub=cookware' },
+        { label: 'Kitchen Storage',       labelBn: 'কিচেন স্টোরেজ',        href: '/products?categorySlug=home-furniture&sub=kitchen-storage' },
+        { label: 'Dinner Sets',           labelBn: 'ডিনার সেট',            href: '/products?categorySlug=home-furniture&sub=dinner-set' },
+        { label: 'Ceiling Lights',        labelBn: 'সিলিং লাইট',           href: '/products?categorySlug=home-furniture&sub=ceiling-light' },
+        { label: 'Table Lamps',           labelBn: 'টেবিল ল্যাম্প',         href: '/products?categorySlug=home-furniture&sub=table-lamp' },
+        { label: 'LED Strip Lights',      labelBn: 'এলইডি স্ট্রিপ',        href: '/products?categorySlug=home-furniture&sub=led-strip' },
+        { label: 'Cleaning Supplies',     labelBn: 'পরিষ্কার সামগ্রী',     href: '/products?categorySlug=home-furniture&sub=cleaning' },
+        { label: 'All Kitchen →',         labelBn: 'সব কিচেন →',           href: '/products?categorySlug=home-furniture' },
+      ]},
+    ],
+  },
+  // 11 — Automotive
+  {
+    columns: [
+      { heading: 'Car Accessories', headingBn: 'গাড়ির সামগ্রী', links: [
+        { label: 'Seat Covers',           labelBn: 'সিট কভার',             href: '/products?categorySlug=automotive&sub=seat-cover' },
+        { label: 'Car Perfume',           labelBn: 'কার পারফিউম',          href: '/products?categorySlug=automotive&sub=perfume' },
+        { label: 'Dash Cams',             labelBn: 'ড্যাশ ক্যাম',          href: '/products?categorySlug=automotive&sub=dashcam' },
+        { label: 'Car Covers',            labelBn: 'কার কভার',             href: '/products?categorySlug=automotive&sub=car-cover' },
+        { label: 'Car Chargers',          labelBn: 'কার চার্জার',           href: '/products?categorySlug=automotive&sub=charger' },
+        { label: 'Floor Mats',            labelBn: 'ফ্লোর ম্যাট',           href: '/products?categorySlug=automotive&sub=floor-mat' },
+        { label: 'GPS & Navigation',      labelBn: 'জিপিএস ও নেভিগেশন',   href: '/products?categorySlug=automotive&sub=gps' },
+        { label: 'All Car Accessories →', labelBn: 'সব সামগ্রী →',         href: '/products?categorySlug=automotive' },
+      ]},
+      { heading: 'Bike & Motorcycle', headingBn: 'বাইক ও মোটরসাইকেল', links: [
+        { label: 'Helmets',               labelBn: 'হেলমেট',               href: '/products?categorySlug=automotive&sub=helmet' },
+        { label: 'Bike Accessories',      labelBn: 'বাইক আনুষাঙ্গিক',      href: '/products?categorySlug=automotive&sub=bike-acc' },
+        { label: 'Spare Parts',           labelBn: 'স্পেয়ার পার্টস',       href: '/products?categorySlug=automotive&sub=spare-parts' },
+        { label: 'Engine Oil',            labelBn: 'ইঞ্জিন অয়েল',          href: '/products?categorySlug=automotive&sub=engine-oil' },
+        { label: 'Riding Gloves',         labelBn: 'রাইডিং গ্লাভস',        href: '/products?categorySlug=automotive&sub=gloves' },
+        { label: 'Bike Locks',            labelBn: 'বাইক লক',              href: '/products?categorySlug=automotive&sub=lock' },
+        { label: 'Chain Lubricants',      labelBn: 'চেইন লুব্রিক্যান্ট',   href: '/products?categorySlug=automotive&sub=lube' },
+        { label: 'All Motorcycle →',      labelBn: 'সব মোটরসাইকেল →',     href: '/products?categorySlug=automotive' },
+      ]},
+      { heading: 'Tools & Car Care', headingBn: 'সরঞ্জাম ও গাড়ির যত্ন', links: [
+        { label: 'Car Wash Shampoo',      labelBn: 'কার ওয়াশ শ্যাম্পু',   href: '/products?categorySlug=automotive&sub=wash' },
+        { label: 'Tire Inflators',        labelBn: 'টায়ার ইনফ্লেটর',       href: '/products?categorySlug=automotive&sub=inflator' },
+        { label: 'Jump Starters',         labelBn: 'জাম্প স্টার্টার',       href: '/products?categorySlug=automotive&sub=jump-starter' },
+        { label: 'Hand Tools',            labelBn: 'হ্যান্ড টুলস',          href: '/products?categorySlug=automotive&sub=hand-tools' },
+        { label: 'Power Tools',           labelBn: 'পাওয়ার টুলস',          href: '/products?categorySlug=automotive&sub=power-tools' },
+        { label: 'Polish & Wax',          labelBn: 'পলিশ ও ওয়াক্স',        href: '/products?categorySlug=automotive&sub=polish' },
+        { label: 'Tyre & Rims',           labelBn: 'টায়ার ও রিম',          href: '/products?categorySlug=automotive&sub=tyre' },
+        { label: 'All Tools →',           labelBn: 'সব সরঞ্জাম →',         href: '/products?categorySlug=automotive' },
+      ]},
+    ],
+  },
+  // 12 — Agriculture
+  {
+    columns: [
+      { heading: 'Seeds & Plants', headingBn: 'বীজ ও গাছপালা', links: [
+        { label: 'Vegetable Seeds',       labelBn: 'সবজির বীজ',            href: '/products?categorySlug=agriculture&sub=veg-seeds' },
+        { label: 'Flower Plants',         labelBn: 'ফুলের গাছ',            href: '/products?categorySlug=agriculture&sub=flower' },
+        { label: 'Fruit Plants',          labelBn: 'ফলের গাছ',             href: '/products?categorySlug=agriculture&sub=fruit' },
+        { label: 'Herb & Spice Seeds',    labelBn: 'মশলা ও ভেষজ বীজ',     href: '/products?categorySlug=agriculture&sub=herbs' },
+        { label: 'Paddy Seeds',           labelBn: 'ধানের বীজ',            href: '/products?categorySlug=agriculture&sub=paddy' },
+        { label: 'Fertilizers',           labelBn: 'সার',                  href: '/products?categorySlug=agriculture&sub=fertilizer' },
+        { label: 'Pesticides',            labelBn: 'কীটনাশক',             href: '/products?categorySlug=agriculture&sub=pesticide' },
+        { label: 'All Seeds →',           labelBn: 'সব বীজ →',             href: '/products?categorySlug=agriculture' },
+      ]},
+      { heading: 'Farming Tools', headingBn: 'কৃষি সরঞ্জাম', links: [
+        { label: 'Sprayers',              labelBn: 'স্প্রেয়ার',             href: '/products?categorySlug=agriculture&sub=sprayer' },
+        { label: 'Irrigation Pipes',      labelBn: 'সেচ পাইপ',             href: '/products?categorySlug=agriculture&sub=irrigation' },
+        { label: 'Water Pumps',           labelBn: 'ওয়াটার পাম্প',         href: '/products?categorySlug=agriculture&sub=pump' },
+        { label: 'Hand Tools',            labelBn: 'হাতিয়ার',             href: '/products?categorySlug=agriculture&sub=hand-tools' },
+        { label: 'Greenhouse Supplies',   labelBn: 'গ্রিনহাউস সামগ্রী',   href: '/products?categorySlug=agriculture&sub=greenhouse' },
+        { label: 'Soil & Compost',        labelBn: 'মাটি ও কম্পোস্ট',     href: '/products?categorySlug=agriculture&sub=soil' },
+        { label: 'Bird & Pest Control',   labelBn: 'পেস্ট কন্ট্রোল',      href: '/products?categorySlug=agriculture&sub=pest-control' },
+        { label: 'All Tools →',           labelBn: 'সব সরঞ্জাম →',         href: '/products?categorySlug=agriculture' },
+      ]},
+      { heading: 'Livestock & Organic', headingBn: 'গবাদি পশু ও জৈব', links: [
+        { label: 'Poultry Feed',          labelBn: 'পোল্ট্রি ফিড',         href: '/products?categorySlug=agriculture&sub=poultry' },
+        { label: 'Fish Feed',             labelBn: 'মাছের খাবার',          href: '/products?categorySlug=agriculture&sub=fish-feed' },
+        { label: 'Cattle Feed',           labelBn: 'গরু-ছাগলের খাবার',    href: '/products?categorySlug=agriculture&sub=cattle' },
+        { label: 'Organic Fertilizer',    labelBn: 'জৈব সার',              href: '/products?categorySlug=agriculture&sub=organic-fert' },
+        { label: 'Veterinary Supplies',   labelBn: 'পশু চিকিৎসা সামগ্রী', href: '/products?categorySlug=agriculture&sub=vet' },
+        { label: 'Beekeeping',            labelBn: 'মধু চাষ',              href: '/products?categorySlug=agriculture&sub=beekeeping' },
+        { label: 'Aquaculture',           labelBn: 'মৎস্য চাষ',           href: '/products?categorySlug=agriculture&sub=aquaculture' },
+        { label: 'All Livestock →',       labelBn: 'সব গবাদি পশু →',      href: '/products?categorySlug=agriculture' },
+      ]},
+    ],
+  },
+  // 13 — Toys & Gaming
+  {
+    columns: [
+      { heading: "Children's Toys", headingBn: 'শিশুদের খেলনা', links: [
+        { label: 'Action Figures',        labelBn: 'অ্যাকশন ফিগার',       href: '/products?categorySlug=toys-gaming&sub=action' },
+        { label: 'Dolls & Stuffed Toys',  labelBn: 'পুতুল ও নরম খেলনা',   href: '/products?categorySlug=toys-gaming&sub=dolls' },
+        { label: 'Board Games',           labelBn: 'বোর্ড গেমস',          href: '/products?categorySlug=toys-gaming&sub=board' },
+        { label: 'Educational Toys',      labelBn: 'শিক্ষামূলক খেলনা',    href: '/products?categorySlug=toys-gaming&sub=educational' },
+        { label: 'Remote Control Toys',   labelBn: 'রিমোট কন্ট্রোল',      href: '/products?categorySlug=toys-gaming&sub=rc-toys' },
+        { label: 'Outdoor Toys',          labelBn: 'আউটডোর খেলনা',        href: '/products?categorySlug=toys-gaming&sub=outdoor' },
+        { label: 'LEGO & Blocks',         labelBn: 'লেগো ও ব্লকস',        href: '/products?categorySlug=toys-gaming&sub=lego' },
+        { label: 'All Toys →',            labelBn: 'সব খেলনা →',          href: '/products?categorySlug=toys-gaming' },
+      ]},
+      { heading: 'Video Games', headingBn: 'ভিডিও গেমস', links: [
+        { label: 'PlayStation Games',     labelBn: 'প্লেস্টেশন গেম',      href: '/products?categorySlug=toys-gaming&sub=ps-games' },
+        { label: 'Xbox Games',            labelBn: 'এক্সবক্স গেম',        href: '/products?categorySlug=toys-gaming&sub=xbox-games' },
+        { label: 'PC Games',              labelBn: 'পিসি গেম',            href: '/products?categorySlug=toys-gaming&sub=pc-games' },
+        { label: 'Nintendo Switch',       labelBn: 'নিন্টেন্ডো সুইচ',    href: '/products?categorySlug=toys-gaming&sub=nintendo' },
+        { label: 'Mobile Game Cards',     labelBn: 'মোবাইল গেম কার্ড',   href: '/products?categorySlug=toys-gaming&sub=mobile-cards' },
+        { label: 'Gaming Accessories',    labelBn: 'গেমিং আনুষাঙ্গিক',   href: '/products?categorySlug=toys-gaming&sub=gaming-acc' },
+        { label: 'Game Gift Cards',       labelBn: 'গিফট কার্ড',          href: '/products?categorySlug=toys-gaming&sub=gift-cards' },
+        { label: 'All Video Games →',     labelBn: 'সব ভিডিও গেম →',     href: '/products?categorySlug=toys-gaming' },
+      ]},
+      { heading: 'Consoles & Gear', headingBn: 'কনসোল ও গিয়ার', links: [
+        { label: 'PlayStation 5',         labelBn: 'প্লেস্টেশন ৫',        href: '/products?categorySlug=toys-gaming&sub=ps5' },
+        { label: 'PlayStation 4',         labelBn: 'প্লেস্টেশন ৪',        href: '/products?categorySlug=toys-gaming&sub=ps4' },
+        { label: 'Xbox Series X/S',       labelBn: 'এক্সবক্স সিরিজ',      href: '/products?categorySlug=toys-gaming&sub=xbox-series' },
+        { label: 'Controllers',           labelBn: 'কন্ট্রোলার',           href: '/products?categorySlug=toys-gaming&sub=controllers' },
+        { label: 'Gaming Chairs',         labelBn: 'গেমিং চেয়ার',         href: '/products?categorySlug=toys-gaming&sub=gaming-chair' },
+        { label: 'Gaming Headsets',       labelBn: 'গেমিং হেডসেট',        href: '/products?categorySlug=toys-gaming&sub=headset' },
+        { label: 'Gaming Monitors',       labelBn: 'গেমিং মনিটর',         href: '/products?categorySlug=toys-gaming&sub=monitor' },
+        { label: 'All Consoles →',        labelBn: 'সব কনসোল →',          href: '/products?categorySlug=toys-gaming' },
+      ]},
+    ],
+  },
+  // 14 — Travel & Bags
+  {
+    columns: [
+      { heading: 'Luggage & Travel Bags', headingBn: 'লাগেজ ও ট্রাভেল ব্যাগ', links: [
+        { label: 'Cabin Trolleys',        labelBn: 'ক্যাবিন ট্রলি',        href: '/products?categorySlug=travel-bags&sub=cabin' },
+        { label: 'Check-in Luggage',      labelBn: 'চেক-ইন লাগেজ',        href: '/products?categorySlug=travel-bags&sub=checkin' },
+        { label: 'Duffle Bags',           labelBn: 'ডাফেল ব্যাগ',          href: '/products?categorySlug=travel-bags&sub=duffle' },
+        { label: 'Travel Backpacks',      labelBn: 'ট্রাভেল ব্যাকপ্যাক',  href: '/products?categorySlug=travel-bags&sub=backpack' },
+        { label: 'Gym Bags',              labelBn: 'জিম ব্যাগ',            href: '/products?categorySlug=travel-bags&sub=gym-bag' },
+        { label: 'Laptop Bags',           labelBn: 'ল্যাপটপ ব্যাগ',        href: '/products?categorySlug=travel-bags&sub=laptop-bag' },
+        { label: 'School Bags',           labelBn: 'স্কুল ব্যাগ',          href: '/products?categorySlug=travel-bags&sub=school-bag' },
+        { label: 'All Luggage →',         labelBn: 'সব লাগেজ →',          href: '/products?categorySlug=travel-bags' },
+      ]},
+      { heading: 'Ladies & Fashion Bags', headingBn: 'লেডিস ও ফ্যাশন ব্যাগ', links: [
+        { label: 'Handbags',              labelBn: 'হ্যান্ডব্যাগ',         href: '/products?categorySlug=travel-bags&sub=handbag' },
+        { label: 'Clutch Bags',           labelBn: 'ক্লাচ ব্যাগ',          href: '/products?categorySlug=travel-bags&sub=clutch' },
+        { label: 'Tote Bags',             labelBn: 'টোট ব্যাগ',            href: '/products?categorySlug=travel-bags&sub=tote' },
+        { label: 'Sling Bags',            labelBn: 'স্লিং ব্যাগ',          href: '/products?categorySlug=travel-bags&sub=sling' },
+        { label: 'Wallets',               labelBn: 'মানিব্যাগ',            href: '/products?categorySlug=travel-bags&sub=wallet' },
+        { label: 'Card Holders',          labelBn: 'কার্ড হোল্ডার',        href: '/products?categorySlug=travel-bags&sub=card-holder' },
+        { label: 'Belt Bags',             labelBn: 'বেল্ট ব্যাগ',          href: '/products?categorySlug=travel-bags&sub=belt-bag' },
+        { label: 'All Ladies Bags →',     labelBn: 'সব লেডিস ব্যাগ →',    href: '/products?categorySlug=travel-bags' },
+      ]},
+      { heading: 'Travel Accessories', headingBn: 'ট্রাভেল আনুষাঙ্গিক', links: [
+        { label: 'Travel Pillows',        labelBn: 'ট্রাভেল বালিশ',        href: '/products?categorySlug=travel-bags&sub=pillow' },
+        { label: 'Passport Holders',      labelBn: 'পাসপোর্ট হোল্ডার',    href: '/products?categorySlug=travel-bags&sub=passport' },
+        { label: 'Travel Adapters',       labelBn: 'ট্রাভেল অ্যাডাপ্টার', href: '/products?categorySlug=travel-bags&sub=adapter' },
+        { label: 'Packing Cubes',         labelBn: 'প্যাকিং কিউব',         href: '/products?categorySlug=travel-bags&sub=packing' },
+        { label: 'Eye Masks',             labelBn: 'চোখের মাস্ক',          href: '/products?categorySlug=travel-bags&sub=eye-mask' },
+        { label: 'Luggage Locks',         labelBn: 'লাগেজ লক',            href: '/products?categorySlug=travel-bags&sub=lock' },
+        { label: 'Travel Pouches',        labelBn: 'ট্রাভেল পাউচ',         href: '/products?categorySlug=travel-bags&sub=pouch' },
+        { label: 'All Accessories →',     labelBn: 'সব আনুষাঙ্গিক →',     href: '/products?categorySlug=travel-bags' },
       ]},
     ],
   },
@@ -1395,7 +1711,7 @@ export function Header() {
                       {/* ── Other categories ── */}
                       {megaHoverCat !== 0 && (() => {
                         const cat = MEGA_CATEGORIES[megaHoverCat]!;
-                        const raw = MEGA_CONTENT[megaHoverCat as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9];
+                        const raw = MEGA_CONTENT[megaHoverCat as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14];
                         const content = raw as unknown as { columns: { heading: string; headingBn: string; links: { label: string; labelBn: string; href: string }[] }[] };
                         if (!content?.columns) return null;
                         return (
@@ -1437,7 +1753,7 @@ export function Header() {
                   {/* Footer */}
                   <div className="bg-gray-50 border-t border-gray-100 px-5 py-2.5 flex items-center justify-between flex-shrink-0">
                     <p className="text-[11px] text-gray-400">
-                      {lang === 'bn' ? '১০টি বিভাগে হাজারো পণ্য' : '1000s of products across 10 departments'}
+                      {lang === 'bn' ? '১৫টি বিভাগে হাজারো পণ্য' : '1000s of products across 15 departments'}
                     </p>
                     <Link href="/products" onClick={() => setMegaOpen(false)}
                       className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 bg-primary/5 px-3 py-1.5 rounded-full transition-colors hover:bg-primary/10">
