@@ -149,8 +149,7 @@ export function ShopBottomNav() {
       {chatOpen && botEnabled && (
         <div
           className="md:hidden fixed right-3 z-[60] flex w-[calc(100vw-1.5rem)] max-w-sm flex-col overflow-hidden rounded-2xl border bg-white shadow-2xl"
-          style={{ height: 'min(480px, calc(100dvh - 5.5rem))' }}
-          style={{ bottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}
+          style={{ height: 'min(480px, calc(100dvh - 5.5rem))', bottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}
         >
           <div className="flex items-center justify-between bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-3 text-white">
             <div className="flex items-center gap-2">
