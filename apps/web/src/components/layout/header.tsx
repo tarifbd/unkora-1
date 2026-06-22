@@ -7,6 +7,7 @@ import {
   Menu, X, Search, User, ShoppingCart, ChevronDown,
   MapPin, Phone, HelpCircle,
   Package, Heart, CreditCard, Settings, LogOut, Gift, Truck, CalendarClock, Store,
+  Dumbbell, Shirt,
 } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
@@ -38,8 +39,10 @@ const NAV_CATEGORIES: NavCategory[] = [
   { nameKey: 'organicFoods',     displayName: 'Organic Foods',     icon: Leaf,        slug: 'organic-foods',    subnav: ['Nuts & Seeds', 'Honey & Sweeteners', 'Spices & Herbs', 'Healthy Snacks', 'Tea & Beverages'] },
   { nameKey: 'islamicLifestyle', displayName: 'Islamic Lifestyle', icon: Moon,        slug: 'islamic-lifestyle', subnav: ['Prayer Essentials', 'Islamic Books (Lifestyle)', 'Quran Accessories', 'Islamic Clothing', 'Perfumes & Oud', 'Tasbih & Decor'] },
   { nameKey: 'handicrafts',      displayName: 'Handicrafts',       icon: Palette,     slug: 'handicrafts',      subnav: ['Wall Art', 'Showpieces', 'Lamps & Lighting', 'Rugs & Carpets', 'Traditional Crafts'] },
-  { nameKey: 'electronics',      displayName: 'Electronics',       icon: Zap,         slug: 'electronics',      subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances', 'Gadgets'] },
-  { nameKey: 'dailyNeeds',       displayName: 'Daily Needs',       icon: ShoppingBag, slug: 'daily-needs',      subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery', 'Pet Care'] },
+  { nameKey: 'electronics',        displayName: 'Electronics',         icon: Zap,       slug: 'electronics',        subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances', 'Gadgets'] },
+  { nameKey: 'dailyNeeds',         displayName: 'Daily Needs',         icon: ShoppingBag, slug: 'daily-needs',      subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery', 'Pet Care'] },
+  { nameKey: 'healthSports',       displayName: 'Health & Sports',     icon: Dumbbell,  slug: 'health-sports',      subnav: ['Fitness Equipment', 'Sports', 'Supplements', 'Sportswear', 'Health Monitors', 'Yoga & Wellness'] },
+  { nameKey: 'fashionLifestyle',   displayName: 'Fashion & Lifestyle', icon: Shirt,     slug: 'fashion-lifestyle',  subnav: ["Men's Fashion", "Women's Fashion", 'Footwear', 'Accessories', 'Beauty & Grooming', 'Kids Fashion'] },
 ];
 
 const SLUG_TO_NAV: Record<string, Partial<NavCategory>> = {
@@ -49,8 +52,10 @@ const SLUG_TO_NAV: Record<string, Partial<NavCategory>> = {
   'organic-foods':    { nameKey: 'organicFoods',     icon: Leaf,        subnav: ['Nuts & Seeds', 'Honey & Sweeteners', 'Spices & Herbs', 'Healthy Snacks'] },
   'islamic-lifestyle':{ nameKey: 'islamicLifestyle', icon: Moon,        subnav: ['Prayer Essentials', 'Islamic Books (Lifestyle)', 'Quran Accessories', 'Islamic Clothing'] },
   'handicrafts':      { nameKey: 'handicrafts',      icon: Palette,     subnav: ['Wall Art', 'Showpieces', 'Lamps & Lighting', 'Rugs & Carpets'] },
-  'electronics':      { nameKey: 'electronics',      icon: Zap,         subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances'] },
-  'daily-needs':      { nameKey: 'dailyNeeds',       icon: ShoppingBag, subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery'] },
+  'electronics':        { nameKey: 'electronics',       icon: Zap,       subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances'] },
+  'daily-needs':        { nameKey: 'dailyNeeds',        icon: ShoppingBag, subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery'] },
+  'health-sports':      { nameKey: 'healthSports',      icon: Dumbbell,  subnav: ['Fitness Equipment', 'Sports', 'Supplements', 'Sportswear', 'Health Monitors', 'Yoga & Wellness'] },
+  'fashion-lifestyle':  { nameKey: 'fashionLifestyle',  icon: Shirt,     subnav: ["Men's Fashion", "Women's Fashion", 'Footwear', 'Accessories', 'Beauty & Grooming', 'Kids Fashion'] },
 };
 
 function getSubnavHref(catSlug: string, sub: string): string {
@@ -277,6 +282,60 @@ const SUBNAV_DROPDOWNS: Record<string, { label: string; labelBn: string; href: s
     { label: 'Islamic Wall Art', labelBn: 'ইসলামিক ওয়াল আর্ট',    href: '/islamic-lifestyle?tag=wall-art' },
     { label: 'All Decor →',      labelBn: 'সব ডেকোর →',           href: '/islamic-lifestyle?tag=decor' },
   ],
+  'Fitness Equipment': [
+    { label: 'Dumbbells & Barbells', labelBn: 'ডাম্বেল ও বারবেল',     href: '/products?categorySlug=health-sports&sub=dumbbells' },
+    { label: 'Resistance Bands',     labelBn: 'রেজিস্ট্যান্স ব্যান্ড', href: '/products?categorySlug=health-sports&sub=bands' },
+    { label: 'Yoga Mats',            labelBn: 'যোগব্যায়াম ম্যাট',      href: '/products?categorySlug=health-sports&sub=yoga-mats' },
+    { label: 'Treadmills',           labelBn: 'ট্রেডমিল',               href: '/products?categorySlug=health-sports&sub=treadmill' },
+    { label: 'Pull-up Bars',         labelBn: 'পুলআপ বার',              href: '/products?categorySlug=health-sports&sub=pull-up' },
+    { label: 'All Equipment →',      labelBn: 'সব সরঞ্জাম →',          href: '/products?categorySlug=health-sports' },
+  ],
+  'Sports': [
+    { label: 'Cricket',      labelBn: 'ক্রিকেট',      href: '/products?categorySlug=health-sports&sub=cricket' },
+    { label: 'Football',     labelBn: 'ফুটবল',        href: '/products?categorySlug=health-sports&sub=football' },
+    { label: 'Badminton',    labelBn: 'ব্যাডমিন্টন',  href: '/products?categorySlug=health-sports&sub=badminton' },
+    { label: 'Table Tennis', labelBn: 'টেবিল টেনিস',  href: '/products?categorySlug=health-sports&sub=table-tennis' },
+    { label: 'Swimming',     labelBn: 'সাঁতার',        href: '/products?categorySlug=health-sports&sub=swimming' },
+    { label: 'All Sports →', labelBn: 'সব স্পোর্টস →', href: '/products?categorySlug=health-sports' },
+  ],
+  'Supplements': [
+    { label: 'Protein Powder',  labelBn: 'প্রোটিন পাউডার', href: '/products?categorySlug=health-sports&sub=protein' },
+    { label: 'Vitamins',        labelBn: 'ভিটামিন',         href: '/products?categorySlug=health-sports&sub=vitamins' },
+    { label: 'Weight Gainers',  labelBn: 'ওজন বৃদ্ধির সাপ্লিমেন্ট', href: '/products?categorySlug=health-sports&sub=mass-gainer' },
+    { label: 'Pre-Workout',     labelBn: 'প্রি-ওয়ার্কআউট',  href: '/products?categorySlug=health-sports&sub=pre-workout' },
+    { label: 'All Supplements →', labelBn: 'সব সাপ্লিমেন্ট →', href: '/products?categorySlug=health-sports' },
+  ],
+  "Men's Fashion": [
+    { label: 'Panjabi & Kurta', labelBn: 'পাঞ্জাবি ও কুর্তা', href: '/products?categorySlug=fashion-lifestyle&sub=panjabi' },
+    { label: 'Formal Shirts',   labelBn: 'ফর্মাল শার্ট',        href: '/products?categorySlug=fashion-lifestyle&sub=shirts' },
+    { label: 'T-Shirts & Polo', labelBn: 'টি-শার্ট ও পোলো',    href: '/products?categorySlug=fashion-lifestyle&sub=tshirts' },
+    { label: 'Jeans & Pants',   labelBn: 'জিন্স ও প্যান্ট',    href: '/products?categorySlug=fashion-lifestyle&sub=jeans' },
+    { label: 'Suits & Blazers', labelBn: 'স্যুট ও ব্লেজার',    href: '/products?categorySlug=fashion-lifestyle&sub=suits' },
+    { label: 'All Men\'s →',    labelBn: 'সব পুরুষ পোশাক →',   href: '/products?categorySlug=fashion-lifestyle' },
+  ],
+  "Women's Fashion": [
+    { label: 'Saree',          labelBn: 'শাড়ি',         href: '/products?categorySlug=fashion-lifestyle&sub=saree' },
+    { label: 'Salwar Kameez',  labelBn: 'সালোয়ার কামিজ', href: '/products?categorySlug=fashion-lifestyle&sub=salwar' },
+    { label: 'Kurti & Tops',   labelBn: 'কুর্তি ও টপস',  href: '/products?categorySlug=fashion-lifestyle&sub=kurti' },
+    { label: 'Hijab & Abaya',  labelBn: 'হিজাব ও আবায়া', href: '/products?categorySlug=fashion-lifestyle&sub=hijab' },
+    { label: 'Western Wear',   labelBn: 'ওয়েস্টার্ন পোশাক', href: '/products?categorySlug=fashion-lifestyle&sub=western' },
+    { label: "All Women's →",  labelBn: 'সব নারী পোশাক →', href: '/products?categorySlug=fashion-lifestyle' },
+  ],
+  'Footwear': [
+    { label: 'Men\'s Shoes',    labelBn: 'পুরুষের জুতা',   href: '/products?categorySlug=fashion-lifestyle&sub=mens-shoes' },
+    { label: 'Women\'s Shoes',  labelBn: 'নারীর জুতা',     href: '/products?categorySlug=fashion-lifestyle&sub=womens-shoes' },
+    { label: 'Sandals & Slippers', labelBn: 'স্যান্ডেল ও স্লিপার', href: '/products?categorySlug=fashion-lifestyle&sub=sandals' },
+    { label: 'Sports Shoes',    labelBn: 'স্পোর্টস জুতা',  href: '/products?categorySlug=fashion-lifestyle&sub=sports-shoes' },
+    { label: 'All Footwear →',  labelBn: 'সব জুতা →',      href: '/products?categorySlug=fashion-lifestyle' },
+  ],
+  'Beauty & Grooming': [
+    { label: 'Skincare',        labelBn: 'স্কিন কেয়ার',  href: '/products?categorySlug=fashion-lifestyle&sub=skincare' },
+    { label: 'Makeup',          labelBn: 'মেকআপ',         href: '/products?categorySlug=fashion-lifestyle&sub=makeup' },
+    { label: 'Haircare',        labelBn: 'হেয়ার কেয়ার',  href: '/products?categorySlug=fashion-lifestyle&sub=haircare' },
+    { label: 'Fragrances',      labelBn: 'পারফিউম',       href: '/products?categorySlug=fashion-lifestyle&sub=perfume' },
+    { label: 'Men\'s Grooming', labelBn: 'পুরুষ গ্রুমিং', href: '/products?categorySlug=fashion-lifestyle&sub=mens-grooming' },
+    { label: 'All Beauty →',    labelBn: 'সব বিউটি →',    href: '/products?categorySlug=fashion-lifestyle' },
+  ],
 };
 
 const BN_SUBNAV: Record<string, Record<string, string>> = {
@@ -286,7 +345,9 @@ const BN_SUBNAV: Record<string, Record<string, string>> = {
   'handicrafts':      { 'Wall Art': 'দেওয়াল শিল্প', 'Showpieces': 'শোপিস', 'Lamps & Lighting': 'প্রদীপ', 'Rugs & Carpets': 'কার্পেট', 'Traditional Crafts': 'ঐতিহ্যবাহী শিল্প' },
   'electronics':      { 'Mobiles': 'মোবাইল', 'Laptops': 'ল্যাপটপ', 'Accessories': 'আনুষাঙ্গিক', 'Home Appliances': 'হোম অ্যাপ্লায়েন্স', 'Gadgets': 'গ্যাজেট' },
   'daily-needs':        { 'Grocery': 'মুদি', 'Personal Care': 'ব্যক্তিগত যত্ন', 'Household': 'গৃহস্থালি', 'Stationery': 'স্টেশনারি', 'Pet Care': 'পোষা প্রাণীর যত্ন' },
-  'islamic-lifestyle':  { 'Prayer Essentials': 'নামাজের সরঞ্জাম', 'Islamic Books (Lifestyle)': 'ইসলামিক বই', 'Quran Accessories': 'কুরআন সামগ্রী', 'Islamic Clothing': 'ইসলামিক পোশাক', 'Perfumes & Oud': 'আতর ও আউড', 'Tasbih & Decor': 'তাসবিহ ও ডেকোর' },
+  'islamic-lifestyle':   { 'Prayer Essentials': 'নামাজের সরঞ্জাম', 'Islamic Books (Lifestyle)': 'ইসলামিক বই', 'Quran Accessories': 'কুরআন সামগ্রী', 'Islamic Clothing': 'ইসলামিক পোশাক', 'Perfumes & Oud': 'আতর ও আউড', 'Tasbih & Decor': 'তাসবিহ ও ডেকোর' },
+  'health-sports':       { 'Fitness Equipment': 'ফিটনেস সরঞ্জাম', 'Sports': 'স্পোর্টস', 'Supplements': 'সাপ্লিমেন্ট', 'Sportswear': 'স্পোর্টসওয়্যার', 'Health Monitors': 'স্বাস্থ্য মনিটর', 'Yoga & Wellness': 'যোগব্যায়াম ও ওয়েলনেস' },
+  'fashion-lifestyle':   { "Men's Fashion": 'পুরুষ ফ্যাশন', "Women's Fashion": 'নারী ফ্যাশন', 'Footwear': 'জুতা', 'Accessories': 'আনুষাঙ্গিক', 'Beauty & Grooming': 'বিউটি ও গ্রুমিং', 'Kids Fashion': 'শিশু ফ্যাশন' },
 };
 
 const MEGA_CATEGORIES = [
@@ -383,6 +444,32 @@ const MEGA_CATEGORIES = [
       { label: 'Household',      labelBn: 'গৃহস্থালি',           href: '/products?categorySlug=daily-needs' },
       { label: 'Stationery',     labelBn: 'স্টেশনারি',           href: '/products?categorySlug=daily-needs' },
       { label: 'All Daily →',    labelBn: 'সব দৈনন্দিন →',      href: '/products?categorySlug=daily-needs' },
+    ],
+  },
+  {
+    emoji: '🏋️', name: 'Health & Sports', nameBn: 'স্বাস্থ্য ও স্পোর্টস',
+    href: '/products?categorySlug=health-sports',
+    subs: [
+      { label: 'Fitness Equipment', labelBn: 'ফিটনেস সরঞ্জাম',  href: '/products?categorySlug=health-sports&sub=equipment' },
+      { label: 'Cricket & Football', labelBn: 'ক্রিকেট ও ফুটবল', href: '/products?categorySlug=health-sports&sub=cricket' },
+      { label: 'Supplements',       labelBn: 'সাপ্লিমেন্ট',       href: '/products?categorySlug=health-sports&sub=supplements' },
+      { label: 'Sportswear',        labelBn: 'স্পোর্টসওয়্যার',    href: '/products?categorySlug=health-sports&sub=sportswear' },
+      { label: 'Yoga & Wellness',   labelBn: 'যোগব্যায়াম',        href: '/products?categorySlug=health-sports&sub=yoga' },
+      { label: 'Health Monitors',   labelBn: 'স্বাস্থ্য মনিটর',   href: '/products?categorySlug=health-sports&sub=monitors' },
+      { label: 'All Health & Sports →', labelBn: 'সব পণ্য →',    href: '/products?categorySlug=health-sports' },
+    ],
+  },
+  {
+    emoji: '👗', name: 'Fashion & Lifestyle', nameBn: 'ফ্যাশন ও লাইফস্টাইল',
+    href: '/products?categorySlug=fashion-lifestyle',
+    subs: [
+      { label: "Men's Fashion",    labelBn: 'পুরুষ ফ্যাশন',      href: '/products?categorySlug=fashion-lifestyle&sub=mens' },
+      { label: "Women's Fashion",  labelBn: 'নারী ফ্যাশন',       href: '/products?categorySlug=fashion-lifestyle&sub=womens' },
+      { label: 'Footwear',         labelBn: 'জুতা',              href: '/products?categorySlug=fashion-lifestyle&sub=footwear' },
+      { label: 'Accessories',      labelBn: 'আনুষাঙ্গিক',        href: '/products?categorySlug=fashion-lifestyle&sub=accessories' },
+      { label: 'Beauty & Grooming',labelBn: 'বিউটি ও গ্রুমিং',   href: '/products?categorySlug=fashion-lifestyle&sub=beauty' },
+      { label: 'Kids Fashion',     labelBn: 'শিশু ফ্যাশন',       href: '/products?categorySlug=fashion-lifestyle&sub=kids' },
+      { label: 'All Fashion →',    labelBn: 'সব ফ্যাশন →',      href: '/products?categorySlug=fashion-lifestyle' },
     ],
   },
 ];
@@ -627,6 +714,76 @@ const MEGA_CONTENT = [
         { label: 'Pens',         labelBn: 'কলম',                href: '/products?categorySlug=daily-needs' },
         { label: 'Pet Food',     labelBn: 'পোষা প্রাণীর খাবার', href: '/products?categorySlug=daily-needs' },
         { label: 'All Daily →',  labelBn: 'সব পণ্য →',          href: '/products?categorySlug=daily-needs' },
+      ]},
+    ],
+  },
+  // 8 — Health & Sports
+  {
+    columns: [
+      { heading: 'Fitness Equipment', headingBn: 'ফিটনেস সরঞ্জাম', links: [
+        { label: 'Dumbbells & Barbells',  labelBn: 'ডাম্বেল ও বারবেল',     href: '/products?categorySlug=health-sports&sub=dumbbells' },
+        { label: 'Resistance Bands',      labelBn: 'রেজিস্ট্যান্স ব্যান্ড', href: '/products?categorySlug=health-sports&sub=bands' },
+        { label: 'Treadmills',            labelBn: 'ট্রেডমিল',               href: '/products?categorySlug=health-sports&sub=treadmill' },
+        { label: 'Exercise Cycles',       labelBn: 'এক্সারসাইজ সাইকেল',     href: '/products?categorySlug=health-sports&sub=cycle' },
+        { label: 'Pull-up Bars',          labelBn: 'পুলআপ বার',              href: '/products?categorySlug=health-sports&sub=pull-up' },
+        { label: 'Gym Gloves',            labelBn: 'জিম গ্লাভস',             href: '/products?categorySlug=health-sports&sub=gloves' },
+        { label: 'Punching Bags',         labelBn: 'পাঞ্চিং ব্যাগ',          href: '/products?categorySlug=health-sports&sub=boxing' },
+        { label: 'All Equipment →',       labelBn: 'সব ফিটনেস →',           href: '/products?categorySlug=health-sports' },
+      ]},
+      { heading: 'Sports & Outdoor', headingBn: 'স্পোর্টস ও আউটডোর', links: [
+        { label: 'Cricket',        labelBn: 'ক্রিকেট',      href: '/products?categorySlug=health-sports&sub=cricket' },
+        { label: 'Football',       labelBn: 'ফুটবল',        href: '/products?categorySlug=health-sports&sub=football' },
+        { label: 'Badminton',      labelBn: 'ব্যাডমিন্টন',  href: '/products?categorySlug=health-sports&sub=badminton' },
+        { label: 'Table Tennis',   labelBn: 'টেবিল টেনিস',  href: '/products?categorySlug=health-sports&sub=table-tennis' },
+        { label: 'Swimming',       labelBn: 'সাঁতার',        href: '/products?categorySlug=health-sports&sub=swimming' },
+        { label: 'Cycling',        labelBn: 'সাইক্লিং',     href: '/products?categorySlug=health-sports&sub=cycling' },
+        { label: 'Trekking & Camping', labelBn: 'ট্রেকিং',  href: '/products?categorySlug=health-sports&sub=trekking' },
+        { label: 'All Sports →',   labelBn: 'সব স্পোর্টস →', href: '/products?categorySlug=health-sports' },
+      ]},
+      { heading: 'Health & Wellness', headingBn: 'স্বাস্থ্য ও সুস্থতা', links: [
+        { label: 'Protein Powder',    labelBn: 'প্রোটিন পাউডার',    href: '/products?categorySlug=health-sports&sub=protein' },
+        { label: 'Vitamins & Minerals', labelBn: 'ভিটামিন ও খনিজ', href: '/products?categorySlug=health-sports&sub=vitamins' },
+        { label: 'Mass Gainers',      labelBn: 'মাস গেইনার',         href: '/products?categorySlug=health-sports&sub=mass-gainer' },
+        { label: 'Yoga Mats & Blocks',labelBn: 'যোগব্যায়াম ম্যাট',  href: '/products?categorySlug=health-sports&sub=yoga' },
+        { label: 'BP Monitors',       labelBn: 'বিপি মনিটর',         href: '/products?categorySlug=health-sports&sub=bp-monitor' },
+        { label: 'Glucose Meters',    labelBn: 'গ্লুকোজ মিটার',      href: '/products?categorySlug=health-sports&sub=glucose' },
+        { label: 'Thermometers',      labelBn: 'থার্মোমিটার',         href: '/products?categorySlug=health-sports&sub=thermometer' },
+        { label: 'All Health →',      labelBn: 'সব পণ্য →',          href: '/products?categorySlug=health-sports' },
+      ]},
+    ],
+  },
+  // 9 — Fashion & Lifestyle
+  {
+    columns: [
+      { heading: "Men's Fashion", headingBn: 'পুরুষ ফ্যাশন', links: [
+        { label: 'Panjabi & Kurta',   labelBn: 'পাঞ্জাবি ও কুর্তা',   href: '/products?categorySlug=fashion-lifestyle&sub=panjabi' },
+        { label: 'Formal Shirts',     labelBn: 'ফর্মাল শার্ট',          href: '/products?categorySlug=fashion-lifestyle&sub=shirts' },
+        { label: 'T-Shirts & Polo',   labelBn: 'টি-শার্ট ও পোলো',      href: '/products?categorySlug=fashion-lifestyle&sub=tshirts' },
+        { label: 'Jeans & Pants',     labelBn: 'জিন্স ও প্যান্ট',      href: '/products?categorySlug=fashion-lifestyle&sub=jeans' },
+        { label: 'Suits & Blazers',   labelBn: 'স্যুট ও ব্লেজার',      href: '/products?categorySlug=fashion-lifestyle&sub=suits' },
+        { label: 'Activewear',        labelBn: 'অ্যাক্টিভওয়্যার',      href: '/products?categorySlug=fashion-lifestyle&sub=activewear' },
+        { label: "Men's Accessories", labelBn: 'পুরুষ আনুষাঙ্গিক',     href: '/products?categorySlug=fashion-lifestyle&sub=mens-acc' },
+        { label: "All Men's →",       labelBn: 'সব পুরুষ পোশাক →',     href: '/products?categorySlug=fashion-lifestyle' },
+      ]},
+      { heading: "Women's Fashion", headingBn: 'নারী ফ্যাশন', links: [
+        { label: 'Saree',             labelBn: 'শাড়ি',                 href: '/products?categorySlug=fashion-lifestyle&sub=saree' },
+        { label: 'Salwar Kameez',     labelBn: 'সালোয়ার কামিজ',        href: '/products?categorySlug=fashion-lifestyle&sub=salwar' },
+        { label: 'Kurti & Tops',      labelBn: 'কুর্তি ও টপস',         href: '/products?categorySlug=fashion-lifestyle&sub=kurti' },
+        { label: 'Hijab & Abaya',     labelBn: 'হিজাব ও আবায়া',        href: '/products?categorySlug=fashion-lifestyle&sub=hijab' },
+        { label: 'Western Wear',      labelBn: 'ওয়েস্টার্ন পোশাক',     href: '/products?categorySlug=fashion-lifestyle&sub=western' },
+        { label: 'Ethnic Wear',       labelBn: 'ঐতিহ্যবাহী পোশাক',     href: '/products?categorySlug=fashion-lifestyle&sub=ethnic' },
+        { label: "Women's Accessories", labelBn: 'নারী আনুষাঙ্গিক',    href: '/products?categorySlug=fashion-lifestyle&sub=womens-acc' },
+        { label: "All Women's →",     labelBn: 'সব নারী পোশাক →',      href: '/products?categorySlug=fashion-lifestyle' },
+      ]},
+      { heading: 'Footwear & Beauty', headingBn: 'জুতা ও বিউটি', links: [
+        { label: "Men's Shoes",       labelBn: 'পুরুষের জুতা',          href: '/products?categorySlug=fashion-lifestyle&sub=mens-shoes' },
+        { label: "Women's Shoes",     labelBn: 'নারীর জুতা',            href: '/products?categorySlug=fashion-lifestyle&sub=womens-shoes' },
+        { label: 'Sandals & Slippers',labelBn: 'স্যান্ডেল ও স্লিপার',   href: '/products?categorySlug=fashion-lifestyle&sub=sandals' },
+        { label: 'Skincare',          labelBn: 'স্কিন কেয়ার',           href: '/products?categorySlug=fashion-lifestyle&sub=skincare' },
+        { label: 'Makeup & Cosmetics',labelBn: 'মেকআপ ও কসমেটিক্স',    href: '/products?categorySlug=fashion-lifestyle&sub=makeup' },
+        { label: 'Fragrances',        labelBn: 'পারফিউম ও আতর',         href: '/products?categorySlug=fashion-lifestyle&sub=perfume' },
+        { label: 'Kids Fashion',      labelBn: 'শিশু ফ্যাশন',           href: '/products?categorySlug=fashion-lifestyle&sub=kids' },
+        { label: 'All Fashion →',     labelBn: 'সব পণ্য →',             href: '/products?categorySlug=fashion-lifestyle' },
       ]},
     ],
   },
@@ -1239,7 +1396,7 @@ export function Header() {
                       {/* ── Other categories ── */}
                       {megaHoverCat !== 0 && (() => {
                         const cat = MEGA_CATEGORIES[megaHoverCat]!;
-                        const raw = MEGA_CONTENT[megaHoverCat as 1 | 2 | 3 | 4 | 5 | 6 | 7];
+                        const raw = MEGA_CONTENT[megaHoverCat as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9];
                         const content = raw as unknown as { columns: { heading: string; headingBn: string; links: { label: string; labelBn: string; href: string }[] }[] };
                         if (!content?.columns) return null;
                         return (
@@ -1281,7 +1438,7 @@ export function Header() {
                   {/* Footer */}
                   <div className="bg-gray-50 border-t border-gray-100 px-5 py-2.5 flex items-center justify-between flex-shrink-0">
                     <p className="text-[11px] text-gray-400">
-                      {lang === 'bn' ? '৮টি বিভাগে হাজারো পণ্য' : '1000s of products across 8 departments'}
+                      {lang === 'bn' ? '১০টি বিভাগে হাজারো পণ্য' : '1000s of products across 10 departments'}
                     </p>
                     <Link href="/products" onClick={() => setMegaOpen(false)}
                       className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 bg-primary/5 px-3 py-1.5 rounded-full transition-colors hover:bg-primary/10">
@@ -1312,9 +1469,17 @@ export function Header() {
               ))}
             </nav>
 
-            <Link href="/flash-deals" className="shrink-0 px-4 h-[48px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors ml-auto">
-              {t.header.dealOfDay} <span className="text-red-600 text-lg ml-1">🔥</span>
-            </Link>
+            <div className="flex items-center gap-0.5 ml-auto shrink-0">
+              <Link href="/quick-commerce" className="px-3 h-[48px] flex items-center gap-1 text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
+                ⚡ {lang === 'bn' ? 'কুইক ডেলিভারি' : 'Quick Commerce'}
+              </Link>
+              <Link href="/recommerce" className="px-3 h-[48px] flex items-center gap-1 text-[12px] font-black text-indigo-600 hover:text-indigo-700 transition-colors whitespace-nowrap">
+                ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
+              </Link>
+              <Link href="/flash-deals" className="px-4 h-[48px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors">
+                {t.header.dealOfDay} <span className="text-red-600 text-lg ml-1">🔥</span>
+              </Link>
+            </div>
           </div>
         </div>
 
