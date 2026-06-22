@@ -102,10 +102,9 @@ const NAV: NavItem[] = [
   {
     label: 'Returns & Refunds', icon: RotateCcw,
     children: [
-      { href: '/admin/returns',                   label: 'Returns & Exchanges', icon: RefreshCw,     keywords: ['rma', 'exchange'] },
-      { href: '/admin/refunds',                   label: 'Refunds',             icon: RotateCcw,     keywords: ['money back', 'reverse'] },
-      { href: '/admin/orders/cod-reconciliation', label: 'COD Reconciliation',  icon: DollarSign,    keywords: ['cash on delivery', 'collection'] },
-      { href: '/admin/orders/exchanges',          label: 'Exchange Requests',   icon: ArrowLeftRight, keywords: ['exchange', 'swap'] },
+      { href: '/admin/returns',                   label: 'Returns & Exchanges', icon: RefreshCw,  keywords: ['rma', 'exchange'] },
+      { href: '/admin/refunds',                   label: 'Refunds',             icon: RotateCcw,  keywords: ['money back', 'reverse'] },
+      { href: '/admin/orders/cod-reconciliation', label: 'COD Reconciliation',  icon: DollarSign, keywords: ['cash on delivery', 'collection'] },
     ],
   },
   { href: '/admin/fulfillment', label: 'Fulfillment Hub', icon: Warehouse, keywords: ['fulfillment', 'operations', 'multi-warehouse', 'courier engine', 'rto', 'ops', 'hub'] },
@@ -271,9 +270,8 @@ const NAV: NavItem[] = [
       { href: '/admin/ai-studio/n8n',           label: 'n8n Automation',     icon: Puzzle,        keywords: ['n8n', 'webhook', 'workflow', 'automation', 'integration'] },
       { href: '/admin/ai-studio/providers',     label: 'Providers',          icon: Zap,           keywords: ['openai', 'anthropic', 'model'] },
       { href: '/admin/ai-studio/library',       label: 'Prompt Library',     icon: Library,       keywords: ['template', 'prompt'] },
-      { href: '/admin/ai-studio/logs',          label: 'AI Logs',            icon: ScrollText,    keywords: ['history', 'usage'] },
-      { href: '/admin/predictions',             label: 'Demand Forecast',    icon: Brain,         keywords: ['festival', 'stocking', 'trend', 'demand', 'forecast', 'eid', 'season'] },
-      { href: '/admin/settings/virtual-trial',  label: 'Virtual Trial Room', icon: Monitor,       keywords: ['trial room', 'try on', 'virtual', 'ar'] },
+      { href: '/admin/ai-studio/logs',          label: 'AI Logs',            icon: ScrollText, keywords: ['history', 'usage'] },
+      { href: '/admin/settings/virtual-trial',  label: 'Virtual Trial Room', icon: Monitor,    keywords: ['trial room', 'try on', 'virtual', 'ar'] },
     ],
   },
 

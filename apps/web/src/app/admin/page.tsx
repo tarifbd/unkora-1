@@ -283,16 +283,16 @@ export default function AdminDashboard() {
     );
   }
 
-  const chartData = chart?.map(p => ({ label: p.date.slice(5), value: p.revenue })) ?? [];
+  const chartData = chart?.map(p => ({ label: p.date?.slice(5) ?? '', value: p.revenue ?? 0 })) ?? [];
   const recentOrders = stats?.recentOrders?.slice(0, 8) ?? [];
   const topProducts = stats?.topProducts?.slice(0, 5) ?? [];
-  const lowStockCount = stats?.products.lowStock ?? 0;
-  const todayRevenue = stats?.revenue.today ?? 0;
-  const monthRevenue = stats?.revenue.thisMonth ?? 1;
-  const todayPct = Math.round((todayRevenue / monthRevenue) * 100);
+  const lowStockCount = stats?.products?.lowStock ?? 0;
+  const todayRevenue = stats?.revenue?.today ?? 0;
+  const monthRevenue = stats?.revenue?.thisMonth ?? 0;
+  const todayPct = monthRevenue > 0 ? Math.round((todayRevenue / monthRevenue) * 100) : 0;
 
   // Order status pipeline
-  const byStatus = stats?.orders.byStatus ?? {};
+  const byStatus = stats?.orders?.byStatus ?? {};
   const pipelineCards = [
     { label: 'Order Placed', key: 'PENDING', icon: <ShoppingCart className="w-4 h-4" />, bg: '#fffbeb', color: '#d97706', href: '/admin/orders?status=PENDING' },
     { label: 'Confirmed', key: 'CONFIRMED', icon: <CheckCircle2 className="w-4 h-4" />, bg: '#eff6ff', color: '#2563eb', href: '/admin/orders?status=CONFIRMED' },
@@ -304,7 +304,7 @@ export default function AdminDashboard() {
   ];
 
   // Payment method donut
-  const byPayment = stats?.orders.byPayment ?? {};
+  const byPayment = stats?.orders?.byPayment ?? {};
   const PAYMENT_COLORS: Record<string, string> = {
     COD: '#f59e0b', BKASH: '#e11d48', NAGAD: '#f97316',
     ROCKET: '#8b5cf6', CARD: '#3b82f6', OTHER: '#6b7280',
@@ -337,7 +337,7 @@ export default function AdminDashboard() {
     type: o.status === 'CANCELLED' ? 'cancelled' : o.status === 'DELIVERED' ? 'delivered' : 'new',
     text: `#${o.orderNumber} — ${o.user?.firstName ?? ''} ${o.user?.lastName ?? ''}`.trim(),
     sub: o.status,
-    amount: formatCurrency(Number(o.total)),
+    amount: formatCurrency(Number(o.total ?? 0)),
   }));
 
   return (
@@ -368,26 +368,26 @@ export default function AdminDashboard() {
       {/* ── Row 1: KPI Cards ──────────────────────────────────────────── */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         <KpiCard
-          label="Total Revenue" value={formatCurrency(stats?.revenue.total ?? 0)}
+          label="Total Revenue" value={formatCurrency(stats?.revenue?.total ?? 0)}
           sub={`Today: ${formatCurrency(todayRevenue)} · ${todayPct}% of month`}
           gradient="linear-gradient(135deg, #10b981, #059669)" labelColor="#a7f3d0" subColor="#6ee7b7"
           icon={<TrendingUp className="w-5 h-5" />}
         />
         <KpiCard
-          label="Total Orders" value={String(stats?.orders.total ?? 0)}
-          sub={`${stats?.orders.pending ?? 0} pending · needs attention`}
+          label="Total Orders" value={String(stats?.orders?.total ?? 0)}
+          sub={`${stats?.orders?.pending ?? 0} pending · needs attention`}
           gradient="linear-gradient(135deg, #3b82f6, #4f46e5)" labelColor="#bfdbfe" subColor="#93c5fd"
           icon={<ShoppingBag className="w-5 h-5" />}
         />
         <KpiCard
-          label="Total Products" value={String(stats?.products.total ?? 0)}
+          label="Total Products" value={String(stats?.products?.total ?? 0)}
           sub={`${lowStockCount} low stock ${lowStockCount > 0 ? '⚠️' : '✓'}`}
           gradient="linear-gradient(135deg, #8b5cf6, #7c3aed)" labelColor="#ddd6fe" subColor="#c4b5fd"
           icon={<Package className="w-5 h-5" />}
         />
         <KpiCard
-          label="Total Customers" value={String(stats?.customers.total ?? 0)}
-          sub={`↑ ${stats?.customers.newThisMonth ?? 0} new this month`}
+          label="Total Customers" value={String(stats?.customers?.total ?? 0)}
+          sub={`↑ ${stats?.customers?.newThisMonth ?? 0} new this month`}
           gradient="linear-gradient(135deg, #f59e0b, #d97706)" labelColor="#fef3c7" subColor="#fde68a"
           icon={<Users className="w-5 h-5" />}
         />
@@ -396,11 +396,11 @@ export default function AdminDashboard() {
       {/* ── Row 2: Mini Stats ─────────────────────────────────────────── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
         <MiniStat label="Today Revenue" value={formatCurrency(todayRevenue)} icon={<TrendingUp className="w-4 h-4" />} color="#10b981" />
-        <MiniStat label="This Month" value={formatCurrency(stats?.revenue.thisMonth ?? 0)} icon={<CreditCard className="w-4 h-4" />} color="#6366f1" />
+        <MiniStat label="This Month" value={formatCurrency(stats?.revenue?.thisMonth ?? 0)} icon={<CreditCard className="w-4 h-4" />} color="#6366f1" />
         <MiniStat label="Categories" value={String(stats?.categories?.total ?? 0)} icon={<LayoutGrid className="w-4 h-4" />} color="#8b5cf6" />
         <MiniStat label="Low Stock" value={String(lowStockCount)} icon={<AlertTriangle className="w-4 h-4" />} color="#ef4444" />
-        <MiniStat label="New Customers" value={String(stats?.customers.newThisMonth ?? 0)} icon={<Users className="w-4 h-4" />} color="#3b82f6" />
-        <MiniStat label="Pending Orders" value={String(stats?.orders.pending ?? 0)} icon={<Clock className="w-4 h-4" />} color="#f59e0b" />
+        <MiniStat label="New Customers" value={String(stats?.customers?.newThisMonth ?? 0)} icon={<Users className="w-4 h-4" />} color="#3b82f6" />
+        <MiniStat label="Pending Orders" value={String(stats?.orders?.pending ?? 0)} icon={<Clock className="w-4 h-4" />} color="#f59e0b" />
         <MiniStat label="Abandoned Carts" value={String(stats?.orders?.abandonedCarts ?? 0)} icon={<ShoppingCart className="w-4 h-4" />} color="#f97316" />
       </div>
 
@@ -414,8 +414,8 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-4">
             {[
               { label: 'Today', value: todayRevenue, color: '#6ee7b7' },
-              { label: 'Month', value: stats?.revenue.thisMonth ?? 0, color: '#a5b4fc' },
-              { label: 'Total', value: stats?.revenue.total ?? 0, color: '#fde68a' },
+              { label: 'Month', value: stats?.revenue?.thisMonth ?? 0, color: '#a5b4fc' },
+              { label: 'Total', value: stats?.revenue?.total ?? 0, color: '#fde68a' },
             ].map(item => (
               <div key={item.label} className="text-right hidden sm:block">
                 <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 10, fontWeight: 600 }}>{item.label}</p>
@@ -535,7 +535,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="flex items-center gap-2.5 flex-shrink-0 ml-3">
                     <StatusBadge status={order.status} />
-                    <span className="font-black text-sm text-gray-800 w-20 text-right">{formatCurrency(Number(order.total))}</span>
+                    <span className="font-black text-sm text-gray-800 w-20 text-right">{formatCurrency(Number(order.total ?? 0))}</span>
                     <Link href={`/admin/orders/${order.id}`} className="text-xs font-semibold rounded-lg px-2 py-1 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors flex-shrink-0">
                       View →
                     </Link>

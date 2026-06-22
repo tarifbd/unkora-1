@@ -24,7 +24,7 @@ export default function StoreCreditPage() {
   const users = data?.data ?? [];
 
   const issueCredit = async () => {
-    if (!selectedUser || !amount || parseFloat(amount) <= 0) {
+    if (!selectedUser || !amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
       toast.error('Please select a user and enter a valid amount');
       return;
     }
