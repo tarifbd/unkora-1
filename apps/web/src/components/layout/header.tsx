@@ -7,14 +7,21 @@ import {
   Menu, X, Search, User, ShoppingCart, ChevronDown,
   MapPin, Phone, HelpCircle,
   Package, Heart, CreditCard, Settings, LogOut, Gift, Truck, CalendarClock, Store,
+  Dumbbell, Shirt,
 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth.store';
+import { categoriesApi } from '@/lib/api/products';
 import { useCartStore } from '@/store/cart.store';
 import { useGuestCart } from '@/store/guest-cart.store';
+import { useGuestWishlist } from '@/store/guest-wishlist.store';
+import { wishlistApi } from '@/lib/api/wishlist';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useLanguage } from '@/lib/i18n/language-context';
+import api from '@/lib/api';
 import type { LucideIcon } from 'lucide-react';
 
 interface NavCategory {
@@ -32,9 +39,24 @@ const NAV_CATEGORIES: NavCategory[] = [
   { nameKey: 'organicFoods',     displayName: 'Organic Foods',     icon: Leaf,        slug: 'organic-foods',    subnav: ['Nuts & Seeds', 'Honey & Sweeteners', 'Spices & Herbs', 'Healthy Snacks', 'Tea & Beverages'] },
   { nameKey: 'islamicLifestyle', displayName: 'Islamic Lifestyle', icon: Moon,        slug: 'islamic-lifestyle', subnav: ['Prayer Essentials', 'Islamic Books (Lifestyle)', 'Quran Accessories', 'Islamic Clothing', 'Perfumes & Oud', 'Tasbih & Decor'] },
   { nameKey: 'handicrafts',      displayName: 'Handicrafts',       icon: Palette,     slug: 'handicrafts',      subnav: ['Wall Art', 'Showpieces', 'Lamps & Lighting', 'Rugs & Carpets', 'Traditional Crafts'] },
-  { nameKey: 'electronics',      displayName: 'Electronics',       icon: Zap,         slug: 'electronics',      subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances', 'Gadgets'] },
-  { nameKey: 'dailyNeeds',       displayName: 'Daily Needs',       icon: ShoppingBag, slug: 'daily-needs',      subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery', 'Pet Care'] },
+  { nameKey: 'electronics',        displayName: 'Electronics',         icon: Zap,       slug: 'electronics',        subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances', 'Gadgets'] },
+  { nameKey: 'dailyNeeds',         displayName: 'Daily Needs',         icon: ShoppingBag, slug: 'daily-needs',      subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery', 'Pet Care'] },
+  { nameKey: 'healthSports',       displayName: 'Health & Sports',     icon: Dumbbell,  slug: 'health-sports',      subnav: ['Fitness Equipment', 'Sports', 'Supplements', 'Sportswear', 'Health Monitors', 'Yoga & Wellness'] },
+  { nameKey: 'fashionLifestyle',   displayName: 'Fashion & Lifestyle', icon: Shirt,     slug: 'fashion-lifestyle',  subnav: ["Men's Fashion", "Women's Fashion", 'Footwear', 'Accessories', 'Beauty & Grooming', 'Kids Fashion'] },
 ];
+
+const SLUG_TO_NAV: Record<string, Partial<NavCategory>> = {
+  'books':            { nameKey: 'books',            icon: Book,        subnav: ['Authors', 'Subjects', 'Publishers', 'Academic Books', 'E-Books', 'Islamic Books'] },
+  'baby-products':    { nameKey: 'babyProducts',     icon: Baby,        subnav: ['Diapering & Care', 'Feeding & Nursing', 'Baby Gear', 'Toys & Games', 'Baby Clothing'] },
+  'leather-products': { nameKey: 'leatherProducts',  icon: Briefcase,   subnav: ['Wallets & Cards', 'Bags & Backpacks', 'Belts & Accessories'] },
+  'organic-foods':    { nameKey: 'organicFoods',     icon: Leaf,        subnav: ['Nuts & Seeds', 'Honey & Sweeteners', 'Spices & Herbs', 'Healthy Snacks'] },
+  'islamic-lifestyle':{ nameKey: 'islamicLifestyle', icon: Moon,        subnav: ['Prayer Essentials', 'Islamic Books (Lifestyle)', 'Quran Accessories', 'Islamic Clothing'] },
+  'handicrafts':      { nameKey: 'handicrafts',      icon: Palette,     subnav: ['Wall Art', 'Showpieces', 'Lamps & Lighting', 'Rugs & Carpets'] },
+  'electronics':        { nameKey: 'electronics',       icon: Zap,       subnav: ['Mobiles', 'Laptops', 'Accessories', 'Home Appliances'] },
+  'daily-needs':        { nameKey: 'dailyNeeds',        icon: ShoppingBag, subnav: ['Grocery', 'Personal Care', 'Household', 'Stationery'] },
+  'health-sports':      { nameKey: 'healthSports',      icon: Dumbbell,  subnav: ['Fitness Equipment', 'Sports', 'Supplements', 'Sportswear', 'Health Monitors', 'Yoga & Wellness'] },
+  'fashion-lifestyle':  { nameKey: 'fashionLifestyle',  icon: Shirt,     subnav: ["Men's Fashion", "Women's Fashion", 'Footwear', 'Accessories', 'Beauty & Grooming', 'Kids Fashion'] },
+};
 
 function getSubnavHref(catSlug: string, sub: string): string {
   return `/products?categorySlug=${encodeURIComponent(catSlug)}`;
@@ -260,6 +282,60 @@ const SUBNAV_DROPDOWNS: Record<string, { label: string; labelBn: string; href: s
     { label: 'Islamic Wall Art', labelBn: 'ইসলামিক ওয়াল আর্ট',    href: '/islamic-lifestyle?tag=wall-art' },
     { label: 'All Decor →',      labelBn: 'সব ডেকোর →',           href: '/islamic-lifestyle?tag=decor' },
   ],
+  'Fitness Equipment': [
+    { label: 'Dumbbells & Barbells', labelBn: 'ডাম্বেল ও বারবেল',     href: '/products?categorySlug=health-sports&sub=dumbbells' },
+    { label: 'Resistance Bands',     labelBn: 'রেজিস্ট্যান্স ব্যান্ড', href: '/products?categorySlug=health-sports&sub=bands' },
+    { label: 'Yoga Mats',            labelBn: 'যোগব্যায়াম ম্যাট',      href: '/products?categorySlug=health-sports&sub=yoga-mats' },
+    { label: 'Treadmills',           labelBn: 'ট্রেডমিল',               href: '/products?categorySlug=health-sports&sub=treadmill' },
+    { label: 'Pull-up Bars',         labelBn: 'পুলআপ বার',              href: '/products?categorySlug=health-sports&sub=pull-up' },
+    { label: 'All Equipment →',      labelBn: 'সব সরঞ্জাম →',          href: '/products?categorySlug=health-sports' },
+  ],
+  'Sports': [
+    { label: 'Cricket',      labelBn: 'ক্রিকেট',      href: '/products?categorySlug=health-sports&sub=cricket' },
+    { label: 'Football',     labelBn: 'ফুটবল',        href: '/products?categorySlug=health-sports&sub=football' },
+    { label: 'Badminton',    labelBn: 'ব্যাডমিন্টন',  href: '/products?categorySlug=health-sports&sub=badminton' },
+    { label: 'Table Tennis', labelBn: 'টেবিল টেনিস',  href: '/products?categorySlug=health-sports&sub=table-tennis' },
+    { label: 'Swimming',     labelBn: 'সাঁতার',        href: '/products?categorySlug=health-sports&sub=swimming' },
+    { label: 'All Sports →', labelBn: 'সব স্পোর্টস →', href: '/products?categorySlug=health-sports' },
+  ],
+  'Supplements': [
+    { label: 'Protein Powder',  labelBn: 'প্রোটিন পাউডার', href: '/products?categorySlug=health-sports&sub=protein' },
+    { label: 'Vitamins',        labelBn: 'ভিটামিন',         href: '/products?categorySlug=health-sports&sub=vitamins' },
+    { label: 'Weight Gainers',  labelBn: 'ওজন বৃদ্ধির সাপ্লিমেন্ট', href: '/products?categorySlug=health-sports&sub=mass-gainer' },
+    { label: 'Pre-Workout',     labelBn: 'প্রি-ওয়ার্কআউট',  href: '/products?categorySlug=health-sports&sub=pre-workout' },
+    { label: 'All Supplements →', labelBn: 'সব সাপ্লিমেন্ট →', href: '/products?categorySlug=health-sports' },
+  ],
+  "Men's Fashion": [
+    { label: 'Panjabi & Kurta', labelBn: 'পাঞ্জাবি ও কুর্তা', href: '/products?categorySlug=fashion-lifestyle&sub=panjabi' },
+    { label: 'Formal Shirts',   labelBn: 'ফর্মাল শার্ট',        href: '/products?categorySlug=fashion-lifestyle&sub=shirts' },
+    { label: 'T-Shirts & Polo', labelBn: 'টি-শার্ট ও পোলো',    href: '/products?categorySlug=fashion-lifestyle&sub=tshirts' },
+    { label: 'Jeans & Pants',   labelBn: 'জিন্স ও প্যান্ট',    href: '/products?categorySlug=fashion-lifestyle&sub=jeans' },
+    { label: 'Suits & Blazers', labelBn: 'স্যুট ও ব্লেজার',    href: '/products?categorySlug=fashion-lifestyle&sub=suits' },
+    { label: 'All Men\'s →',    labelBn: 'সব পুরুষ পোশাক →',   href: '/products?categorySlug=fashion-lifestyle' },
+  ],
+  "Women's Fashion": [
+    { label: 'Saree',          labelBn: 'শাড়ি',         href: '/products?categorySlug=fashion-lifestyle&sub=saree' },
+    { label: 'Salwar Kameez',  labelBn: 'সালোয়ার কামিজ', href: '/products?categorySlug=fashion-lifestyle&sub=salwar' },
+    { label: 'Kurti & Tops',   labelBn: 'কুর্তি ও টপস',  href: '/products?categorySlug=fashion-lifestyle&sub=kurti' },
+    { label: 'Hijab & Abaya',  labelBn: 'হিজাব ও আবায়া', href: '/products?categorySlug=fashion-lifestyle&sub=hijab' },
+    { label: 'Western Wear',   labelBn: 'ওয়েস্টার্ন পোশাক', href: '/products?categorySlug=fashion-lifestyle&sub=western' },
+    { label: "All Women's →",  labelBn: 'সব নারী পোশাক →', href: '/products?categorySlug=fashion-lifestyle' },
+  ],
+  'Footwear': [
+    { label: 'Men\'s Shoes',    labelBn: 'পুরুষের জুতা',   href: '/products?categorySlug=fashion-lifestyle&sub=mens-shoes' },
+    { label: 'Women\'s Shoes',  labelBn: 'নারীর জুতা',     href: '/products?categorySlug=fashion-lifestyle&sub=womens-shoes' },
+    { label: 'Sandals & Slippers', labelBn: 'স্যান্ডেল ও স্লিপার', href: '/products?categorySlug=fashion-lifestyle&sub=sandals' },
+    { label: 'Sports Shoes',    labelBn: 'স্পোর্টস জুতা',  href: '/products?categorySlug=fashion-lifestyle&sub=sports-shoes' },
+    { label: 'All Footwear →',  labelBn: 'সব জুতা →',      href: '/products?categorySlug=fashion-lifestyle' },
+  ],
+  'Beauty & Grooming': [
+    { label: 'Skincare',        labelBn: 'স্কিন কেয়ার',  href: '/products?categorySlug=fashion-lifestyle&sub=skincare' },
+    { label: 'Makeup',          labelBn: 'মেকআপ',         href: '/products?categorySlug=fashion-lifestyle&sub=makeup' },
+    { label: 'Haircare',        labelBn: 'হেয়ার কেয়ার',  href: '/products?categorySlug=fashion-lifestyle&sub=haircare' },
+    { label: 'Fragrances',      labelBn: 'পারফিউম',       href: '/products?categorySlug=fashion-lifestyle&sub=perfume' },
+    { label: 'Men\'s Grooming', labelBn: 'পুরুষ গ্রুমিং', href: '/products?categorySlug=fashion-lifestyle&sub=mens-grooming' },
+    { label: 'All Beauty →',    labelBn: 'সব বিউটি →',    href: '/products?categorySlug=fashion-lifestyle' },
+  ],
 };
 
 const BN_SUBNAV: Record<string, Record<string, string>> = {
@@ -269,7 +345,9 @@ const BN_SUBNAV: Record<string, Record<string, string>> = {
   'handicrafts':      { 'Wall Art': 'দেওয়াল শিল্প', 'Showpieces': 'শোপিস', 'Lamps & Lighting': 'প্রদীপ', 'Rugs & Carpets': 'কার্পেট', 'Traditional Crafts': 'ঐতিহ্যবাহী শিল্প' },
   'electronics':      { 'Mobiles': 'মোবাইল', 'Laptops': 'ল্যাপটপ', 'Accessories': 'আনুষাঙ্গিক', 'Home Appliances': 'হোম অ্যাপ্লায়েন্স', 'Gadgets': 'গ্যাজেট' },
   'daily-needs':        { 'Grocery': 'মুদি', 'Personal Care': 'ব্যক্তিগত যত্ন', 'Household': 'গৃহস্থালি', 'Stationery': 'স্টেশনারি', 'Pet Care': 'পোষা প্রাণীর যত্ন' },
-  'islamic-lifestyle':  { 'Prayer Essentials': 'নামাজের সরঞ্জাম', 'Islamic Books (Lifestyle)': 'ইসলামিক বই', 'Quran Accessories': 'কুরআন সামগ্রী', 'Islamic Clothing': 'ইসলামিক পোশাক', 'Perfumes & Oud': 'আতর ও আউড', 'Tasbih & Decor': 'তাসবিহ ও ডেকোর' },
+  'islamic-lifestyle':   { 'Prayer Essentials': 'নামাজের সরঞ্জাম', 'Islamic Books (Lifestyle)': 'ইসলামিক বই', 'Quran Accessories': 'কুরআন সামগ্রী', 'Islamic Clothing': 'ইসলামিক পোশাক', 'Perfumes & Oud': 'আতর ও আউড', 'Tasbih & Decor': 'তাসবিহ ও ডেকোর' },
+  'health-sports':       { 'Fitness Equipment': 'ফিটনেস সরঞ্জাম', 'Sports': 'স্পোর্টস', 'Supplements': 'সাপ্লিমেন্ট', 'Sportswear': 'স্পোর্টসওয়্যার', 'Health Monitors': 'স্বাস্থ্য মনিটর', 'Yoga & Wellness': 'যোগব্যায়াম ও ওয়েলনেস' },
+  'fashion-lifestyle':   { "Men's Fashion": 'পুরুষ ফ্যাশন', "Women's Fashion": 'নারী ফ্যাশন', 'Footwear': 'জুতা', 'Accessories': 'আনুষাঙ্গিক', 'Beauty & Grooming': 'বিউটি ও গ্রুমিং', 'Kids Fashion': 'শিশু ফ্যাশন' },
 };
 
 const MEGA_CATEGORIES = [
@@ -277,11 +355,18 @@ const MEGA_CATEGORIES = [
     emoji: '📚', name: 'Books', nameBn: 'বই',
     href: '/products?categorySlug=books',
     subs: [
-      { label: 'Novel / Fiction', labelBn: 'উপন্যাস',      href: '/products?categorySlug=books' },
-      { label: 'Islamic Books',   labelBn: 'ইসলামিক বই',   href: '/products?categorySlug=books' },
-      { label: 'Self-Help',       labelBn: 'আত্মউন্নয়ন',   href: '/products?categorySlug=books' },
-      { label: 'Academic',        labelBn: 'একাডেমিক',      href: '/products?categorySlug=books' },
-      { label: 'All Books →',     labelBn: 'সব বই →',      href: '/products?categorySlug=books' },
+      { label: 'Novel / Fiction',       labelBn: 'উপন্যাস',              href: '/products?categorySlug=books&genre=Novel' },
+      { label: 'Islamic Books',         labelBn: 'ইসলামিক বই',           href: '/products?categorySlug=books&genre=Islamic' },
+      { label: 'Academic / BCS',        labelBn: 'একাডেমিক / বিসিএস',    href: '/products?categorySlug=books&genre=Academic' },
+      { label: 'Self-Help',             labelBn: 'আত্মউন্নয়ন',           href: '/products?categorySlug=books&genre=Self-Help' },
+      { label: 'History & Liberation',  labelBn: 'ইতিহাস ও মুক্তিযুদ্ধ', href: '/products?categorySlug=books&genre=History' },
+      { label: "Children's & Teen",     labelBn: 'শিশু-কিশোর',           href: '/products?categorySlug=books&genre=Children' },
+      { label: 'Mystery & Thriller',    labelBn: 'রহস্য ও থ্রিলার',      href: '/products?categorySlug=books&genre=Thriller' },
+      { label: 'Science & Technology',  labelBn: 'বিজ্ঞান ও প্রযুক্তি',  href: '/products?categorySlug=books&genre=Science' },
+      { label: 'Health & Medicine',     labelBn: 'স্বাস্থ্য ও চিকিৎসা',  href: '/products?categorySlug=books&genre=Health' },
+      { label: 'Comics & Manga',        labelBn: 'কমিকস ও ম্যাঙ্গা',     href: '/products?categorySlug=books&genre=Comics' },
+      { label: 'English Books',         labelBn: 'ইংরেজি বই',            href: '/products?categorySlug=books&genre=English' },
+      { label: 'All Books →',           labelBn: 'সব বই →',              href: '/products?categorySlug=books' },
     ],
   },
   {
@@ -361,60 +446,122 @@ const MEGA_CATEGORIES = [
       { label: 'All Daily →',    labelBn: 'সব দৈনন্দিন →',      href: '/products?categorySlug=daily-needs' },
     ],
   },
+  {
+    emoji: '🏋️', name: 'Health & Sports', nameBn: 'স্বাস্থ্য ও স্পোর্টস',
+    href: '/products?categorySlug=health-sports',
+    subs: [
+      { label: 'Fitness Equipment', labelBn: 'ফিটনেস সরঞ্জাম',  href: '/products?categorySlug=health-sports&sub=equipment' },
+      { label: 'Cricket & Football', labelBn: 'ক্রিকেট ও ফুটবল', href: '/products?categorySlug=health-sports&sub=cricket' },
+      { label: 'Supplements',       labelBn: 'সাপ্লিমেন্ট',       href: '/products?categorySlug=health-sports&sub=supplements' },
+      { label: 'Sportswear',        labelBn: 'স্পোর্টসওয়্যার',    href: '/products?categorySlug=health-sports&sub=sportswear' },
+      { label: 'Yoga & Wellness',   labelBn: 'যোগব্যায়াম',        href: '/products?categorySlug=health-sports&sub=yoga' },
+      { label: 'Health Monitors',   labelBn: 'স্বাস্থ্য মনিটর',   href: '/products?categorySlug=health-sports&sub=monitors' },
+      { label: 'All Health & Sports →', labelBn: 'সব পণ্য →',    href: '/products?categorySlug=health-sports' },
+    ],
+  },
+  {
+    emoji: '👗', name: 'Fashion & Lifestyle', nameBn: 'ফ্যাশন ও লাইফস্টাইল',
+    href: '/products?categorySlug=fashion-lifestyle',
+    subs: [
+      { label: "Men's Fashion",    labelBn: 'পুরুষ ফ্যাশন',      href: '/products?categorySlug=fashion-lifestyle&sub=mens' },
+      { label: "Women's Fashion",  labelBn: 'নারী ফ্যাশন',       href: '/products?categorySlug=fashion-lifestyle&sub=womens' },
+      { label: 'Footwear',         labelBn: 'জুতা',              href: '/products?categorySlug=fashion-lifestyle&sub=footwear' },
+      { label: 'Accessories',      labelBn: 'আনুষাঙ্গিক',        href: '/products?categorySlug=fashion-lifestyle&sub=accessories' },
+      { label: 'Beauty & Grooming',labelBn: 'বিউটি ও গ্রুমিং',   href: '/products?categorySlug=fashion-lifestyle&sub=beauty' },
+      { label: 'Kids Fashion',     labelBn: 'শিশু ফ্যাশন',       href: '/products?categorySlug=fashion-lifestyle&sub=kids' },
+      { label: 'All Fashion →',    labelBn: 'সব ফ্যাশন →',      href: '/products?categorySlug=fashion-lifestyle' },
+    ],
+  },
 ];
 
 // ── Rich right-panel content for each mega-menu category ──────────────────────
 const MEGA_CONTENT = [
-  // 0 — Books (Rokomari + Amazon inspired)
+  // 0 — Books (comprehensive — Rokomari+ level)
   {
     recommended: [
-      { label: 'Novel & Fiction',   labelBn: 'উপন্যাস',         emoji: '📖', color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
-      { label: 'Islamic Books',     labelBn: 'ইসলামিক বই',      emoji: '🕌', color: 'bg-amber-50 border-amber-200 text-amber-700' },
-      { label: 'Academic / BCS',    labelBn: 'একাডেমিক / বিসিএস', emoji: '🎓', color: 'bg-blue-50 border-blue-200 text-blue-700' },
-      { label: 'Self-Help',         labelBn: 'আত্মউন্নয়ন',      emoji: '💡', color: 'bg-purple-50 border-purple-200 text-purple-700' },
-      { label: "Children's",        labelBn: 'শিশুদের বই',       emoji: '🧸', color: 'bg-pink-50 border-pink-200 text-pink-700' },
-      { label: 'Comics & Graphic',  labelBn: 'কমিক্স',          emoji: '🖼️', color: 'bg-orange-50 border-orange-200 text-orange-700' },
+      { label: 'Novel & Fiction',      labelBn: 'উপন্যাস',              emoji: '📖', color: 'bg-emerald-50 border-emerald-200 text-emerald-700',  href: '/products?categorySlug=books&genre=Novel' },
+      { label: 'Islamic Books',        labelBn: 'ইসলামিক বই',           emoji: '🕌', color: 'bg-amber-50 border-amber-200 text-amber-700',         href: '/products?categorySlug=books&genre=Islamic' },
+      { label: 'Academic / BCS',       labelBn: 'একাডেমিক / বিসিএস',    emoji: '🎓', color: 'bg-blue-50 border-blue-200 text-blue-700',            href: '/products?categorySlug=books&genre=Academic' },
+      { label: 'Self-Help',            labelBn: 'আত্মউন্নয়ন',           emoji: '💡', color: 'bg-purple-50 border-purple-200 text-purple-700',       href: '/products?categorySlug=books&genre=Self-Help' },
+      { label: "Children's & Teen",    labelBn: 'শিশু-কিশোর',           emoji: '🧸', color: 'bg-pink-50 border-pink-200 text-pink-700',            href: '/products?categorySlug=books&genre=Children' },
+      { label: 'History & Liberation', labelBn: 'ইতিহাস ও মুক্তিযুদ্ধ', emoji: '📜', color: 'bg-red-50 border-red-200 text-red-700',               href: '/products?categorySlug=books&genre=History' },
+      { label: 'Mystery & Thriller',   labelBn: 'রহস্য ও থ্রিলার',      emoji: '🔍', color: 'bg-slate-50 border-slate-200 text-slate-700',         href: '/products?categorySlug=books&genre=Thriller' },
+      { label: 'Science & Tech',       labelBn: 'বিজ্ঞান ও প্রযুক্তি',  emoji: '🔬', color: 'bg-cyan-50 border-cyan-200 text-cyan-700',            href: '/products?categorySlug=books&genre=Science' },
+      { label: 'Health & Medicine',    labelBn: 'স্বাস্থ্য ও চিকিৎসা',  emoji: '💊', color: 'bg-teal-50 border-teal-200 text-teal-700',            href: '/products?categorySlug=books&genre=Health' },
+      { label: 'Comics & Manga',       labelBn: 'কমিক্স ও ম্যাঙ্গা',    emoji: '🎭', color: 'bg-orange-50 border-orange-200 text-orange-700',      href: '/products?categorySlug=books&genre=Comics' },
+      { label: 'English Books',        labelBn: 'ইংরেজি বই',            emoji: '📕', color: 'bg-indigo-50 border-indigo-200 text-indigo-700',      href: '/products?categorySlug=books&genre=English' },
+      { label: 'Best Sellers 🔥',      labelBn: 'বেস্ট সেলার 🔥',        emoji: '🔥', color: 'bg-rose-50 border-rose-200 text-rose-700',            href: '/products?categorySlug=books&sort=bestseller' },
     ],
     authors: [
-      { label: 'হুমায়ূন আহমেদ',          href: '/products?categorySlug=books' },
-      { label: 'রবীন্দ্রনাথ ঠাকুর',        href: '/products?categorySlug=books' },
-      { label: 'মানিক বন্দ্যোপাধ্যায়',     href: '/products?categorySlug=books' },
-      { label: 'শরৎচন্দ্র চট্টোপাধ্যায়',  href: '/products?categorySlug=books' },
-      { label: 'সমরেশ মজুমদার',            href: '/products?categorySlug=books' },
-      { label: 'James Clear',              href: '/products?categorySlug=books' },
-      { label: 'আরিফ আজাদ',               href: '/products?categorySlug=books' },
+      { label: 'হুমায়ূন আহমেদ',          href: '/products?categorySlug=books&author=humayun' },
+      { label: 'আরিফ আজাদ',              href: '/products?categorySlug=books&author=arif-azad' },
+      { label: 'রবীন্দ্রনাথ ঠাকুর',       href: '/products?categorySlug=books&author=rabindranath' },
+      { label: 'শরৎচন্দ্র চট্টোপাধ্যায়', href: '/products?categorySlug=books&author=sharat' },
+      { label: 'মুহম্মদ জাফর ইকবাল',      href: '/products?categorySlug=books&author=zafar-iqbal' },
+      { label: 'সমরেশ মজুমদার',           href: '/products?categorySlug=books&author=samaresh' },
+      { label: 'ইমদাদুল হক মিলন',         href: '/products?categorySlug=books&author=milon' },
+      { label: 'আনিসুল হক',               href: '/products?categorySlug=books&author=anisul-haq' },
+      { label: 'মানিক বন্দ্যোপাধ্যায়',    href: '/products?categorySlug=books&author=manik' },
+      { label: 'James Clear',             href: '/products?categorySlug=books&author=james-clear' },
+      { label: 'Robin Sharma',            href: '/products?categorySlug=books&author=robin-sharma' },
+      { label: 'সব লেখক →',               href: '/products?categorySlug=books' },
     ],
     columns: [
       { heading: 'Bengali Literature', headingBn: 'বাংলা সাহিত্য', links: [
-        { label: 'Novel / Fiction',    labelBn: 'উপন্যাস',           href: '/products?categorySlug=books' },
-        { label: 'Short Stories',      labelBn: 'ছোটগল্প',           href: '/products?categorySlug=books' },
-        { label: 'Poetry',             labelBn: 'কবিতা',             href: '/products?categorySlug=books' },
-        { label: 'Drama & Essays',     labelBn: 'নাটক ও প্রবন্ধ',    href: '/products?categorySlug=books' },
-        { label: 'Rhymes & Teen Lit',  labelBn: 'ছড়া ও কিশোর সাহিত্য', href: '/products?categorySlug=books' },
-        { label: 'Translated Lit',     labelBn: 'অনুবাদ সাহিত্য',   href: '/products?categorySlug=books' },
+        { label: 'Novel / Fiction',        labelBn: 'উপন্যাস',               href: '/products?categorySlug=books&genre=Novel' },
+        { label: 'Short Stories',          labelBn: 'ছোটগল্প',               href: '/products?categorySlug=books&genre=Short-Story' },
+        { label: 'Poetry',                 labelBn: 'কবিতা',                  href: '/products?categorySlug=books&genre=Poetry' },
+        { label: 'Drama & Essays',         labelBn: 'নাটক ও প্রবন্ধ',        href: '/products?categorySlug=books&genre=Drama' },
+        { label: 'Travel & Adventure',     labelBn: 'ভ্রমণ ও অ্যাডভেঞ্চার',  href: '/products?categorySlug=books&genre=Travel' },
+        { label: 'Mystery & Thriller',     labelBn: 'রহস্য ও থ্রিলার',        href: '/products?categorySlug=books&genre=Thriller' },
+        { label: 'Romance',                labelBn: 'রোমান্টিক উপন্যাস',      href: '/products?categorySlug=books&genre=Romance' },
+        { label: 'Science Fiction',        labelBn: 'বিজ্ঞান কল্পকাহিনী',    href: '/products?categorySlug=books&genre=Sci-Fi' },
+        { label: 'Humor & Satire',         labelBn: 'রম্যরচনা ও হাসির বই',   href: '/products?categorySlug=books&genre=Humor' },
+        { label: 'Autobiography & Memoir', labelBn: 'আত্মজীবনী ও স্মৃতিকথা', href: '/products?categorySlug=books&genre=Memoir' },
+        { label: 'Translated Literature',  labelBn: 'অনুবাদ সাহিত্য',        href: '/products?categorySlug=books&genre=Translated' },
+        { label: 'Rhymes & Folk',          labelBn: 'ছড়া ও লোকসাহিত্য',     href: '/products?categorySlug=books&genre=Rhymes' },
       ]},
       { heading: 'Islamic & Religious', headingBn: 'ইসলামিক ও ধর্মীয়', links: [
-        { label: 'Quran & Tafsir',   labelBn: 'কুরআন ও তাফসির',  href: '/products?categorySlug=books' },
-        { label: 'Hadith',           labelBn: 'হাদিস',            href: '/products?categorySlug=books' },
-        { label: 'Sirat & Biography',labelBn: 'সীরাত ও জীবনী',   href: '/products?categorySlug=books' },
-        { label: 'Islamic Fiction',  labelBn: 'ইসলামি উপন্যাস',  href: '/products?categorySlug=books' },
-        { label: 'Fiqh & Masail',    labelBn: 'ফিকহ ও মাসআলা',  href: '/products?categorySlug=books' },
+        { label: 'Holy Quran',             labelBn: 'কুরআন শরীফ',            href: '/products?categorySlug=books&genre=Quran' },
+        { label: 'Tafsir',                 labelBn: 'তাফসীর',                  href: '/products?categorySlug=books&genre=Tafsir' },
+        { label: 'Hadith',                 labelBn: 'হাদীস শরীফ',             href: '/products?categorySlug=books&genre=Hadith' },
+        { label: 'Fiqh & Masail',          labelBn: 'ফিকহ ও মাসআলা',         href: '/products?categorySlug=books&genre=Fiqh' },
+        { label: 'Sirat & Biography',      labelBn: 'সীরাত ও জীবনী',         href: '/products?categorySlug=books&genre=Sirat' },
+        { label: 'Islamic History',        labelBn: 'ইসলামী ইতিহাস',          href: '/products?categorySlug=books&genre=Islamic-History' },
+        { label: 'Islamic Novel',          labelBn: 'ইসলামী উপন্যাস',         href: '/products?categorySlug=books&genre=Islamic-Novel' },
+        { label: 'Self-Purification',      labelBn: 'আত্মশুদ্ধি ও তাযকিয়া', href: '/products?categorySlug=books&genre=Tazkiyah' },
+        { label: 'Dawah',                  labelBn: 'দাওয়াহ',                  href: '/products?categorySlug=books&genre=Dawah' },
+        { label: 'Islamic Law',            labelBn: 'ইসলামী আইন',             href: '/products?categorySlug=books&genre=Islamic-Law' },
+        { label: "Children's Islamic",     labelBn: 'শিশুদের ইসলামিক বই',    href: '/products?categorySlug=books&genre=Islamic-Children' },
+        { label: 'Islamic Parenting',      labelBn: 'ইসলামী পারিবারিক বই',   href: '/products?categorySlug=books&genre=Islamic-Family' },
       ]},
-      { heading: 'Academic', headingBn: 'একাডেমিক', links: [
-        { label: 'Primary School',    labelBn: 'প্রাথমিক শিক্ষা',  href: '/products?categorySlug=books' },
-        { label: 'SSC Prep',          labelBn: 'এসএসসি প্রস্তুতি', href: '/products?categorySlug=books' },
-        { label: 'HSC Prep',          labelBn: 'এইচএসসি প্রস্তুতি', href: '/products?categorySlug=books' },
-        { label: 'University Entry',  labelBn: 'বিশ্ববিদ্যালয় ভর্তি', href: '/products?categorySlug=books' },
-        { label: 'BCS Prep',          labelBn: 'বিসিএস প্রস্তুতি', href: '/products?categorySlug=books' },
-        { label: 'Medical',           labelBn: 'মেডিকেল',          href: '/products?categorySlug=books' },
+      { heading: 'Academic & Competitive', headingBn: 'একাডেমিক ও প্রতিযোগিতামূলক', links: [
+        { label: 'Primary School (1–5)',   labelBn: 'প্রাথমিক শিক্ষা (১–৫)',  href: '/products?categorySlug=books&genre=Primary' },
+        { label: 'JSC / JDC',             labelBn: 'জেএসসি / জেডিসি',        href: '/products?categorySlug=books&genre=JSC' },
+        { label: 'SSC Prep',              labelBn: 'এসএসসি প্রস্তুতি',        href: '/products?categorySlug=books&genre=SSC' },
+        { label: 'HSC Prep',              labelBn: 'এইচএসসি প্রস্তুতি',       href: '/products?categorySlug=books&genre=HSC' },
+        { label: 'University Admission',  labelBn: 'বিশ্ববিদ্যালয় ভর্তি',    href: '/products?categorySlug=books&genre=Uni-Admission' },
+        { label: 'BCS Prep',              labelBn: 'বিসিএস প্রস্তুতি',        href: '/products?categorySlug=books&genre=BCS' },
+        { label: 'Medical Admission',     labelBn: 'মেডিকেল ভর্তি',           href: '/products?categorySlug=books&genre=Medical-Admission' },
+        { label: 'Engineering Admission', labelBn: 'প্রকৌশল ভর্তি',           href: '/products?categorySlug=books&genre=Engineering' },
+        { label: 'Bank Job Prep',         labelBn: 'ব্যাংক জব প্রস্তুতি',    href: '/products?categorySlug=books&genre=Bank-Job' },
+        { label: 'Govt Job Prep',         labelBn: 'সরকারি চাকরি প্রস্তুতি', href: '/products?categorySlug=books&genre=Govt-Job' },
+        { label: 'IELTS / TOEFL',         labelBn: 'আইইএলটিএস / টোফেল',      href: '/products?categorySlug=books&genre=IELTS' },
+        { label: 'English Language',      labelBn: 'ইংরেজি ভাষা শিক্ষা',    href: '/products?categorySlug=books&genre=English-Language' },
       ]},
       { heading: 'More Categories', headingBn: 'আরো বিভাগ', links: [
-        { label: 'Self-Help',         labelBn: 'আত্মউন্নয়ন',        href: '/products?categorySlug=books' },
-        { label: 'Science & Tech',    labelBn: 'বিজ্ঞান ও প্রযুক্তি', href: '/products?categorySlug=books' },
-        { label: 'History',           labelBn: 'ইতিহাস ও ঐতিহ্য',   href: '/products?categorySlug=books' },
-        { label: 'Biography',         labelBn: 'জীবনী',              href: '/products?categorySlug=books' },
-        { label: 'Health',            labelBn: 'স্বাস্থ্য ও চিকিৎসা', href: '/products?categorySlug=books' },
-        { label: 'Best Sellers 🔥',   labelBn: 'বেস্ট সেলার 🔥',     href: '/products?categorySlug=books' },
+        { label: 'Self-Help & Motivation',     labelBn: 'আত্মউন্নয়ন ও মোটিভেশন',    href: '/products?categorySlug=books&genre=Self-Help' },
+        { label: 'Business & Entrepreneurship',labelBn: 'ব্যবসা ও উদ্যোক্তা',       href: '/products?categorySlug=books&genre=Business' },
+        { label: 'Psychology',                 labelBn: 'মনোবিজ্ঞান',                href: '/products?categorySlug=books&genre=Psychology' },
+        { label: 'History & Liberation War',   labelBn: 'ইতিহাস ও মুক্তিযুদ্ধ',     href: '/products?categorySlug=books&genre=History' },
+        { label: 'Science & Technology',       labelBn: 'বিজ্ঞান ও প্রযুক্তি',      href: '/products?categorySlug=books&genre=Science' },
+        { label: 'Health & Medicine',          labelBn: 'স্বাস্থ্য ও চিকিৎসা',      href: '/products?categorySlug=books&genre=Health' },
+        { label: "Children's & Young Adult",   labelBn: 'শিশু-কিশোর সাহিত্য',        href: '/products?categorySlug=books&genre=Children' },
+        { label: 'Comics & Manga',             labelBn: 'কমিক্স ও ম্যাঙ্গা',        href: '/products?categorySlug=books&genre=Comics' },
+        { label: 'English Fiction',            labelBn: 'ইংরেজি ফিকশন',             href: '/products?categorySlug=books&genre=English-Fiction' },
+        { label: 'English Non-Fiction',        labelBn: 'ইংরেজি নন-ফিকশন',         href: '/products?categorySlug=books&genre=English-Non-Fiction' },
+        { label: 'Dictionary & Reference',     labelBn: 'অভিধান ও রেফারেন্স',       href: '/products?categorySlug=books&genre=Reference' },
+        { label: 'Art, Music & Culture',       labelBn: 'শিল্প, সঙ্গীত ও সংস্কৃতি', href: '/products?categorySlug=books&genre=Art' },
       ]},
     ],
   },
@@ -570,6 +717,76 @@ const MEGA_CONTENT = [
       ]},
     ],
   },
+  // 8 — Health & Sports
+  {
+    columns: [
+      { heading: 'Fitness Equipment', headingBn: 'ফিটনেস সরঞ্জাম', links: [
+        { label: 'Dumbbells & Barbells',  labelBn: 'ডাম্বেল ও বারবেল',     href: '/products?categorySlug=health-sports&sub=dumbbells' },
+        { label: 'Resistance Bands',      labelBn: 'রেজিস্ট্যান্স ব্যান্ড', href: '/products?categorySlug=health-sports&sub=bands' },
+        { label: 'Treadmills',            labelBn: 'ট্রেডমিল',               href: '/products?categorySlug=health-sports&sub=treadmill' },
+        { label: 'Exercise Cycles',       labelBn: 'এক্সারসাইজ সাইকেল',     href: '/products?categorySlug=health-sports&sub=cycle' },
+        { label: 'Pull-up Bars',          labelBn: 'পুলআপ বার',              href: '/products?categorySlug=health-sports&sub=pull-up' },
+        { label: 'Gym Gloves',            labelBn: 'জিম গ্লাভস',             href: '/products?categorySlug=health-sports&sub=gloves' },
+        { label: 'Punching Bags',         labelBn: 'পাঞ্চিং ব্যাগ',          href: '/products?categorySlug=health-sports&sub=boxing' },
+        { label: 'All Equipment →',       labelBn: 'সব ফিটনেস →',           href: '/products?categorySlug=health-sports' },
+      ]},
+      { heading: 'Sports & Outdoor', headingBn: 'স্পোর্টস ও আউটডোর', links: [
+        { label: 'Cricket',        labelBn: 'ক্রিকেট',      href: '/products?categorySlug=health-sports&sub=cricket' },
+        { label: 'Football',       labelBn: 'ফুটবল',        href: '/products?categorySlug=health-sports&sub=football' },
+        { label: 'Badminton',      labelBn: 'ব্যাডমিন্টন',  href: '/products?categorySlug=health-sports&sub=badminton' },
+        { label: 'Table Tennis',   labelBn: 'টেবিল টেনিস',  href: '/products?categorySlug=health-sports&sub=table-tennis' },
+        { label: 'Swimming',       labelBn: 'সাঁতার',        href: '/products?categorySlug=health-sports&sub=swimming' },
+        { label: 'Cycling',        labelBn: 'সাইক্লিং',     href: '/products?categorySlug=health-sports&sub=cycling' },
+        { label: 'Trekking & Camping', labelBn: 'ট্রেকিং',  href: '/products?categorySlug=health-sports&sub=trekking' },
+        { label: 'All Sports →',   labelBn: 'সব স্পোর্টস →', href: '/products?categorySlug=health-sports' },
+      ]},
+      { heading: 'Health & Wellness', headingBn: 'স্বাস্থ্য ও সুস্থতা', links: [
+        { label: 'Protein Powder',    labelBn: 'প্রোটিন পাউডার',    href: '/products?categorySlug=health-sports&sub=protein' },
+        { label: 'Vitamins & Minerals', labelBn: 'ভিটামিন ও খনিজ', href: '/products?categorySlug=health-sports&sub=vitamins' },
+        { label: 'Mass Gainers',      labelBn: 'মাস গেইনার',         href: '/products?categorySlug=health-sports&sub=mass-gainer' },
+        { label: 'Yoga Mats & Blocks',labelBn: 'যোগব্যায়াম ম্যাট',  href: '/products?categorySlug=health-sports&sub=yoga' },
+        { label: 'BP Monitors',       labelBn: 'বিপি মনিটর',         href: '/products?categorySlug=health-sports&sub=bp-monitor' },
+        { label: 'Glucose Meters',    labelBn: 'গ্লুকোজ মিটার',      href: '/products?categorySlug=health-sports&sub=glucose' },
+        { label: 'Thermometers',      labelBn: 'থার্মোমিটার',         href: '/products?categorySlug=health-sports&sub=thermometer' },
+        { label: 'All Health →',      labelBn: 'সব পণ্য →',          href: '/products?categorySlug=health-sports' },
+      ]},
+    ],
+  },
+  // 9 — Fashion & Lifestyle
+  {
+    columns: [
+      { heading: "Men's Fashion", headingBn: 'পুরুষ ফ্যাশন', links: [
+        { label: 'Panjabi & Kurta',   labelBn: 'পাঞ্জাবি ও কুর্তা',   href: '/products?categorySlug=fashion-lifestyle&sub=panjabi' },
+        { label: 'Formal Shirts',     labelBn: 'ফর্মাল শার্ট',          href: '/products?categorySlug=fashion-lifestyle&sub=shirts' },
+        { label: 'T-Shirts & Polo',   labelBn: 'টি-শার্ট ও পোলো',      href: '/products?categorySlug=fashion-lifestyle&sub=tshirts' },
+        { label: 'Jeans & Pants',     labelBn: 'জিন্স ও প্যান্ট',      href: '/products?categorySlug=fashion-lifestyle&sub=jeans' },
+        { label: 'Suits & Blazers',   labelBn: 'স্যুট ও ব্লেজার',      href: '/products?categorySlug=fashion-lifestyle&sub=suits' },
+        { label: 'Activewear',        labelBn: 'অ্যাক্টিভওয়্যার',      href: '/products?categorySlug=fashion-lifestyle&sub=activewear' },
+        { label: "Men's Accessories", labelBn: 'পুরুষ আনুষাঙ্গিক',     href: '/products?categorySlug=fashion-lifestyle&sub=mens-acc' },
+        { label: "All Men's →",       labelBn: 'সব পুরুষ পোশাক →',     href: '/products?categorySlug=fashion-lifestyle' },
+      ]},
+      { heading: "Women's Fashion", headingBn: 'নারী ফ্যাশন', links: [
+        { label: 'Saree',             labelBn: 'শাড়ি',                 href: '/products?categorySlug=fashion-lifestyle&sub=saree' },
+        { label: 'Salwar Kameez',     labelBn: 'সালোয়ার কামিজ',        href: '/products?categorySlug=fashion-lifestyle&sub=salwar' },
+        { label: 'Kurti & Tops',      labelBn: 'কুর্তি ও টপস',         href: '/products?categorySlug=fashion-lifestyle&sub=kurti' },
+        { label: 'Hijab & Abaya',     labelBn: 'হিজাব ও আবায়া',        href: '/products?categorySlug=fashion-lifestyle&sub=hijab' },
+        { label: 'Western Wear',      labelBn: 'ওয়েস্টার্ন পোশাক',     href: '/products?categorySlug=fashion-lifestyle&sub=western' },
+        { label: 'Ethnic Wear',       labelBn: 'ঐতিহ্যবাহী পোশাক',     href: '/products?categorySlug=fashion-lifestyle&sub=ethnic' },
+        { label: "Women's Accessories", labelBn: 'নারী আনুষাঙ্গিক',    href: '/products?categorySlug=fashion-lifestyle&sub=womens-acc' },
+        { label: "All Women's →",     labelBn: 'সব নারী পোশাক →',      href: '/products?categorySlug=fashion-lifestyle' },
+      ]},
+      { heading: 'Footwear & Beauty', headingBn: 'জুতা ও বিউটি', links: [
+        { label: "Men's Shoes",       labelBn: 'পুরুষের জুতা',          href: '/products?categorySlug=fashion-lifestyle&sub=mens-shoes' },
+        { label: "Women's Shoes",     labelBn: 'নারীর জুতা',            href: '/products?categorySlug=fashion-lifestyle&sub=womens-shoes' },
+        { label: 'Sandals & Slippers',labelBn: 'স্যান্ডেল ও স্লিপার',   href: '/products?categorySlug=fashion-lifestyle&sub=sandals' },
+        { label: 'Skincare',          labelBn: 'স্কিন কেয়ার',           href: '/products?categorySlug=fashion-lifestyle&sub=skincare' },
+        { label: 'Makeup & Cosmetics',labelBn: 'মেকআপ ও কসমেটিক্স',    href: '/products?categorySlug=fashion-lifestyle&sub=makeup' },
+        { label: 'Fragrances',        labelBn: 'পারফিউম ও আতর',         href: '/products?categorySlug=fashion-lifestyle&sub=perfume' },
+        { label: 'Kids Fashion',      labelBn: 'শিশু ফ্যাশন',           href: '/products?categorySlug=fashion-lifestyle&sub=kids' },
+        { label: 'All Fashion →',     labelBn: 'সব পণ্য →',             href: '/products?categorySlug=fashion-lifestyle' },
+      ]},
+    ],
+  },
 ] as const;
 
 export function Header() {
@@ -588,8 +805,15 @@ export function Header() {
   const [megaOpen, setMegaOpen] = useState(false);
   const [megaHoverCat, setMegaHoverCat] = useState(0);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [mobileExpandedCat, setMobileExpandedCat] = useState<string | null>(null);
   const megaRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
+  const accountTriggerRef = useRef<HTMLDivElement>(null);
+  const accountPanelRef = useRef<HTMLDivElement>(null);
+  const [dropdownPos, setDropdownPos] = useState<{ top: number; right: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -605,19 +829,123 @@ export function Header() {
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
-        setAccountOpen(false);
-      }
+      const inTrigger = accountTriggerRef.current?.contains(e.target as Node);
+      const inPanel  = accountPanelRef.current?.contains(e.target as Node);
+      if (!inTrigger && !inPanel) setAccountOpen(false);
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAccountOpen(false);
     };
     if (accountOpen) {
       document.addEventListener('mousedown', handleClick);
+      document.addEventListener('keydown', handleKey);
     }
-    return () => document.removeEventListener('mousedown', handleClick);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('keydown', handleKey);
+    };
   }, [accountOpen]);
+
+  const openAccountDropdown = useCallback(() => {
+    if (accountTriggerRef.current) {
+      const rect = accountTriggerRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    }
+    setAccountOpen(o => !o);
+  }, []);
 
   const itemCount = isAuthenticated
     ? (cart?.itemCount ?? 0)
     : guestCart.items.reduce((sum, i) => sum + i.quantity, 0);
+
+  const guestWishlist = useGuestWishlist();
+  const { data: wishlistItems } = useQuery({
+    queryKey: ['wishlist'],
+    queryFn: () => wishlistApi.getAll(),
+    enabled: isAuthenticated,
+    staleTime: 60 * 1000,
+  });
+  const wishlistCount = isAuthenticated
+    ? (wishlistItems?.length ?? 0)
+    : guestWishlist.productIds.length;
+
+  const { data: apiCategories } = useQuery({
+    queryKey: ['nav-categories'],
+    queryFn: () => categoriesApi.getAll(false),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: contactConfig } = useQuery<Record<string, string>>({
+    queryKey: ['chatbot-config'],
+    queryFn: () => api.get('/chatbot/config').then(r => (r.data?.data ?? {}) as Record<string, string>),
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+  const supportPhone = contactConfig?.['contact.whatsappNumber']?.trim();
+
+  const { data: barBanner } = useQuery({
+    queryKey: ['announcement-bar'],
+    queryFn: () => api.get('/design/banners').then(r => {
+      const list: Array<{position: string; isActive: boolean; title?: string; subtitle?: string; linkUrl?: string; imageUrl?: string; ctaText?: string}> = r.data?.data ?? r.data ?? [];
+      return list.find(b => b.position === 'ANNOUNCEMENT_BAR' && b.isActive) ?? null;
+    }).catch(() => null),
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    setSearchQuery(q ?? '');
+  }, [searchParams]);
+
+  const dynamicNavCategories: NavCategory[] = (() => {
+    if (!apiCategories || apiCategories.length === 0) return NAV_CATEGORIES;
+    const featured = apiCategories
+      .filter(c => c.isFeatured)
+      .sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
+    // If fewer than 5 categories are marked featured, show all sorted by sortOrder
+    const source = featured.length >= 5
+      ? featured
+      : [...apiCategories].sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99)).slice(0, 8);
+    if (source.length === 0) return NAV_CATEGORIES;
+    const mapped = source.map(c => {
+      const meta = SLUG_TO_NAV[c.slug];
+      return {
+        nameKey: (meta?.nameKey ?? 'books') as NavCategory['nameKey'],
+        displayName: c.name,
+        icon: meta?.icon ?? ShoppingBag,
+        slug: c.slug,
+        subnav: meta?.subnav ?? [],
+      };
+    });
+
+    // Always ensure books appears first
+    const booksIdx = mapped.findIndex(c => c.slug === 'books');
+    let ordered: NavCategory[];
+    if (booksIdx > 0) {
+      const booksCat = mapped[booksIdx]!;
+      ordered = [booksCat, ...mapped.filter((_, i) => i !== booksIdx)];
+    } else if (booksIdx === -1) {
+      ordered = [NAV_CATEGORIES[0]!, ...mapped.slice(0, 7)];
+    } else {
+      ordered = mapped;
+    }
+
+    // Always ensure Islamic Lifestyle appears
+    if (!ordered.some(c => c.slug === 'islamic-lifestyle')) {
+      const islamicStatic = NAV_CATEGORIES.find(c => c.slug === 'islamic-lifestyle')!;
+      const organicIdx = ordered.findIndex(c => c.slug === 'organic-foods');
+      const insertAt = organicIdx !== -1 ? organicIdx + 1 : Math.min(4, ordered.length);
+      ordered = [
+        ...ordered.slice(0, insertAt),
+        islamicStatic,
+        ...ordered.slice(insertAt),
+      ].slice(0, 8);
+    }
+
+    return ordered;
+  })();
+
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -626,7 +954,7 @@ export function Header() {
     }
   };
 
-  const activeCategory = NAV_CATEGORIES[activeCategoryIndex] ?? NAV_CATEGORIES[0];
+  const activeCategory = dynamicNavCategories[activeCategoryIndex] ?? dynamicNavCategories[0];
 
   const getCatName = (cat: NavCategory) =>
     lang === 'bn' ? t.nav[cat.nameKey] : cat.displayName;
@@ -643,28 +971,54 @@ export function Header() {
 
   return (
     <>
+      {/* Announcement Bar */}
+      {barBanner && (
+        barBanner.linkUrl ? (
+          <a
+            href={barBanner.linkUrl}
+            className="block w-full text-center py-2 px-4 text-sm font-semibold transition-opacity hover:opacity-90"
+            style={{ background: barBanner.imageUrl ?? '#1d4ed8', color: barBanner.ctaText ?? '#ffffff' }}
+          >
+            {lang === 'bn' ? (barBanner.title ?? '') : (barBanner.subtitle ?? barBanner.title ?? '')}
+          </a>
+        ) : (
+          <div
+            className="w-full text-center py-2 px-4 text-sm font-semibold"
+            style={{ background: barBanner.imageUrl ?? '#1d4ed8', color: barBanner.ctaText ?? '#ffffff' }}
+          >
+            {lang === 'bn' ? (barBanner.title ?? '') : (barBanner.subtitle ?? barBanner.title ?? '')}
+          </div>
+        )
+      )}
       <header className="sticky top-0 z-50 w-full shadow-sm border-b border-gray-200 bg-white">
 
         {/* ── Tier 1: Utility bar ── */}
         <div className="bg-[#1a1a1a] py-1.5 hidden md:block">
-          <div className="max-w-7xl mx-auto px-4 flex justify-between items-center text-[11px] text-gray-300 font-medium">
+          <div className="max-w-[1400px] mx-auto px-4 flex justify-between items-center text-[11px] text-gray-300 font-medium">
             <div className="flex items-center gap-4">
-              {/* ── Preorder orbiting comet button — LEFT side ── */}
-              <Link href="/products?preorder=1" className="po-hdr-outer -my-1.5 normal-case">
-                {/* Circular badge — comet orbits this */}
-                <span className="po-hdr-badge">
-                  <CalendarClock className="po-hdr-cal w-3.5 h-3.5 text-emerald-400" />
-                  {/* Spin arm AFTER icon so comet renders on top */}
-                  <span className="po-hdr-spin-arm">
-                    <span className="po-hdr-comet" />
+              {/* ── Sell on Unkora animated button — LEFT side ── */}
+              <Link href="/publish" className="sell-border-wrapper normal-case hover:scale-105 transition-transform duration-200 group self-center -my-1.5">
+                <span className="sell-spark sell-spark-1" />
+                <span className="sell-spark sell-spark-2" />
+                <span className="sell-spark sell-spark-3" />
+                <span className="sell-spark sell-spark-4" />
+                <div className="sell-cta-inner">
+                  <span className="relative flex h-2 w-2 flex-shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
                   </span>
-                </span>
-                {/* Text pill */}
-                <span className="po-hdr-pill">
-                  <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Pre-Order</span>
-                  <span className="text-white/30 text-[10px]">/</span>
-                  <span className="po-hdr-txt">প্রি-অর্ডার</span>
-                </span>
+                  <span
+                    className={cn(
+                      'text-white whitespace-nowrap antialiased [text-shadow:0_1px_2px_rgba(0,0,0,0.55)]',
+                      lang === 'bn'
+                        ? 'text-xs font-bold tracking-normal'
+                        : 'text-[10px] font-black tracking-wide',
+                    )}
+                  >
+                    {lang === 'bn' ? 'বই বিক্রি করুন' : 'Sell Your Book'}
+                  </span>
+                  <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-full" />
+                </div>
               </Link>
 
               <div className="h-3 w-px bg-gray-600" />
@@ -696,36 +1050,58 @@ export function Header() {
                 </button>
               </div>
             </div>
-            <div className="flex items-center gap-5 uppercase tracking-wide">
+            <div className="flex items-center gap-4 uppercase tracking-wide">
+              {/* Pre-Order — simple button, far right of top bar */}
+              <Link
+                href="/preorder"
+                className="flex items-center gap-1.5 bg-emerald-600/90 hover:bg-emerald-500 text-white font-black text-[10px] tracking-wider px-3 py-1.5 rounded-full transition-colors whitespace-nowrap normal-case shadow-sm shadow-emerald-900/40"
+              >
+                <CalendarClock className="w-3 h-3 flex-shrink-0" />
+                Pre-Order
+                <span className="text-white/50">/</span>
+                <span className="text-emerald-200">প্রি-অর্ডার</span>
+              </Link>
+              <div className="h-3 w-px bg-gray-600" />
               <Link href="/support" className="hover:text-primary transition-colors flex items-center gap-1">
                 <HelpCircle className="w-3 h-3" /> {t.header.support}
               </Link>
               <Link href="/track-order" className="hover:text-primary transition-colors">{t.header.trackOrder}</Link>
-              <Link href="/publish" className="sell-border-wrapper ml-2 normal-case hover:scale-110 transition-transform duration-200 group">
-                {/* Floating sparkles */}
-                <span className="sell-spark sell-spark-1" />
-                <span className="sell-spark sell-spark-2" />
-                <span className="sell-spark sell-spark-3" />
-                <span className="sell-spark sell-spark-4" />
-                <div className="sell-cta-inner">
-                  {/* Ping dot */}
-                  <span className="relative flex h-2 w-2 flex-shrink-0">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-400" />
-                  </span>
-                  <span className="text-white font-black text-[10px] tracking-wide whitespace-nowrap">Sell Your Book</span>
-                  <span className="text-white/30 text-[10px]">/</span>
-                  <span className="sell-bn-text whitespace-nowrap">বই বিক্রি করুন</span>
-                  {/* Hover shine sweep */}
-                  <span className="pointer-events-none absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-500 bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-full" />
-                </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Mobile utility strip (phone left / track + support right) ── */}
+        <div className="md:hidden bg-[#f8f4ef] border-b border-gray-100 px-4 py-1.5">
+          <div className="flex items-center justify-between text-[11px] text-gray-600 font-medium">
+            {/* Left: phone number */}
+            {supportPhone ? (
+              <a href={`tel:+${supportPhone}`} className="flex items-center gap-1 text-primary font-bold">
+                <Phone className="w-3 h-3 flex-shrink-0" />
+                <span>+{supportPhone}</span>
+              </a>
+            ) : (
+              <a href="tel:+8801700000000" className="flex items-center gap-1 text-primary font-bold">
+                <Phone className="w-3 h-3 flex-shrink-0" />
+                <span>+880 1700-000000</span>
+              </a>
+            )}
+            {/* Right: track order + support */}
+            <div className="flex items-center gap-3">
+              <Link href="/track-order" className="flex items-center gap-1 hover:text-primary transition-colors">
+                <Package className="w-3 h-3" />
+                <span>ট্র্যাক অর্ডার</span>
+              </Link>
+              <div className="w-px h-3 bg-gray-300" />
+              <Link href="/support" className="flex items-center gap-1 hover:text-primary transition-colors">
+                <HelpCircle className="w-3 h-3" />
+                <span>সাপোর্ট</span>
               </Link>
             </div>
           </div>
         </div>
 
         {/* ── Tier 2: Main bar ── */}
-        <div className="max-w-7xl mx-auto px-4 py-3 md:py-4 relative z-50 bg-white">
+        <div className="max-w-[1400px] mx-auto px-4 py-3 md:py-4 relative z-50 bg-white">
           <div className="flex items-center justify-between gap-4 md:gap-6 lg:gap-8">
 
             {/* Mobile toggle + Logo */}
@@ -748,7 +1124,7 @@ export function Header() {
               <div className="flex w-full rounded-lg overflow-hidden border-2 border-gray-200 focus-within:border-primary focus-within:shadow-md transition-all duration-300">
                 <select className="bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-600 border-r border-gray-200 cursor-pointer hover:bg-gray-200 focus:outline-none">
                   <option value="">{lang === 'bn' ? 'সব' : 'All'}</option>
-                  {NAV_CATEGORIES.map(c => (
+                  {dynamicNavCategories.map(c => (
                     <option key={c.slug} value={c.slug}>{getCatName(c)}</option>
                   ))}
                 </select>
@@ -771,146 +1147,38 @@ export function Header() {
             {/* Icons */}
             <div className="flex items-center gap-5 md:gap-6 lg:gap-8 flex-shrink-0 text-gray-800">
               {/* Account */}
-              <div
-                ref={accountRef}
-                className="relative flex items-center gap-2 cursor-pointer group transition-colors"
-                onMouseEnter={() => setAccountOpen(true)}
-                onMouseLeave={() => setAccountOpen(false)}
-              >
-                <div className={`p-2 transition-colors ${accountOpen ? 'text-secondary' : 'hover:text-secondary'}`}>
-                  <User className="w-[26px] h-[26px]" />
-                </div>
-                <div className="hidden lg:block text-left">
-                  <p className="text-[10px] text-gray-500 font-bold uppercase leading-tight">
-                    {isAuthenticated
-                      ? `${lang === 'bn' ? 'হ্যালো,' : 'Hello,'} ${
-                          user?.firstName
-                            || user?.name
-                            || (user?.role === 'ADMIN'
-                                ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')
-                                : user?.role === 'SELLER'
-                                ? (lang === 'bn' ? 'সেলার' : 'Seller')
-                                : (lang === 'bn' ? 'গ্রাহক' : 'Customer'))
-                        }`
-                      : t.header.helloSignIn}
-                  </p>
-                  <span className={`text-sm font-bold leading-tight flex items-center transition-colors ${accountOpen ? 'text-secondary' : 'text-gray-800'}`}>
-                    {isAuthenticated ? t.header.accountOrders : t.header.accountsLists}
-                    <ChevronDown className={`w-3 h-3 ml-0.5 transition-transform ${accountOpen ? 'rotate-180 text-secondary' : ''}`} />
-                  </span>
-                </div>
-
-                {/* Account Dropdown */}
-                {accountOpen && (
-                  <div className="absolute top-full right-0 z-[60] bg-white shadow-2xl rounded-xl border border-gray-100 overflow-hidden" style={{ width: '240px', marginTop: '0px' }}>
-                    {/* Top accent */}
-                    <div className="h-0.5 w-full bg-gradient-to-r from-primary to-secondary" />
-
-                    {/* Guest: Sign in / Register */}
-                    {!isAuthenticated && (
-                      <div className="px-4 pt-4 pb-3">
-                        <Link
-                          href="/login"
-                          onClick={() => setAccountOpen(false)}
-                          className="block w-full text-center bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 rounded-full text-sm transition-colors"
-                        >
-                          {lang === 'bn' ? 'সাইন ইন' : 'Sign in'}
-                        </Link>
-                        <div className="text-center mt-2">
-                          <span className="text-xs text-gray-500">{lang === 'bn' ? 'নতুন? ' : 'New? '}</span>
-                          <Link
-                            href="/register"
-                            onClick={() => setAccountOpen(false)}
-                            className="text-xs text-primary font-bold hover:underline"
-                          >
-                            {lang === 'bn' ? 'রেজিস্টার করুন' : 'Register'}
-                          </Link>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Authenticated: greeting */}
-                    {isAuthenticated && (
-                      <div className="px-4 pt-3 pb-2 flex items-center gap-3 bg-gray-50">
-                        <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
-                          <User className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-gray-900 leading-tight">
-                            {user?.firstName || user?.name ||
-                              (user?.role === 'ADMIN' ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')
-                              : user?.role === 'SELLER' ? (lang === 'bn' ? 'সেলার' : 'Seller')
-                              : (lang === 'bn' ? 'গ্রাহক' : 'Customer'))}
-                          </p>
-                          <Link href="/account" onClick={() => setAccountOpen(false)} className="text-[11px] text-primary hover:underline font-medium">
-                            {lang === 'bn' ? 'প্রোফাইল দেখুন' : 'View profile'}
-                          </Link>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="h-px bg-gray-100 mx-3 my-1" />
-
-                    {/* Primary menu items */}
-                    <div className="py-1">
-                      {[
-                        { icon: Package,       label: 'My Orders',       labelBn: 'আমার অর্ডার',     href: '/account/orders' },
-                        { icon: CalendarClock, label: 'My Pre-orders',   labelBn: 'প্রি-অর্ডার',      href: '/account/preorders' },
-                        { icon: Heart,         label: 'My Wishlist',      labelBn: 'উইশলিস্ট',        href: '/account/wishlist' },
-                        { icon: Truck,         label: 'Track Order',      labelBn: 'অর্ডার ট্র্যাক',  href: '/track-order' },
-                        { icon: CreditCard,    label: 'Payment',          labelBn: 'পেমেন্ট',          href: '/account/orders' },
-                        { icon: Gift,          label: 'My Coupons',       labelBn: 'কুপন',             href: '/account' },
-                        { icon: Store,         label: 'Seller Panel',     labelBn: 'সেলার প্যানেল',    href: '/seller/dashboard' },
-                      ].map(item => (
-                        <Link
-                          key={item.href + item.label}
-                          href={item.href}
-                          onClick={() => setAccountOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
-                        >
-                          <item.icon className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                          {lang === 'bn' ? item.labelBn : item.label}
-                        </Link>
-                      ))}
-                    </div>
-
-                    <div className="h-px bg-gray-100 mx-3 my-1" />
-
-                    {/* Secondary links */}
-                    <div className="py-1 pb-2">
-                      {[
-                        { label: 'Settings',              labelBn: 'সেটিংস',             href: '/account', authOnly: true },
-                        { label: 'Seller Login',          labelBn: 'সেলার লগইন',          href: '/seller/login' },
-                        { label: 'Become a Seller',      labelBn: 'সেলার হিসেবে যোগ দিন', href: '/seller/apply' },
-                        { label: 'Return & Refund Policy',labelBn: 'রিটার্ন ও রিফান্ড',   href: '/refund-policy' },
-                        { label: 'Help Center',           labelBn: 'সাহায্য কেন্দ্র',     href: '/help' },
-                        { label: 'Contact Us',            labelBn: 'যোগাযোগ করুন',        href: '/support' },
-                      ].filter(item => {
-                        if ('authOnly' in item && item.authOnly && !isAuthenticated) return false;
-                        if ('adminOnly' in item && item.adminOnly && user?.role === 'CUSTOMER') return false;
-                        return true;
-                      }).map(item => (
-                        <Link
-                          key={item.label}
-                          href={item.href}
-                          onClick={() => setAccountOpen(false)}
-                          className="block px-4 py-2 text-xs text-gray-500 hover:text-primary hover:bg-gray-50 transition-colors"
-                        >
-                          {lang === 'bn' ? item.labelBn : item.label}
-                        </Link>
-                      ))}
-                      {isAuthenticated && (
-                        <button
-                          onClick={() => { void logout.mutate(); setAccountOpen(false); }}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors"
-                        >
-                          <LogOut className="w-3.5 h-3.5" />
-                          {lang === 'bn' ? 'সাইন আউট' : 'Sign out'}
-                        </button>
-                      )}
-                    </div>
+              <div ref={accountRef} className="relative group">
+                {/* Trigger */}
+                <div
+                  ref={accountTriggerRef}
+                  className="flex items-center gap-2 cursor-pointer transition-colors"
+                  onClick={openAccountDropdown}
+                >
+                  <div className={`p-2 transition-colors ${accountOpen ? 'text-secondary' : 'hover:text-secondary'}`}>
+                    <User className="w-[26px] h-[26px]" />
                   </div>
-                )}
+                  <div className="hidden lg:block text-left">
+                    <p className="text-[10px] text-gray-500 font-bold uppercase leading-tight">
+                      {isAuthenticated
+                        ? `${lang === 'bn' ? 'হ্যালো,' : 'Hello,'} ${
+                            user?.firstName
+                              || user?.name
+                              || (user?.role === 'ADMIN'
+                                  ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')
+                                  : user?.role === 'SELLER'
+                                  ? (lang === 'bn' ? 'সেলার' : 'Seller')
+                                  : (lang === 'bn' ? 'গ্রাহক' : 'Customer'))
+                          }`
+                        : t.header.helloSignIn}
+                    </p>
+                    <span className={`text-sm font-bold leading-tight flex items-center transition-colors ${accountOpen ? 'text-secondary' : 'text-gray-800'}`}>
+                      {isAuthenticated ? t.header.accountOrders : t.header.accountsLists}
+                      <ChevronDown className={`w-3 h-3 ml-0.5 transition-transform ${accountOpen ? 'rotate-180 text-secondary' : ''}`} />
+                    </span>
+                  </div>
+                </div>
+
+                {/* Dropdown rendered via portal — see bottom of component */}
               </div>
 
               {/* Admin link */}
@@ -919,6 +1187,25 @@ export function Header() {
                   {t.header.admin}
                 </Link>
               )}
+
+              {/* Wishlist */}
+              <Link
+                href="/account/wishlist"
+                className="relative group cursor-pointer p-2 hover:text-secondary transition-colors flex items-center gap-2"
+                aria-label="Wishlist"
+              >
+                <div className="relative">
+                  <Heart className="w-[26px] h-[26px]" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[11px] font-black h-5 w-5 rounded-full flex items-center justify-center border-2 border-white">
+                      {wishlistCount > 9 ? '9+' : wishlistCount}
+                    </span>
+                  )}
+                </div>
+                <div className="hidden xl:block text-left pt-2">
+                  <p className="text-sm font-bold leading-tight">{lang === 'bn' ? 'উইশলিস্ট' : 'Wishlist'}</p>
+                </div>
+              </Link>
 
               {/* Cart */}
               <button
@@ -940,8 +1227,8 @@ export function Header() {
           </div>
 
           {/* Mobile Search */}
-          <div className="mt-3 md:hidden bg-primary/20 p-2 rounded-lg">
-            <form onSubmit={handleSearch} className="flex rounded-lg overflow-hidden border-2 border-white bg-white focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all duration-300">
+          <div className="mt-2 pb-2 md:hidden">
+            <form onSubmit={handleSearch} className="flex rounded-lg overflow-hidden border-2 border-gray-200 bg-white focus-within:border-primary transition-all duration-300">
               <input
                 type="text"
                 value={searchQuery}
@@ -958,7 +1245,7 @@ export function Header() {
 
         {/* ── Tier 3: Category nav (desktop) ── */}
         <div className="bg-white hidden lg:block border-b border-gray-200 relative z-30" ref={megaRef}>
-          <div className="max-w-7xl mx-auto pl-4 flex items-center relative">
+          <div className="max-w-[1400px] mx-auto pl-4 flex items-center relative">
 
             {/* All Departments button */}
             <div className="relative h-[48px] flex items-center mr-6 shrink-0">
@@ -975,11 +1262,11 @@ export function Header() {
 
               {/* ── Mega Menu Dropdown ── */}
               {megaOpen && (
-                <div className="absolute top-full left-0 z-50 shadow-2xl rounded-b-2xl overflow-hidden border border-gray-100 flex flex-col bg-white" style={{ width: '960px' }}>
+                <div className="absolute top-full left-0 z-50 shadow-2xl rounded-b-2xl overflow-hidden border border-gray-100 flex flex-col bg-white" style={{ width: 'min(960px, calc(100vw - 1.5rem))', maxHeight: 'calc(100vh - 120px)' }}>
                   {/* Top accent */}
                   <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-primary flex-shrink-0" />
 
-                  <div className="flex" style={{ minHeight: '380px' }}>
+                  <div className="flex flex-1 min-h-0">
                     {/* ── Left sidebar ── */}
                     <div className="w-48 bg-gray-50 border-r border-gray-100 py-1.5 flex-shrink-0 overflow-y-auto">
                       {MEGA_CATEGORIES.map((cat, i) => (
@@ -1027,7 +1314,7 @@ export function Header() {
                                 {content.recommended.map(rec => (
                                   <Link
                                     key={rec.label}
-                                    href="/products?categorySlug=books"
+                                    href={rec.href}
                                     onClick={() => setMegaOpen(false)}
                                     className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border ${rec.color} hover:shadow-md transition-all text-center group`}
                                   >
@@ -1109,7 +1396,7 @@ export function Header() {
                       {/* ── Other categories ── */}
                       {megaHoverCat !== 0 && (() => {
                         const cat = MEGA_CATEGORIES[megaHoverCat]!;
-                        const raw = MEGA_CONTENT[megaHoverCat as 1 | 2 | 3 | 4 | 5 | 6 | 7];
+                        const raw = MEGA_CONTENT[megaHoverCat as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9];
                         const content = raw as unknown as { columns: { heading: string; headingBn: string; links: { label: string; labelBn: string; href: string }[] }[] };
                         if (!content?.columns) return null;
                         return (
@@ -1151,7 +1438,7 @@ export function Header() {
                   {/* Footer */}
                   <div className="bg-gray-50 border-t border-gray-100 px-5 py-2.5 flex items-center justify-between flex-shrink-0">
                     <p className="text-[11px] text-gray-400">
-                      {lang === 'bn' ? '৮টি বিভাগে হাজারো পণ্য' : '1000s of products across 8 departments'}
+                      {lang === 'bn' ? '১০টি বিভাগে হাজারো পণ্য' : '1000s of products across 10 departments'}
                     </p>
                     <Link href="/products" onClick={() => setMegaOpen(false)}
                       className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 bg-primary/5 px-3 py-1.5 rounded-full transition-colors hover:bg-primary/10">
@@ -1163,14 +1450,14 @@ export function Header() {
             </div>
 
             <nav className="flex items-center justify-start h-[48px] text-[12px] font-bold text-gray-700 flex-1 overflow-x-auto hide-scrollbar">
-              {NAV_CATEGORIES.map((cat, idx) => (
+              {dynamicNavCategories.map((cat, idx) => (
                 <Link
                   key={cat.slug}
                   href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
                   onMouseEnter={() => setActiveCategoryIndex(idx)}
                   className={cn(
                     'px-2 h-full flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative',
-                    activeCategoryIndex === idx ? 'text-primary' : 'hover:text-primary',
+                    activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
                   )}
                 >
                   <cat.icon className={cn('w-3.5 h-3.5 hidden', activeCategoryIndex === idx ? 'text-primary' : 'opacity-70')} />
@@ -1182,15 +1469,23 @@ export function Header() {
               ))}
             </nav>
 
-            <Link href="#" className="shrink-0 px-4 h-[48px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors ml-auto">
-              {t.header.dealOfDay} <span className="text-red-600 text-lg ml-1">🔥</span>
-            </Link>
+            <div className="flex items-center gap-0.5 ml-auto shrink-0">
+              <Link href="/quick-commerce" className="px-3 h-[48px] flex items-center gap-1 text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
+                ⚡ {lang === 'bn' ? 'কুইক ডেলিভারি' : 'Quick Commerce'}
+              </Link>
+              <Link href="/recommerce" className="px-3 h-[48px] flex items-center gap-1 text-[12px] font-black text-indigo-600 hover:text-indigo-700 transition-colors whitespace-nowrap">
+                ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
+              </Link>
+              <Link href="/flash-deals" className="px-4 h-[48px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors">
+                {t.header.dealOfDay} <span className="text-red-600 text-lg ml-1">🔥</span>
+              </Link>
+            </div>
           </div>
         </div>
 
         {/* ── Tier 4: Subnav ── */}
         <div className="hidden">
-          <div className="max-w-7xl mx-auto px-4">
+          <div className="max-w-[1400px] mx-auto px-4">
             <nav className="flex items-center gap-6 h-[44px] overflow-x-auto hide-scrollbar">
               {activeCategory!.subnav.map(sub => {
                 const dropdown = SUBNAV_DROPDOWNS[sub];
@@ -1248,7 +1543,7 @@ export function Header() {
         )}
       >
         {/* Drawer header */}
-        <div className="p-5 bg-gray-900 text-white flex items-center justify-between sticky top-0">
+        <div className="p-5 bg-gray-900 text-white flex items-center justify-between sticky top-0 z-10">
           <div className="text-2xl font-black tracking-tight flex items-center">
             <span>UNKORA</span><span className="text-primary">.SHOP</span>
           </div>
@@ -1261,8 +1556,23 @@ export function Header() {
           </button>
         </div>
 
+        {/* ── SELL YOUR BOOK CTA — pinned at top ── */}
+        <Link
+          href="/publish"
+          onClick={() => setSidebarOpen(false)}
+          className="mx-4 my-3 flex items-center justify-center gap-2.5 min-h-[48px] rounded-full bg-gradient-to-r from-slate-800 to-slate-900 text-white font-bold text-sm hover:from-slate-700 hover:to-slate-800 transition-colors"
+        >
+          <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-400" />
+          </span>
+          <span className="whitespace-nowrap">Sell Your Book</span>
+          <span className="text-white/40">/</span>
+          <span className="text-yellow-400 font-black whitespace-nowrap">বই বিক্রি করুন</span>
+        </Link>
+
         {/* User area */}
-        <div className="p-5 bg-primary text-white flex items-center gap-4">
+        <div className="px-5 py-4 bg-primary text-white flex items-center gap-4">
           <div className="w-12 h-12 bg-white/40 rounded-full flex items-center justify-center shadow-sm border border-white/20">
             <User className="w-6 h-6" />
           </div>
@@ -1294,54 +1604,205 @@ export function Header() {
           >English</button>
         </div>
 
-        {/* Category list */}
-        <div className="flex flex-col py-4">
-          <p className="px-5 pt-2 pb-3 text-lg font-black text-gray-900 tracking-tight">{t.header.ourDepartments}</p>
-          {NAV_CATEGORIES.map(cat => (
-            <Link
-              key={cat.slug}
-              href={`/products?categorySlug=${cat.slug}`}
-              onClick={() => setSidebarOpen(false)}
-              className={cn(
-                'py-3.5 px-5 hover:bg-orange-50 font-semibold text-gray-700 flex items-center gap-3 border-b border-gray-100 transition-colors',
-                pathname === '/products' && searchParams.get('categorySlug') === cat.slug ? 'text-primary bg-accent' : '',
-              )}
-            >
-              <span className="text-primary"><cat.icon className="w-4 h-4" /></span>
-              {getCatName(cat)}
-            </Link>
-          ))}
-          <Link href="#" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-orange-50 font-bold text-secondary flex items-center justify-between mt-2">
+        {/* Category list — accordion with sub-menus */}
+        <div className="flex flex-col py-2">
+          <p className="px-5 pt-2 pb-2 text-base font-black text-gray-900 tracking-tight uppercase">{t.header.ourDepartments}</p>
+          {dynamicNavCategories.map(cat => {
+            const isExpanded = mobileExpandedCat === cat.slug;
+            const catHref = cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`;
+            const subItems = MEGA_CATEGORIES.find(m => m.href.includes(cat.slug) || m.href === catHref)?.subs ?? [];
+            return (
+              <div key={cat.slug} className="border-b border-gray-100">
+                <div
+                  className={cn(
+                    'py-3.5 px-5 font-semibold text-gray-700 flex items-center gap-3 transition-colors min-h-[48px]',
+                    isExpanded ? 'bg-orange-50 text-primary' : 'hover:bg-orange-50',
+                    pathname === '/products' && searchParams.get('categorySlug') === cat.slug ? 'text-primary bg-accent' : '',
+                  )}
+                >
+                  <Link
+                    href={catHref}
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center gap-3 flex-1 min-w-0"
+                  >
+                    <span className="text-primary flex-shrink-0"><cat.icon className="w-4 h-4" /></span>
+                    <span className="truncate">{getCatName(cat)}</span>
+                  </Link>
+                  {subItems.length > 0 && (
+                    <button
+                      onClick={() => setMobileExpandedCat(isExpanded ? null : cat.slug)}
+                      className="p-1.5 rounded-md hover:bg-gray-200 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
+                      aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                    >
+                      <ChevronDown className={cn('w-4 h-4 transition-transform duration-200 text-gray-500', isExpanded && 'rotate-180 text-primary')} />
+                    </button>
+                  )}
+                </div>
+                {/* Sub-menu accordion */}
+                {isExpanded && subItems.length > 0 && (
+                  <div className="bg-gray-50 border-t border-gray-100">
+                    {subItems.map(sub => (
+                      <Link
+                        key={sub.href + sub.label}
+                        href={sub.href}
+                        onClick={() => setSidebarOpen(false)}
+                        className="flex items-center gap-3 py-2.5 px-8 text-[13px] text-gray-600 hover:text-primary hover:bg-orange-50 transition-colors min-h-[44px]"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary/40 flex-shrink-0" />
+                        {lang === 'bn' ? sub.labelBn : sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          <Link href="/products" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-orange-50 font-bold text-secondary flex items-center justify-between mt-1 min-h-[48px]">
             <span>{t.header.dealOfDay} 🔥</span>
           </Link>
         </div>
 
         {/* Help */}
         <div className="border-t">
-          <p className="px-5 pt-4 pb-2 text-lg font-black text-gray-900 tracking-tight">{t.header.helpSettings}</p>
-          <Link href="/account/orders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary block">{t.header.yourOrders}</Link>
-          <Link href="/account/preorders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
+          <p className="px-5 pt-4 pb-2 text-base font-black text-gray-900 tracking-tight uppercase">{t.header.helpSettings}</p>
+          <Link href="/account/orders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2 min-h-[44px]">
+            <Package className="w-4 h-4" /> {t.header.yourOrders}
+          </Link>
+          <Link href="/account/preorders" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2 min-h-[44px]">
             <CalendarClock className="w-4 h-4" /> {lang === 'bn' ? 'প্রি-অর্ডার' : 'My Pre-orders'}
           </Link>
-          <Link href="/seller/dashboard" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-primary hover:text-primary/80 flex items-center gap-2 font-semibold">
+          <Link href="/seller/dashboard" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-primary hover:text-primary/80 flex items-center gap-2 font-semibold min-h-[44px]">
             <Store className="w-4 h-4" /> {lang === 'bn' ? 'সেলার প্যানেল' : 'Seller Panel'}
           </Link>
-          <Link href={isAuthenticated ? '/account/addresses' : '/login'} onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
+          <Link href={isAuthenticated ? '/account/addresses' : '/login'} onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2 min-h-[44px]">
             <MapPin className="w-4 h-4" /> {t.header.deliverTo}
           </Link>
-          <Link href="/support" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2">
+          <Link href="/support" onClick={() => setSidebarOpen(false)} className="py-2.5 px-5 text-[15px] font-medium text-gray-600 hover:text-secondary flex items-center gap-2 min-h-[44px]">
             <HelpCircle className="w-4 h-4" /> {t.header.customerService}
           </Link>
           {isAuthenticated && (
             <button
               onClick={() => { void logout.mutate(); setSidebarOpen(false); }}
-              className="py-2.5 px-5 text-[15px] font-medium text-red-500 hover:text-red-700 flex items-center gap-2 w-full text-left"
+              className="py-2.5 px-5 text-[15px] font-medium text-red-500 hover:text-red-700 flex items-center gap-2 w-full text-left min-h-[44px]"
             >
               <X className="w-4 h-4" /> {t.header.signOut}
             </button>
           )}
         </div>
       </aside>
+
+      {/* Account dropdown portal — renders at document.body to escape header stacking context */}
+      {mounted && accountOpen && dropdownPos && createPortal(
+        <div
+          ref={accountPanelRef}
+          role="dialog"
+          aria-label="Account menu"
+          style={{ position: 'fixed', top: dropdownPos.top, right: dropdownPos.right, width: 248, zIndex: 9999 }}
+          className="bg-white shadow-2xl rounded-xl border border-gray-100 overflow-hidden"
+        >
+          <div className="h-0.5 w-full bg-gradient-to-r from-primary to-secondary" />
+
+          {/* ── Not logged in: Sign In + Register ── */}
+          {!isAuthenticated && (
+            <div className="px-4 pt-4 pb-3">
+              <button
+                onClick={() => { setAccountOpen(false); router.push('/login'); }}
+                className="block w-full text-center bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 rounded-full text-sm transition-colors"
+              >
+                {lang === 'bn' ? 'সাইন ইন' : 'Sign in'}
+              </button>
+              <div className="text-center mt-2">
+                <span className="text-xs text-gray-500">{lang === 'bn' ? 'নতুন? ' : 'New? '}</span>
+                <button
+                  onClick={() => { setAccountOpen(false); router.push('/register'); }}
+                  className="text-xs text-primary font-bold hover:underline"
+                >
+                  {lang === 'bn' ? 'রেজিস্টার করুন' : 'Register'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── Logged in: user header ── */}
+          {isAuthenticated && (
+            <div className="px-4 pt-3 pb-2 flex items-center gap-3 bg-gray-50">
+              <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0">
+                <User className="w-5 h-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-gray-900 leading-tight truncate">
+                  {user?.firstName || user?.name ||
+                    (user?.role === 'ADMIN' ? (lang === 'bn' ? 'অ্যাডমিন' : 'Admin')
+                    : user?.role === 'SELLER' ? (lang === 'bn' ? 'সেলার' : 'Seller')
+                    : (lang === 'bn' ? 'গ্রাহক' : 'Customer'))}
+                </p>
+                <button
+                  onClick={() => { setAccountOpen(false); router.push('/account'); }}
+                  className="text-[11px] text-primary hover:underline font-medium"
+                >
+                  {lang === 'bn' ? 'প্রোফাইল দেখুন' : 'View profile'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="h-px bg-gray-100 mx-3 my-1" />
+
+          {/* ── Main nav items — always shown (auth-gating handled by destination pages) ── */}
+          <div className="py-1">
+            {[
+              { icon: Package,       label: 'My Orders',     labelBn: 'আমার অর্ডার',    href: '/account/orders' },
+              { icon: CalendarClock, label: 'My Pre-orders', labelBn: 'প্রি-অর্ডার',     href: '/account/preorders' },
+              { icon: Heart,         label: 'My Wishlist',   labelBn: 'উইশলিস্ট',       href: '/account/wishlist' },
+              { icon: Truck,         label: 'Track Order',   labelBn: 'অর্ডার ট্র্যাক', href: '/track-order' },
+              { icon: CreditCard,    label: 'Payment',       labelBn: 'পেমেন্ট',         href: '/account/payment' },
+              { icon: Gift,          label: 'My Coupons',    labelBn: 'কুপন',            href: '/account/coupons' },
+              { icon: Store,         label: 'Seller Panel',  labelBn: 'সেলার প্যানেল',   href: '/seller/dashboard' },
+            ].map(item => (
+              <button
+                key={item.href}
+                onClick={() => { setAccountOpen(false); router.push(item.href); }}
+                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors text-left"
+              >
+                <item.icon className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                {lang === 'bn' ? item.labelBn : item.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="h-px bg-gray-100 mx-3 my-1" />
+
+          {/* ── Secondary links ── */}
+          <div className="py-1 pb-2">
+            {[
+              { label: 'Settings',               labelBn: 'সেটিংস',              href: '/account/profile', authOnly: true },
+              { label: 'Seller Login',           labelBn: 'সেলার লগইন',           href: '/seller/login',    authOnly: false },
+              { label: 'Become a Seller',        labelBn: 'সেলার হিসেবে যোগ দিন', href: '/seller/register', authOnly: false },
+              { label: 'Return & Refund Policy', labelBn: 'রিটার্ন ও রিফান্ড',    href: '/refund-policy',   authOnly: false },
+              { label: 'Help Center',            labelBn: 'সাহায্য কেন্দ্র',      href: '/help',            authOnly: false },
+              { label: 'Contact Us',             labelBn: 'যোগাযোগ করুন',         href: '/support',         authOnly: false },
+            ].filter(item => !item.authOnly || isAuthenticated).map(item => (
+              <button
+                key={item.label}
+                onClick={() => { setAccountOpen(false); router.push(item.href); }}
+                className="w-full block px-4 py-2 text-xs text-gray-500 hover:text-primary hover:bg-gray-50 transition-colors text-left"
+              >
+                {lang === 'bn' ? item.labelBn : item.label}
+              </button>
+            ))}
+            {isAuthenticated && (
+              <button
+                onClick={() => { void logout.mutate(); setAccountOpen(false); }}
+                className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                {lang === 'bn' ? 'সাইন আউট' : 'Sign out'}
+              </button>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </>
   );
 }

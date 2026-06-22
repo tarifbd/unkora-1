@@ -1,13 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { OrderStatus } from '@prisma/client';
+import * as argon2 from 'argon2';
+import type { Cache } from 'cache-manager';
 
 import { PrismaService } from '../../database/prisma.service';
 
 @Injectable()
 export class AdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+  ) {}
 
   async getDashboardStats() {
+    const CACHE_KEY = 'admin:dashboard:stats';
+    const cached = await this.cacheManager.get(CACHE_KEY);
+    if (cached) return cached;
+
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -25,8 +35,10 @@ export class AdminService {
       recentOrders,
       topProducts,
       totalCategories,
-      orderStatusCounts,
+      // Single groupBy replaces 7 individual count() round-trips
+      orderStatusGroups,
       paymentMethodCounts,
+      abandonedCarts,
     ] = await Promise.all([
       this.prisma.order.aggregate({ where: { paymentStatus: 'PAID' }, _sum: { total: true } }),
       this.prisma.order.aggregate({ where: { paymentStatus: 'PAID', createdAt: { gte: startOfMonth } }, _sum: { total: true } }),
@@ -40,7 +52,10 @@ export class AdminService {
       this.prisma.order.findMany({
         take: 10,
         orderBy: { createdAt: 'desc' },
-        include: { user: { select: { firstName: true, lastName: true, email: true } } },
+        select: {
+          id: true, orderNumber: true, total: true, status: true, createdAt: true,
+          user: { select: { firstName: true, lastName: true, email: true } },
+        },
       }),
       this.prisma.orderItem.groupBy({
         by: ['productId', 'productName'],
@@ -49,24 +64,24 @@ export class AdminService {
         take: 5,
       }),
       this.prisma.category.count({ where: { isActive: true } }),
-      Promise.all(
-        ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'].map(status =>
-          this.prisma.order.count({ where: { status: status as any } }).then(count => ({ status, count })),
-        ),
-      ),
-      this.prisma.order.groupBy({
-        by: ['paymentMethod'],
-        _count: { id: true },
+      this.prisma.order.groupBy({ by: ['status'], _count: { id: true } }),
+      this.prisma.order.groupBy({ by: ['paymentMethod'], _count: { id: true } }),
+      this.prisma.cart.count({
+        where: {
+          userId: { not: null },
+          updatedAt: { lt: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+          items: { some: {} },
+        },
       }),
     ]);
 
     const byStatus: Record<string, number> = {};
-    orderStatusCounts.forEach(({ status, count }) => { byStatus[status] = count; });
+    orderStatusGroups.forEach(({ status, _count }) => { byStatus[status] = _count.id; });
 
     const byPayment: Record<string, number> = {};
     paymentMethodCounts.forEach(r => { byPayment[r.paymentMethod] = r._count.id; });
 
-    return {
+    const result = {
       revenue: {
         total: Number(totalRevenue._sum.total ?? 0),
         thisMonth: Number(monthRevenue._sum.total ?? 0),
@@ -77,6 +92,7 @@ export class AdminService {
         pending: pendingOrders,
         byStatus,
         byPayment,
+        abandonedCarts,
       },
       products: {
         total: totalProducts,
@@ -92,6 +108,9 @@ export class AdminService {
       recentOrders,
       topProducts,
     };
+
+    await this.cacheManager.set(CACHE_KEY, result, 60 * 1000);
+    return result;
   }
 
   async getRevenueChart(days = 30) {
@@ -149,13 +168,41 @@ export class AdminService {
   }
 
   async getUserById(id: string) {
-    return this.prisma.user.findUnique({
-      where: { id },
-      include: {
-        address: true,
-        _count: { select: { orders: true, reviews: true, wishlists: true } },
-      },
-    });
+    const [user, orders, ltv] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { id },
+        include: {
+          address: true,
+          profile: true,
+          _count: { select: { orders: true, reviews: true, wishlists: true } },
+        },
+      }),
+      this.prisma.order.findMany({
+        where: { userId: id },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: {
+          id: true, orderNumber: true, status: true, paymentStatus: true,
+          total: true, createdAt: true, paymentMethod: true,
+          items: { select: { productName: true, quantity: true } },
+        },
+      }),
+      this.prisma.order.aggregate({
+        where: { userId: id, paymentStatus: 'PAID' },
+        _sum: { total: true },
+        _count: { id: true },
+      }),
+    ]);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    const { passwordHash: _, ...safeUser } = user;
+    return {
+      ...safeUser,
+      recentOrders: orders,
+      lifetimeValue: Number(ltv._sum.total ?? 0),
+      paidOrderCount: ltv._count.id,
+    };
   }
 
   async updateUser(id: string, dto: { role?: string; status?: string }) {
@@ -163,6 +210,26 @@ export class AdminService {
       where: { id },
       data: dto as any,
       select: { id: true, email: true, role: true, status: true },
+    });
+  }
+
+  async createUser(dto: { email: string; firstName: string; lastName: string; phone?: string; password: string; role?: string }) {
+    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (existing) throw new ConflictException('Email already registered');
+
+    const passwordHash = await argon2.hash(dto.password);
+    return this.prisma.user.create({
+      data: {
+        email: dto.email,
+        passwordHash,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        phone: dto.phone ?? null,
+        role: (dto.role as any) ?? 'CUSTOMER',
+        status: 'ACTIVE',
+        emailVerifiedAt: new Date(),
+      },
+      select: { id: true, email: true, firstName: true, lastName: true, role: true, status: true, createdAt: true },
     });
   }
 
@@ -292,5 +359,16 @@ export class AdminService {
       totalSpent: Number(r._sum.total ?? 0),
       orderCount: r._count.id,
     }));
+  }
+
+  async resetUserCredentials(id: string, dto: { email?: string; password?: string }) {
+    const data: any = {};
+    if (dto.email) data.email = dto.email;
+    if (dto.password) data.passwordHash = await argon2.hash(dto.password);
+    return this.prisma.user.update({
+      where: { id },
+      data,
+      select: { id: true, email: true },
+    });
   }
 }

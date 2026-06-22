@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/auth.store';
-import { saveAuthTokens, saveUserRole } from '@/lib/api';
+import { saveAuthTokens, saveUserRole, clearAuthTokens } from '@/lib/api';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ?? '';
@@ -48,6 +48,10 @@ export function SocialLoginButtons({ onSuccess, redirectTo = '/account' }: Socia
     if (!tokens?.accessToken) throw new Error(`${providerName} login failed`);
     saveAuthTokens(tokens.accessToken, tokens.refreshToken);
     if (apiUser) {
+      if (apiUser.role === 'ADMIN' || apiUser.role === 'SUPER_ADMIN') {
+        clearAuthTokens();
+        throw new Error('Admin পেজে লগইন করুন: /admin/login');
+      }
       const user = mapApiUser(apiUser);
       setUser(user);
       saveUserRole(user.role);

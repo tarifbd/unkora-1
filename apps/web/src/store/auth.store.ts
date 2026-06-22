@@ -30,6 +30,20 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'unkora-auth',
       partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+      onRehydrateStorage: () => (state) => {
+        // Only clear auth if BOTH the cookie AND the refresh token are gone.
+        // The access_token cookie may have expired (browser can delete it between
+        // sessions) even when the refresh_token in localStorage is still valid.
+        // In that case the API interceptor will transparently refresh on the
+        // first API call — we must not pre-emptively clear the session here.
+        if (state?.isAuthenticated && typeof document !== 'undefined') {
+          const hasCookie = document.cookie.split(';').some((c) => c.trim().startsWith('access_token='));
+          const hasRefresh = !!localStorage.getItem('refresh_token');
+          if (!hasCookie && !hasRefresh) {
+            state.clearAuth();
+          }
+        }
+      },
     },
   ),
 );

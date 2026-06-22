@@ -3,6 +3,7 @@ import { DiscountType } from '@prisma/client';
 
 import { PrismaService } from '../../database/prisma.service';
 import type { CreateCouponDto } from './dto/create-coupon.dto';
+import type { UpdateCouponDto } from './dto/update-coupon.dto';
 
 @Injectable()
 export class CouponsService {
@@ -116,6 +117,26 @@ export class CouponsService {
     return this.prisma.coupon.update({
       where: { id },
       data: { isActive: !coupon.isActive },
+    });
+  }
+
+  async adminUpdate(id: string, dto: UpdateCouponDto) {
+    const coupon = await this.prisma.coupon.findUnique({ where: { id } });
+    if (!coupon) throw new NotFoundException('Coupon not found');
+
+    return this.prisma.coupon.update({
+      where: { id },
+      data: {
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.discountType !== undefined && { discountType: dto.discountType }),
+        ...(dto.discountValue !== undefined && { discountValue: dto.discountValue }),
+        ...(dto.minOrderValue !== undefined && { minOrderValue: dto.minOrderValue }),
+        ...(dto.maxDiscount !== undefined && { maxDiscount: dto.maxDiscount }),
+        ...(dto.usageLimit !== undefined && { usageLimit: dto.usageLimit }),
+        ...(dto.startsAt !== undefined && { startsAt: new Date(dto.startsAt) }),
+        ...(dto.expiresAt !== undefined && { expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null }),
+        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+      },
     });
   }
 

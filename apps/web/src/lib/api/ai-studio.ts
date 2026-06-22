@@ -33,10 +33,10 @@ export const aiApi = {
   generateCustom: (data: { prompt: string; outputFormat?: string }) => api.post('/admin/ai/generate/custom', data).then(r => r.data.data),
 
   // Logs
-  getLogs: (params?: { page?: number; limit?: number; featureType?: string; status?: string }) => api.get('/admin/ai/logs', { params }).then(r => r.data.data as { data: AiGenerationLog[]; total: number }),
+  getLogs: (params?: { page?: number; limit?: number; featureType?: string; status?: string }) => api.get('/admin/ai/logs', { params }).then(r => r.data.data as { data: AiGenerationLog[]; meta: { total: number; page: number; limit: number; totalPages: number } }),
 
   // Content library
-  listContents: (params?: { page?: number; limit?: number; featureType?: string; status?: string }) => api.get('/admin/ai/generated-contents', { params }).then(r => r.data.data as { data: AiGeneratedContent[]; total: number }),
+  listContents: (params?: { page?: number; limit?: number; featureType?: string; status?: string }) => api.get('/admin/ai/generated-contents', { params }).then(r => r.data.data as { data: AiGeneratedContent[]; meta: { total: number; page: number; limit: number; totalPages: number } }),
   getContent: (id: string) => api.get(`/admin/ai/generated-contents/${id}`).then(r => r.data.data as AiGeneratedContent),
   approveContent: (id: string) => api.post(`/admin/ai/generated-contents/${id}/approve`).then(r => r.data.data),
   applyContent: (id: string) => api.post(`/admin/ai/generated-contents/${id}/apply`).then(r => r.data.data),

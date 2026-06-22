@@ -81,7 +81,7 @@ export default function SuppliersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {data.data.map(s => {
+              {(data?.data ?? []).map(s => {
                 const cfg = STATUS_CFG[s.status];
                 return (
                   <tr key={s.id} className="hover:bg-gray-50/40">

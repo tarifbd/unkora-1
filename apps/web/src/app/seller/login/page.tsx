@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Eye, EyeOff, Loader2, Store, ArrowRight, BookOpen } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { authApi } from '@/lib/api/auth';
 import { useAuthStore } from '@/store/auth.store';
 import { saveUserRole } from '@/lib/api';
@@ -19,10 +19,19 @@ const schema = z.object({
 });
 type FormData = z.infer<typeof schema>;
 
-export default function SellerLoginPage() {
+function SellerLoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const qc = useQueryClient();
-  const { setUser } = useAuthStore();
+  const { setUser, isAuthenticated } = useAuthStore();
+
+  // Already logged in → honour redirect or go to seller dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace(redirectTo && redirectTo.startsWith('/') ? redirectTo : '/seller/dashboard');
+    }
+  }, [isAuthenticated, router, redirectTo]);
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -43,6 +52,8 @@ export default function SellerLoginPage() {
 
       if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
         router.push('/admin');
+      } else if (redirectTo && redirectTo.startsWith('/')) {
+        router.push(redirectTo);
       } else {
         router.push('/seller/dashboard');
       }
@@ -53,6 +64,10 @@ export default function SellerLoginPage() {
     }
   };
 
+  if (isAuthenticated) {
+    return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
+  }
+
   const t = {
     title:      lang === 'bn' ? 'সেলার লগইন' : 'Seller Login',
     subtitle:   lang === 'bn' ? 'আপনার UNKORA সেলার অ্যাকাউন্টে লগইন করুন' : 'Sign in to your UNKORA seller account',
@@ -61,6 +76,7 @@ export default function SellerLoginPage() {
     signIn:     lang === 'bn' ? 'সেলার লগইন' : 'Seller Sign In',
     noAccount:  lang === 'bn' ? 'নতুন সেলার?' : 'New seller?',
     apply:      lang === 'bn' ? 'সেলার হিসেবে আবেদন করুন' : 'Apply as a seller',
+    forgot:     lang === 'bn' ? 'পাসওয়ার্ড ভুলে গেছেন?' : 'Forgot password?',
     customerText: lang === 'bn' ? 'কাস্টমার লগইন' : 'Customer login',
   };
 
@@ -145,7 +161,10 @@ export default function SellerLoginPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.password}</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-semibold text-gray-700">{t.password}</label>
+                <Link href="/forgot-password" className="text-xs text-primary hover:underline">{t.forgot}</Link>
+              </div>
               <div className="relative">
                 <input
                   {...register('password')}
@@ -180,7 +199,7 @@ export default function SellerLoginPage() {
 
           <div className="mt-6 text-center">
             <span className="text-sm text-gray-500">{t.noAccount} </span>
-            <Link href="/seller/apply" className="text-sm font-bold text-primary hover:underline">{t.apply}</Link>
+            <Link href="/seller/register" className="text-sm font-bold text-primary hover:underline">{t.apply}</Link>
           </div>
 
           <div className="mt-4 pt-4 border-t border-gray-100 text-center">
@@ -194,5 +213,13 @@ export default function SellerLoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SellerLoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+      <SellerLoginContent />
+    </Suspense>
   );
 }

@@ -26,7 +26,8 @@ export class ProductsService {
     // Cache first-page, default-sort, filter-free requests for 60 seconds
     const isFirstPage = page === 1 && limit === 20 && !search && !categoryId && !categorySlug &&
       minPrice === undefined && maxPrice === undefined && isFeatured === undefined &&
-      !inStock && sortBy === 'createdAt' && sortOrder === 'desc' && !tags;
+      !inStock && sortBy === 'createdAt' && sortOrder === 'desc' && !tags &&
+      !query.author && !query.language && !query.genre && !query.hasDiscount && !query.preorder;
     const cacheKey = 'products:all:p1';
     if (isFirstPage) {
       const cached = await this.cacheManager.get(cacheKey);
@@ -62,7 +63,21 @@ export class ProductsService {
     if (inStock) where.stockQuantity = { gt: 0 };
     if (tags) where.tags = { hasSome: tags.split(',') };
 
-    const validSortFields = ['name', 'basePrice', 'createdAt'];
+    // Book-specific filters
+    const bookDetailFilter: Record<string, unknown> = {};
+    if (query.author) bookDetailFilter['author'] = { contains: query.author, mode: 'insensitive' };
+    if (query.language) bookDetailFilter['language'] = query.language;
+    if (query.genre) bookDetailFilter['genres'] = { has: query.genre };
+    if (query.publisher) bookDetailFilter['publisher'] = { contains: query.publisher, mode: 'insensitive' };
+    if (query.binding) bookDetailFilter['binding'] = query.binding;
+    if (Object.keys(bookDetailFilter).length > 0) {
+      (where as Record<string, unknown>)['bookDetail'] = bookDetailFilter;
+    }
+
+    if (query.hasDiscount) (where as Record<string, unknown>)['salePrice'] = { not: null };
+    if (query.preorder !== undefined) (where as Record<string, unknown>)['isPreorder'] = query.preorder;
+
+    const validSortFields = ['name', 'basePrice', 'createdAt', 'salePrice', 'stockQuantity'];
     const orderField = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
 
     const [data, total] = await Promise.all([
@@ -164,6 +179,21 @@ export class ProductsService {
 
     await this.cacheManager.set(cacheKey, products, 300 * 1000);
     return products;
+  }
+
+  async findByIds(ids: string[]) {
+    if (!ids.length) return [];
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: ids }, isActive: true },
+      include: {
+        images: { where: { isPrimary: true }, take: 1 },
+        category: { select: { id: true, name: true, slug: true } },
+        bookDetail: { select: { author: true } },
+      },
+    });
+    // Preserve the order of the requested ids
+    const byId = new Map(products.map(p => [p.id, p]));
+    return ids.map(id => byId.get(id)).filter((p): p is NonNullable<typeof p> => Boolean(p));
   }
 
   async create(dto: CreateProductDto) {

@@ -103,9 +103,9 @@ export default function AdminDeliveryBoysPage() {
   const openEdit = (boy: DeliveryBoy) => {
     setEditId(boy.id);
     setForm({
-      firstName: boy.user.firstName,
-      lastName: boy.user.lastName,
-      email: boy.user.email,
+      firstName: boy.user?.firstName ?? '',
+      lastName: boy.user?.lastName ?? '',
+      email: boy.user?.email ?? '',
       password: '',
       phone: boy.phone ?? '',
       area: boy.area ?? '',
@@ -154,7 +154,7 @@ export default function AdminDeliveryBoysPage() {
   };
 
   const handleDeactivate = async (boy: DeliveryBoy) => {
-    if (!confirm(`Deactivate ${boy.user.firstName} ${boy.user.lastName}?`)) return;
+    if (!confirm(`Deactivate ${boy.user?.firstName ?? ''} ${boy.user?.lastName ?? ''}?`)) return;
     try {
       await deliveryBoysApi.update(boy.id, { status: 'INACTIVE' });
       setBoys(prev => prev.map(b => b.id === boy.id ? { ...b, status: 'INACTIVE' } : b));
@@ -249,9 +249,9 @@ export default function AdminDeliveryBoysPage() {
                   return (
                     <tr key={boy.id} className="hover:bg-muted/20 transition-colors">
                       <td className="px-4 py-3">
-                        <p className="font-medium">{boy.user.firstName} {boy.user.lastName}</p>
+                        <p className="font-medium">{boy.user?.firstName} {boy.user?.lastName}</p>
                       </td>
-                      <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">{boy.user.email}</td>
+                      <td className="hidden px-4 py-3 text-muted-foreground sm:table-cell">{boy.user?.email}</td>
                       <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">{boy.phone ?? '—'}</td>
                       <td className="hidden px-4 py-3 text-muted-foreground md:table-cell">{boy.area ?? '—'}</td>
                       <td className="hidden px-4 py-3 text-muted-foreground lg:table-cell">{boy.vehicleType ?? '—'}</td>

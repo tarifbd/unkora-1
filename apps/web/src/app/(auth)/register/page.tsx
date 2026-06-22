@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { Eye, EyeOff, Loader2, BookOpen, ArrowRight } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { SocialLoginButtons } from '@/components/auth/social-login-buttons';
 
 const schema = z.object({
@@ -20,17 +21,23 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export default function RegisterPage() {
+function RegisterContent() {
   const { register: registerUser } = useAuth();
   const [showPw, setShowPw] = useState(false);
   const [lang, setLang] = useState<'bn' | 'en'>('bn');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const redirectParam = searchParams.get('redirect');
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
 
   const onSubmit = ({ confirmPassword: _, phone, ...data }: FormData) =>
-    registerUser.mutate({ ...data, phone: phone || undefined });
+    registerUser.mutate(
+      { ...data, phone: phone || undefined },
+      { onSuccess: () => { if (redirectParam?.startsWith('/')) router.push(redirectParam); } },
+    );
 
   const t = {
     title:    lang === 'bn' ? 'অ্যাকাউন্ট তৈরি করুন' : 'Create Account',
@@ -160,7 +167,12 @@ export default function RegisterPage() {
 
             {registerUser.error && (
               <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">
-                {lang === 'bn' ? 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।' : 'Registration failed. Please try again.'}
+                {(() => {
+                  const e = registerUser.error as { response?: { data?: { message?: string | string[] } } };
+                  const msg = e?.response?.data?.message;
+                  const raw = Array.isArray(msg) ? msg[0] : msg;
+                  return raw ?? (lang === 'bn' ? 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।' : 'Registration failed. Please try again.');
+                })()}
               </p>
             )}
 
@@ -180,7 +192,7 @@ export default function RegisterPage() {
 
           <div className="mt-6 text-center">
             <span className="text-sm text-gray-500">{t.hasAccount} </span>
-            <Link href="/login" className="text-sm font-bold text-primary hover:underline">{t.signIn}</Link>
+            <Link href={`/login${redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : ''}`} className="text-sm font-bold text-primary hover:underline">{t.signIn}</Link>
           </div>
 
           <div className="mt-4 pt-4 border-t border-gray-100 text-center">
@@ -194,5 +206,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+      <RegisterContent />
+    </Suspense>
   );
 }

@@ -13,6 +13,7 @@ async function main() {
   // ── Users ──────────────────────────────────────────────────────────────────
   const adminHash     = await argon2.hash('Admin@123456');
   const customerHash  = await argon2.hash('Customer@123');
+  const sellerHash    = await argon2.hash('Seller@123');
   const reviewer1Hash = await argon2.hash('Reviewer@123');
 
   await prisma.user.upsert({
@@ -66,7 +67,27 @@ async function main() {
     },
   });
 
-  console.log('✓ Users');
+  // Seller user (role CUSTOMER — no SELLER in UserRole enum)
+  const sellerUser = await prisma.user.upsert({
+    where: { email: 'seller@test.com' },
+    update: { passwordHash: sellerHash, status: 'ACTIVE' },
+    create: {
+      email: 'seller@test.com', passwordHash: sellerHash,
+      firstName: 'Karim', lastName: 'Books',
+      phone: '01755000099', role: 'CUSTOMER', status: 'ACTIVE', emailVerifiedAt: new Date(),
+    },
+  });
+  await prisma.seller.upsert({
+    where: { userId: sellerUser.id },
+    update: { status: 'ACTIVE', isVerified: true },
+    create: {
+      userId: sellerUser.id, shopName: 'করিম বুকস', shopSlug: 'karim-books',
+      description: 'সেরা বাংলা বইয়ের দোকান', phone: '01755000099',
+      status: 'ACTIVE', isVerified: true, commissionRate: 10,
+    },
+  });
+
+  console.log('✓ Users (admin, customer, seller, reviewers)');
 
   // ── Top-level categories ───────────────────────────────────────────────────
   const booksCat = await prisma.category.upsert({
@@ -136,6 +157,27 @@ async function main() {
     update: {},
     create: { name: 'Non-Fiction', slug: 'non-fiction', parentId: booksCat.id, sortOrder: 6 },
   });
+
+  // ── Islamic Lifestyle (matches the storefront /islamic-lifestyle section) ──
+  const islamicLifestyleCat = await prisma.category.upsert({
+    where: { slug: 'islamic-lifestyle' },
+    update: {},
+    create: { name: 'Islamic Lifestyle', slug: 'islamic-lifestyle', description: 'ইসলামিক লাইফস্টাইল পণ্য', sortOrder: 8, color: 'bg-emerald-100 text-emerald-700', icon: '🕌', isFeatured: true },
+  });
+  const islamicLifestyleSubs = [
+    { name: 'Prayer Essentials', slug: 'prayer-essentials',  sortOrder: 1 },
+    { name: 'Quran Accessories', slug: 'quran-accessories',  sortOrder: 2 },
+    { name: 'Islamic Clothing',  slug: 'islamic-clothing',   sortOrder: 3 },
+    { name: 'Perfumes & Oud',    slug: 'perfumes-oud',       sortOrder: 4 },
+    { name: 'Tasbih & Decor',    slug: 'tasbih-decor',       sortOrder: 5 },
+  ];
+  for (const sub of islamicLifestyleSubs) {
+    await prisma.category.upsert({
+      where: { slug: sub.slug },
+      update: {},
+      create: { ...sub, parentId: islamicLifestyleCat.id },
+    });
+  }
 
   console.log('✓ Categories');
 
@@ -377,6 +419,22 @@ async function main() {
   }
   console.log(`✓ Site settings (${settings.length})`);
 
+  // ── Chat Widget defaults (create-only, so admin changes survive re-seeding) ─
+  const chatDefaults: { key: string; value: string }[] = [
+    { key: 'chatbot.enabled',           value: 'true' },
+    { key: 'chatbot.welcomeMessage',    value: 'হ্যালো! 👋 আমি Unkora AI। আপনাকে কীভাবে সাহায্য করতে পারি?' },
+    { key: 'contact.whatsappNumber',    value: '8801708166233' },
+    { key: 'contact.messengerUsername', value: 'unkora' },
+  ];
+  for (const s of chatDefaults) {
+    await prisma.siteSetting.upsert({
+      where: { key: s.key },
+      update: {},
+      create: { key: s.key, value: s.value },
+    });
+  }
+  console.log(`✓ Chat widget defaults (${chatDefaults.length})`);
+
   // ── Summary ────────────────────────────────────────────────────────────────
   const [pCount, catCount, imgCount, varCount, revCount, settCount] = await Promise.all([
     prisma.product.count(),
@@ -391,6 +449,7 @@ async function main() {
   console.log(`   products=${pCount}, categories=${catCount}, images=${imgCount}, variants=${varCount}, reviews=${revCount}, site_settings=${settCount}`);
   console.log('   🔑 Admin:    admin@unkora.com / Admin@123456');
   console.log('   👤 Customer: customer@test.com / Customer@123');
+  console.log('   🏪 Seller:   seller@test.com / Seller@123');
 }
 
 main()

@@ -3,14 +3,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
-import { ShoppingCart, Minus, Plus, Loader2, ArrowLeft, BookOpen, Package, Zap } from 'lucide-react';
+import { ShoppingCart, Minus, Plus, Loader2, ArrowLeft, BookOpen, Package, Zap, Shirt } from 'lucide-react';
 import Link from 'next/link';
 
+import api from '@/lib/api';
 import { productsApi } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useCartStore } from '@/store/cart.store';
 import { formatCurrency } from '@/lib/utils';
 import { ProductReviews } from '@/components/product/product-reviews';
+import { ProductQA } from '@/components/product/product-qa';
 import { ProductCard } from '@/components/product/product-card';
 import { WishlistButton } from '@/components/product/wishlist-button';
 import { PreorderCTA } from '@/components/product/preorder-cta';
@@ -21,6 +23,13 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const { data: product, isLoading } = useQuery({
     queryKey: ['product', slug],
     queryFn: () => productsApi.getBySlug(slug),
+  });
+  const { data: tryonConfig } = useQuery({
+    queryKey: ['virtual-tryon-config'],
+    queryFn: () =>
+      api.get('/virtual-tryon/config').then(r => (r.data?.data ?? {}) as Record<string, string>),
+    staleTime: 5 * 60_000,
+    retry: false,
   });
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
@@ -62,6 +71,19 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const price = Number(product.salePrice ?? product.basePrice);
   const hasDiscount = product.salePrice && Number(product.salePrice) < Number(product.basePrice);
 
+  // Try-On button: feature enabled + product category allowed (empty list = all categories)
+  const tryonEnabled = tryonConfig?.['virtual-tryon.enabled'] === 'true';
+  const tryonCategoryIds = (tryonConfig?.['virtual-tryon.categoryIds'] ?? '')
+    .split(',')
+    .filter(Boolean);
+  // Match the product's own category OR its parent category, so newly added
+  // subcategories are covered when the admin selected the main category
+  const showTryOn =
+    tryonEnabled &&
+    (tryonCategoryIds.length === 0 ||
+      tryonCategoryIds.includes(product.category?.id ?? '') ||
+      (product.category?.parentId != null && tryonCategoryIds.includes(product.category.parentId)));
+
   const handleAddToCart = () => {
     addItem.mutate({
       productId: product.id,
@@ -78,7 +100,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   };
 
   return (
-    <div className="container py-8">
+    <div className="container py-4 sm:py-8">
       <Link href="/products" className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="h-4 w-4" /> {t.productDetail.backToProducts}
       </Link>
@@ -92,6 +114,13 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
             ) : (
               <div className="flex h-full items-center justify-center text-6xl">📦</div>
             )}
+            {/* Wishlist button on image */}
+            <div className="absolute top-3 right-3">
+              <WishlistButton
+                productId={product.id}
+                className="p-2.5 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-red-50 transition-colors"
+              />
+            </div>
           </div>
           {product.images.length > 1 && (
             <div className="flex gap-2 overflow-x-auto">
@@ -126,7 +155,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           {product.bookDetail && (
             <div className="rounded-lg border bg-muted/30 p-4">
               <div className="flex items-center gap-2 mb-3 text-sm font-semibold"><BookOpen className="h-4 w-4" /> {t.productDetail.bookDetails}</div>
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <dl className="grid grid-cols-2 gap-x-2 sm:gap-x-4 gap-y-2 text-sm">
                 {[
                   [t.productDetail.author, product.bookDetail.author],
                   [t.productDetail.publisher, product.bookDetail.publisher],
@@ -160,28 +189,36 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           {/* Qty + Add to Cart + Wishlist */}
           {product.stockQuantity > 0 && (
             <div ref={buyBtnRef} className="flex flex-col gap-2">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 rounded-md border px-3 py-2">
-                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="hover:text-brand-600 transition-colors"><Minus className="h-4 w-4" /></button>
-                  <span className="min-w-[24px] text-center font-medium">{qty}</span>
-                  <button onClick={() => setQty(Math.min(product.stockQuantity, qty + 1))} className="hover:text-brand-600 transition-colors"><Plus className="h-4 w-4" /></button>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center rounded-md border flex-shrink-0">
+                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="flex h-11 w-11 items-center justify-center hover:text-brand-600 transition-colors touch-manipulation"><Minus className="h-4 w-4" /></button>
+                  <span className="min-w-[32px] text-center font-medium text-sm">{qty}</span>
+                  <button onClick={() => setQty(Math.min(product.stockQuantity, qty + 1))} className="flex h-11 w-11 items-center justify-center hover:text-brand-600 transition-colors touch-manipulation"><Plus className="h-4 w-4" /></button>
                 </div>
                 <button onClick={handleAddToCart} disabled={addItem.isPending}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                  className="flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-gradient-to-b from-slate-700 to-slate-900 py-3 text-xs sm:text-sm font-black text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-[0.98] disabled:opacity-50 transition-all ring-1 ring-white/10">
                   {addItem.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
                   {t.productDetail.addToCart}
                 </button>
                 <WishlistButton
                   productId={product.id}
-                  className="h-10 w-10 rounded-md border hover:bg-accent transition-colors"
+                  className="h-10 w-10 rounded-md border hover:bg-accent transition-colors flex-shrink-0"
                 />
               </div>
               <Link
                 href={`/checkout?productSlug=${product.slug}&qty=${qty}`}
-                className="flex items-center justify-center gap-2 w-full py-3.5 bg-orange-500 text-white rounded-xl font-bold text-sm hover:bg-orange-600 active:scale-[0.98] transition-all shadow-lg shadow-orange-200"
+                className="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl font-black text-sm shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-[0.98] transition-all ring-1 ring-white/20"
               >
-                <Zap className="h-4 w-4" /> এখনই কিনুন
+                <Zap className="h-4 w-4" /> {t.productDetail.buyNow}
               </Link>
+              {showTryOn && product.images?.length > 0 && (
+                <Link
+                  href={`/try-on?productId=${product.id}&productName=${encodeURIComponent(product.name)}&productImage=${encodeURIComponent(product.images[0]?.url ?? '')}`}
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-orange-300 text-orange-600 text-sm font-semibold hover:bg-orange-50 active:scale-[0.98] transition-all"
+                >
+                  <Shirt className="h-4 w-4" /> Virtual Try-On
+                </Link>
+              )}
             </div>
           )}
           {product.stockQuantity === 0 && (
@@ -212,13 +249,16 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
         </div>
       </div>
 
-      <ProductReviews productId={product.id} />
-
       <RelatedProducts categorySlug={product.category.slug} currentId={product.id} />
 
+      <ProductReviews productId={product.id} />
+
+      <ProductQA productId={product.id} />
+
       {/* ── Mobile sticky buy bar — shows when main button scrolls out of view ── */}
+      {/* Positioned above the bottom nav (h-16) on mobile, at bottom-0 on md+ where nav is hidden */}
       {product.stockQuantity > 0 && (
-        <div className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden transition-transform duration-300 ${stickyVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+        <div className={`fixed bottom-16 md:bottom-0 left-0 right-0 z-40 lg:hidden transition-transform duration-300 ${stickyVisible ? 'translate-y-0' : 'translate-y-full'}`}>
           {/* Notification-style top hint */}
           <div className="mx-3 mb-1 flex items-center gap-2 rounded-xl bg-gray-900/90 backdrop-blur-sm px-4 py-2.5 shadow-2xl">
             <div className="relative flex-shrink-0">
@@ -234,22 +274,22 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
               <button
                 onClick={handleAddToCart}
                 disabled={addItem.isPending}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/20 text-white text-xs font-bold hover:bg-white/10 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-lg border border-white/20 text-white text-xs font-bold hover:bg-white/10 transition-colors"
               >
-                <ShoppingCart className="h-3.5 w-3.5" />
-                <span className="hidden xs:inline">কার্ট</span>
+                <ShoppingCart className="h-4 w-4" />
+                <span>{t.productDetail.cartShort}</span>
               </button>
               <Link
                 href={`/checkout?productSlug=${product.slug}&qty=${qty}`}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-orange-500 text-white text-xs font-black hover:bg-orange-600 active:scale-95 transition-all"
+                className="flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg bg-orange-500 text-white text-xs font-black hover:bg-orange-600 active:scale-95 transition-all"
               >
-                <Zap className="h-3.5 w-3.5" />
-                এখনই কিনুন
+                <Zap className="h-4 w-4" />
+                {t.productDetail.buyNow}
               </Link>
             </div>
           </div>
-          {/* Safe area padding for iOS */}
-          <div className="bg-gray-900/90 pb-safe" style={{ height: 'env(safe-area-inset-bottom)' }} />
+          {/* Safe area padding for md+ (no bottom nav) */}
+          <div className="hidden md:block bg-gray-900/90" style={{ height: 'env(safe-area-inset-bottom)' }} />
         </div>
       )}
     </div>
@@ -257,17 +297,22 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 }
 
 function RelatedProducts({ categorySlug, currentId }: { categorySlug: string; currentId: string }) {
+  const { t } = useLanguage();
   const { data } = useQuery({
     queryKey: ['related-products', categorySlug],
-    queryFn: () => productsApi.getAll({ categorySlug, limit: 6 }),
+    queryFn: () => productsApi.getAll({ categorySlug, limit: 12 }),
   });
   const related = (data?.data ?? []).filter(p => p.id !== currentId);
   if (!related.length) return null;
   return (
     <div className="mt-12 border-t pt-10">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">আপনার পছন্দ হতে পারে</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {related.map(p => <ProductCard key={p.id} product={p} />)}
+      <h2 className="text-xl font-bold text-gray-900 mb-4">{t.productDetail.relatedProducts}</h2>
+      <div className="flex gap-3 overflow-x-auto pb-3 [scrollbar-width:thin] [scrollbar-color:#e5e7eb_transparent]">
+        {related.map(p => (
+          <div key={p.id} className="flex-shrink-0 w-40 sm:w-48">
+            <ProductCard product={p} mini />
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -193,6 +193,10 @@ model User {
   segmentMemberships   CustomerSegmentMember[]
   supportTickets       SupportTicket[]
   ticketMessages       TicketMessage[]
+  productQuestions     ProductQuestion[]
+  productAnswers       ProductAnswer[]
+  tryOnSessions        VirtualTryOnSession[] @relation("UserTryOnSessions")
+  chatSessions         ChatSession[]
 
   @@index([email])
   @@index([phone])
@@ -341,6 +345,8 @@ model Product {
   posOrderItems   PosOrderItem[]
   returnItems     ReturnItem[]
   preorderConfig  PreorderConfig?
+  questions       ProductQuestion[]
+  bundleItems     BundleOfferItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -349,6 +355,7 @@ model Product {
   @@index([categoryId])
   @@index([brandId])
   @@index([isActive, isFeatured])
+  @@index([isActive, createdAt])
   @@index([source])
   @@index([sku])
   @@index([deletedAt])
@@ -412,12 +419,13 @@ model BookDetail {
 // ─────────────────────────────────────────────────────────────
 
 model Cart {
-  id        String     @id @default(cuid())
-  userId    String?    @unique
-  sessionId String?    @unique
-  items     CartItem[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id                    String     @id @default(cuid())
+  userId                String?    @unique
+  sessionId             String?    @unique
+  items                 CartItem[]
+  recoveryEmailSentAt   DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
 
   user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -503,6 +511,7 @@ model OrderItem {
   product Product @relation(fields: [productId], references: [id])
 
   @@index([orderId])
+  @@index([orderId, productId])
   @@map("order_items")
 }
 
@@ -551,6 +560,8 @@ model Review {
   body        String?
   isVerified  Boolean  @default(false)
   isPublished Boolean  @default(false)
+  images      String[] @default([])
+  helpfulCount Int     @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -559,6 +570,7 @@ model Review {
 
   @@unique([productId, userId])
   @@index([productId])
+  @@index([productId, isPublished])
   @@map("reviews")
 }
 
@@ -642,6 +654,7 @@ model FlashDeal {
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([isActive, endsAt])
+  @@index([isActive, startsAt, endsAt])
   @@map("flash_deals")
 }
 
@@ -740,6 +753,42 @@ model DeliveryBoy {
   orders Order[]
 
   @@map("delivery_boys")
+}
+
+// ─────────────────────────────────────────────────────────────
+// CMS
+// ─────────────────────────────────────────────────────────────
+
+enum CmsPageStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model CmsPage {
+  id        String        @id @default(cuid())
+  title     String
+  slug      String        @unique
+  content   String        @db.Text
+  status    CmsPageStatus @default(DRAFT)
+  metaTitle String?
+  metaDesc  String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@map("cms_pages")
+}
+
+model CmsFaq {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String   @db.Text
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cms_faqs")
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -2281,6 +2330,7 @@ model InventoryStock {
   @@index([productId])
   @@index([warehouseId])
   @@index([status])
+  @@index([status, updatedAt])
   @@map("inventory_stocks")
 }
 
@@ -2758,4 +2808,234 @@ model SeoSettings {
   updatedAt              DateTime @updatedAt
 
   @@map("seo_settings")
+}
+
+// ─────────────────────────────────────────────────────────────
+// PRODUCT Q&A
+// ─────────────────────────────────────────────────────────────
+
+enum QuestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ProductQuestion {
+  id        String         @id @default(cuid())
+  productId String
+  userId    String?
+  guestName String?
+  body      String         @db.Text
+  status    QuestionStatus @default(PENDING)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  product  Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user     User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  answers  ProductAnswer[]
+
+  @@index([productId])
+  @@index([status])
+  @@map("product_questions")
+}
+
+model ProductAnswer {
+  id         String   @id @default(cuid())
+  questionId String
+  userId     String?
+  isAdmin    Boolean  @default(false)
+  body       String   @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  question ProductQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([questionId])
+  @@map("product_answers")
+}
+
+// ─────────────────────────────────────────────────────────────
+// BUNDLE OFFERS
+// ─────────────────────────────────────────────────────────────
+
+model BundleOffer {
+  id            String       @id @default(cuid())
+  title         String
+  description   String?
+  isActive      Boolean      @default(true)
+  discountType  DiscountType @default(PERCENTAGE)
+  discountValue Decimal      @db.Decimal(10, 2)
+  minItems      Int          @default(2)
+  maxUses       Int?
+  usedCount     Int          @default(0)
+  startDate     DateTime?
+  endDate       DateTime?
+  imageUrl      String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  items BundleOfferItem[]
+
+  @@index([isActive])
+  @@map("bundle_offers")
+}
+
+model BundleOfferItem {
+  id            String @id @default(cuid())
+  bundleOfferId String
+  productId     String
+  quantity      Int    @default(1)
+
+  bundle  BundleOffer @relation(fields: [bundleOfferId], references: [id], onDelete: Cascade)
+  product Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([bundleOfferId, productId])
+  @@index([bundleOfferId])
+  @@map("bundle_offer_items")
+}
+
+// ─────────────────────────────────────────────────────────────
+// RAG CUSTOMER SUPPORT KNOWLEDGE BASE
+// ─────────────────────────────────────────────────────────────
+
+enum RagDocumentStatus {
+  PENDING
+  INDEXED
+  FAILED
+}
+
+enum RagDocumentCategory {
+  FAQ
+  POLICY
+  PRODUCT
+  SHIPPING
+  RETURNS
+  GENERAL
+}
+
+model RagDocument {
+  id          String              @id @default(cuid())
+  title       String
+  content     String              @db.Text
+  category    RagDocumentCategory @default(GENERAL)
+  source      String?
+  status      RagDocumentStatus   @default(PENDING)
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  chunks RagDocumentChunk[]
+
+  @@index([category])
+  @@index([status])
+  @@map("rag_documents")
+}
+
+model RagDocumentChunk {
+  id         String   @id @default(cuid())
+  documentId String
+  chunkIndex Int
+  content    String   @db.Text
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  document RagDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  @@map("rag_document_chunks")
+}
+
+// ─────────────────────────────────────────────────────────────
+// VIRTUAL TRIAL ROOM
+// ─────────────────────────────────────────────────────────────
+
+enum TryOnStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model VirtualTryOnSession {
+  id             String      @id @default(cuid())
+  userId         String?
+  productId      String
+  variantId      String?
+  userImageUrl   String?
+  resultImageUrl String?
+  status         TryOnStatus @default(PENDING)
+  errorMessage   String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  user    User?   @relation("UserTryOnSessions", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([productId])
+  @@map("virtual_try_on_sessions")
+}
+
+// ─────────────────────────────────────────────────────────────
+// UNKORA AI CHATBOT
+// ─────────────────────────────────────────────────────────────
+
+enum ChatSessionStatus {
+  ACTIVE
+  CLOSED
+}
+
+model ChatSession {
+  id        String            @id @default(cuid())
+  visitorId String?
+  userId    String?
+  status    ChatSessionStatus @default(ACTIVE)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  user     User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages ChatMessage[]
+
+  @@index([visitorId])
+  @@index([userId])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      String
+  content   String   @db.Text
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("chat_messages")
+}
+
+// ─────────────────────────────────────────────────────────────
+// PREDICTIVE DEMAND ENGINE
+// ─────────────────────────────────────────────────────────────
+
+enum PredictionReportStatus {
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
+model PredictionReport {
+  id           String                 @id @default(cuid())
+  title        String
+  periodLabel  String?
+  status       PredictionReportStatus @default(GENERATING)
+  statsSnapshot Json?
+  aiAnalysis   String?                @db.Text
+  errorMessage String?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@index([status])
+  @@map("prediction_reports")
 }

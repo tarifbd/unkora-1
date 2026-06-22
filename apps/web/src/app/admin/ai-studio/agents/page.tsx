@@ -284,17 +284,19 @@ export default function AiAgentsPage() {
   const [editAgent, setEditAgent] = useState<AiAgentIntegration | null>(null);
   const qc = useQueryClient();
 
-  const { data: agents = [], isLoading, isError } = useQuery({
+  const { data: rawAgents, isLoading, isError } = useQuery({
     queryKey: ['ai-agents'],
     queryFn: aiApi.listAgents,
     retry: 1,
   });
+  const agents: AiAgentIntegration[] = Array.isArray(rawAgents) ? rawAgents : (rawAgents as any)?.data ?? [];
 
-  const { data: tasks = [] } = useQuery({
+  const { data: rawTasks } = useQuery({
     queryKey: ['ai-agent-tasks'],
     queryFn: () => aiApi.listAgentTasks(),
     retry: 1,
   });
+  const tasks: AiAgentTask[] = Array.isArray(rawTasks) ? rawTasks : (rawTasks as any)?.data ?? [];
 
   const createMutation = useMutation({
     mutationFn: (data: Partial<AiAgentIntegration>) => aiApi.createAgent(data),

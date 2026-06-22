@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ShoppingCart, Star, ArrowRight, ChevronRight, Sparkles, Zap } from 'lucide-react';
 import { productsApi } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
+import { useLanguage } from '@/lib/i18n/language-context';
 import { ProductCard } from '@/components/product/product-card';
 import { ProductGridSkeleton } from '@/components/ui/skeleton';
 
@@ -29,6 +30,7 @@ const COLLECTIONS = [
     title: 'রমজান কালেকশন',
     titleEn: 'Ramadan Collection',
     desc: 'রমজানের জন্য বিশেষভাবে কিউরেটেড পণ্য সমূহ',
+    descEn: 'Specially curated products for the holy month of Ramadan',
     image: 'https://images.unsplash.com/photo-1584551246679-0daf3d275d0f?q=80&w=600&auto=format&fit=crop',
     href: '/categories/islamic-lifestyle?collection=ramadan',
     badge: 'Exclusive',
@@ -39,6 +41,7 @@ const COLLECTIONS = [
     title: 'প্রিমিয়াম নামাজের সেট',
     titleEn: 'Premium Prayer Set',
     desc: 'জায়নামাজ, তাসবিহ, আতর — একসাথে গিফট প্যাক',
+    descEn: 'Prayer mat, tasbih, attar — all in one gift pack',
     image: 'https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=600&auto=format&fit=crop',
     href: '/categories/islamic-lifestyle?collection=prayer-set',
     badge: 'Gift Pack',
@@ -49,6 +52,7 @@ const COLLECTIONS = [
     title: 'আরবি ক্যালিগ্রাফি আর্ট',
     titleEn: 'Arabic Calligraphy Art',
     desc: 'হাতে তৈরি ক্যালিগ্রাফি পেইন্টিং ও ওয়াল আর্ট',
+    descEn: 'Handmade calligraphy paintings and wall art',
     image: 'https://images.unsplash.com/photo-1561731216-c3a4d99437d5?q=80&w=600&auto=format&fit=crop',
     href: '/categories/islamic-lifestyle?collection=calligraphy',
     badge: 'Handmade',
@@ -58,10 +62,10 @@ const COLLECTIONS = [
 
 /* ── Why choose section items ────────────────────────────────── */
 const WHY_ITEMS = [
-  { icon: '✅', title: '১০০% হালাল', desc: 'সব পণ্য যাচাইকৃত হালাল মান সম্পন্ন' },
-  { icon: '🌍', title: 'বিশ্বমানের পণ্য', desc: 'সৌদি আরব, তুরস্ক ও ইন্দোনেশিয়া থেকে আমদানিকৃত' },
-  { icon: '🚚', title: 'দ্রুত ডেলিভারি', desc: 'সারা বাংলাদেশে ২-৪ কার্যদিবসে পৌঁছে দিই' },
-  { icon: '💚', title: 'ইসলামিক স্কলার অনুমোদিত', desc: 'বিশেষজ্ঞদের দ্বারা পর্যালোচনা করা পণ্য তালিকা' },
+  { icon: '✅', title: '১০০% হালাল', titleEn: '100% Halal', desc: 'সব পণ্য যাচাইকৃত হালাল মান সম্পন্ন', descEn: 'All products certified to halal standards' },
+  { icon: '🌍', title: 'বিশ্বমানের পণ্য', titleEn: 'World-class Products', desc: 'সৌদি আরব, তুরস্ক ও ইন্দোনেশিয়া থেকে আমদানিকৃত', descEn: 'Imported from Saudi Arabia, Turkey and Indonesia' },
+  { icon: '🚚', title: 'দ্রুত ডেলিভারি', titleEn: 'Fast Delivery', desc: 'সারা বাংলাদেশে ২-৪ কার্যদিবসে পৌঁছে দিই', descEn: 'Delivered across Bangladesh in 2–4 business days' },
+  { icon: '💚', title: 'ইসলামিক স্কলার অনুমোদিত', titleEn: 'Scholar Approved', desc: 'বিশেষজ্ঞদের দ্বারা পর্যালোচনা করা পণ্য তালিকা', descEn: 'Product catalogue reviewed by Islamic scholars' },
 ];
 
 /* ── Islamic geometric SVG pattern ──────────────────────────── */
@@ -108,6 +112,7 @@ function BismillahSVG({ className }: { className?: string }) {
 /* ── Main component ──────────────────────────────────────────── */
 export function IslamicLifestyleClient() {
   const { addItem } = useCart();
+  const { lang } = useLanguage();
   const [activeTab, setActiveTab] = useState('all');
 
   const { data: products, isLoading } = useQuery({
@@ -148,10 +153,10 @@ export function IslamicLifestyleClient() {
 
           {/* Main heading */}
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white mb-4 leading-tight">
-            ইসলামিক{' '}
+            {lang === 'en' ? 'Islamic' : 'ইসলামিক'}{' '}
             <span className="relative">
               <span style={{ background: 'linear-gradient(135deg, #10b981, #34d399, #a7f3d0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                লাইফস্টাইল
+                {lang === 'en' ? 'Lifestyle' : 'লাইফস্টাইল'}
               </span>
               <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 8" fill="none" style={{ height: '6px' }}>
                 <path d="M0 4 Q50 0 100 4 Q150 8 200 4" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" />
@@ -159,8 +164,13 @@ export function IslamicLifestyleClient() {
             </span>
           </h1>
           <p className="text-base sm:text-lg text-white/50 max-w-xl mx-auto mb-10 leading-relaxed">
-            বিশ্বমানের হালাল পণ্য — নামাজের সরঞ্জাম থেকে আতর পর্যন্ত,<br className="hidden sm:block" />
-            আপনার ইসলামিক জীবনযাত্রাকে আরও সুন্দর করুন
+            {lang === 'en' ? (
+              <>World-class halal products — from prayer essentials to perfumes,<br className="hidden sm:block" />
+              enrich your Islamic way of life</>
+            ) : (
+              <>বিশ্বমানের হালাল পণ্য — নামাজের সরঞ্জাম থেকে আতর পর্যন্ত,<br className="hidden sm:block" />
+              আপনার ইসলামিক জীবনযাত্রাকে আরও সুন্দর করুন</>
+            )}
           </p>
 
           {/* CTAs */}
@@ -171,27 +181,27 @@ export function IslamicLifestyleClient() {
               style={{ background: 'linear-gradient(135deg, #047857, #10b981)', boxShadow: '0 8px 24px rgba(4,120,87,0.35)' }}
             >
               <Sparkles className="w-4 h-4" />
-              পণ্য দেখুন
+              {lang === 'en' ? 'Browse Products' : 'পণ্য দেখুন'}
             </Link>
             <Link
               href="/categories/islamic-lifestyle?collection=ramadan"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black text-amber-300 text-sm border border-amber-600/40 bg-amber-900/20 backdrop-blur-sm hover:bg-amber-900/40 transition-all hover:scale-105"
             >
               <Star className="w-4 h-4" />
-              রমজান স্পেশাল
+              {lang === 'en' ? 'Ramadan Special' : 'রমজান স্পেশাল'}
             </Link>
           </div>
 
           {/* Trust stats */}
           <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mt-12">
             {[
-              { n: '৫০০+', l: 'হালাল পণ্য' },
-              { n: '১২,০০০+', l: 'সন্তুষ্ট গ্রাহক' },
-              { n: '১০০%', l: 'অথেনটিক' },
-            ].map(({ n, l }) => (
+              { n: '৫০০+', l: 'হালাল পণ্য', lEn: 'Halal Products' },
+              { n: '১২,০০০+', l: 'সন্তুষ্ট গ্রাহক', lEn: 'Happy Customers' },
+              { n: '১০০%', l: 'অথেনটিক', lEn: 'Authentic' },
+            ].map(({ n, l, lEn }) => (
               <div key={l} className="text-center">
                 <div className="text-2xl font-black text-white">{n}</div>
-                <div className="text-xs text-white/40 mt-0.5">{l}</div>
+                <div className="text-xs text-white/40 mt-0.5">{lang === 'en' ? lEn : l}</div>
               </div>
             ))}
           </div>
@@ -209,7 +219,7 @@ export function IslamicLifestyleClient() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-2">Browse by Category</p>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">সকল ক্যাটাগরি</h2>
+            <h2 className="text-2xl sm:text-3xl font-black text-white">{lang === 'en' ? 'All Categories' : 'সকল ক্যাটাগরি'}</h2>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
@@ -234,8 +244,8 @@ export function IslamicLifestyleClient() {
                   {cat.icon}
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-white/90 leading-tight">{cat.label}</p>
-                  <p className="text-[9px] text-white/30 mt-0.5">{cat.en}</p>
+                  <p className="text-xs font-bold text-white/90 leading-tight">{lang === 'en' ? cat.en : cat.label}</p>
+                  <p className="text-[9px] text-white/30 mt-0.5">{lang === 'en' ? cat.label : cat.en}</p>
                 </div>
               </Link>
             ))}
@@ -249,10 +259,10 @@ export function IslamicLifestyleClient() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-1">Featured</p>
-              <h2 className="text-2xl font-black text-white">স্পেশাল কালেকশন</h2>
+              <h2 className="text-2xl font-black text-white">{lang === 'en' ? 'Special Collections' : 'স্পেশাল কালেকশন'}</h2>
             </div>
             <Link href="/categories/islamic-lifestyle" className="flex items-center gap-1 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors">
-              সব দেখুন <ChevronRight className="w-3.5 h-3.5" />
+              {lang === 'en' ? 'View All' : 'সব দেখুন'} <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
@@ -273,8 +283,8 @@ export function IslamicLifestyleClient() {
                   >
                     {col.badge}
                   </span>
-                  <h3 className="text-lg font-black text-white leading-tight mb-1">{col.title}</h3>
-                  <p className="text-xs text-white/60 leading-relaxed">{col.desc}</p>
+                  <h3 className="text-lg font-black text-white leading-tight mb-1">{lang === 'en' ? col.titleEn : col.title}</h3>
+                  <p className="text-xs text-white/60 leading-relaxed">{lang === 'en' ? col.descEn : col.desc}</p>
                   <div className="flex items-center gap-1 text-emerald-400 text-xs font-bold mt-3 group-hover:gap-2 transition-all">
                     Shop Now <ArrowRight className="w-3.5 h-3.5" />
                   </div>
@@ -291,11 +301,11 @@ export function IslamicLifestyleClient() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-1">Our Products</p>
-              <h2 className="text-2xl font-black text-white">ইসলামিক পণ্য সমূহ</h2>
+              <h2 className="text-2xl font-black text-white">{lang === 'en' ? 'Islamic Products' : 'ইসলামিক পণ্য সমূহ'}</h2>
             </div>
             {/* Filter tabs */}
             <div className="flex items-center gap-1.5 bg-white/5 rounded-2xl p-1 border border-white/8 overflow-x-auto [scrollbar-width:none]">
-              {[{ key: 'all', label: 'সব' }, ...SUB_CATS.slice(0,5).map(c => ({ key: c.slug, label: c.icon + ' ' + c.label }))].map(tab => (
+              {[{ key: 'all', label: 'সব', en: 'All' }, ...SUB_CATS.slice(0,5).map(c => ({ key: c.slug, label: c.icon + ' ' + c.label, en: c.icon + ' ' + c.en }))].map(tab => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
@@ -305,7 +315,7 @@ export function IslamicLifestyleClient() {
                       : 'text-white/50 hover:text-white/80 hover:bg-white/5'
                   }`}
                 >
-                  {tab.label}
+                  {lang === 'en' ? tab.en : tab.label}
                 </button>
               ))}
             </div>
@@ -327,10 +337,16 @@ export function IslamicLifestyleClient() {
             /* Empty state */
             <div className="text-center py-24 space-y-4">
               <div className="text-6xl mb-4">🕌</div>
-              <h3 className="text-xl font-black text-white/70">পণ্য শীঘ্রই আসছে</h3>
-              <p className="text-white/30 text-sm max-w-sm mx-auto">এই ক্যাটাগরিতে নতুন পণ্য যোগ করা হচ্ছে। আমাদের নিউজলেটার সাবস্ক্রাইব করুন।</p>
+              <h3 className="text-xl font-black text-white/70">
+                {lang === 'en' ? 'Products Coming Soon' : 'পণ্য শীঘ্রই আসছে'}
+              </h3>
+              <p className="text-white/30 text-sm max-w-sm mx-auto">
+                {lang === 'en'
+                  ? 'New products are being added to this category. Subscribe to our newsletter.'
+                  : 'এই ক্যাটাগরিতে নতুন পণ্য যোগ করা হচ্ছে। আমাদের নিউজলেটার সাবস্ক্রাইব করুন।'}
+              </p>
               <Link href="/" className="inline-flex items-center gap-2 text-emerald-400 text-sm font-bold hover:text-emerald-300 transition-colors mt-4">
-                হোম পেজে ফিরুন <ArrowRight className="w-3.5 h-3.5" />
+                {lang === 'en' ? 'Back to Home' : 'হোম পেজে ফিরুন'} <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
           )}
@@ -341,7 +357,7 @@ export function IslamicLifestyleClient() {
                 href="/categories/islamic-lifestyle"
                 className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black text-white text-sm border border-emerald-700/40 bg-emerald-900/20 hover:bg-emerald-900/40 transition-all hover:scale-105"
               >
-                সব পণ্য দেখুন <ArrowRight className="w-4 h-4" />
+                {lang === 'en' ? 'View All Products' : 'সব পণ্য দেখুন'} <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           )}
@@ -358,7 +374,7 @@ export function IslamicLifestyleClient() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-2">Why Choose Us</p>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">আমরা কেন আলাদা</h2>
+            <h2 className="text-2xl sm:text-3xl font-black text-white">{lang === 'en' ? 'Why Choose Us' : 'আমরা কেন আলাদা'}</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -370,8 +386,8 @@ export function IslamicLifestyleClient() {
                 <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity"
                   style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(4,120,87,0.12), transparent 70%)' }} />
                 <div className="text-4xl mb-4">{item.icon}</div>
-                <h3 className="font-black text-white text-base mb-2">{item.title}</h3>
-                <p className="text-xs text-white/40 leading-relaxed">{item.desc}</p>
+                <h3 className="font-black text-white text-base mb-2">{lang === 'en' ? item.titleEn : item.title}</h3>
+                <p className="text-xs text-white/40 leading-relaxed">{lang === 'en' ? item.descEn : item.desc}</p>
               </div>
             ))}
           </div>
@@ -390,13 +406,24 @@ export function IslamicLifestyleClient() {
         <div className="relative max-w-3xl mx-auto px-4 text-center">
           <BismillahSVG className="mb-6 opacity-60" />
           <h2 className="text-3xl sm:text-4xl font-black text-white mb-4">
-            আপনার ইসলামিক পণ্য <br className="sm:hidden" />
-            <span style={{ background: 'linear-gradient(90deg,#34d399,#a7f3d0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              সেল করুন UNKORA তে
-            </span>
+            {lang === 'en' ? (
+              <>Sell Your Islamic Products <br className="sm:hidden" />
+                <span style={{ background: 'linear-gradient(90deg,#34d399,#a7f3d0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  on UNKORA
+                </span>
+              </>
+            ) : (
+              <>আপনার ইসলামিক পণ্য <br className="sm:hidden" />
+                <span style={{ background: 'linear-gradient(90deg,#34d399,#a7f3d0)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  সেল করুন UNKORA তে
+                </span>
+              </>
+            )}
           </h2>
           <p className="text-white/60 text-sm sm:text-base mb-8 max-w-lg mx-auto leading-relaxed">
-            আপনার হালাল পণ্য লক্ষ মুসলিম গ্রাহকের কাছে পৌঁছে দিন। আজই সেলার হিসেবে যোগ দিন।
+            {lang === 'en'
+              ? 'Reach millions of Muslim customers with your halal products. Join as a seller today.'
+              : 'আপনার হালাল পণ্য লক্ষ মুসলিম গ্রাহকের কাছে পৌঁছে দিন। আজই সেলার হিসেবে যোগ দিন।'}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Link
@@ -405,10 +432,10 @@ export function IslamicLifestyleClient() {
               style={{ background: 'linear-gradient(135deg,#f59e0b,#f97316)', boxShadow: '0 8px 24px rgba(245,158,11,0.3)' }}
             >
               <Zap className="w-4 h-4" />
-              সেলার হিসেবে যোগ দিন
+              {lang === 'en' ? 'Become a Seller' : 'সেলার হিসেবে যোগ দিন'}
             </Link>
             <Link href="/" className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-black text-white/80 text-sm border border-white/15 bg-white/5 hover:bg-white/10 transition-all hover:scale-105">
-              হোম পেজ
+              {lang === 'en' ? 'Home Page' : 'হোম পেজ'}
             </Link>
           </div>
         </div>

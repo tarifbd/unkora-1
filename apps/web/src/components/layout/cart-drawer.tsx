@@ -88,18 +88,18 @@ export function CartDrawer() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => updateItem.mutate({ itemId: item.id, quantity: item.quantity - 1 })}
-                        className="flex h-6 w-6 items-center justify-center rounded border hover:bg-accent transition-colors disabled:opacity-30"
+                        className="flex h-9 w-9 items-center justify-center rounded border hover:bg-accent transition-colors disabled:opacity-30 touch-manipulation"
                         disabled={updateItem.isPending || item.quantity <= 1}
                       >
-                        <Minus className="h-3 w-3" />
+                        <Minus className="h-3.5 w-3.5" />
                       </button>
-                      <span className="min-w-[20px] text-center text-sm">{item.quantity}</span>
+                      <span className="min-w-[28px] text-center text-sm font-medium">{item.quantity}</span>
                       <button
                         onClick={() => updateItem.mutate({ itemId: item.id, quantity: item.quantity + 1 })}
-                        className="flex h-6 w-6 items-center justify-center rounded border hover:bg-accent transition-colors"
+                        className="flex h-9 w-9 items-center justify-center rounded border hover:bg-accent transition-colors touch-manipulation"
                         disabled={updateItem.isPending}
                       >
-                        <Plus className="h-3 w-3" />
+                        <Plus className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => removeItem.mutate(item.id)}
@@ -146,16 +146,16 @@ export function CartDrawer() {
                       <button
                         onClick={() => guestCart.updateQty(item.productId, item.quantity - 1)}
                         disabled={item.quantity <= 1}
-                        className="flex h-6 w-6 items-center justify-center rounded border hover:bg-accent transition-colors disabled:opacity-30"
+                        className="flex h-9 w-9 items-center justify-center rounded border hover:bg-accent transition-colors disabled:opacity-30 touch-manipulation"
                       >
-                        <Minus className="h-3 w-3" />
+                        <Minus className="h-3.5 w-3.5" />
                       </button>
-                      <span className="min-w-[20px] text-center text-sm">{item.quantity}</span>
+                      <span className="min-w-[28px] text-center text-sm font-medium">{item.quantity}</span>
                       <button
                         onClick={() => guestCart.updateQty(item.productId, item.quantity + 1)}
-                        className="flex h-6 w-6 items-center justify-center rounded border hover:bg-accent transition-colors"
+                        className="flex h-9 w-9 items-center justify-center rounded border hover:bg-accent transition-colors touch-manipulation"
                       >
-                        <Plus className="h-3 w-3" />
+                        <Plus className="h-3.5 w-3.5" />
                       </button>
                       <button
                         onClick={() => guestCart.removeItem(item.productId)}

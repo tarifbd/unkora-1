@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { CouponsService } from './coupons.service';
 import { CreateCouponDto } from './dto/create-coupon.dto';
+import { UpdateCouponDto } from './dto/update-coupon.dto';
 import { ValidateCouponDto } from './dto/validate-coupon.dto';
 
 @ApiTags('coupons')
@@ -55,6 +56,15 @@ export class CouponsController {
   @ApiOperation({ summary: 'Admin: create a coupon' })
   adminCreate(@Body() dto: CreateCouponDto) {
     return this.couponsService.adminCreate(dto);
+  }
+
+  @Patch('admin/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a coupon' })
+  update(@Param('id') id: string, @Body() dto: UpdateCouponDto) {
+    return this.couponsService.adminUpdate(id, dto);
   }
 
   @Patch('admin/:id/toggle')

@@ -8,16 +8,18 @@ import type { Product } from '@/lib/api/products';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { WishlistButton } from './wishlist-button';
-import { PreorderBadge } from './preorder-cta';
+import { PreorderButton, PreorderTag } from './preorder-button';
+import { isPreorderProduct } from '@/lib/preorder';
 import { trackAddToCart } from '@/lib/analytics';
 
 interface ProductCardProps {
   product: Product;
   className?: string;
   listView?: boolean;
+  mini?: boolean;
 }
 
-export function ProductCard({ product, className, listView }: ProductCardProps) {
+export function ProductCard({ product, className, listView, mini }: ProductCardProps) {
   const { addItem } = useCart();
   const { lang } = useLanguage();
 
@@ -30,6 +32,7 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
     : 0;
   const reviewCount = product._count?.reviews ?? 0;
   const inStock = product.stockQuantity > 0;
+  const preorder = isPreorderProduct(product);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -55,11 +58,20 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
           ) : (
             <div className="flex h-full items-center justify-center text-3xl text-gray-200">📚</div>
           )}
-          {hasDiscount && (
+          {hasDiscount && !preorder && (
             <span className="absolute top-1 left-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded">
               -{discountPct}%
             </span>
           )}
+          {preorder && (
+            <PreorderTag lang={lang} className="absolute top-1 left-1 !text-[8px] !px-1.5 !py-0.5" />
+          )}
+          <div className="absolute top-1 right-1">
+            <WishlistButton
+              productId={product.id}
+              className="p-1 bg-white/90 backdrop-blur-sm rounded-full shadow hover:bg-red-50 transition-colors"
+            />
+          </div>
         </div>
 
         {/* Info */}
@@ -82,17 +94,17 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
                 <span className="text-xs text-gray-400 line-through">৳{Number(product.basePrice).toLocaleString('en-BD')}</span>
               )}
             </div>
-            {inStock ? (
+            {preorder ? (
+              <PreorderButton productSlug={product.slug} lang={lang} className="!h-8 px-3 flex-shrink-0" />
+            ) : (
               <button
                 onClick={handleAddToCart}
                 disabled={addItem.isPending}
-                className="flex items-center gap-1 px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-lg text-xs font-bold text-primary hover:bg-primary hover:text-white transition-all flex-shrink-0"
+                className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-b from-slate-700 to-slate-900 text-white rounded-lg text-xs font-bold shadow-md shadow-slate-900/30 hover:from-slate-600 hover:to-slate-800 active:scale-95 transition-all flex-shrink-0 ring-1 ring-white/10"
               >
                 <ShoppingCart className="w-3.5 h-3.5" />
-                {lang === 'bn' ? 'কার্ট' : 'Cart'}
+                {lang === 'bn' ? 'কার্টে যোগ' : 'Add'}
               </button>
-            ) : (
-              <span className="text-xs text-gray-400 font-medium">{lang === 'bn' ? 'স্টক নেই' : 'Out of stock'}</span>
             )}
           </div>
         </div>
@@ -128,12 +140,13 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
 
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
-          {hasDiscount && (
+          {preorder && <PreorderTag lang={lang} />}
+          {hasDiscount && !preorder && (
             <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm">
               -{discountPct}%
             </span>
           )}
-          {product.isFeatured && !hasDiscount && (
+          {product.isFeatured && !hasDiscount && !preorder && (
             <span className="bg-amber-400 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm">
               {lang === 'bn' ? 'জনপ্রিয়' : 'Hot'}
             </span>
@@ -141,15 +154,15 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
         </div>
 
         {/* Wishlist */}
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-2 right-2">
           <WishlistButton
             productId={product.id}
-            className="p-1.5 bg-white rounded-full shadow-md hover:bg-red-50 hover:text-red-500 transition-colors"
+            className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-md hover:bg-red-50 transition-colors"
           />
         </div>
 
-        {/* Out of stock overlay */}
-        {!inStock && (
+        {/* Out of stock overlay — only when NOT available for pre-order */}
+        {!inStock && !preorder && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[2px]">
             <span className="rounded-full bg-gray-800 text-white px-4 py-1.5 text-xs font-bold shadow-lg">
               {lang === 'bn' ? 'স্টক নেই' : 'Out of Stock'}
@@ -177,19 +190,17 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
           <p className="text-[10px] text-gray-400 truncate">{product.bookDetail.author}</p>
         )}
 
-        {/* Stars */}
-        {reviewCount > 0 && (
-          <div className="flex items-center gap-1">
-            <div className="flex">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <svg key={i} className={cn('w-3 h-3', i < 4 ? 'text-yellow-400' : 'text-gray-200')} fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
-            </div>
-            <span className="text-[9px] text-gray-400">({reviewCount})</span>
+        {/* Stars — always visible */}
+        <div className="flex items-center gap-1">
+          <div className="flex">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <svg key={i} className={cn('w-3 h-3', reviewCount > 0 && i < 4 ? 'text-yellow-400' : 'text-gray-200')} fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            ))}
           </div>
-        )}
+          <span className="text-[9px] text-gray-400">({reviewCount})</span>
+        </div>
 
         {/* Price */}
         <div className="flex items-baseline gap-1.5 mt-1">
@@ -200,46 +211,53 @@ export function ProductCard({ product, className, listView }: ProductCardProps) 
         </div>
 
         {/* ── Buttons ── always pinned at bottom */}
-        <div className="grid grid-cols-2 gap-1.5 mt-auto pt-2">
-          {/* Add to Cart */}
-          <button
-            onClick={handleAddToCart}
-            disabled={!inStock || addItem.isPending}
-            className={cn(
-              'flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap',
-              inStock
-                ? 'border border-primary/30 text-primary hover:bg-primary hover:text-white hover:border-primary active:scale-95'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            )}
-          >
-            <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
-          </button>
+        {preorder ? (
+          <div className="mt-auto pt-2">
+            <PreorderButton productSlug={product.slug} lang={lang} full />
+          </div>
+        ) : mini ? (
+          /* Full buttons for related/recommended product cards */
+          <div className="mt-auto pt-2 grid grid-cols-2 gap-1.5">
+            <button
+              onClick={handleAddToCart}
+              disabled={addItem.isPending}
+              className="flex items-center justify-center gap-1 h-9 rounded-xl text-[11px] font-black transition-all bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-md shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10"
+            >
+              <ShoppingCart className="w-3 h-3 flex-shrink-0" />
+              <span>{lang === 'bn' ? 'কার্টে' : 'Cart'}</span>
+            </button>
+            <button
+              onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/checkout?productSlug=${product.slug}&qty=1`; }}
+              className="flex items-center justify-center gap-1 h-9 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl text-[11px] font-black shadow-md shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20"
+            >
+              <Zap className="w-3 h-3 flex-shrink-0" />
+              <span>{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-1.5 mt-auto pt-2">
+            {/* Add to Cart */}
+            <button
+              onClick={handleAddToCart}
+              disabled={addItem.isPending}
+              className="flex items-center justify-center gap-1 h-9 rounded-xl text-xs font-black transition-all bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10"
+            >
+              <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
+              <span className="hidden sm:inline">{lang === 'bn' ? 'কার্টে যোগ করুন' : 'ADD TO CART'}</span>
+              <span className="sm:hidden">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
+            </button>
 
-          {/* Buy Now */}
-          {inStock ? (
-            <Link
-              href={`/checkout?productSlug=${product.slug}&qty=1`}
-              onClick={e => e.stopPropagation()}
-              className="flex items-center justify-center gap-1.5 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 active:scale-95 transition-all whitespace-nowrap"
+            {/* Buy Now */}
+            <button
+              onClick={e => { e.preventDefault(); e.stopPropagation(); window.location.href = `/checkout?productSlug=${product.slug}&qty=1`; }}
+              className="flex items-center justify-center gap-1 h-9 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-xl text-xs font-black shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20"
             >
               <Zap className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
-            </Link>
-          ) : (
-            <div className="flex items-center justify-center py-2 rounded-xl bg-gray-100 text-gray-400 text-xs font-bold">
-              {lang === 'bn' ? 'নেই' : 'N/A'}
-            </div>
-          )}
-        </div>
-
-        {/* Pre-order badge — only renders when product has active preorder */}
-        <PreorderBadge
-          productId={product.id}
-          productSlug={product.slug}
-          basePrice={Number(product.basePrice)}
-          salePrice={product.salePrice ? Number(product.salePrice) : undefined}
-        />
+              <span className="hidden sm:inline">{lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}</span>
+              <span className="sm:hidden">{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
+            </button>
+          </div>
+        )}
       </div>
     </Link>
   );

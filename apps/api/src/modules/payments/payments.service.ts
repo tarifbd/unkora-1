@@ -413,6 +413,32 @@ export class PaymentsService {
     return result;
   }
 
+  // ─── Admin list ─────────────────────────────────────────────────────────────
+
+  async findAll(page = 1, limit = 20, status?: string, method?: string) {
+    const where: Record<string, unknown> = {};
+    if (status) where['status'] = status;
+    if (method) where['method'] = method;
+
+    const [data, total] = await Promise.all([
+      this.prisma.payment.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          order: { select: { orderNumber: true, user: { select: { firstName: true, lastName: true, email: true } } } },
+        },
+      }),
+      this.prisma.payment.count({ where }),
+    ]);
+
+    return {
+      data,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
   // ─── Shared webhook handler ─────────────────────────────────────────────────
 
   async handleWebhook(transactionId: string, gatewayRef: string, status: PaymentStatus) {

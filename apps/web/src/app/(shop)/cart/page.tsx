@@ -21,7 +21,7 @@ export default function CartPage() {
 
     if (items.length === 0) {
       return (
-        <div className="container py-20 text-center">
+        <div className="container py-10 sm:py-20 text-center">
           <ShoppingCart className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
           <h2 className="mb-2 font-serif text-2xl font-bold">{t.cart.emptyCart}</h2>
           <p className="mb-6 text-muted-foreground">{t.cart.startShopping}</p>
@@ -37,15 +37,15 @@ export default function CartPage() {
     const total = subtotal + shipping;
 
     return (
-      <div className="container py-8">
+      <div className="container py-4 sm:py-8">
         <h1 className="mb-6 font-serif text-2xl font-bold">{t.cart.title} ({items.length} {t.cart.items})</h1>
 
-        <div className="grid gap-8 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 lg:gap-8 lg:grid-cols-3">
           {/* Items */}
           <div className="lg:col-span-2 space-y-4">
             {items.map(item => (
-              <div key={item.productId} className="flex gap-4 rounded-xl border bg-card p-4">
-                <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+              <div key={item.productId} className="flex gap-3 sm:gap-4 rounded-xl border bg-card p-3 sm:p-4">
+                <div className="relative h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
                   {item.image ? (
                     <Image src={item.image} alt={item.name} fill className="object-cover" />
                   ) : (
@@ -88,7 +88,7 @@ export default function CartPage() {
           </div>
 
           {/* Order Summary */}
-          <div className="h-fit rounded-xl border bg-card p-6 space-y-4">
+          <div className="h-fit rounded-xl border bg-card p-4 sm:p-6 space-y-4">
             <h2 className="font-semibold text-lg">{t.cart.orderSummary}</h2>
 
             <div className="space-y-2 text-sm">
@@ -151,15 +151,15 @@ export default function CartPage() {
   const total = subtotal + shipping;
 
   return (
-    <div className="container py-8">
+    <div className="container py-4 sm:py-8">
       <h1 className="mb-6 font-serif text-2xl font-bold">{t.cart.title} ({cart.items.length} {t.cart.items})</h1>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:gap-8 lg:grid-cols-3">
         {/* Items */}
         <div className="lg:col-span-2 space-y-4">
           {cart.items.map(item => (
-            <div key={item.id} className="flex gap-4 rounded-xl border bg-card p-4">
-              <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+            <div key={item.id} className="flex gap-3 sm:gap-4 rounded-xl border bg-card p-3 sm:p-4">
+              <div className="relative h-16 w-16 sm:h-20 sm:w-20 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
                 {item.product.images?.[0] ? (
                   <Image src={item.product.images[0].url} alt={item.product.name} fill className="object-cover" />
                 ) : (

@@ -1,12 +1,13 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, Loader2, Package, User, MapPin, CreditCard, Clock } from 'lucide-react';
+import { ArrowLeft, Loader2, Package, User, MapPin, CreditCard, Clock, Sparkles, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react';
 import { ordersApi, type Order } from '@/lib/api/orders';
 import { formatCurrency } from '@/lib/utils';
+import api from '@/lib/api';
 
 const ORDER_STATUSES = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'REFUNDED'] as const;
 
@@ -27,6 +28,74 @@ const PAYMENT_STATUS_COLORS: Record<string, string> = {
   FAILED: 'bg-red-100 text-red-700',
   REFUNDED: 'bg-gray-100 text-gray-700',
 };
+
+function AiRiskCard({ order }: { order: Order }) {
+  const [risk, setRisk] = useState<{ level: 'LOW' | 'MEDIUM' | 'HIGH'; summary: string } | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const analyze = useCallback(async () => {
+    setLoading(true);
+    const prompt = `You are an eCommerce fraud and risk analyst for UNKORA, a Bangladeshi online store.
+Analyze this order and return ONLY a JSON object with keys "level" (LOW/MEDIUM/HIGH) and "summary" (1-2 sentences max, plain text, no markdown).
+
+Order data:
+- Order #: ${order.orderNumber}
+- Total: ৳${order.total}
+- Payment method: ${order.paymentMethod}
+- Payment status: ${order.paymentStatus}
+- Items: ${order.items?.length ?? 0}
+- Customer: ${order.user ? 'registered user' : 'guest'}
+- Shipping city: ${order.shippingAddress?.city ?? 'unknown'}
+
+Return ONLY valid JSON. Example: {"level":"LOW","summary":"Payment confirmed, no risk indicators."}`;
+
+    try {
+      const { data } = await api.post('/admin/ai/generate/custom', { prompt, outputFormat: 'json' });
+      const raw = data?.data?.generatedContent ?? data?.data?.content ?? '{}';
+      const cleaned = String(raw).replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+      setRisk({ level: parsed.level ?? 'MEDIUM', summary: parsed.summary ?? 'Risk assessment complete.' });
+    } catch {
+      setRisk({ level: 'MEDIUM', summary: 'Could not complete AI risk assessment. Check AI provider configuration.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [order]);
+
+  const icon = risk?.level === 'LOW' ? ShieldCheck : risk?.level === 'HIGH' ? ShieldX : ShieldAlert;
+  const Icon = icon;
+  const color = risk?.level === 'LOW' ? 'text-green-600 bg-green-50 border-green-200' : risk?.level === 'HIGH' ? 'text-red-600 bg-red-50 border-red-200' : 'text-yellow-600 bg-yellow-50 border-yellow-200';
+
+  return (
+    <div className="rounded-xl border bg-card p-5">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-indigo-500" />
+          <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">AI Risk Score</h2>
+        </div>
+        {!risk && (
+          <button onClick={() => void analyze()} disabled={loading}
+            className="flex items-center gap-1 text-xs font-semibold text-indigo-600 border border-indigo-200 rounded-lg px-2 py-1 hover:bg-indigo-50 disabled:opacity-50 transition-colors">
+            {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+            {loading ? 'Analyzing…' : 'Analyze'}
+          </button>
+        )}
+      </div>
+      {risk ? (
+        <div className={`flex items-start gap-3 rounded-lg border p-3 ${color}`}>
+          <Icon className="h-5 w-5 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold text-sm">{risk.level} RISK</p>
+            <p className="text-xs mt-0.5 opacity-80">{risk.summary}</p>
+            <button onClick={() => setRisk(null)} className="text-[10px] underline mt-1 opacity-60">Re-analyze</button>
+          </div>
+        </div>
+      ) : !loading ? (
+        <p className="text-xs text-muted-foreground">Click Analyze to get an AI-powered fraud and risk assessment for this order.</p>
+      ) : null}
+    </div>
+  );
+}
 
 export default function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -294,6 +363,9 @@ export default function AdminOrderDetailPage({ params }: { params: Promise<{ id:
               </div>
             </div>
           </div>
+
+          {/* AI Risk Scoring */}
+          <AiRiskCard order={order} />
 
           {/* Notes */}
           {order.notes && (

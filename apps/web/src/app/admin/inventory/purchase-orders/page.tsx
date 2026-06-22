@@ -113,7 +113,7 @@ export default function PurchaseOrdersPage() {
           </div>
         ) : (
           <div className="divide-y divide-gray-50">
-            {data.data.map(po => {
+            {(data?.data ?? []).map(po => {
               const cfg = STATUS_CFG[po.status];
               const isExpanded = expandedId === po.id;
               return (

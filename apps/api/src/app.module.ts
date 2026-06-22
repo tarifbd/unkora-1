@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import appConfig from './config/app.config';
 import databaseConfig from './config/database.config';
@@ -52,6 +53,9 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ProductsModule } from './modules/products/products.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
+import { QuestionsModule } from './modules/questions/questions.module';
+import { BundlesModule } from './modules/bundles/bundles.module';
+import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
 import { SearchModule } from './modules/search/search.module';
 import { FlashDealsModule } from './modules/flash-deals/flash-deals.module';
 import { RefundsModule } from './modules/refunds/refunds.module';
@@ -70,6 +74,11 @@ import { PreordersModule } from './modules/preorders/preorders.module';
 import { ClassifiedsModule } from './modules/classifieds/classifieds.module';
 import { AddonsModule } from './modules/addons/addons.module';
 import { PopupsModule } from './modules/popups/popups.module';
+import { CmsModule } from './modules/cms/cms.module';
+import { RagModule } from './modules/rag/rag.module';
+import { VirtualTryOnModule } from './modules/virtual-tryon/virtual-tryon.module';
+import { ChatbotModule } from './modules/chatbot/chatbot.module';
+import { PredictionsModule } from './modules/predictions/predictions.module';
 
 @Module({
   imports: [
@@ -100,6 +109,9 @@ import { PopupsModule } from './modules/popups/popups.module';
     SearchModule,
     HealthModule,
     ReviewsModule,
+    QuestionsModule,
+    BundlesModule,
+    WhatsAppModule,
     WishlistModule,
     CouponsModule,
     UploadModule,
@@ -148,6 +160,16 @@ import { PopupsModule } from './modules/popups/popups.module';
     ClassifiedsModule,
     AddonsModule,
     PopupsModule,
+    CmsModule,
+    RagModule,
+    VirtualTryOnModule,
+    ChatbotModule,
+    PredictionsModule,
+  ],
+  providers: [
+    // Enforce rate limiting globally across every controller.
+    // Machine-to-machine endpoints (payment callbacks, health) opt out with @SkipThrottle().
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule {}

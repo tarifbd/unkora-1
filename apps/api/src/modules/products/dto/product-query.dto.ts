@@ -56,7 +56,7 @@ export class ProductQueryDto {
   @Transform(({ value }) => value === 'true')
   inStock?: boolean;
 
-  @ApiPropertyOptional({ enum: ['name', 'basePrice', 'createdAt'] })
+  @ApiPropertyOptional({ enum: ['name', 'basePrice', 'createdAt', 'rating', 'salePrice'] })
   @IsOptional()
   @IsString()
   sortBy?: string = 'createdAt';
@@ -70,4 +70,41 @@ export class ProductQueryDto {
   @IsOptional()
   @IsString()
   tags?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  author?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  language?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  genre?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  publisher?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  binding?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true')
+  hasDiscount?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true')
+  preorder?: boolean;
 }

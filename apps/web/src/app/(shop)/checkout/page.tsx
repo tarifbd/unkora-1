@@ -8,6 +8,7 @@ import { z } from 'zod';
 import {
   Loader2, MapPin, CheckCircle, ChevronDown, Truck, Smartphone, Banknote,
   ShieldCheck, Tag, Package, Store, Clock, Phone, LogIn, UserCheck, ShoppingBag,
+  CreditCard, Building2,
 } from 'lucide-react';
 import { useCart } from '@/lib/hooks/use-cart';
 import { useAuthStore } from '@/store/auth.store';
@@ -33,7 +34,7 @@ const schema = z.object({
   district:    z.string().optional(),
   division:    z.string().optional(),
   postalCode:  z.string().optional(),
-  paymentMethod: z.enum(['COD', 'BKASH', 'NAGAD']),
+  paymentMethod: z.enum(['COD', 'BKASH', 'NAGAD', 'CARD', 'BANK_TRANSFER']),
   guestEmail:  z.string().email().optional().or(z.literal('')),
   notes:       z.string().optional(),
 });
@@ -67,6 +68,24 @@ const PAYMENT_OPTIONS = [
     labelEn: 'Nagad',
     desc: 'মোবাইল পেমেন্ট',
     descEn: 'Mobile payment',
+    highlight: false,
+  },
+  {
+    value: 'CARD',
+    icon: CreditCard,
+    label: 'কার্ড পেমেন্ট',
+    labelEn: 'Card Payment',
+    desc: 'SSLCommerz — Visa / Mastercard',
+    descEn: 'SSLCommerz — Visa / Mastercard',
+    highlight: false,
+  },
+  {
+    value: 'BANK_TRANSFER',
+    icon: Building2,
+    label: 'ব্যাংক ট্রান্সফার',
+    labelEn: 'Bank Transfer',
+    desc: 'সরাসরি ব্যাংকে পাঠান',
+    descEn: 'Direct bank transfer',
     highlight: false,
   },
 ];
@@ -270,9 +289,17 @@ function CheckoutContent() {
       if (!isAuthenticated) {
         guestCart.clearCart();
       } else if (!quickBuyItem) {
-        // Clear API cart after authenticated cart-based checkout
         try { await cartApi.clear(); } catch { /* ignore */ }
         void queryClient.invalidateQueries({ queryKey: ['cart'] });
+      }
+
+      if (data.paymentMethod === 'CARD') {
+        try {
+          const { default: apiClient } = await import('@/lib/api');
+          const gatewayRes = await apiClient.post(`/payments/${order.id}/sslcommerz`);
+          const redirectUrl = gatewayRes.data?.data?.redirectGatewayURL ?? gatewayRes.data?.redirectGatewayURL;
+          if (redirectUrl) { window.location.href = redirectUrl; return; }
+        } catch { /* fall through to success page */ }
       }
       router.push(`/checkout/success?orderId=${order.id}&orderNumber=${encodeURIComponent(order.orderNumber)}`);
     } catch (err: unknown) {

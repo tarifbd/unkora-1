@@ -185,8 +185,8 @@ function AffiliatesTab() {
               <tr key={a.id} className="hover:bg-muted/30 transition-colors">
                 <td className="px-4 py-3">
                   <div>
-                    <p className="font-medium">{a.user.firstName} {a.user.lastName}</p>
-                    <p className="text-xs text-muted-foreground">{a.user.email}</p>
+                    <p className="font-medium">{a.user?.firstName} {a.user?.lastName}</p>
+                    <p className="text-xs text-muted-foreground">{a.user?.email}</p>
                   </div>
                 </td>
                 <td className="px-4 py-3">
@@ -271,7 +271,7 @@ function PayoutsTab() {
               <tr key={p.id} className="hover:bg-muted/30 transition-colors">
                 <td className="px-4 py-3">
                   <div>
-                    <p className="font-medium">{p.affiliate.user.firstName} {p.affiliate.user.lastName}</p>
+                    <p className="font-medium">{p.affiliate?.user?.firstName} {p.affiliate?.user?.lastName}</p>
                     <p className="text-xs text-muted-foreground font-mono">{p.affiliate.code}</p>
                   </div>
                 </td>

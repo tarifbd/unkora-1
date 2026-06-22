@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import PDFDocument from 'pdfkit';
 import { PrismaService } from '../../database/prisma.service';
+import { SettingsService } from '../settings/settings.service';
 
 @Injectable()
 export class InvoiceService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly settingsService: SettingsService,
+  ) {}
 
   async generateInvoicePdf(orderId: string): Promise<Buffer> {
     const order = await this.prisma.order.findUnique({
@@ -12,6 +16,16 @@ export class InvoiceService {
       include: { user: true, items: { include: { product: true } }, payment: true },
     });
     if (!order) throw new NotFoundException('Order not found');
+
+    const settings = await this.settingsService.getMany([
+      'invoice_store_name', 'invoice_store_address', 'invoice_phone',
+      'invoice_email', 'invoice_footer_text', 'invoice_return_policy', 'invoice_logo_url',
+    ]);
+    const storeName = settings['invoice_store_name'] || 'UNKORA';
+    const storeAddress = settings['invoice_store_address'] || 'Dhaka, Bangladesh';
+    const storePhone = settings['invoice_phone'] || '';
+    const storeEmail = settings['invoice_email'] || 'support@unkora.shop';
+    const footerText = settings['invoice_footer_text'] || 'Thank you for shopping with us!';
 
     const addr = order.shippingAddress as any;
     const orange = '#f97316';
@@ -25,8 +39,8 @@ export class InvoiceService {
       doc.on('error', reject);
 
       // ── Header ──────────────────────────────────────────────
-      doc.fontSize(28).fillColor(orange).text('UNKORA', 50, 50, { continued: false });
-      doc.fontSize(10).fillColor(gray).text("Bangladesh's Book & Lifestyle Store", 50, 85);
+      doc.fontSize(28).fillColor(orange).text(storeName, 50, 50, { continued: false });
+      doc.fontSize(10).fillColor(gray).text(storeAddress, 50, 85);
 
       doc.fontSize(20).fillColor('#111111').text('INVOICE', 400, 50, { align: 'right' });
       doc.fontSize(11).fillColor(gray)
@@ -98,9 +112,10 @@ export class InvoiceService {
 
       // ── Footer — positioned dynamically below content ────────
       const footerY = Math.max(y + 40, doc.page.height - 60);
+      const contactLine = [storeEmail, storePhone].filter(Boolean).join('  |  ');
       doc.fontSize(9).fillColor('#999999')
-        .text('Thank you for shopping with UNKORA!', 50, footerY, { align: 'center', width: 495 })
-        .text('unkora.com  |  support@unkora.com  |  +880-XXXX-XXXX', 50, footerY + 13, { align: 'center', width: 495 });
+        .text(footerText, 50, footerY, { align: 'center', width: 495 })
+        .text(contactLine, 50, footerY + 13, { align: 'center', width: 495 });
 
       doc.end();
     });
@@ -116,6 +131,16 @@ export class InvoiceService {
       },
     });
     if (!order) throw new NotFoundException('Order not found');
+
+    const settings = await this.settingsService.getMany([
+      'invoice_store_name', 'invoice_store_address', 'invoice_phone',
+      'invoice_email', 'invoice_footer_text', 'invoice_return_policy', 'invoice_logo_url',
+    ]);
+    const storeName = settings['invoice_store_name'] || 'UNKORA';
+    const storeAddress = settings['invoice_store_address'] || 'Dhaka, Bangladesh';
+    const storePhone = settings['invoice_phone'] || '';
+    const storeEmail = settings['invoice_email'] || 'support@unkora.shop';
+    const footerText = settings['invoice_footer_text'] || 'Thank you for shopping with us!';
 
     const shippingAddr = order.shippingAddress as any;
     const rows = order.items.map(item => `
@@ -159,8 +184,8 @@ export class InvoiceService {
 <body>
 <div class="header">
   <div>
-    <div class="logo">Unkora</div>
-    <p style="color:#666;font-size:13px;margin-top:4px">Your Trusted Online Shop</p>
+    <div class="logo">${storeName}</div>
+    <p style="color:#666;font-size:13px;margin-top:4px">${storeAddress}</p>
   </div>
   <div class="invoice-info" style="text-align:right">
     <h2>INVOICE</h2>
@@ -214,8 +239,8 @@ export class InvoiceService {
 </div>
 
 <div class="footer">
-  <p>Thank you for shopping with Unkora!</p>
-  <p style="margin-top:4px">For support: support@unkora.com | +880-XXXX-XXXX</p>
+  <p>${footerText}</p>
+  <p style="margin-top:4px">For support: ${storeEmail}${storePhone ? ` | ${storePhone}` : ''}</p>
 </div>
 </body>
 </html>`;

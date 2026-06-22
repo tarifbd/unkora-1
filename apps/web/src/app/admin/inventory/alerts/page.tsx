@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Bell, CheckCircle2, Loader2, Package } from 'lucide-react';
+import { Bell, CheckCircle2, Loader2, Package, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { inventoryApi, type InventoryAlert } from '@/lib/api/inventory';
+import api from '@/lib/api';
 
 const ALERT_CFG: Record<string, { label: string; bg: string; text: string; icon: string }> = {
   LOW_STOCK:    { label: 'Low Stock',    bg: 'bg-yellow-50', text: 'text-yellow-700', icon: '⚠️' },
@@ -12,6 +13,55 @@ const ALERT_CFG: Record<string, { label: string; bg: string; text: string; icon:
   OVERSTOCK:    { label: 'Overstock',    bg: 'bg-blue-50',   text: 'text-blue-700',   icon: '📦' },
   EXPIRY_SOON:  { label: 'Expiry Soon',  bg: 'bg-orange-50', text: 'text-orange-700', icon: '⏰' },
 };
+
+function AiReorderSuggestion({ alerts }: { alerts: InventoryAlert[] }) {
+  const [suggestion, setSuggestion] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const generate = async () => {
+    if (!alerts.length) return;
+    setLoading(true);
+    const items = alerts.slice(0, 10).map(a => `- ${a.product?.name} (current: ${a.currentQty ?? 0}, threshold: ${a.threshold ?? 5})`).join('\n');
+    const prompt = `You are an inventory manager for UNKORA, a Bangladeshi eCommerce store.
+The following products are low on stock or out of stock:
+
+${items}
+
+Provide a brief reorder action plan (3-5 bullet points, plain text, no markdown).
+Include: which items to prioritize, suggested reorder quantities, and a note about supplier lead time.
+Keep it under 200 words and practical.`;
+
+    try {
+      const { data } = await api.post('/admin/ai/generate/custom', { prompt, outputFormat: 'text' });
+      setSuggestion(String(data?.data?.generatedContent ?? data?.data?.content ?? 'Unable to generate suggestions.'));
+    } catch {
+      setSuggestion('Could not connect to AI service. Check AI Studio configuration.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl border border-indigo-100 p-4 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-indigo-500" />
+          <span className="text-sm font-bold text-gray-800">AI Reorder Suggestions</span>
+        </div>
+        <button onClick={() => void generate()} disabled={loading || !alerts.length}
+          className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-600 hover:bg-indigo-100 disabled:opacity-50 transition-colors">
+          {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+          {loading ? 'Analyzing…' : suggestion ? 'Refresh' : 'Generate Plan'}
+        </button>
+      </div>
+      {suggestion ? (
+        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{suggestion}</p>
+      ) : (
+        <p className="text-xs text-gray-400">{alerts.length ? 'Click Generate Plan to get AI-powered reorder recommendations based on your current alerts.' : 'No active alerts to analyze.'}</p>
+      )}
+    </div>
+  );
+}
 
 export default function AlertsPage() {
   const qc = useQueryClient();
@@ -28,8 +78,14 @@ export default function AlertsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['inventory-alerts'] }),
   });
 
+  const activeAlerts: InventoryAlert[] = (data?.data ?? []).filter((a: InventoryAlert) => !a.isResolved);
+
   return (
     <div className="space-y-5">
+      {!showResolved && !isLoading && activeAlerts.length > 0 && (
+        <AiReorderSuggestion alerts={activeAlerts} />
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-black text-gray-900">Inventory Alerts</h1>
@@ -61,7 +117,7 @@ export default function AlertsPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {data.data.map((alert: InventoryAlert) => {
+          {(data?.data ?? []).map((alert: InventoryAlert) => {
             const cfg = ALERT_CFG[alert.type] ?? ALERT_CFG.LOW_STOCK!;
             const img = alert.product?.images?.[0]?.url;
             return (

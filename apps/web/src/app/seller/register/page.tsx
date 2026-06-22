@@ -1,0 +1,249 @@
+'use client';
+
+import Link from 'next/link';
+import { useState, Suspense, useEffect } from 'react';
+import { Eye, EyeOff, Loader2, Store, ArrowRight, BookOpen } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { authApi } from '@/lib/api/auth';
+import { saveUserRole } from '@/lib/api';
+import { useAuthStore } from '@/store/auth.store';
+import { toast } from 'sonner';
+
+const schema = z.object({
+  firstName: z.string().min(2, 'Min 2 chars'),
+  lastName:  z.string().min(2, 'Min 2 chars'),
+  email:     z.string().email('Valid email required'),
+  phone:     z.string().optional(),
+  password:  z.string().min(8, 'Min 8 chars').regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Need uppercase, lowercase, number'),
+  confirmPassword: z.string(),
+}).refine(d => d.password === d.confirmPassword, { message: "Passwords don't match", path: ['confirmPassword'] });
+
+type FormData = z.infer<typeof schema>;
+
+function SellerRegisterContent() {
+  const { isAuthenticated, setUser } = useAuthStore();
+  const [showPw, setShowPw] = useState(false);
+  const [lang, setLang] = useState<'bn' | 'en'>('bn');
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const redirectTo = searchParams.get('redirect') ?? '/seller/apply';
+
+  // Already logged in → skip straight to apply
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace(redirectTo.startsWith('/') ? redirectTo : '/seller/apply');
+    }
+  }, [isAuthenticated, redirectTo, router]);
+
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  });
+
+  const onSubmit = async ({ confirmPassword: _, phone, ...data }: FormData) => {
+    setLoading(true);
+    setApiError('');
+    try {
+      const { user } = await authApi.register({ ...data, phone: phone || undefined });
+      setUser(user);
+      saveUserRole(user.role);
+      toast.success('অ্যাকাউন্ট তৈরি হয়েছে! স্বাগতম 🎉');
+      router.push(redirectTo.startsWith('/') ? redirectTo : '/seller/apply');
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string | string[] } } };
+      const msg = e?.response?.data?.message;
+      const raw = Array.isArray(msg) ? msg[0] : msg;
+      setApiError(raw ?? (lang === 'bn' ? 'রেজিস্ট্রেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।' : 'Registration failed. Please try again.'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const t = {
+    title:    lang === 'bn' ? 'সেলার অ্যাকাউন্ট তৈরি করুন' : 'Create Seller Account',
+    subtitle: lang === 'bn' ? 'UNKORA-তে বিক্রি শুরু করুন' : 'Start selling on UNKORA today',
+    firstName: lang === 'bn' ? 'প্রথম নাম' : 'First Name',
+    lastName:  lang === 'bn' ? 'শেষ নাম' : 'Last Name',
+    email:     lang === 'bn' ? 'ইমেইল' : 'Email',
+    phone:     lang === 'bn' ? 'মোবাইল (ঐচ্ছিক)' : 'Phone (optional)',
+    password:  lang === 'bn' ? 'পাসওয়ার্ড' : 'Password',
+    confirm:   lang === 'bn' ? 'পাসওয়ার্ড নিশ্চিত করুন' : 'Confirm Password',
+    submit:    lang === 'bn' ? 'সেলার হিসেবে নিবন্ধন করুন' : 'Register as Seller',
+    hasAccount: lang === 'bn' ? 'ইতিমধ্যে অ্যাকাউন্ট আছে?' : 'Already have an account?',
+    signIn:    lang === 'bn' ? 'সেলার লগইন' : 'Seller Login',
+    customerText: lang === 'bn' ? 'কাস্টমার হিসেবে নিবন্ধন করুন' : 'Register as customer',
+  };
+
+  const inp = 'w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary transition-colors';
+
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex">
+      {/* Left panel */}
+      <div className="hidden lg:flex lg:w-5/12 bg-gray-900 flex-col justify-between p-10">
+        <Link href="/" className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
+            <BookOpen className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-white text-xl font-black tracking-tight">UNKORA</span>
+        </Link>
+
+        <div>
+          <div className="w-14 h-14 bg-primary/20 rounded-2xl flex items-center justify-center mb-6">
+            <Store className="w-8 h-8 text-primary" />
+          </div>
+          <h2 className="text-white text-3xl font-black leading-tight mb-4">
+            {lang === 'bn' ? 'আপনার বই বিক্রি করুন\nলক্ষ পাঠকের কাছে' : 'Sell Your Books\nto Millions of Readers'}
+          </h2>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            {lang === 'bn'
+              ? 'বিনামূল্যে সেলার অ্যাকাউন্ট খুলুন। প্রিন্ট বই বা ই-বুক — সরাসির লক্ষ পাঠকের কাছে পৌঁছান।'
+              : 'Open a free seller account. Reach millions of readers with print books or e-books — directly.'}
+          </p>
+
+          <div className="mt-10 space-y-3">
+            {[
+              lang === 'bn' ? '✓ বিনামূল্যে রেজিস্ট্রেশন' : '✓ Free registration',
+              lang === 'bn' ? '✓ সহজ পণ্য ব্যবস্থাপনা' : '✓ Easy product management',
+              lang === 'bn' ? '✓ রিয়েল-টাইম বিক্রয় বিশ্লেষণ' : '✓ Real-time sales analytics',
+              lang === 'bn' ? '✓ দ্রুত পেমেন্ট উত্তোলন' : '✓ Fast payment withdrawal',
+            ].map(f => (
+              <p key={f} className="text-gray-300 text-sm">{f}</p>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-gray-600 text-xs">© 2025 UNKORA. All rights reserved.</p>
+      </div>
+
+      {/* Right panel – form */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-white overflow-y-auto">
+        <div className="lg:hidden mb-8 flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <BookOpen className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-gray-900 text-lg font-black">UNKORA</span>
+        </div>
+
+        <div className="w-full max-w-sm">
+          <div className="flex justify-end mb-6">
+            <button
+              onClick={() => setLang(l => l === 'bn' ? 'en' : 'bn')}
+              className="text-xs text-gray-400 hover:text-primary border border-gray-200 rounded-full px-3 py-1 transition-colors"
+            >
+              {lang === 'bn' ? 'EN' : 'বাং'}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+              <Store className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-black text-gray-900">{t.title}</h1>
+              <p className="text-xs text-gray-500">{t.subtitle}</p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.firstName}</label>
+                <input {...register('firstName')} className={inp} placeholder="Rafiq" />
+                {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName.message}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.lastName}</label>
+                <input {...register('lastName')} className={inp} placeholder="Islam" />
+                {errors.lastName && <p className="text-xs text-red-500 mt-1">{errors.lastName.message}</p>}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.email}</label>
+              <input {...register('email')} type="email" className={inp} placeholder="seller@example.com" />
+              {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.phone}</label>
+              <input {...register('phone')} type="tel" className={inp} placeholder="01700000000" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.password}</label>
+              <div className="relative">
+                <input
+                  {...register('password')}
+                  type={showPw ? 'text' : 'password'}
+                  className={`${inp} pr-11`}
+                  placeholder="Min 8 chars"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password.message}</p>}
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t.confirm}</label>
+              <input {...register('confirmPassword')} type="password" className={inp} placeholder="••••••••" />
+              {errors.confirmPassword && <p className="text-xs text-red-500 mt-1">{errors.confirmPassword.message}</p>}
+            </div>
+
+            {apiError && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-2.5">{apiError}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-primary text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-60 text-sm"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Store className="w-4 h-4" />}
+              {loading ? (lang === 'bn' ? 'তৈরি হচ্ছে...' : 'Creating...') : t.submit}
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <span className="text-sm text-gray-500">{t.hasAccount} </span>
+            <Link href="/seller/login" className="text-sm font-bold text-primary hover:underline">{t.signIn}</Link>
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+            <Link
+              href="/register"
+              className="text-sm text-gray-500 hover:text-primary transition-colors inline-flex items-center gap-1"
+            >
+              {t.customerText} <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function SellerRegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>}>
+      <SellerRegisterContent />
+    </Suspense>
+  );
+}

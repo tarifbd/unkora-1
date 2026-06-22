@@ -39,6 +39,8 @@ export class SettingsService {
       'analytics.pixel.enabled', 'analytics.pixel.pixelId',
       'analytics.capi.enabled', 'analytics.capi.pixelId', 'analytics.capi.accessToken',
       'analytics.gsc.verificationTag', 'analytics.gsc.sitemapUrl',
+      'analytics.clarity.enabled', 'analytics.clarity.projectId',
+      'analytics.tiktok.enabled', 'analytics.tiktok.pixelId',
     ];
     return this.getMany(keys);
   }

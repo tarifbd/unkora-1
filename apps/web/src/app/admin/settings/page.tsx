@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Store, Truck, CreditCard, Zap, Globe, Info,
   Save, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff,
-  Search, Share2,
+  Search, Share2, FileText,
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -18,7 +18,7 @@ const storeSettingsApi = {
 };
 
 /* ─── shared components ───────────────────────────────────────── */
-type TabId = 'general' | 'store' | 'payment' | 'shipping' | 'seo' | 'social';
+type TabId = 'general' | 'store' | 'payment' | 'shipping' | 'seo' | 'social' | 'invoice' | 'footer';
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'general',  label: 'General',   icon: Store },
@@ -27,6 +27,8 @@ const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'shipping', label: 'Shipping',  icon: Truck },
   { id: 'seo',      label: 'SEO',       icon: Search },
   { id: 'social',   label: 'Social',    icon: Share2 },
+  { id: 'invoice',  label: 'Invoice',   icon: FileText },
+  { id: 'footer',   label: 'Footer',    icon: Globe },
 ];
 
 function FieldRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
@@ -595,6 +597,233 @@ function SocialTab({ settings, onSave }: { settings: Record<string, string>; onS
   );
 }
 
+/* ─── Invoice Tab ────────────────────────────────────────────── */
+function InvoiceTab({ settings, onSave }: { settings: Record<string, string>; onSave: (d: Record<string, string>) => Promise<void> }) {
+  const [form, setForm] = useState({
+    'invoice_logo_url':      settings['invoice_logo_url']      ?? '',
+    'invoice_store_name':    settings['invoice_store_name']    ?? 'UNKORA',
+    'invoice_store_address': settings['invoice_store_address'] ?? '',
+    'invoice_phone':         settings['invoice_phone']         ?? '',
+    'invoice_email':         settings['invoice_email']         ?? '',
+    'invoice_footer_text':   settings['invoice_footer_text']   ?? 'Thank you for shopping with us!',
+    'invoice_return_policy': settings['invoice_return_policy'] ?? '',
+  });
+  const [dirty, setDirty] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm(f => ({ ...f, [k]: e.target.value }));
+    setDirty(true); setSuccess(false);
+  };
+
+  const handleSave = async () => {
+    setPending(true);
+    try {
+      await onSave(form);
+      setDirty(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch {
+      // error visible in the UI via mutation state
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="mb-5">
+        <h2 className="font-bold text-lg">Invoice Settings</h2>
+        <p className="text-sm text-muted-foreground">Customize the branding and content printed on customer invoices</p>
+      </div>
+      <div className="rounded-xl border bg-card px-5">
+        <FieldRow label="Logo URL" hint="URL of your store logo shown on invoice header">
+          <div className="space-y-2">
+            <input
+              type="url"
+              value={form['invoice_logo_url']}
+              onChange={set('invoice_logo_url')}
+              className={inp}
+              placeholder="https://cdn.unkora.com/logo.png"
+            />
+            {form['invoice_logo_url'] && (
+              <div className="rounded-lg border bg-muted/30 p-2 inline-block">
+                <img
+                  src={form['invoice_logo_url']}
+                  alt="Invoice logo preview"
+                  className="h-12 max-w-[180px] object-contain"
+                  onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                />
+              </div>
+            )}
+          </div>
+        </FieldRow>
+        <FieldRow label="Store Name" hint="Printed at the top of every invoice">
+          <input value={form['invoice_store_name']} onChange={set('invoice_store_name')} className={inp} placeholder="UNKORA" />
+        </FieldRow>
+        <FieldRow label="Store Address" hint="Business address shown on invoice">
+          <textarea
+            value={form['invoice_store_address']}
+            onChange={set('invoice_store_address')}
+            rows={3}
+            className={inp + ' resize-none'}
+            placeholder={"House 12, Road 5\nDhanmondi, Dhaka-1205\nBangladesh"}
+          />
+        </FieldRow>
+        <FieldRow label="Contact Phone">
+          <input value={form['invoice_phone']} onChange={set('invoice_phone')} className={inp} placeholder="+880 1700-000000" />
+        </FieldRow>
+        <FieldRow label="Contact Email">
+          <input type="email" value={form['invoice_email']} onChange={set('invoice_email')} className={inp} placeholder="support@unkora.com" />
+        </FieldRow>
+        <FieldRow label="Footer Text" hint="Message printed at the bottom of every invoice">
+          <textarea
+            value={form['invoice_footer_text']}
+            onChange={set('invoice_footer_text')}
+            rows={2}
+            className={inp + ' resize-none'}
+            placeholder="Thank you for shopping with us!"
+          />
+        </FieldRow>
+        <FieldRow label="Return Policy" hint="Return / refund policy text printed on invoice">
+          <textarea
+            value={form['invoice_return_policy']}
+            onChange={set('invoice_return_policy')}
+            rows={4}
+            className={inp + ' resize-none'}
+            placeholder="Returns accepted within 7 days of delivery. Item must be unused and in original packaging."
+          />
+        </FieldRow>
+      </div>
+      <SaveBar isDirty={dirty} onSave={handleSave} isPending={pending} success={success} />
+    </div>
+  );
+}
+
+/* ─── Footer Tab ─────────────────────────────────────────────── */
+function FooterTab({ settings, onSave }: { settings: Record<string, string>; onSave: (d: Record<string, string>) => Promise<void> }) {
+  const [form, setForm] = useState({
+    'footer.phone':       settings['footer.phone']       || settings['site.phone']    || '',
+    'footer.email':       settings['footer.email']       || settings['site.email']    || '',
+    'footer.address':     settings['footer.address']     || settings['site.address']  || '',
+    'footer.whatsapp':    settings['footer.whatsapp']    || '',
+    'footer.facebook':    settings['footer.facebook']    || settings['social.facebook']    || '',
+    'footer.instagram':   settings['footer.instagram']   || settings['social.instagram']   || '',
+    'footer.youtube':     settings['footer.youtube']     || settings['social.youtube']     || '',
+    'footer.tiktok':      settings['footer.tiktok']      || settings['social.tiktok']      || '',
+    'footer.twitter':     settings['footer.twitter']     || settings['social.twitter']     || '',
+    'footer.tagline':     settings['footer.tagline']     || '',
+    'footer.copyright':   settings['footer.copyright']   || '',
+    'footer.payment.bkash':  settings['footer.payment.bkash']  ?? 'true',
+    'footer.payment.nagad':  settings['footer.payment.nagad']  ?? 'true',
+    'footer.payment.visa':   settings['footer.payment.visa']   ?? 'true',
+    'footer.payment.mc':     settings['footer.payment.mc']     ?? 'true',
+    'footer.payment.cod':    settings['footer.payment.cod']    ?? 'true',
+    'footer.payment.rocket': settings['footer.payment.rocket'] ?? 'false',
+  });
+  const [dirty, setDirty] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [pending, setPending] = useState(false);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm(f => ({ ...f, [k]: e.target.value }));
+    setDirty(true); setSuccess(false);
+  };
+  const toggle = (k: keyof typeof form) => {
+    setForm(f => ({ ...f, [k]: f[k] === 'true' ? 'false' : 'true' }));
+    setDirty(true); setSuccess(false);
+  };
+
+  const handleSave = async () => {
+    setPending(true);
+    try {
+      await onSave(form);
+      setDirty(false);
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
+    } catch { /* silent */ } finally { setPending(false); }
+  };
+
+  const SOCIAL_FIELDS = [
+    { key: 'footer.facebook',  label: 'Facebook URL',  placeholder: 'https://facebook.com/yourpage' },
+    { key: 'footer.instagram', label: 'Instagram URL', placeholder: 'https://instagram.com/yourhandle' },
+    { key: 'footer.youtube',   label: 'YouTube URL',   placeholder: 'https://youtube.com/@yourchannel' },
+    { key: 'footer.tiktok',    label: 'TikTok URL',    placeholder: 'https://tiktok.com/@yourhandle' },
+    { key: 'footer.twitter',   label: 'X (Twitter) URL', placeholder: 'https://x.com/yourhandle' },
+    { key: 'footer.whatsapp',  label: 'WhatsApp Number', placeholder: '+8801911369686' },
+  ];
+
+  const PAYMENT_FIELDS = [
+    { key: 'footer.payment.bkash',  label: 'bKash',            color: '#E2136E' },
+    { key: 'footer.payment.nagad',  label: 'Nagad',            color: '#F16522' },
+    { key: 'footer.payment.visa',   label: 'Visa',             color: '#1A1F71' },
+    { key: 'footer.payment.mc',     label: 'Mastercard',       color: '#EB001B' },
+    { key: 'footer.payment.cod',    label: 'Cash on Delivery', color: '#047857' },
+    { key: 'footer.payment.rocket', label: 'Rocket (DBBL)',    color: '#8B5CF6' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="font-bold text-lg">Footer Settings</h2>
+        <p className="text-sm text-muted-foreground">Contact info, social links, and payment methods shown in the site footer</p>
+      </div>
+
+      {/* Contact */}
+      <div className="rounded-xl border bg-card px-5">
+        <h3 className="font-semibold text-sm py-3 border-b text-muted-foreground uppercase tracking-wide">Contact Information</h3>
+        <FieldRow label="Phone" hint="Shown in footer contact section">
+          <input value={form['footer.phone']} onChange={set('footer.phone')} className={inp} placeholder="+880 1911-369686" />
+        </FieldRow>
+        <FieldRow label="Email">
+          <input type="email" value={form['footer.email']} onChange={set('footer.email')} className={inp} placeholder="support@unkora.shop" />
+        </FieldRow>
+        <FieldRow label="Address">
+          <textarea value={form['footer.address']} onChange={set('footer.address')} rows={2} className={inp + ' resize-none'} placeholder="160 Hasan Nagar, Dhaka-1211" />
+        </FieldRow>
+        <FieldRow label="Tagline" hint="Short description shown under the logo">
+          <input value={form['footer.tagline']} onChange={set('footer.tagline')} className={inp} placeholder="Bangladesh's best online bookstore" />
+        </FieldRow>
+        <FieldRow label="Copyright Text" hint="Bottom bar text (leave blank for default)">
+          <input value={form['footer.copyright']} onChange={set('footer.copyright')} className={inp} placeholder="© 2025 UNKORA.SHOP · All rights reserved" />
+        </FieldRow>
+      </div>
+
+      {/* Social */}
+      <div className="rounded-xl border bg-card px-5">
+        <h3 className="font-semibold text-sm py-3 border-b text-muted-foreground uppercase tracking-wide">Social Media Links</h3>
+        {SOCIAL_FIELDS.map(f => (
+          <FieldRow key={f.key} label={f.label}>
+            <input type="url" value={form[f.key as keyof typeof form]} onChange={set(f.key)} placeholder={f.placeholder} className={inp} />
+          </FieldRow>
+        ))}
+      </div>
+
+      {/* Payment methods */}
+      <div className="rounded-xl border bg-card px-5">
+        <h3 className="font-semibold text-sm py-3 border-b text-muted-foreground uppercase tracking-wide">Payment Method Badges</h3>
+        <div className="py-4 space-y-3">
+          {PAYMENT_FIELDS.map(f => (
+            <label key={f.key} className="flex items-center justify-between cursor-pointer">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex items-center justify-center px-3 py-1 rounded-md text-xs font-bold shadow-sm text-white"
+                  style={{ background: f.color }}>
+                  {f.label}
+                </span>
+                <span className="text-sm">{f.label}</span>
+              </div>
+              <Toggle value={form[f.key as keyof typeof form] === 'true'} onChange={() => toggle(f.key as keyof typeof form)} />
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <SaveBar isDirty={dirty} onSave={handleSave} isPending={pending} success={success} />
+    </div>
+  );
+}
+
 /* ─── Main Page ──────────────────────────────────────────────── */
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabId>('general');
@@ -632,6 +861,8 @@ export default function SettingsPage() {
     shipping: <ShippingTab settings={settings} onSave={handleSave} />,
     seo:      <SeoTab      settings={settings} onSave={handleSave} />,
     social:   <SocialTab   settings={settings} onSave={handleSave} />,
+    invoice:  <InvoiceTab  settings={settings} onSave={handleSave} />,
+    footer:   <FooterTab   settings={settings} onSave={handleSave} />,
   };
 
   return (

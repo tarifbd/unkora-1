@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Eye, EyeOff, Loader2, BookOpen, ArrowRight, Phone, Mail } from 'lucide-react';
 import { useAuth } from '@/lib/hooks/use-auth';
 import { useForm } from 'react-hook-form';
@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { SocialLoginButtons } from '@/components/auth/social-login-buttons';
 import { useAuthStore } from '@/store/auth.store';
-import { saveAuthTokens, saveUserRole } from '@/lib/api';
+import { saveAuthTokens, saveUserRole, clearAuthTokens } from '@/lib/api';
 import { toast } from 'sonner';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
@@ -37,18 +37,25 @@ function LoginContent() {
   const [sendingOtp, setSendingOtp] = useState(false);
   const [loggingIn, setLoggingIn] = useState(false);
 
-  const { setUser } = useAuthStore();
+  const { setUser, isAuthenticated } = useAuthStore();
+
+  // Already authenticated — redirect away from login page (client-side only, no middleware)
+  useEffect(() => {
+    if (isAuthenticated) {
+      const dest = redirectParam && redirectParam.startsWith('/') ? redirectParam : '/';
+      router.replace(dest);
+    }
+  }, [isAuthenticated, redirectParam, router]);
 
   const doRedirect = () => {
     const u = useAuthStore.getState().user;
-    if (redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('/admin')) {
-      router.push(redirectParam);
-    } else if (u?.role === 'ADMIN' || u?.role === 'SUPER_ADMIN') {
-      router.push('/admin');
+    const dest = redirectParam && redirectParam.startsWith('/') ? redirectParam : null;
+    if (dest) {
+      router.push(dest);
     } else if (u?.role === 'SELLER') {
       router.push('/seller/dashboard');
     } else {
-      router.push(redirectParam ?? '/');
+      router.push('/');
     }
   };
 
@@ -93,6 +100,12 @@ function LoginContent() {
       const apiUser = data.data?.user ?? data.user;
       saveAuthTokens(tokens.accessToken, tokens.refreshToken);
       if (apiUser) {
+        if (apiUser.role === 'ADMIN' || apiUser.role === 'SUPER_ADMIN') {
+          clearAuthTokens();
+          toast.error('Admin পেজে লগইন করুন: /admin/login', { duration: 5000 });
+          setLoggingIn(false);
+          return;
+        }
         const u = {
           id: apiUser.id, email: apiUser.email,
           firstName: apiUser.firstName, lastName: apiUser.lastName,
@@ -220,7 +233,7 @@ function LoginContent() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-sm font-semibold text-gray-700">{t.password}</label>
-                  <span className="text-xs text-primary cursor-pointer hover:underline">{t.forgot}</span>
+                  <Link href="/forgot-password" className="text-xs text-primary hover:underline">{t.forgot}</Link>
                 </div>
                 <div className="relative">
                   <input
@@ -325,7 +338,7 @@ function LoginContent() {
 
           <div className="mt-6 text-center">
             <span className="text-sm text-gray-500">{t.noAccount} </span>
-            <Link href="/register" className="text-sm font-bold text-primary hover:underline">{t.register}</Link>
+            <Link href={`/register${redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : ''}`} className="text-sm font-bold text-primary hover:underline">{t.register}</Link>
           </div>
 
           <div className="mt-4 pt-4 border-t border-gray-100 text-center">

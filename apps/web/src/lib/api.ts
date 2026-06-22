@@ -85,7 +85,7 @@ const SECURE = typeof window !== 'undefined' && window.location.protocol === 'ht
 export function saveAuthTokens(accessToken: string, refreshToken: string) {
   localStorage.setItem('access_token', accessToken);
   localStorage.setItem('refresh_token', refreshToken);
-  const accessExp = new Date(Date.now() + 15 * 60 * 1000).toUTCString();
+  const accessExp = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
   const refreshExp = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
   document.cookie = `access_token=${accessToken}; path=/; expires=${accessExp}; SameSite=Lax${SECURE}`;
   document.cookie = `refresh_token=${refreshToken}; path=/; expires=${refreshExp}; SameSite=Lax${SECURE}`;

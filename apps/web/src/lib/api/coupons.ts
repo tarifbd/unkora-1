@@ -33,6 +33,9 @@ export const couponsApi = {
   adminToggle: (id: string) =>
     api.patch(`/coupons/admin/${id}/toggle`).then(r => r.data.data),
 
+  adminUpdate: (id: string, data: Record<string, unknown>) =>
+    api.patch(`/coupons/admin/${id}`, data).then(r => r.data.data),
+
   adminDelete: (id: string) =>
     api.delete(`/coupons/admin/${id}`),
 };

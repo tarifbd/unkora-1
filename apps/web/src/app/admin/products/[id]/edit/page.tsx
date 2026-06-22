@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   Loader2, ArrowLeft, Save, ImageIcon, Upload, X, Link as LinkIcon,
-  ChevronDown, ChevronUp, AlertCircle,
+  ChevronDown, ChevronUp, AlertCircle, Video, Package, Search,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -31,6 +31,29 @@ const emptyBookDetail: BookDetail = {
   translator: '', series: '',
 };
 
+interface ProductSpecifications {
+  brand: string;
+  weight: string;
+  dimensions: string;
+  material: string;
+  warranty: string;
+  countryOfOrigin: string;
+}
+
+const emptySpecifications: ProductSpecifications = {
+  brand: '', weight: '', dimensions: '', material: '', warranty: '', countryOfOrigin: '',
+};
+
+interface ProductSeo {
+  metaTitle: string;
+  metaDescription: string;
+  metaKeywords: string;
+}
+
+const emptySeo: ProductSeo = {
+  metaTitle: '', metaDescription: '', metaKeywords: '',
+};
+
 interface EditProductForm {
   name: string;
   slug: string;
@@ -43,6 +66,8 @@ interface EditProductForm {
   sku: string;
   isFeatured: boolean;
   isActive: boolean;
+  isPreorder: boolean;
+  preorderNote: string;
   tags: string;
   categoryId: string;
 }
@@ -58,7 +83,10 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [bookSectionOpen, setBookSectionOpen] = useState(false);
+  const [specsSectionOpen, setSpecsSectionOpen] = useState(false);
+  const [seoSectionOpen, setSeoSectionOpen] = useState(false);
   const [slugWarning, setSlugWarning] = useState(false);
+  const [videoUrl, setVideoUrl] = useState('');
 
   // Image state
   const [primaryImageUrl, setPrimaryImageUrl] = useState('');
@@ -83,11 +111,15 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
     sku: '',
     isFeatured: false,
     isActive: true,
+    isPreorder: false,
+    preorderNote: '',
     tags: '',
     categoryId: '',
   });
 
   const [bookDetail, setBookDetail] = useState<BookDetail>(emptyBookDetail);
+  const [specifications, setSpecifications] = useState<ProductSpecifications>(emptySpecifications);
+  const [seo, setSeo] = useState<ProductSeo>(emptySeo);
 
   // Fetch single product by ID via admin endpoint
   const { data: product, isLoading } = useQuery({
@@ -126,6 +158,8 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         sku: product.sku ?? '',
         isFeatured: product.isFeatured ?? false,
         isActive: product.isActive ?? true,
+        isPreorder: product.isPreorder ?? false,
+        preorderNote: product.preorderNote ?? '',
         tags: product.tags?.join(', ') ?? '',
         categoryId: product.category?.id ?? '',
       });
@@ -145,6 +179,33 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
           series: bd.series ?? '',
         });
         setBookSectionOpen(true);
+      }
+
+      if (product.videoUrl) {
+        setVideoUrl(product.videoUrl);
+      }
+
+      if (product.specifications) {
+        const sp = product.specifications;
+        setSpecifications({
+          brand: sp.brand ?? '',
+          weight: sp.weight ?? '',
+          dimensions: sp.dimensions ?? '',
+          material: sp.material ?? '',
+          warranty: sp.warranty ?? '',
+          countryOfOrigin: sp.countryOfOrigin ?? '',
+        });
+        setSpecsSectionOpen(true);
+      }
+
+      if (product.seo) {
+        const s = product.seo;
+        setSeo({
+          metaTitle: s.metaTitle ?? '',
+          metaDescription: s.metaDescription ?? '',
+          metaKeywords: s.metaKeywords ?? '',
+        });
+        setSeoSectionOpen(true);
       }
     }
   }, [product]);
@@ -246,6 +307,8 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
       stockQuantity: Number(form.stockQuantity) || 0,
       isFeatured: form.isFeatured,
       isActive: form.isActive,
+      isPreorder: form.isPreorder,
+      preorderNote: form.preorderNote.trim() || undefined,
     };
 
     if (form.description) payload.description = form.description;
@@ -270,6 +333,32 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
         ...(bookDetail.binding && { binding: bookDetail.binding }),
         ...(bookDetail.translator && { translator: bookDetail.translator }),
         ...(bookDetail.series && { series: bookDetail.series }),
+      };
+    }
+
+    // Product Video
+    if (videoUrl) payload.videoUrl = videoUrl;
+
+    // Product Specifications
+    const hasSpecs = Object.values(specifications).some(v => v.trim() !== '');
+    if (hasSpecs) {
+      payload.specifications = {
+        ...(specifications.brand && { brand: specifications.brand }),
+        ...(specifications.weight && { weight: specifications.weight }),
+        ...(specifications.dimensions && { dimensions: specifications.dimensions }),
+        ...(specifications.material && { material: specifications.material }),
+        ...(specifications.warranty && { warranty: specifications.warranty }),
+        ...(specifications.countryOfOrigin && { countryOfOrigin: specifications.countryOfOrigin }),
+      };
+    }
+
+    // SEO
+    const hasSeo = Object.values(seo).some(v => v.trim() !== '');
+    if (hasSeo) {
+      payload.seo = {
+        ...(seo.metaTitle && { metaTitle: seo.metaTitle }),
+        ...(seo.metaDescription && { metaDescription: seo.metaDescription }),
+        ...(seo.metaKeywords && { metaKeywords: seo.metaKeywords }),
       };
     }
 
@@ -439,6 +528,23 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
           </div>
 
+          {/* Product Video */}
+          <div className="rounded-xl border bg-card p-5 space-y-4">
+            <h2 className="font-semibold flex items-center gap-2">
+              <Video className="h-4 w-4 text-muted-foreground" /> Product Video
+            </h2>
+            <div>
+              <label className={labelCls}>Product Video URL</label>
+              <input
+                type="url"
+                value={videoUrl}
+                onChange={e => setVideoUrl(e.target.value)}
+                className={inputCls}
+                placeholder="https://youtube.com/watch?v=... or direct video URL"
+              />
+            </div>
+          </div>
+
           {/* Basic Info */}
           <div className="rounded-xl border bg-card p-5 space-y-4">
             <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Basic Info</h2>
@@ -582,6 +688,112 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
               </div>
             )}
           </div>
+
+          {/* Product Specifications */}
+          <div className="rounded-xl border bg-card overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setSpecsSectionOpen(o => !o)}
+              className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-muted/20 transition-colors"
+            >
+              <div>
+                <h2 className="font-semibold flex items-center gap-2">
+                  <Package className="h-4 w-4 text-muted-foreground" /> Product Specifications
+                </h2>
+                <p className="text-xs text-muted-foreground">Optional — brand, weight, dimensions, etc.</p>
+              </div>
+              {specsSectionOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            </button>
+
+            {specsSectionOpen && (
+              <div className="border-t px-5 pb-5 pt-4 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className={labelCls}>Brand</label>
+                    <input value={specifications.brand} onChange={e => setSpecifications(s => ({ ...s, brand: e.target.value }))} className={inputCls} placeholder="e.g. Samsung, Nike" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Weight</label>
+                    <input value={specifications.weight} onChange={e => setSpecifications(s => ({ ...s, weight: e.target.value }))} className={inputCls} placeholder="e.g. 500g, 1.2kg" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Dimensions</label>
+                    <input value={specifications.dimensions} onChange={e => setSpecifications(s => ({ ...s, dimensions: e.target.value }))} className={inputCls} placeholder="e.g. 25 × 18 × 3 cm" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Material</label>
+                    <input value={specifications.material} onChange={e => setSpecifications(s => ({ ...s, material: e.target.value }))} className={inputCls} placeholder="e.g. Cotton, Plastic, Metal" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Warranty</label>
+                    <select value={specifications.warranty} onChange={e => setSpecifications(s => ({ ...s, warranty: e.target.value }))} className={inputCls}>
+                      <option value="">No Warranty</option>
+                      <option value="7-day return">7-day return</option>
+                      <option value="30-day return">30-day return</option>
+                      <option value="3 months">3 months</option>
+                      <option value="6 months">6 months</option>
+                      <option value="1 year">1 year</option>
+                      <option value="2 years">2 years</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Country of Origin</label>
+                    <input value={specifications.countryOfOrigin} onChange={e => setSpecifications(s => ({ ...s, countryOfOrigin: e.target.value }))} className={inputCls} placeholder="e.g. Bangladesh, China" />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* SEO */}
+          <div className="rounded-xl border bg-card overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setSeoSectionOpen(o => !o)}
+              className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-muted/20 transition-colors"
+            >
+              <div>
+                <h2 className="font-semibold flex items-center gap-2">
+                  <Search className="h-4 w-4 text-muted-foreground" /> SEO
+                </h2>
+                <p className="text-xs text-muted-foreground">Optional — meta title, description, keywords</p>
+              </div>
+              {seoSectionOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            </button>
+
+            {seoSectionOpen && (
+              <div className="border-t px-5 pb-5 pt-4 space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className={labelCls}>Meta Title</label>
+                    <span className={`text-xs ${seo.metaTitle.length > 60 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                      {seo.metaTitle.length}/60
+                    </span>
+                  </div>
+                  <input value={seo.metaTitle} onChange={e => setSeo(s => ({ ...s, metaTitle: e.target.value }))} className={inputCls} placeholder="SEO page title" />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className={labelCls}>Meta Description</label>
+                    <span className={`text-xs ${seo.metaDescription.length > 160 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                      {seo.metaDescription.length}/160
+                    </span>
+                  </div>
+                  <textarea
+                    value={seo.metaDescription}
+                    onChange={e => setSeo(s => ({ ...s, metaDescription: e.target.value }))}
+                    rows={2}
+                    className={`${inputCls} resize-none`}
+                    placeholder="Brief description for search engines"
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Meta Keywords</label>
+                  <input value={seo.metaKeywords} onChange={e => setSeo(s => ({ ...s, metaKeywords: e.target.value }))} className={inputCls} placeholder="keyword1, keyword2, keyword3" />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Sidebar */}
@@ -615,6 +827,31 @@ export default function AdminProductEditPage({ params }: { params: Promise<{ id:
                 <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.isFeatured ? 'translate-x-4' : 'translate-x-0.5'}`} />
               </div>
             </label>
+
+            <label className="flex cursor-pointer items-center justify-between rounded-lg border px-3 py-2.5 hover:bg-accent transition-colors">
+              <div>
+                <p className="text-sm font-medium">Pre-order</p>
+                <p className="text-xs text-muted-foreground">Reserve before stock arrives</p>
+              </div>
+              <div
+                onClick={() => setForm(f => ({ ...f, isPreorder: !f.isPreorder }))}
+                className={`relative h-5 w-9 rounded-full transition-colors ${form.isPreorder ? 'bg-emerald-600' : 'bg-muted-foreground/30'}`}
+              >
+                <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.isPreorder ? 'translate-x-4' : 'translate-x-0.5'}`} />
+              </div>
+            </label>
+
+            {form.isPreorder && (
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Pre-order note (optional)</label>
+                <input
+                  value={form.preorderNote}
+                  onChange={set('preorderNote')}
+                  className={inputCls}
+                  placeholder="e.g. Ships within 2 weeks"
+                />
+              </div>
+            )}
           </div>
 
           {/* Category */}

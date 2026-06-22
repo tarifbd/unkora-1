@@ -2,7 +2,7 @@ import api from '@/lib/api';
 
 export interface DashboardStats {
   revenue: { total: number; thisMonth: number; today: number };
-  orders: { total: number; pending: number; byStatus: Record<string, number>; byPayment: Record<string, number> };
+  orders: { total: number; pending: number; abandonedCarts: number; byStatus: Record<string, number>; byPayment: Record<string, number> };
   products: { total: number; lowStock: number };
   customers: { total: number; newThisMonth: number };
   categories: { total: number };
@@ -38,6 +38,8 @@ export const adminApi = {
   getUsers: (params?: Record<string, unknown>) =>
     api.get('/admin/users', { params }).then(r => r.data.data),
   getUserDetail: (id: string) =>
+    api.get(`/admin/users/${id}`).then(r => r.data.data),
+  getUserById: (id: string) =>
     api.get(`/admin/users/${id}`).then(r => r.data.data),
   updateUser: (id: string, data: { role?: string; status?: string }) =>
     api.patch(`/admin/users/${id}`, data).then(r => r.data.data),
@@ -103,4 +105,18 @@ export const wholesaleApi = {
     api.get(`/products/${productId}/wholesale`).then(r => r.data.data),
   set: (productId: string, tiers: { minQty: number; price: number }[]) =>
     api.put(`/products/${productId}/wholesale`, { tiers }).then(r => r.data.data),
+};
+
+// Q&A
+export const questionsApi = {
+  adminGetAll: (params: { page?: number; limit?: number; status?: string }) =>
+    api.get('/questions/admin/all', { params }).then(r => r.data),
+  updateStatus: (id: string, status: 'APPROVED' | 'REJECTED') =>
+    api.patch(`/questions/admin/${id}/status`, { status }).then(r => r.data),
+  delete: (id: string) =>
+    api.delete(`/questions/admin/${id}`).then(r => r.data),
+  addAnswer: (questionId: string, body: string) =>
+    api.post(`/questions/admin/${questionId}/answers`, { body }).then(r => r.data),
+  deleteAnswer: (answerId: string) =>
+    api.delete(`/questions/admin/answers/${answerId}`).then(r => r.data),
 };

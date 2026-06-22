@@ -196,4 +196,86 @@ async sendPreorderStockAvailable(to: string, customerName: string) {
   </div>`;
   await this.send(to, 'Your preorder is ready!', html);
 }
+
+  async sendCampaign(to: string, data: {
+    firstName: string;
+    subject: string;
+    htmlContent: string;
+  }) {
+    const html = `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+      <div style="background:#1c1917;padding:20px;text-align:center;border-radius:8px 8px 0 0">
+        <h1 style="color:#f97316;margin:0;font-size:28px;font-weight:900">UNKORA</h1>
+      </div>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 8px 8px">
+        ${data.htmlContent}
+        <hr style="border:none;border-top:1px solid #f3f4f6;margin:24px 0" />
+        <p style="color:#9ca3af;font-size:11px;text-align:center;margin:0">
+          You received this email because you have an account at UNKORA.<br>
+          <a href="${process.env['NEXT_PUBLIC_SITE_URL'] ?? 'https://unkora.shop'}/account" style="color:#f97316">Manage preferences</a>
+        </p>
+      </div>
+    </div>`;
+
+    await this.send(to, data.subject, html);
+  }
+
+  async sendAbandonedCartRecovery(to: string, data: {
+    firstName: string;
+    cartItems: Array<{ name: string; quantity: number; price: string; imageUrl?: string }>;
+    cartTotal: string;
+    recoveryUrl: string;
+  }) {
+    const itemsHtml = data.cartItems.map(item => `
+      <tr>
+        <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6">
+          ${item.imageUrl ? `<img src="${item.imageUrl}" width="48" height="48" style="border-radius:6px;object-fit:cover;vertical-align:middle;margin-right:8px" />` : ''}
+          ${item.name}
+        </td>
+        <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;text-align:center">${item.quantity}</td>
+        <td style="padding:12px 8px;border-bottom:1px solid #f3f4f6;text-align:right">৳${Number(item.price) * item.quantity}</td>
+      </tr>`).join('');
+
+    const html = `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff">
+      <div style="background:#1c1917;padding:24px;text-align:center;border-radius:12px 12px 0 0">
+        <h1 style="color:#f97316;margin:0;font-size:32px;font-weight:900">UNKORA</h1>
+        <p style="color:#d6d3d1;margin:4px 0 0;font-size:14px">You left something behind!</p>
+      </div>
+      <div style="padding:32px 24px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px">
+        <h2 style="color:#1c1917;margin:0 0 8px">Hey ${data.firstName}, your cart misses you 🛒</h2>
+        <p style="color:#6b7280;margin:0 0 24px">You left some great items in your cart. They're still waiting for you — but they might sell out soon!</p>
+
+        <table style="width:100%;border-collapse:collapse;margin-bottom:20px">
+          <thead>
+            <tr style="background:#f9fafb">
+              <th style="padding:10px 8px;text-align:left;font-size:12px;color:#6b7280;text-transform:uppercase">Item</th>
+              <th style="padding:10px 8px;text-align:center;font-size:12px;color:#6b7280;text-transform:uppercase">Qty</th>
+              <th style="padding:10px 8px;text-align:right;font-size:12px;color:#6b7280;text-transform:uppercase">Price</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHtml}</tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" style="padding:12px 8px;text-align:right;font-weight:700;font-size:15px">Total:</td>
+              <td style="padding:12px 8px;text-align:right;font-weight:700;font-size:15px;color:#f97316">৳${data.cartTotal}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <div style="text-align:center;margin:28px 0">
+          <a href="${data.recoveryUrl}"
+             style="background:#f97316;color:#fff;font-weight:700;font-size:16px;padding:14px 40px;border-radius:50px;text-decoration:none;display:inline-block">
+            Complete My Order →
+          </a>
+        </div>
+
+        <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0">
+          If you have any questions, reply to this email or visit our <a href="${process.env['NEXT_PUBLIC_SITE_URL'] ?? 'https://unkora.shop'}/help" style="color:#f97316">Help Center</a>.
+        </p>
+      </div>
+    </div>`;
+
+    await this.send(to, `${data.firstName}, your cart is waiting for you! 🛒`, html);
+  }
 }

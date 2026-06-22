@@ -124,7 +124,7 @@ export default function AiLibraryPage() {
   });
 
   const items = data?.data ?? [];
-  const total = data?.total ?? 0;
+  const total = data?.meta?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / LIMIT));
 
   return (

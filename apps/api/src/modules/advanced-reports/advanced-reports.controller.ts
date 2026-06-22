@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { AdvancedReportsService } from './advanced-reports.service';
+import { AdvancedReportsService, PivotQueryDto } from './advanced-reports.service';
 
 @ApiTags('advanced-reports')
 @Controller('advanced-reports')
@@ -47,6 +47,12 @@ export class AdvancedReportsController {
   @ApiOperation({ summary: 'Conversion funnel: customers → orders → paid → delivered' })
   getFunnel() {
     return this.svc.getFunnel();
+  }
+
+  @Post('pivot')
+  @ApiOperation({ summary: 'Pivot report — flexible breakdowns × metrics (FB Ads Manager style)' })
+  getPivot(@Body() body: PivotQueryDto) {
+    return this.svc.getPivot(body);
   }
 
   @Get('cohort')

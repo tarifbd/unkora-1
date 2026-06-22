@@ -2,16 +2,19 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   ChevronLeft, ChevronRight, Truck, RotateCcw, ShieldCheck, Headphones,
-  Flame, Star, ArrowRight, ShoppingCart, Zap,
+  Flame, Star, ArrowRight, ShoppingCart, Zap, CheckCircle,
 } from 'lucide-react';
-import { productsApi, categoriesApi, type Product } from '@/lib/api/products';
+import { toast } from 'sonner';
+import { productsApi, categoriesApi, type Product, type Category } from '@/lib/api/products';
+import api from '@/lib/api';
 import { useLanguage } from '@/lib/i18n/language-context';
 import { useCart } from '@/lib/hooks/use-cart';
 import { WishlistButton } from '@/components/product/wishlist-button';
+import { HeroSlider } from '@/components/home/hero-slider';
 
 /* ─────────────────────── static data ─────────────────────────────── */
 
@@ -19,6 +22,18 @@ const CAT_EMOJI: Record<string, string> = {
   books: '📚', 'baby-products': '👶', 'leather-products': '👜',
   'organic-foods': '🌿', handicrafts: '🎨', electronics: '⚡',
   'daily-needs': '🛒', 'islamic-lifestyle': '🕌', default: '🏷️',
+};
+
+const CAT_META: Record<string, { from: string; to: string; shadow: string }> = {
+  books:              { from: '#1d4ed8', to: '#3b82f6', shadow: '#3b82f630' },
+  'baby-products':    { from: '#be185d', to: '#ec4899', shadow: '#ec489930' },
+  'leather-products': { from: '#78350f', to: '#b45309', shadow: '#b4530930' },
+  'organic-foods':    { from: '#15803d', to: '#22c55e', shadow: '#22c55e30' },
+  handicrafts:        { from: '#6d28d9', to: '#a78bfa', shadow: '#a78bfa30' },
+  'islamic-lifestyle':{ from: '#064e3b', to: '#059669', shadow: '#05996930' },
+  electronics:        { from: '#0f172a', to: '#334155', shadow: '#33415530' },
+  'daily-needs':      { from: '#c2410c', to: '#f97316', shadow: '#f9731630' },
+  default:            { from: '#374151', to: '#6b7280', shadow: '#6b728030' },
 };
 
 const AUTHORS = [
@@ -66,11 +81,11 @@ const BOOK_SHELF_TABS = [
 ];
 
 const BEST_TABS = [
-  { key: 'all',        labelBn: 'সব',         category: undefined },
-  { key: 'books',      labelBn: 'বই',         category: 'books' },
-  { key: 'organic',    labelBn: 'অর্গানিক',   category: 'organic-foods' },
-  { key: 'leather',    labelBn: 'লেদার',      category: 'leather-products' },
-  { key: 'handicraft', labelBn: 'হস্তশিল্প',  category: 'handicrafts' },
+  { key: 'all',        labelBn: 'সব',         labelEn: 'All',        category: undefined },
+  { key: 'books',      labelBn: 'বই',         labelEn: 'Books',      category: 'books' },
+  { key: 'organic',    labelBn: 'অর্গানিক',   labelEn: 'Organic',   category: 'organic-foods' },
+  { key: 'leather',    labelBn: 'লেদার',      labelEn: 'Leather',   category: 'leather-products' },
+  { key: 'handicraft', labelBn: 'হস্তশিল্প',  labelEn: 'Crafts',    category: 'handicrafts' },
 ];
 
 const RANK_SECTIONS = [
@@ -112,6 +127,36 @@ function useCountdown(target: Date) {
   return t;
 }
 
+/* ─────────────────────── promo banner row ─────────────────────────── */
+
+type PromoBannerItem = { id: string; imageUrl: string; linkUrl?: string; title: string };
+
+function PromoBannerRow({ banners }: { banners: PromoBannerItem[] }) {
+  if (banners.length === 0) return null;
+  return (
+    <section className="py-3 px-3 md:px-4">
+      <div className="max-w-[1400px] mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {banners.slice(0, 3).map(b =>
+          b.linkUrl ? (
+            <Link key={b.id} href={b.linkUrl}
+              className="relative rounded-xl overflow-hidden h-28 md:h-32 block group hover:scale-[1.02] transition-all shadow-sm flex-shrink-0">
+              <Image src={b.imageUrl} alt={b.title} fill className="object-cover group-hover:scale-110 transition-transform duration-500" unoptimized />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent group-hover:from-black/30 transition-all" />
+              <span className="absolute bottom-2 left-3 text-white font-bold text-xs drop-shadow">{b.title}</span>
+            </Link>
+          ) : (
+            <div key={b.id} className="relative rounded-xl overflow-hidden h-28 md:h-32">
+              <Image src={b.imageUrl} alt={b.title} fill className="object-cover" unoptimized />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+              <span className="absolute bottom-2 left-3 text-white font-bold text-xs drop-shadow">{b.title}</span>
+            </div>
+          )
+        )}
+      </div>
+    </section>
+  );
+}
+
 /* ─────────────────────── shared UI components ─────────────────────── */
 
 function SectionHeader({ titleBn, titleEn, href, accentColor = '#f97316', lang }: {
@@ -138,295 +183,137 @@ function SectionHeader({ titleBn, titleEn, href, accentColor = '#f97316', lang }
   );
 }
 
-/* ── Compact marketplace card (Rokomari-inspired) ── */
-const MiniCard = memo(function MiniCard({ product, lang }: { product: Product; lang: string }) {
+/* ── Product card — mobile-first ── */
+function MiniCard({ product, lang }: { product: Product; lang: string }) {
   const { addItem } = useCart();
   const img = product.images?.[0]?.url;
   const salePrice = Number(product.salePrice ?? product.basePrice);
   const basePrice = Number(product.basePrice);
   const hasDiscount = product.salePrice && salePrice < basePrice;
   const discountPct = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
-  const reviewCount = product._count?.reviews ?? 0;
   const inStock = product.stockQuantity > 0;
 
   return (
-    <Link
-      href={`/products/${product.slug}`}
-      className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-orange-200 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full"
-    >
-      {/* ── Image ── */}
-      <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden flex-shrink-0">
+    <div className="group bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl hover:-translate-y-0.5 sm:hover:-translate-y-1 transition-all duration-300 flex flex-col">
+      {/* Image */}
+      <Link href={`/products/${product.slug}`} className="relative h-36 sm:h-44 bg-gray-50 overflow-hidden flex-shrink-0 block">
         {img ? (
           <Image src={img} alt={product.name} fill
             className="object-cover group-hover:scale-110 transition-transform duration-500"
-            sizes="(max-width:640px) 50vw, (max-width:1024px) 25vw, 200px"
+            sizes="(max-width:640px) 50vw, (max-width:1024px) 25vw, 180px"
             unoptimized={img.includes('unsplash')} />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-4xl">📚</div>
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-3xl sm:text-4xl">📦</div>
         )}
-
-        {/* Discount badge */}
         {hasDiscount && (
-          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow-sm">
-            -{discountPct}%
-          </span>
+          <span className="absolute top-1.5 left-1.5 bg-orange-500 text-white text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-full shadow">-{discountPct}%</span>
         )}
-
-        {/* Wishlist — top right */}
-        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <WishlistButton
-            productId={product.id}
-            className="w-7 h-7 bg-white/90 backdrop-blur-sm shadow-md hover:bg-red-50 rounded-full"
-          />
-        </div>
-
-        {/* Out of stock overlay */}
         {!inStock && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-            <span className="bg-gray-800 text-white text-[10px] font-bold px-3 py-1 rounded-full">
+            <span className="bg-gray-800 text-white text-[10px] font-bold px-2.5 sm:px-3 py-1 rounded-full">
               {lang === 'bn' ? 'স্টক নেই' : 'Out of Stock'}
             </span>
           </div>
         )}
-      </div>
+      </Link>
 
-      {/* ── Info ── */}
-      <div className="p-3 flex flex-col flex-1 gap-1">
+      {/* Info */}
+      <div className="p-2 sm:p-3 flex flex-col flex-1">
+        {product.category?.name && (
+          <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-0.5 truncate">
+            {product.category.name}
+          </p>
+        )}
+        <Link href={`/products/${product.slug}`} className="flex-1">
+          <p className="text-[11px] sm:text-xs font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+            {product.name}
+          </p>
+          {product.bookDetail?.author && (
+            <p className="text-[9px] sm:text-[10px] text-gray-400 truncate mt-0.5">{product.bookDetail.author}</p>
+          )}
+        </Link>
 
-        {/* Title — min 2 lines height so all cards align */}
-        <p className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors min-h-[2.75rem]">
-          {product.name}
-        </p>
+        <div className="flex items-baseline gap-1 sm:gap-1.5 mt-1.5 sm:mt-2 mb-2">
+          <span className="text-[13px] sm:text-sm font-black text-gray-900">৳{salePrice.toLocaleString('en-BD')}</span>
+          {hasDiscount && <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
+        </div>
 
-        {/* Author — fixed height slot */}
-        <p className="text-[10px] text-gray-400 truncate min-h-[1.1rem]">
-          {product.bookDetail?.author ?? ' '}
-        </p>
+        {/* ADD TO CART + Wishlist */}
+        <div className="flex gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+          <button
+            onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
+            disabled={!inStock}
+            className={`relative flex-1 flex items-center justify-center gap-1 sm:gap-1.5 h-8 sm:h-9 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-black transition-all overflow-hidden ${inStock ? 'bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-md sm:shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+          >
+            <ShoppingCart className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+            <span className="hidden sm:inline">{lang === 'bn' ? 'কার্টে যোগ' : 'ADD TO CART'}</span>
+            <span className="sm:hidden">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
+          </button>
+          <WishlistButton
+            productId={product.id}
+            className="w-8 h-8 sm:w-9 sm:h-9 flex-shrink-0 rounded-lg sm:rounded-xl border border-gray-200 bg-white hover:bg-red-50 shadow-sm"
+          />
+        </div>
 
-        {/* Stars */}
-        {reviewCount > 0 && (
-          <div className="flex items-center gap-1">
-            <div className="flex gap-px">
-              {[1,2,3,4,5].map(i => (
-                <svg key={i} className={`w-3 h-3 ${i <= 4 ? 'text-yellow-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-              ))}
-            </div>
-            <span className="text-[9px] text-gray-400">({reviewCount})</span>
+        {/* BUY NOW */}
+        {inStock ? (
+          <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
+            className="flex items-center justify-center gap-1 sm:gap-1.5 h-8 sm:h-9 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-black shadow-md sm:shadow-lg shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20">
+            <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+            <span className="hidden sm:inline">{lang === 'bn' ? 'এখনই কিনুন' : 'BUY NOW'}</span>
+            <span className="sm:hidden">{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
+          </Link>
+        ) : (
+          <div className="h-8 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl bg-gray-100 text-gray-400 text-[10px] sm:text-[11px] font-black">
+            {lang === 'bn' ? 'স্টক নেই' : 'OUT OF STOCK'}
           </div>
         )}
-
-        {/* Price — pushed to bottom */}
-        <div className="flex items-baseline gap-1.5 mt-auto pt-1">
-          <span className="text-sm font-black text-primary">৳{salePrice.toLocaleString('en-BD')}</span>
-          {hasDiscount && <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
-        </div>
-
-        {/* ── Buttons — always 2 columns, equal width ── */}
-        <div className="grid grid-cols-2 gap-2 mt-2">
-          {/* Add to Cart */}
-          <button
-            onClick={e => {
-              e.preventDefault(); e.stopPropagation();
-              if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } });
-            }}
-            disabled={!inStock}
-            className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-bold transition-all
-              ${inStock
-                ? 'border-2 border-primary/20 text-primary hover:bg-primary hover:text-white hover:border-primary active:scale-95'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
-          >
-            <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
-          </button>
-
-          {/* Buy Now */}
-          {inStock ? (
-            <Link
-              href={`/checkout?productSlug=${product.slug}&qty=1`}
-              onClick={e => e.stopPropagation()}
-              className="flex items-center justify-center gap-1.5 py-2 bg-orange-500 text-white rounded-xl text-[11px] font-bold hover:bg-orange-600 active:scale-95 transition-all"
-            >
-              <Zap className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
-            </Link>
-          ) : (
-            <div className="flex items-center justify-center py-2 rounded-xl bg-gray-100 text-gray-400 text-[11px] font-bold">
-              {lang === 'bn' ? 'নেই' : 'N/A'}
-            </div>
-          )}
-        </div>
-      </div>
-    </Link>
-  );
-});
-
-/* ── Skeleton card ── */
-function SkeletonCard() {
-  return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden animate-pulse">
-      <div className="w-full bg-gray-200" style={{ paddingTop: '133%' }} />
-      <div className="p-2.5 space-y-2">
-        <div className="h-3 bg-gray-200 rounded w-full" />
-        <div className="h-3 bg-gray-200 rounded w-3/4" />
-        <div className="h-3 bg-gray-200 rounded w-1/2" />
-        <div className="h-7 bg-gray-200 rounded" />
       </div>
     </div>
   );
 }
 
-/* ── Portrait card — tall book-cover style for Budget Corner ── */
-const PortraitCard = memo(function PortraitCard({ product, lang }: { product: Product; lang: string }) {
-  const img = product.images?.[0]?.url;
-  const salePrice = Number(product.salePrice ?? product.basePrice);
-  const basePrice = Number(product.basePrice);
-  const hasDiscount = product.salePrice && salePrice < basePrice;
-  const discountPct = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
-
+/* ── Skeleton card ── */
+function SkeletonCard() {
   return (
-    <Link href={`/products/${product.slug}`}
-      className="flex-shrink-0 w-[110px] group">
-      <div className="relative w-full aspect-[2/3] rounded-xl overflow-hidden bg-gray-100 shadow-sm">
-        {img ? (
-          <Image src={img} alt={product.name} fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="110px" unoptimized={img.includes('unsplash')} />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-3xl bg-gradient-to-br from-blue-50 to-indigo-100">📚</div>
-        )}
-        {hasDiscount && (
-          <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow">
-            -{discountPct}%
-          </span>
-        )}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 pt-6">
-          <span className="text-white text-xs font-black drop-shadow">৳{salePrice.toLocaleString('en-BD')}</span>
+    <div className="bg-white border border-gray-100 rounded-xl sm:rounded-2xl overflow-hidden animate-pulse flex flex-col">
+      <div className="h-36 sm:h-44 bg-gray-200 flex-shrink-0" />
+      <div className="p-3 flex flex-col gap-2 flex-1">
+        <div className="h-2 bg-gray-200 rounded w-1/3" />
+        <div className="h-3 bg-gray-200 rounded w-full" />
+        <div className="h-3 bg-gray-200 rounded w-3/4" />
+        <div className="h-4 bg-gray-200 rounded w-2/5 mt-1" />
+        <div className="flex gap-2 mt-1">
+          <div className="flex-1 h-9 bg-gray-200 rounded-xl" />
+          <div className="w-9 h-9 bg-gray-200 rounded-xl flex-shrink-0" />
         </div>
+        <div className="h-9 bg-gray-200 rounded-xl" />
       </div>
-      <p className="mt-1.5 text-[10px] font-semibold text-gray-700 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
-        {product.name}
-      </p>
-    </Link>
+    </div>
   );
-});
+}
 
-/* ── Editorial card — dark overlay style for Editor's Picks ── */
-const EditorialCard = memo(function EditorialCard({ product, lang }: { product: Product; lang: string }) {
-  const { addItem } = useCart();
-  const img = product.images?.[0]?.url;
-  const salePrice = Number(product.salePrice ?? product.basePrice);
-  const basePrice = Number(product.basePrice);
-  const hasDiscount = product.salePrice && salePrice < basePrice;
-  const discountPct = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
-  const inStock = product.stockQuantity > 0;
-
-  return (
-    <Link href={`/products/${product.slug}`}
-      className="group relative rounded-2xl overflow-hidden bg-gray-900 aspect-[3/4] block">
-      {img ? (
-        <Image src={img} alt={product.name} fill
-          className="object-cover opacity-75 group-hover:opacity-55 group-hover:scale-105 transition-all duration-500"
-          sizes="(max-width:640px) 50vw, (max-width:1024px) 25vw, 220px"
-          unoptimized={img.includes('unsplash')} />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-5xl bg-gradient-to-br from-blue-900 to-purple-900">📚</div>
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
-      {hasDiscount && (
-        <span className="absolute top-3 right-3 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow">
-          -{discountPct}%
-        </span>
-      )}
-      {product.isFeatured && (
-        <span className="absolute top-3 left-3 bg-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded-lg flex items-center gap-0.5">
-          <Star className="w-2.5 h-2.5 fill-white" />{lang === 'bn' ? 'ফিচার্ড' : 'Featured'}
-        </span>
-      )}
-      <div className="absolute bottom-0 left-0 right-0 p-3">
-        <p className="text-white font-bold text-xs line-clamp-2 leading-snug mb-0.5">{product.name}</p>
-        {product.bookDetail?.author && (
-          <p className="text-white/55 text-[9px] truncate mb-2">{product.bookDetail.author}</p>
-        )}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-baseline gap-1">
-            <span className="text-orange-400 font-black text-sm">৳{salePrice.toLocaleString('en-BD')}</span>
-            {hasDiscount && <span className="text-white/40 text-[9px] line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
-          </div>
-          <div className="flex gap-1 flex-shrink-0">
-            <button
-              onClick={e => {
-                e.preventDefault(); e.stopPropagation();
-                if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } });
-              }}
-              disabled={!inStock}
-              className="flex items-center gap-1 px-2 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded-lg text-[10px] font-bold hover:bg-white/30 transition-colors disabled:opacity-40"
-            >
-              <ShoppingCart className="w-3 h-3" />
-              {lang === 'bn' ? 'কার্ট' : 'Cart'}
-            </button>
-            {inStock && (
-              <Link href={`/checkout?productSlug=${product.slug}&qty=1`} onClick={e => e.stopPropagation()}
-                className="flex items-center gap-1 px-2 py-1.5 bg-orange-500 text-white rounded-lg text-[10px] font-bold hover:bg-orange-600 transition-colors">
-                <Zap className="w-3 h-3" />
-                {lang === 'bn' ? 'কিনুন' : 'Buy'}
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-});
-
-/* ── Flash deal card — uses real Product data with cart buttons ── */
-const FlashCard = memo(function FlashCard({ product, lang }: { product: Product; lang: string }) {
+/* ── Flash deal card — same design, fixed width for horizontal scroll ── */
+function FlashCard({ product, lang }: { product: Product; lang: string }) {
   const { addItem } = useCart();
   const [imgErr, setImgErr] = useState(false);
-  const img = (!imgErr && product.images?.[0]?.url) ? product.images[0].url : null;
+  const img = product.images?.[0]?.url;
   const salePrice = Number(product.salePrice ?? product.basePrice);
   const basePrice = Number(product.basePrice);
   const hasDiscount = product.salePrice && salePrice < basePrice;
   const discount = hasDiscount ? Math.round((1 - salePrice / basePrice) * 100) : 0;
   const inStock = product.stockQuantity > 0;
-
+  if (imgErr || !img) return null;
   return (
-    <Link href={`/products/${product.slug}`}
-      className="flex-shrink-0 w-[200px] group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-orange-200 hover:-translate-y-1 transition-all duration-300 flex flex-col">
-
-      {/* ── Image ── */}
-      <div className="relative aspect-[4/3] bg-gray-50 overflow-hidden flex-shrink-0">
-        {img ? (
-          <Image src={img} alt={product.name} fill
-            className="object-cover group-hover:scale-110 transition-transform duration-500"
-            unoptimized={img.includes('unsplash') || img.includes('picsum')}
-            sizes="200px" onError={() => setImgErr(true)} />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-4xl bg-gradient-to-br from-orange-50 to-red-50">📦</div>
-        )}
-
-        {/* Discount badge */}
+    <div className="flex-shrink-0 w-[150px] sm:w-[175px] group bg-white border border-gray-100 rounded-xl sm:rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
+      <Link href={`/products/${product.slug}`} className="relative h-[145px] sm:h-[170px] bg-gray-50 overflow-hidden flex-shrink-0 block">
+        <Image src={img} alt={product.name} fill
+          className="object-cover group-hover:scale-110 transition-transform duration-500"
+          unoptimized={img.includes('unsplash') || img.includes('picsum')}
+          sizes="160px" onError={() => setImgErr(true)} />
         {hasDiscount && (
-          <span className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md shadow">
-            -{discount}%
-          </span>
+          <span className="absolute top-2 left-2 bg-orange-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">-{discount}%</span>
         )}
-
-        {/* Flash badge */}
-        <span className="absolute top-2 right-2 bg-orange-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
-          <Zap className="w-2.5 h-2.5 fill-white" /> {lang === 'bn' ? 'ডিল' : 'Deal'}
-        </span>
-
-        {/* Wishlist — shows on hover */}
-        <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-          <WishlistButton
-            productId={product.id}
-            className="w-7 h-7 bg-white/90 backdrop-blur-sm shadow-md hover:bg-red-50 rounded-full"
-          />
-        </div>
-
-        {/* Out of stock overlay */}
         {!inStock && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
             <span className="bg-gray-800 text-white text-[10px] font-bold px-3 py-1 rounded-full">
@@ -434,61 +321,51 @@ const FlashCard = memo(function FlashCard({ product, lang }: { product: Product;
             </span>
           </div>
         )}
-      </div>
-
-      {/* ── Info ── */}
-      <div className="p-3 flex flex-col flex-1 gap-1">
-        {/* Title — fixed 2-line height */}
-        <p className="text-xs font-bold text-gray-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors min-h-[2.75rem]">
-          {product.name}
-        </p>
-
-        {/* Author — fixed slot */}
-        <p className="text-[10px] text-gray-400 truncate min-h-[1.1rem]">
-          {product.bookDetail?.author ?? ' '}
-        </p>
-
-        {/* Price */}
-        <div className="flex items-baseline gap-2 mt-auto pt-1">
-          <span className="text-base font-black text-red-600">৳{salePrice.toLocaleString('en-BD')}</span>
-          {hasDiscount && (
-            <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>
+      </Link>
+      <div className="p-2.5 flex flex-col flex-1">
+        {product.category?.name && (
+          <p className="text-[9px] font-black text-orange-500 uppercase tracking-widest mb-0.5 truncate">{product.category.name}</p>
+        )}
+        <Link href={`/products/${product.slug}`} className="flex-1">
+          <p className="text-[11px] font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">
+            {product.name}
+          </p>
+          {product.bookDetail?.author && (
+            <p className="text-[10px] text-gray-400 truncate mt-0.5">{product.bookDetail.author}</p>
           )}
+        </Link>
+        <div className="flex items-baseline gap-1 mt-1.5 mb-2">
+          <span className="text-sm font-black text-gray-900">৳{salePrice.toLocaleString('en-BD')}</span>
+          {hasDiscount && <span className="text-[10px] text-gray-400 line-through">৳{basePrice.toLocaleString('en-BD')}</span>}
         </div>
-
-        {/* ── Buttons — always equal 2 cols ── */}
-        <div className="grid grid-cols-2 gap-2 mt-2">
+        <div className="flex gap-1.5 mb-1.5">
           <button
-            onClick={e => {
-              e.preventDefault(); e.stopPropagation();
-              if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img ?? undefined, slug: product.slug } });
-            }}
+            onClick={e => { e.preventDefault(); e.stopPropagation(); if (inStock) addItem.mutate({ productId: product.id, quantity: 1, guestData: { name: product.name, price: salePrice, image: img, slug: product.slug } }); }}
             disabled={!inStock}
-            className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all
-              ${inStock
-                ? 'border-2 border-primary/20 text-primary hover:bg-primary hover:text-white hover:border-primary active:scale-95'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}
-          >
-            <ShoppingCart className="w-3.5 h-3.5 flex-shrink-0" />
-            <span>{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
+            className={`flex-1 flex items-center justify-center gap-1 h-8 rounded-lg text-[10px] font-black transition-all overflow-hidden ${inStock ? 'bg-gradient-to-b from-slate-700 to-slate-900 text-white shadow-md shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-95 ring-1 ring-white/10' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
+            <ShoppingCart className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{lang === 'bn' ? 'কার্ট' : 'Cart'}</span>
           </button>
-
-          {inStock ? (
-            <Link href={`/checkout?productSlug=${product.slug}&qty=1`} onClick={e => e.stopPropagation()}
-              className="flex items-center justify-center gap-1.5 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold hover:bg-orange-600 active:scale-95 transition-all">
-              <Zap className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>{lang === 'bn' ? 'কিনুন' : 'Buy'}</span>
-            </Link>
-          ) : (
-            <div className="flex items-center justify-center py-2 rounded-xl bg-gray-100 text-gray-400 text-xs font-bold">
-              {lang === 'bn' ? 'নেই' : 'N/A'}
-            </div>
-          )}
+          <WishlistButton
+            productId={product.id}
+            className="w-8 h-8 flex-shrink-0 rounded-lg border border-gray-200 bg-white hover:bg-red-50 shadow-sm"
+          />
         </div>
+        {inStock ? (
+          <Link href={`/checkout?productId=${product.id}&qty=1`} onClick={e => e.stopPropagation()}
+            className="flex items-center justify-center gap-1 h-8 bg-gradient-to-b from-orange-400 to-orange-600 text-white rounded-lg text-[10px] font-black shadow-md shadow-orange-500/40 hover:from-orange-300 hover:to-orange-500 active:scale-95 transition-all ring-1 ring-white/20">
+            <Zap className="w-3 h-3 flex-shrink-0" />
+            <span className="truncate">{lang === 'bn' ? 'কিনুন' : 'Buy Now'}</span>
+          </Link>
+        ) : (
+          <div className="h-8 flex items-center justify-center rounded-lg bg-gray-100 text-gray-400 text-[10px] font-black">
+            {lang === 'bn' ? 'নেই' : 'N/A'}
+          </div>
+        )}
       </div>
-    </Link>
+    </div>
   );
-});
+}
 
 /* ── Ranking row ── */
 function RankRow({ item, index, lang }: { item: typeof RANK_DATA['Fiction'][number]; index: number; lang: string }) {
@@ -522,8 +399,8 @@ function FeaturedItem({ p, lang }: { product?: never; p: Product; lang: string }
   const discountPct = hasDiscount ? Math.round((1 - Number(p.salePrice) / Number(p.basePrice)) * 100) : 0;
   return (
     <Link href={`/products/${p.slug}`}
-      className="flex-shrink-0 w-[115px] group flex flex-col">
-      <div className="relative w-full h-[150px] rounded-xl overflow-hidden bg-gray-100 mb-1.5 flex-shrink-0">
+      className="flex-shrink-0 w-[100px] sm:w-[115px] group flex flex-col">
+      <div className="relative w-full h-[130px] sm:h-[150px] rounded-xl overflow-hidden bg-gray-100 mb-1.5 flex-shrink-0">
         <Image src={url} alt={p.name} fill
           className="object-cover group-hover:scale-105 transition-transform duration-400"
           sizes="115px" unoptimized={url.includes('unsplash')}
@@ -546,186 +423,247 @@ function FeaturedItem({ p, lang }: { product?: never; p: Product; lang: string }
 
 export default function HomePage() {
   const { lang, t } = useLanguage();
-  const [bestTab, setBestTab]         = useState('all');
+  const [bestTab, setBestTab]           = useState('all');
   const [bookShelfTab, setBookShelfTab] = useState('fiction');
-  const [slideIndex, setSlideIndex]   = useState(0);
-  const [slideKey, setSlideKey]       = useState(0);
 
-  const flashRef     = useRef<HTMLDivElement>(null);
-  const shelfRef     = useRef<HTMLDivElement>(null);
-  const authorsRef   = useRef<HTMLDivElement>(null);
-  const flashEnd     = useRef(new Date(Date.now() + 8 * 3600 * 1000)).current;
-  const countdown    = useCountdown(flashEnd);
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterDone, setNewsletterDone]   = useState(false);
 
-  const goToSlide = useCallback((fn: (i: number) => number) => { setSlideIndex(fn); setSlideKey(k => k + 1); }, []);
-  useEffect(() => { const id = setInterval(() => setSlideIndex(i => (i + 1) % 3), 5000); return () => clearInterval(id); }, [slideKey]);
+  const flashRef   = useRef<HTMLDivElement>(null);
+  const shelfRef   = useRef<HTMLDivElement>(null);
+  const authorsRef = useRef<HTMLDivElement>(null);
+  const flashEnd   = useRef(new Date(Date.now() + 8 * 3600 * 1000)).current;
+  const countdown  = useCountdown(flashEnd);
 
   const scroll = (ref: React.RefObject<HTMLDivElement | null>, dir: 'l' | 'r') => {
     if (!ref.current) return;
     ref.current.scrollBy({ left: dir === 'l' ? -ref.current.clientWidth * 0.8 : ref.current.clientWidth * 0.8, behavior: 'smooth' });
   };
 
-  const HERO_SLIDES = [
-    { bg: 'from-blue-900 to-blue-700',   img: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=1200&auto=format&fit=crop',  headlineBn: 'বাংলাদেশের সেরা বইয়ের দোকান',   headlineEn: "Bangladesh's Best Bookstore",    subBn: '১ লাখেরও বেশি বই · সেরা দামে',       subEn: '100,000+ books · Best prices',   ctaBn: 'বই দেখুন',    ctaEn: 'Shop Books',   href: '/books' },
-    { bg: 'from-green-900 to-green-700', img: 'https://images.unsplash.com/photo-1556909114-4d4a51b2f17e?q=80&w=1200&auto=format&fit=crop',  headlineBn: 'খাঁটি অর্গানিক পণ্য',           headlineEn: 'Pure Organic Products',          subBn: 'প্রকৃতি থেকে সরাসরি আপনার কাছে',   subEn: 'Direct from nature to you',     ctaBn: 'অর্গানিক',    ctaEn: 'Shop Organic', href: '/categories/organic-foods' },
-    { bg: 'from-red-900 to-orange-700',  img: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200&auto=format&fit=crop', headlineBn: 'মেগা সেল চলছে!',               headlineEn: 'Mega Sale is Live!',             subBn: '৭০% পর্যন্ত ছাড় · সীমিত সময়',      subEn: 'Up to 70% off · Limited time',   ctaBn: 'অফার দেখুন', ctaEn: 'See Deals',    href: '/products' },
-  ] as const;
-
   /* API data */
-  const { data: featuredProducts = [] } = useQuery({ queryKey: ['products', 'featured'], queryFn: () => productsApi.getFeatured(12), staleTime: 5 * 60 * 1000 });
-  const { data: allCategories = [] }    = useQuery({ queryKey: ['categories-roots'],    queryFn: () => categoriesApi.getRoots(), staleTime: 5 * 60 * 1000 });
-  const { data: newArrivalData }        = useQuery({ queryKey: ['products', 'new-arrivals'], queryFn: () => productsApi.getAll({ limit: 12, sortBy: 'createdAt', sortOrder: 'desc' } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
+  const { data: featuredProducts = [], isError: featuredError } = useQuery({ queryKey: ['products', 'featured'], queryFn: () => productsApi.getFeatured(12) });
+  const { data: allCategories = [] }    = useQuery({ queryKey: ['categories-roots'],    queryFn: () => categoriesApi.getRoots() });
+  const { data: newArrivalData, isError: newArrivalsError } = useQuery({ queryKey: ['products', 'new-arrivals'], queryFn: () => productsApi.getAll({ limit: 12, sortBy: 'createdAt', sortOrder: 'desc' } as Parameters<typeof productsApi.getAll>[0]) });
   const newArrivals = newArrivalData?.data ?? [];
-  const { data: bestData } = useQuery({ queryKey: ['products', 'bestsellers', bestTab], queryFn: () => productsApi.getAll({ limit: 12, ...(bestTab !== 'all' ? { categorySlug: BEST_TABS.find(t => t.key === bestTab)?.category } : {}) } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
+  const { data: bestData, isError: bestError } = useQuery({ queryKey: ['products', 'bestsellers', bestTab], queryFn: () => productsApi.getAll({ limit: 12, ...(bestTab !== 'all' ? { categorySlug: BEST_TABS.find(t => t.key === bestTab)?.category } : {}) } as Parameters<typeof productsApi.getAll>[0]) });
   const bestProducts = bestData?.data ?? [];
-  const { data: shelfData } = useQuery({ queryKey: ['products', 'shelf', bookShelfTab], queryFn: () => productsApi.getAll({ categorySlug: bookShelfTab, limit: 12 } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
+  const { data: shelfData, isError: shelfError } = useQuery({ queryKey: ['products', 'shelf', bookShelfTab], queryFn: () => productsApi.getAll({ categorySlug: bookShelfTab, limit: 12 } as Parameters<typeof productsApi.getAll>[0]) });
   const shelfBooks = shelfData?.data ?? [];
-  const { data: organicData } = useQuery({ queryKey: ['products', 'organic'], queryFn: () => productsApi.getAll({ categorySlug: 'organic-foods', limit: 6 } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
+  const { data: organicData } = useQuery({ queryKey: ['products', 'organic'], queryFn: () => productsApi.getAll({ categorySlug: 'organic-foods', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
   const organicProducts = organicData?.data ?? [];
-  const { data: flashData } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
+  const { data: dailyData } = useQuery({ queryKey: ['products', 'daily-needs'], queryFn: () => productsApi.getAll({ categorySlug: 'daily-needs', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
+  const dailyProducts = dailyData?.data ?? [];
+  const { data: babyData } = useQuery({ queryKey: ['products', 'baby-products'], queryFn: () => productsApi.getAll({ categorySlug: 'baby-products', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
+  const babyProducts = babyData?.data ?? [];
+  const { data: leatherData } = useQuery({ queryKey: ['products', 'leather-products'], queryFn: () => productsApi.getAll({ categorySlug: 'leather-products', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
+  const leatherProducts = leatherData?.data ?? [];
+  const { data: handicraftsData } = useQuery({ queryKey: ['products', 'handicrafts'], queryFn: () => productsApi.getAll({ categorySlug: 'handicrafts', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
+  const handicraftProducts = handicraftsData?.data ?? [];
+  const { data: electronicsData } = useQuery({ queryKey: ['products', 'electronics'], queryFn: () => productsApi.getAll({ categorySlug: 'electronics', limit: 6 } as Parameters<typeof productsApi.getAll>[0]) });
+  const electronicsProducts = electronicsData?.data ?? [];
+  const { data: flashData, isError: flashError } = useQuery({ queryKey: ['products', 'flash-deals'], queryFn: () => productsApi.getAll({ limit: 20 } as Parameters<typeof productsApi.getAll>[0]) });
   const flashProducts = (flashData?.data ?? []).filter(p => p.salePrice && Number(p.salePrice) < Number(p.basePrice) && p.images?.[0]?.url).slice(0, 12);
-  const { data: budgetData } = useQuery({ queryKey: ['products', 'budget'], queryFn: () => productsApi.getAll({ limit: 20, maxPrice: 500 } as Parameters<typeof productsApi.getAll>[0]), staleTime: 5 * 60 * 1000 });
-  const budgetProducts = (budgetData?.data ?? []).filter(p => p.images?.[0]?.url).slice(0, 16);
 
-  const slide = HERO_SLIDES[slideIndex] ?? HERO_SLIDES[0];
+  type PromoBanner = { id: string; imageUrl: string; linkUrl?: string; title: string; isActive: boolean };
+  const fetchPromo = (pos: string) =>
+    api.get(`/design/banners?position=${pos}&limit=10`).then(r => (r.data?.data ?? []) as PromoBanner[]).catch(() => [] as PromoBanner[]);
+
+  const { data: promo1Raw } = useQuery<PromoBanner[]>({ queryKey: ['promo-banners', 'PROMO_1'], queryFn: () => fetchPromo('PROMO_1') });
+  const { data: promo2Raw } = useQuery<PromoBanner[]>({ queryKey: ['promo-banners', 'PROMO_2'], queryFn: () => fetchPromo('PROMO_2') });
+  const { data: promo3Raw } = useQuery<PromoBanner[]>({ queryKey: ['promo-banners', 'PROMO_3'], queryFn: () => fetchPromo('PROMO_3') });
+  const { data: promo4Raw } = useQuery<PromoBanner[]>({ queryKey: ['promo-banners', 'PROMO_4'], queryFn: () => fetchPromo('PROMO_4') });
+
+  const promo1 = (promo1Raw ?? []).filter(b => b.isActive);
+  const promo2 = (promo2Raw ?? []).filter(b => b.isActive);
+  const promo3 = (promo3Raw ?? []).filter(b => b.isActive);
+  const promo4 = (promo4Raw ?? []).filter(b => b.isActive);
+
+  const { data: bannersData } = useQuery<any[]>({ queryKey: ['design-banners-public'], queryFn: () => api.get('/design/banners').then(r => (r.data?.data ?? r.data ?? [])).catch(() => []), staleTime: 60_000 });
+  const offerBanner = (bannersData ?? []).find((b: any) => b.position === 'OFFER_BANNER' && b.isActive);
+
+  // Show a banner when all main product queries fail (API unreachable)
+  const apiDown = newArrivalsError && bestError && flashError && featuredError && shelfError;
 
   return (
-    <div style={{ backgroundColor: '#f5f5f5' }}>
+    <div style={{ backgroundColor: '#f5f5f5' }} className="pb-20 lg:pb-0">
+      {/* API unreachable banner */}
+      {apiDown && (
+        <div className="w-full bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-center gap-2 text-sm text-amber-800">
+          <span>⚠️</span>
+          <span>{lang === 'bn' ? 'API সংযোগ সমস্যা — সার্ভার চালু আছে কিনা দেখুন।' : 'API connection error — please check if the server is running.'}</span>
+        </div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
-          HERO SECTION — keep as is
+          HERO SLIDER — full-width promotional carousel
       ═══════════════════════════════════════════════════════════════ */}
       <section className="w-full bg-gray-100 py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto flex flex-col xl:flex-row items-stretch gap-3">
+        <div className="max-w-[1400px] mx-auto">
+          <HeroSlider lang={lang} />
+        </div>
+      </section>
 
-          {/* Hero Banner */}
-          <div className="relative rounded-xl overflow-hidden flex-shrink-0 h-[220px] sm:h-[280px] xl:w-[360px] xl:h-auto xl:min-h-[440px] cursor-pointer group"
-            onClick={() => window.location.href = slide.href}>
-            <div className={`absolute inset-0 bg-gradient-to-br ${slide.bg} transition-all duration-700`} />
-            <Image src={slide.img} alt="hero" fill unoptimized priority className="object-cover opacity-30 group-hover:opacity-40 transition-opacity duration-500" sizes="(max-width:1280px) 100vw, 360px" />
-            <div className="absolute inset-0 flex flex-col justify-end p-6 xl:p-8">
-              <h1 className="text-xl sm:text-2xl xl:text-3xl font-black text-white leading-tight mb-2">
-                {lang === 'bn' ? slide.headlineBn : slide.headlineEn}
-              </h1>
-              <p className="text-white/70 text-xs mb-5">{lang === 'bn' ? slide.subBn : slide.subEn}</p>
-              <span className="inline-flex items-center gap-2 bg-white text-gray-900 font-black text-sm px-5 py-2.5 rounded-lg w-fit group-hover:bg-yellow-400 transition-colors duration-300">
-                {lang === 'bn' ? slide.ctaBn : slide.ctaEn} <ArrowRight className="w-4 h-4" />
-              </span>
+      {/* ═══════════════════════════════════════════════════════════════
+          FEATURED PRODUCTS — below hero slider
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="w-full bg-gray-100 pb-1 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-3 sm:p-4">
+          <div className="flex items-center justify-between mb-2 sm:mb-3">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-5 bg-blue-600 rounded-full" />
+              <h3 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'ফিচার্ড পণ্য' : 'Featured Products'}</h3>
             </div>
-            {/* Slide dots */}
-            <div className="absolute bottom-3 right-4 flex gap-1.5">
-              {[0,1,2].map(i => (
-                <button key={i} onClick={e => { e.stopPropagation(); goToSlide(() => i); }}
-                  className={`rounded-full transition-all ${i === slideIndex ? 'w-5 h-2 bg-white' : 'w-2 h-2 bg-white/50'}`} />
-              ))}
-            </div>
+            <Link href="/products?isFeatured=true" className="text-[11px] font-bold text-orange-500 flex items-center gap-0.5 hover:underline">
+              {lang === 'bn' ? 'সব দেখুন' : 'View all'} <ArrowRight className="w-3 h-3" />
+            </Link>
           </div>
-
-          {/* Right: Flash Sale mini banner + Categories */}
-          <div className="flex flex-col gap-3 flex-1 min-w-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-
-              {/* Flash Sale teaser */}
-              <div className="relative bg-gradient-to-br from-red-600 to-orange-500 rounded-xl p-5 overflow-hidden min-h-[160px] flex flex-col justify-between">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Flame className="w-4 h-4 text-yellow-300 animate-bounce" />
-                    <span className="text-yellow-200 text-xs font-bold uppercase tracking-widest animate-pulse">{lang === 'bn' ? 'ফ্ল্যাশ সেল' : 'Flash Sale'}</span>
-                  </div>
-                  <h3 className="text-xl font-black text-white leading-tight">{lang === 'bn' ? 'সীমিত সময়ের অফার' : 'Limited Time Deals'}</h3>
-                  <p className="text-orange-100 text-xs mt-1">{lang === 'bn' ? '৭০% পর্যন্ত ছাড়' : 'Up to 70% discount'}</p>
+          <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+            {featuredProducts.length > 0
+              ? featuredProducts.filter(p => p.images?.[0]?.url).slice(0, 10).map(p => <FeaturedItem key={p.id} p={p} lang={lang} />)
+              : Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="flex-shrink-0 w-[115px] animate-pulse">
+                  <div className="w-full h-[150px] rounded-xl bg-gray-200 mb-1.5" />
+                  <div className="h-3 bg-gray-200 rounded mb-1" />
+                  <div className="h-3 bg-gray-200 rounded w-2/3" />
                 </div>
-                <div className="flex gap-1.5 items-center">
-                  {[{ v: pad(countdown.h), l: lang === 'bn' ? 'ঘণ্টা' : 'HRS' }, { v: pad(countdown.m), l: lang === 'bn' ? 'মিনিট' : 'MIN' }, { v: pad(countdown.s), l: lang === 'bn' ? 'সেকেন্ড' : 'SEC' }].map(({ v, l }, i) => (
-                    <div key={l} className="flex items-center gap-1">
-                      <div className="bg-black/30 backdrop-blur-sm text-white rounded-md px-2 py-1 text-center min-w-[36px]">
-                        <div className="text-sm font-black leading-none">{v}</div>
-                        <div className="text-[8px] opacity-70 mt-0.5">{l}</div>
-                      </div>
-                      {i < 2 && <span className="text-yellow-300 font-black text-xs">:</span>}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Hot Categories */}
-              <div className="bg-white rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-base">🔥</span>
-                  <h3 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'বিভাগ' : 'Categories'}</h3>
-                </div>
-                <div className="grid grid-cols-4 gap-2">
-                  {(allCategories.length > 0 ? allCategories.slice(0, 8) : [
-                    { id:'1', slug:'books',            name: lang === 'bn' ? 'বই' : 'Books' },
-                    { id:'2', slug:'baby-products',    name: lang === 'bn' ? 'শিশু পণ্য' : 'Baby' },
-                    { id:'3', slug:'leather-products', name: lang === 'bn' ? 'চামড়া' : 'Leather' },
-                    { id:'4', slug:'organic-foods',    name: lang === 'bn' ? 'অর্গানিক' : 'Organic' },
-                    { id:'5', slug:'handicrafts',      name: lang === 'bn' ? 'হস্তশিল্প' : 'Crafts' },
-                    { id:'6', slug:'electronics',      name: lang === 'bn' ? 'ইলেকট্রনিক্স' : 'Electronics' },
-                    { id:'7', slug:'daily-needs',      name: lang === 'bn' ? 'দৈনন্দিন' : 'Daily' },
-                    { id:'8', slug:'default',          name: lang === 'bn' ? 'আরো' : 'More' },
-                  ] as { id: string; slug: string; name: string }[]).map(cat => (
-                    <Link key={cat.id} href={`/products?categorySlug=${cat.slug}`}
-                      className="flex flex-col items-center gap-1 p-1.5 rounded-lg hover:bg-blue-50 transition-colors group">
-                      <div className="w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center text-lg transition-colors">
-                        {CAT_EMOJI[cat.slug] ?? CAT_EMOJI.default}
-                      </div>
-                      <span className="text-[9px] font-semibold text-gray-600 text-center leading-tight">{cat.name}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Featured Products horizontal mini */}
-            <div className="bg-white rounded-xl p-4 flex-1">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-1 h-5 bg-blue-600 rounded-full" />
-                  <h3 className="font-black text-gray-900 text-sm">{lang === 'bn' ? 'ফিচার্ড পণ্য' : 'Featured Products'}</h3>
-                </div>
-                <Link href="/products?isFeatured=true" className="text-[11px] font-bold text-orange-500 flex items-center gap-0.5 hover:underline">
-                  {lang === 'bn' ? 'সব দেখুন' : 'View all'} <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
-              <div className="flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
-                {featuredProducts.length > 0
-                  ? featuredProducts
-                      .filter(p => p.images?.[0]?.url)
-                      .slice(0, 8)
-                      .map(p => <FeaturedItem key={p.id} p={p} lang={lang} />)
-                  : Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="flex-shrink-0 w-[115px] animate-pulse">
-                      <div className="w-full h-[150px] rounded-xl bg-gray-200 mb-1.5" />
-                      <div className="h-3 bg-gray-200 rounded mb-1" />
-                      <div className="h-3 bg-gray-200 rounded w-2/3" />
-                    </div>
-                  ))
-                }
-              </div>
-            </div>
+              ))
+            }
           </div>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
+          CATEGORIES STRIP — auto-updates from API
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="py-2.5 sm:py-4 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl sm:rounded-2xl px-3 sm:px-5 py-3 sm:py-5 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-black text-gray-900 text-base leading-tight">{lang === 'bn' ? 'বিভাগ অনুযায়ী কেনাকাটা করুন' : 'Shop by Category'}</h2>
+              <p className="text-[11px] text-gray-400 mt-0.5">{lang === 'bn' ? 'আপনার পছন্দের ক্যাটাগরি বেছে নিন' : 'Browse all categories'}</p>
+            </div>
+            <Link href="/products" className="text-xs font-bold text-orange-500 flex items-center gap-0.5 hover:text-orange-600 transition-colors">
+              {lang === 'bn' ? 'সব দেখুন' : 'View All'} <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <div className="flex gap-2 sm:gap-5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+            {(allCategories.length > 0
+              ? allCategories.slice(0, 12) as (Category & { children?: Category[] })[]
+              : [
+                { id:'1', slug:'books',              name: lang === 'bn' ? 'বই' : 'Books',              imageUrl: undefined, color: '#2563eb' },
+                { id:'2', slug:'baby-products',      name: lang === 'bn' ? 'শিশু পণ্য' : 'Baby Prods',  imageUrl: undefined, color: '#ec4899' },
+                { id:'3', slug:'leather-products',   name: lang === 'bn' ? 'চামড়া পণ্য' : 'Leather',   imageUrl: undefined, color: '#92400e' },
+                { id:'4', slug:'organic-foods',      name: lang === 'bn' ? 'অর্গানিক' : 'Organic',      imageUrl: undefined, color: '#16a34a' },
+                { id:'5', slug:'handicrafts',        name: lang === 'bn' ? 'হস্তশিল্প' : 'Handicrafts', imageUrl: undefined, color: '#7c3aed' },
+                { id:'6', slug:'islamic-lifestyle',  name: lang === 'bn' ? 'ইসলামিক' : 'Islamic',       imageUrl: undefined, color: '#065f46' },
+                { id:'7', slug:'electronics',        name: lang === 'bn' ? 'ইলেকট্রনিক্স' : 'Electronics', imageUrl: undefined, color: '#0f172a' },
+                { id:'8', slug:'daily-needs',        name: lang === 'bn' ? 'দৈনন্দিন' : 'Daily Needs',  imageUrl: undefined, color: '#b45309' },
+              ] as (Category & { children?: Category[] })[]
+            ).map(cat => {
+              const meta = CAT_META[cat.slug] ?? CAT_META.default!;
+              return (
+                <Link key={cat.id}
+                  href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : cat.slug === 'default' ? '/categories' : `/products?categorySlug=${cat.slug}`}
+                  className="flex-shrink-0 flex flex-col items-center gap-2.5 group"
+                >
+                  {/* Icon bubble */}
+                  <div className="relative">
+                    <div
+                      className="w-14 h-14 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:-translate-y-1"
+                      style={{
+                        background: `linear-gradient(135deg, ${meta.from}, ${meta.to})`,
+                        boxShadow: `0 8px 24px ${meta.shadow}, 0 2px 8px ${meta.shadow}`,
+                      }}
+                    >
+                      {cat.imageUrl ? (
+                        <Image src={cat.imageUrl} alt={cat.name} width={80} height={80} className="object-cover w-full h-full" unoptimized />
+                      ) : (
+                        <span className="text-2xl sm:text-4xl drop-shadow-sm select-none" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.25))' }}>
+                          {CAT_EMOJI[cat.slug] ?? CAT_EMOJI.default}
+                        </span>
+                      )}
+                    </div>
+                    {/* Glow ring on hover */}
+                    <div
+                      className="absolute inset-0 rounded-xl sm:rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                      style={{ boxShadow: `0 0 0 3px ${meta.to}55` }}
+                    />
+                  </div>
+                  {/* Label */}
+                  <span
+                    className="text-[10px] sm:text-xs font-bold text-center w-14 sm:w-20 leading-tight line-clamp-2 group-hover:text-gray-900 transition-colors"
+                    style={{ color: '#374151' }}
+                  >
+                    {cat.name}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ AD BANNER ═══ */}
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto">
+          <Link href={offerBanner?.linkUrl ?? '/products'} className="block group">
+            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 shadow-lg">
+              <div className="absolute -top-8 -right-8 w-48 h-48 bg-white/10 rounded-full" />
+              <div className="absolute -bottom-10 right-32 w-32 h-32 bg-white/10 rounded-full" />
+              <div className="relative flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 md:px-10 md:py-6">
+                <div className="text-center sm:text-left">
+                  <p className="text-white/80 text-xs font-bold uppercase tracking-widest mb-1">
+                    {lang === 'bn' ? '🎉 বিশেষ অফার' : '🎉 SPECIAL OFFER'}
+                  </p>
+                  <h3 className="text-white font-black text-base sm:text-xl md:text-2xl leading-tight">
+                    {lang === 'bn'
+                      ? (offerBanner?.title || 'প্রথম অর্ডারে ১৫% ছাড়!')
+                      : (offerBanner?.subtitle || 'Get 15% off your first order!')}
+                  </h3>
+                  <p className="text-white/70 text-sm mt-1">
+                    {lang === 'bn'
+                      ? `কোড: ${offerBanner?.ctaText ?? 'UNKORA15'} • ৳${offerBanner?.imageUrl ?? '৫০০'}+ অর্ডারে প্রযোজ্য`
+                      : `Use code ${offerBanner?.ctaText ?? 'UNKORA15'} · Min. order ৳${offerBanner?.imageUrl ?? '500'}`}
+                  </p>
+                </div>
+                {(offerBanner?.ctaText ?? 'UNKORA15') && (
+                  <div className="hidden md:flex flex-col items-center justify-center bg-white/20 rounded-2xl px-8 py-4 text-white text-center backdrop-blur-sm border border-white/20">
+                    <span className="font-mono font-black text-2xl tracking-widest">{offerBanner?.ctaText ?? 'UNKORA15'}</span>
+                    <span className="text-xs text-white/70 mt-0.5">{lang === 'bn' ? 'কুপন কোড' : 'Coupon Code'}</span>
+                  </div>
+                )}
+                <div className="flex-shrink-0">
+                  <span className="inline-flex items-center gap-2 bg-white text-emerald-700 font-black text-sm px-6 py-3 rounded-full shadow-md group-hover:shadow-lg group-hover:bg-emerald-50 transition-all duration-200">
+                    {lang === 'bn' ? 'এখনই কিনুন' : 'Shop Now'}
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* PROMO ROW 1 — after categories */}
+      <PromoBannerRow banners={promo1} />
+
+      {/* ═══════════════════════════════════════════════════════════════
           FLASH DEALS
       ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-5 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 bg-red-500 text-white px-3 py-1.5 rounded-full shadow-lg shadow-red-200 animate-pulse">
-                <Flame className="w-4 h-4 animate-bounce" />
-                <span className="font-black text-sm">{lang === 'bn' ? 'ফ্ল্যাশ ডিল' : 'Flash Deals'}</span>
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-3 sm:p-4">
+          <div className="flex flex-wrap items-center justify-between gap-y-2 mb-3 sm:mb-4">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-red-500 text-white px-2.5 sm:px-3 py-1.5 rounded-full shadow-lg shadow-red-200 animate-pulse">
+                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-bounce" />
+                <span className="font-black text-xs sm:text-sm">{lang === 'bn' ? 'ফ্ল্যাশ ডিল' : 'Flash Deals'}</span>
               </div>
               <div className="flex gap-1 items-center">
                 {[{ v: pad(countdown.h), l: 'H' }, { v: pad(countdown.m), l: 'M' }, { v: pad(countdown.s), l: 'S' }].map(({ v, l }, i) => (
                   <div key={l} className="flex items-center gap-1">
-                    <div className="bg-gray-900 text-white rounded px-2 py-1 text-center min-w-[32px]">
-                      <div className="text-sm font-black leading-none">{v}</div>
-                      <div className="text-[7px] opacity-60">{l}</div>
+                    <div className="bg-gray-900 text-white rounded px-1.5 sm:px-2 py-1 text-center min-w-[28px] sm:min-w-[32px]">
+                      <div className="text-xs sm:text-sm font-black leading-none">{v}</div>
+                      <div className="text-[6px] sm:text-[7px] opacity-60">{l}</div>
                     </div>
                     {i < 2 && <span className="text-gray-400 font-black text-xs">:</span>}
                   </div>
@@ -738,21 +676,15 @@ export default function HomePage() {
               <button onClick={() => scroll(flashRef, 'r')} className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronRight className="w-4 h-4 text-gray-500" /></button>
             </div>
           </div>
-          <div ref={flashRef} className="flex items-stretch gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+          <div ref={flashRef} className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
             {flashProducts.length > 0
               ? flashProducts.map(p => <FlashCard key={p.id} product={p} lang={lang} />)
               : Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex-shrink-0 w-[200px] animate-pulse rounded-2xl overflow-hidden border border-gray-100">
-                  <div className="w-full aspect-[4/3] bg-gray-200" />
-                  <div className="p-3 space-y-2">
-                    <div className="h-3 bg-gray-200 rounded" />
-                    <div className="h-3 bg-gray-200 rounded w-2/3" />
-                    <div className="h-4 bg-gray-200 rounded w-1/2" />
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="h-8 bg-gray-200 rounded-xl" />
-                      <div className="h-8 bg-gray-200 rounded-xl" />
-                    </div>
-                  </div>
+                <div key={i} className="flex-shrink-0 w-[150px] sm:w-[175px] animate-pulse">
+                  <div className="w-full h-[145px] sm:h-[200px] rounded-xl sm:rounded-2xl bg-gray-200 mb-2" />
+                  <div className="h-3 bg-gray-200 rounded mb-1 mx-2" />
+                  <div className="h-3 bg-gray-200 rounded w-2/3 mx-2 mb-2" />
+                  <div className="h-7 bg-gray-200 rounded mx-2" />
                 </div>
               ))
             }
@@ -760,11 +692,14 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* PROMO ROW 2 — after flash deals */}
+      <PromoBannerRow banners={promo2} />
+
       {/* ═══════════════════════════════════════════════════════════════
           BOOK WORLD — tabbed shelf
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-2 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3">
               <div className="w-1 h-6 bg-blue-600 rounded-full" />
@@ -785,11 +720,11 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-          <div ref={shelfRef} className="flex items-stretch gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
+          <div ref={shelfRef} className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
             {shelfBooks.length > 0 ? shelfBooks.map(p => (
-              <div key={p.id} className="flex-shrink-0 w-[185px] flex flex-col"><MiniCard product={p} lang={lang} /></div>
+              <div key={p.id} className="flex-shrink-0 w-[190px]"><MiniCard product={p} lang={lang} /></div>
             )) : Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex-shrink-0 w-[185px]"><SkeletonCard /></div>
+              <div key={i} className="flex-shrink-0 w-[190px]"><SkeletonCard /></div>
             ))}
           </div>
           <div className="mt-3 pt-3 border-t border-gray-100 flex justify-center">
@@ -801,35 +736,54 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          PROMO BANNERS (3 columns)
+          ISLAMIC LIFESTYLE BANNER — right after book world
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {[
-            { href: '/books',                    gradient: 'from-blue-600 to-indigo-700',  emoji: '📚', titleBn: 'বই উৎসব',        titleEn: 'Book Festival',    subBn: 'সকল বইয়ে ২০% ছাড়',         subEn: '20% off all books' },
-            { href: '/categories/organic-foods', gradient: 'from-green-600 to-teal-700',   emoji: '🌿', titleBn: 'অর্গানিক স্টোর', titleEn: 'Organic Store',    subBn: 'প্রাকৃতিক পণ্য সংগ্রহ',     subEn: 'Natural products' },
-            { href: '/shipping-policy',          gradient: 'from-orange-500 to-red-600',   emoji: '🚚', titleBn: 'ফ্রি শিপিং',     titleEn: 'Free Shipping',    subBn: '৫০০ টাকার উপরে অর্ডারে',   subEn: 'Orders above ৳500' },
-          ].map(b => (
-            <Link key={b.href} href={b.href}
-              className={`bg-gradient-to-r ${b.gradient} rounded-xl p-4 flex items-center gap-3 group hover:opacity-95 hover:scale-[1.01] transition-all`}>
-              <span className="text-3xl">{b.emoji}</span>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-white font-black text-sm">{lang === 'bn' ? b.titleBn : b.titleEn}</h3>
-                <p className="text-white/70 text-xs truncate">{lang === 'bn' ? b.subBn : b.subEn}</p>
+        <div className="max-w-[1400px] mx-auto">
+          <a href="/islamic-lifestyle" className="block rounded-2xl overflow-hidden relative group cursor-pointer"
+            style={{ background: 'linear-gradient(135deg, #064e3b 0%, #065f46 40%, #047857 100%)' }}>
+            <div className="absolute inset-0 opacity-10"
+              style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #10b981 0%, transparent 50%), radial-gradient(circle at 80% 20%, #34d399 0%, transparent 40%)' }} />
+            <div className="relative flex flex-col sm:flex-row items-center justify-between px-6 py-6 gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">🕌</span>
+                  <span className="text-xs font-bold text-emerald-300 uppercase tracking-widest">Islamic Lifestyle</span>
+                </div>
+                <h2 className="text-white font-black text-lg sm:text-2xl leading-tight mb-1">
+                  {lang === 'bn' ? 'ইসলামিক লাইফস্টাইল' : 'Islamic Lifestyle'}
+                </h2>
+                <p className="text-emerald-200 text-sm max-w-md">
+                  {lang === 'bn'
+                    ? 'নামাজের সরঞ্জাম, ইসলামিক বই, আতর, তাসবিহ ও আরও অনেক কিছু'
+                    : 'Prayer essentials, Islamic books, perfumes, tasbih and more'}
+                </p>
+                <div className="hidden sm:flex flex-wrap gap-2 mt-3">
+                  {['🕌 নামাজ', '📖 বই', '✨ কুরআন', '🌹 আতর', '📿 তাসবিহ'].map(tag => (
+                    <span key={tag} className="text-xs bg-white/10 text-emerald-100 px-2.5 py-1 rounded-full border border-white/20">{tag}</span>
+                  ))}
+                </div>
               </div>
-              <ChevronRight className="w-4 h-4 text-white/60 flex-shrink-0 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          ))}
+              <div className="flex-shrink-0 flex items-center gap-2 bg-white text-emerald-800 font-bold px-5 py-2.5 rounded-xl group-hover:bg-emerald-50 transition-colors text-sm">
+                {lang === 'bn' ? 'দেখুন' : 'Explore'}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-700/20 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          </a>
         </div>
       </section>
+
+      {/* PROMO ROW 3 — after book world */}
+      <PromoBannerRow banners={promo3} />
 
       {/* ═══════════════════════════════════════════════════════════════
           NEW ARRIVALS — 6-column grid
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <SectionHeader titleBn="নতুন আগমন" titleEn="New Arrivals" href="/products?sortBy=createdAt&sortOrder=desc" accentColor="#f97316" lang={lang} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 items-stretch">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {newArrivals.length > 0
               ? newArrivals.slice(0, 12).map(p => <MiniCard key={p.id} product={p} lang={lang} />)
               : Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
@@ -838,11 +792,67 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* PROMO ROW 4 — after new arrivals */}
+      <PromoBannerRow banners={promo4} />
+
+      {/* ═══════════════════════════════════════════════════════════════
+          LEATHER PRODUCTS BANNER
+      ═══════════════════════════════════════════════════════════════ */}
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto">
+          <Link href="/categories/leather-products" className="block rounded-2xl overflow-hidden relative group cursor-pointer"
+            style={{ background: 'linear-gradient(135deg, #1c0a00 0%, #3b1a08 40%, #5c2d0e 100%)' }}>
+            <div className="absolute inset-0 opacity-10"
+              style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, #b45309 0%, transparent 50%), radial-gradient(circle at 80% 20%, #d97706 0%, transparent 40%)' }} />
+            <div className="relative flex flex-col sm:flex-row items-center justify-between px-6 py-6 gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">👜</span>
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Leather Collection</span>
+                </div>
+                <h2 className="text-white font-black text-lg sm:text-2xl leading-tight mb-1">
+                  {lang === 'bn' ? 'লেদার পণ্য সংগ্রহ' : 'Leather Products'}
+                </h2>
+                <p className="text-amber-200 text-sm max-w-md">
+                  {lang === 'bn'
+                    ? 'প্রিমিয়াম চামড়ার ব্যাগ, ওয়ালেট, বেল্ট ও আরও অনেক কিছু'
+                    : 'Premium leather bags, wallets, belts and much more'}
+                </p>
+                <div className="hidden sm:flex flex-wrap gap-2 mt-3">
+                  {['👜 ব্যাগ', '👛 ওয়ালেট', '🧣 বেল্ট', '🎒 ব্যাকপ্যাক', '💼 অফিস ব্যাগ'].map(tag => (
+                    <span key={tag} className="text-xs bg-white/10 text-amber-100 px-2.5 py-1 rounded-full border border-white/20">{tag}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex-shrink-0 flex items-center gap-2 bg-white text-amber-900 font-bold px-5 py-2.5 rounded-xl group-hover:bg-amber-50 transition-colors text-sm">
+                {lang === 'bn' ? 'দেখুন' : 'Explore'}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              </div>
+            </div>
+            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-700/20 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          </Link>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          LEATHER PRODUCTS GRID
+      ═══════════════════════════════════════════════════════════════ */}
+      {leatherProducts.length > 0 && (
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="চামড়া পণ্য" titleEn="Leather Products" href="/products?categorySlug=leather-products" accentColor="#92400e" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {leatherProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
+          </div>
+        </div>
+      </section>
+      )}
+
       {/* ═══════════════════════════════════════════════════════════════
           BEST SELLERS — tabbed 6-column grid
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3">
               <div className="w-1 h-6 bg-violet-600 rounded-full" />
@@ -852,13 +862,13 @@ export default function HomePage() {
               {BEST_TABS.map(tab => (
                 <button key={tab.key} onClick={() => setBestTab(tab.key)}
                   className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all whitespace-nowrap ${bestTab === tab.key ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-                  {lang === 'bn' ? tab.labelBn : tab.key}
+                  {lang === 'bn' ? tab.labelBn : tab.labelEn}
                 </button>
               ))}
               <Link href="/products" className="text-[11px] font-bold text-orange-500 hover:underline ml-1">{lang === 'bn' ? 'সব দেখুন' : 'All'}</Link>
             </div>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 items-stretch">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {bestProducts.length > 0
               ? bestProducts.slice(0, 12).map(p => <MiniCard key={p.id} product={p} lang={lang} />)
               : Array.from({ length: 12 }).map((_, i) => <SkeletonCard key={i} />)
@@ -873,92 +883,15 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          EDITOR'S PICKS — dark overlay grid
-      ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
-          <SectionHeader titleBn="সম্পাদকের পছন্দ" titleEn="Editor's Picks" href="/products?isFeatured=true" accentColor="#8b5cf6" lang={lang} />
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {featuredProducts.length > 0
-              ? featuredProducts.slice(0, 10).map(p => <EditorialCard key={p.id} product={p} lang={lang} />)
-              : Array.from({ length: 10 }).map((_, i) => <div key={i} className="aspect-[3/4] animate-pulse rounded-2xl bg-gray-200" />)
-            }
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
-          ISLAMIC LIFESTYLE BANNER
-      ═══════════════════════════════════════════════════════════════ */}
-      <section className="py-4 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto">
-          <Link href="/islamic-lifestyle"
-            className="group relative overflow-hidden rounded-3xl flex flex-col sm:flex-row items-center gap-0 min-h-[180px] block"
-            style={{ background: 'linear-gradient(135deg, #052e16, #064e3b, #065f46)' }}
-          >
-            {/* Islamic geometric overlay */}
-            <svg className="absolute inset-0 w-full h-full opacity-[0.06] pointer-events-none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <pattern id="il-geo-home" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-                  <g fill="none" stroke="white" strokeWidth="0.4">
-                    <polygon points="30,3 37,22 57,22 42,34 48,54 30,42 12,54 18,34 3,22 23,22" />
-                    <circle cx="30" cy="30" r="12" />
-                  </g>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#il-geo-home)" />
-            </svg>
-            {/* Glow blobs */}
-            <div className="absolute top-0 right-1/4 w-64 h-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-1/3 w-40 h-40 rounded-full bg-teal-400/8 blur-2xl pointer-events-none" />
-            {/* Gold top line */}
-            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent" />
-
-            {/* Content */}
-            <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-start gap-5 p-7 sm:p-10 w-full">
-              {/* Icon */}
-              <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-white/10 border border-white/15 flex items-center justify-center text-4xl sm:text-5xl shadow-lg group-hover:scale-110 transition-transform duration-500">
-                🕌
-              </div>
-              {/* Text */}
-              <div className="text-center sm:text-left flex-1">
-                <div className="inline-flex items-center gap-1.5 bg-amber-500/20 border border-amber-400/30 rounded-full px-3 py-0.5 mb-2">
-                  <span className="text-[9px] font-black uppercase tracking-[0.15em] text-amber-300">New Category</span>
-                </div>
-                <div className="text-white/60 text-xs font-medium mb-1 tracking-wide" style={{ direction: 'rtl', fontFamily: 'serif' }}>بِسْمِ اللَّهِ</div>
-                <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-2">
-                  Islamic Lifestyle
-                  <span className="block text-base sm:text-lg font-bold mt-0.5" style={{ background: 'linear-gradient(90deg,#34d399,#6ee7b7)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                    ইসলামিক লাইফস্টাইল কালেকশন
-                  </span>
-                </h2>
-                <p className="text-white/50 text-xs sm:text-sm leading-relaxed max-w-md">
-                  তাসবিহ · জায়নামাজ · আতর · কুরআন · ইসলামিক পোশাক ও আরও অনেক কিছু
-                </p>
-              </div>
-              {/* CTA */}
-              <div className="flex-shrink-0 sm:self-center">
-                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm text-white transition-all group-hover:scale-105"
-                  style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 4px 16px rgba(16,185,129,0.3)' }}>
-                  দেখুন
-                  <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════════════════════════
           RANKINGS — 3 column
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-[1400px] mx-auto">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-1 h-6 bg-amber-500 rounded-full" />
             <h2 className="text-base font-black text-gray-900">📊 {lang === 'bn' ? 'র‍্যাংকিং' : 'Rankings'}</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
             {RANK_SECTIONS.map(sec => (
               <div key={sec.id} className="bg-white rounded-xl overflow-hidden">
                 <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100"
@@ -980,58 +913,80 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════════════════
-          BUDGET CORNER — portrait book covers under ৳500
+          HANDICRAFTS
       ═══════════════════════════════════════════════════════════════ */}
-      {(budgetProducts.length > 0 || true) && (
-        <section className="py-3 px-3 md:px-4">
-          <div className="max-w-7xl mx-auto bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-base flex-shrink-0">💰</div>
-                <div>
-                  <h2 className="text-base font-black text-gray-900">{lang === 'bn' ? 'বাজেট কর্নার' : 'Budget Corner'}</h2>
-                  <p className="text-[10px] text-blue-600 font-semibold">{lang === 'bn' ? '৫০০ টাকার নিচে সেরা বই' : 'Best books under ৳500'}</p>
-                </div>
-              </div>
-              <Link href="/products?maxPrice=500" className="text-[11px] font-bold text-blue-600 flex items-center gap-0.5 hover:underline">
-                {lang === 'bn' ? 'সব দেখুন' : 'View All'} <ArrowRight className="w-3 h-3" />
-              </Link>
-            </div>
-            <div className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
-              {budgetProducts.length > 0
-                ? budgetProducts.map(p => <PortraitCard key={p.id} product={p} lang={lang} />)
-                : Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-[110px] animate-pulse">
-                    <div className="w-full aspect-[2/3] bg-blue-200/50 rounded-xl mb-1.5" />
-                    <div className="h-3 bg-blue-200/50 rounded mb-1" />
-                    <div className="h-3 bg-blue-200/50 rounded w-2/3" />
-                  </div>
-                ))
-              }
-            </div>
+      {handicraftProducts.length > 0 && (
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="হস্তশিল্প" titleEn="Handicrafts" href="/products?categorySlug=handicrafts" accentColor="#7c3aed" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {handicraftProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
           </div>
-        </section>
+        </div>
+      </section>
       )}
 
       {/* ═══════════════════════════════════════════════════════════════
-          ORGANIC PRODUCTS (only if data available)
+          ELECTRONICS
+      ═══════════════════════════════════════════════════════════════ */}
+      {electronicsProducts.length > 0 && (
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="ইলেকট্রনিক্স" titleEn="Electronics" href="/products?categorySlug=electronics" accentColor="#0284c7" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {electronicsProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          DAILY NEEDS
+      ═══════════════════════════════════════════════════════════════ */}
+      {dailyProducts.length > 0 && (
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="দৈনিক পণ্য" titleEn="Daily Needs" href="/products?categorySlug=daily-needs" accentColor="#f59e0b" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {dailyProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          BABY PRODUCTS
+      ═══════════════════════════════════════════════════════════════ */}
+      {babyProducts.length > 0 && (
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="শিশু পণ্য" titleEn="Baby Products" href="/products?categorySlug=baby-products" accentColor="#ec4899" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {babyProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
+          </div>
+        </div>
+      </section>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          ORGANIC PRODUCTS
       ═══════════════════════════════════════════════════════════════ */}
       {organicProducts.length > 0 && (
-        <section className="py-3 px-3 md:px-4">
-          <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
-            <SectionHeader titleBn="অর্গানিক পণ্য" titleEn="Organic Products" href="/categories/organic-foods" accentColor="#16a34a" lang={lang} />
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {organicProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
-            </div>
+      <section className="py-3 px-3 md:px-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
+          <SectionHeader titleBn="অর্গানিক পণ্য" titleEn="Organic Products" href="/categories/organic-foods" accentColor="#16a34a" lang={lang} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {organicProducts.map(p => <MiniCard key={p.id} product={p} lang={lang} />)}
           </div>
-        </section>
+        </div>
+      </section>
       )}
 
       {/* ═══════════════════════════════════════════════════════════════
           AUTHORS
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-1 h-6 bg-pink-500 rounded-full" />
@@ -1061,7 +1016,7 @@ export default function HomePage() {
           BROWSE BY GENRE
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-4">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-1 h-6 bg-indigo-500 rounded-full" />
             <h2 className="text-base font-black text-gray-900">{lang === 'bn' ? 'বিষয় অনুযায়ী বই' : 'Browse by Genre'}</h2>
@@ -1082,12 +1037,12 @@ export default function HomePage() {
           CUSTOMER REVIEWS
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-3 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl p-5">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl p-5">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-1 h-6 bg-yellow-500 rounded-full" />
             <h2 className="text-base font-black text-gray-900">{lang === 'bn' ? '⭐ ক্রেতাদের মতামত' : '⭐ Customer Reviews'}</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
             {[
               { name: 'রাকিব হাসান',    nameEn: 'Rakib Hasan',   loc: 'ঢাকা',      locEn: 'Dhaka',      rating: 5, textBn: 'অসাধারণ সার্ভিস! অর্ডার করার ২৪ ঘন্টার মধ্যে বই পেয়ে গেছি। প্যাকেজিং একদম পারফেক্ট।', textEn: 'Amazing service! Got my book within 24 hours. Packaging was perfect.' },
               { name: 'তানিয়া আক্তার',  nameEn: 'Tania Akter',  loc: 'চট্টগ্রাম', locEn: 'Chittagong', rating: 5, textBn: 'দাম অনেক কম, বই একদম অরিজিনাল। UNKORA থেকেই এখন সব বই কিনি।', textEn: 'Great prices, genuine books. I buy all my books from UNKORA now.' },
@@ -1118,18 +1073,37 @@ export default function HomePage() {
           NEWSLETTER
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-4 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #1e3a5f, #0f2340)' }}>
+        <div className="max-w-[1400px] mx-auto rounded-2xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #1e3a5f, #0f2340)' }}>
           <div className="max-w-xl mx-auto px-6 py-10 text-center">
             <div className="text-3xl mb-2">📬</div>
             <h2 className="text-lg font-black text-white mb-1">{lang === 'bn' ? 'অফার মিস করতে চান না?' : 'Never Miss a Deal?'}</h2>
             <p className="text-blue-300 text-xs mb-5">{lang === 'bn' ? 'সাবস্ক্রাইব করুন — সেরা অফার সবার আগে পান' : 'Subscribe and get the best deals first'}</p>
-            <form className="flex gap-2 max-w-sm mx-auto" onSubmit={e => e.preventDefault()}>
-              <input type="email" required placeholder={lang === 'bn' ? 'আপনার ইমেইল' : 'Your email'}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-blue-400 text-xs focus:outline-none focus:ring-2 focus:ring-white/30" />
-              <button type="submit" className="px-5 py-2.5 bg-orange-500 text-white text-xs font-black rounded-lg hover:bg-orange-600 transition-colors whitespace-nowrap">
-                {lang === 'bn' ? 'সাবস্ক্রাইব' : 'Subscribe'}
-              </button>
-            </form>
+            {newsletterDone ? (
+              <div className="flex items-center justify-center gap-2 text-green-300 font-bold text-sm">
+                <CheckCircle className="w-5 h-5" />
+                {lang === 'bn' ? 'সাবস্ক্রাইব করা হয়েছে! ধন্যবাদ।' : 'Subscribed! Thank you.'}
+              </div>
+            ) : (
+              <form className="flex gap-2 max-w-sm mx-auto" onSubmit={e => {
+                e.preventDefault();
+                if (!newsletterEmail) return;
+                setNewsletterDone(true);
+                toast.success(lang === 'bn' ? 'সাবস্ক্রাইব সফল হয়েছে!' : 'Successfully subscribed!', {
+                  description: lang === 'bn' ? 'সেরা অফার সবার আগে পাবেন।' : 'You will get the best deals first.',
+                });
+              }}>
+                <input
+                  type="email" required
+                  value={newsletterEmail}
+                  onChange={e => setNewsletterEmail(e.target.value)}
+                  placeholder={lang === 'bn' ? 'আপনার ইমেইল' : 'Your email'}
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-white/10 border border-white/20 text-white placeholder-blue-400 text-xs focus:outline-none focus:ring-2 focus:ring-white/30"
+                />
+                <button type="submit" className="px-5 py-2.5 bg-orange-500 text-white text-xs font-black rounded-lg hover:bg-orange-600 transition-colors whitespace-nowrap">
+                  {lang === 'bn' ? 'সাবস্ক্রাইব' : 'Subscribe'}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </section>
@@ -1138,21 +1112,21 @@ export default function HomePage() {
           SERVICE FEATURES
       ═══════════════════════════════════════════════════════════════ */}
       <section className="py-4 px-3 md:px-4">
-        <div className="max-w-7xl mx-auto bg-white rounded-xl px-6 py-5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        <div className="max-w-[1400px] mx-auto bg-white rounded-xl px-6 py-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
             {[
               { icon: Truck,       color: '#2563eb', bg: '#dbeafe', titleBn: 'দ্রুত ডেলিভারি',    titleEn: 'Fast Delivery',   subBn: 'ঢাকায় ২৪ ঘন্টায়', subEn: 'Dhaka in 24 hours' },
               { icon: RotateCcw,   color: '#d97706', bg: '#fef3c7', titleBn: '৭ দিনে রিটার্ন',   titleEn: '7-Day Returns',   subBn: 'সহজ রিটার্ন পলিসি', subEn: 'Easy return policy' },
               { icon: ShieldCheck, color: '#16a34a', bg: '#dcfce7', titleBn: '১০০% অরিজিনাল',   titleEn: '100% Original',   subBn: 'গ্যারান্টিড অরিজিনাল', subEn: 'Guaranteed genuine' },
               { icon: Headphones,  color: '#7c3aed', bg: '#ede9fe', titleBn: '২৪/৭ সাপোর্ট',    titleEn: '24/7 Support',    subBn: 'সার্বক্ষণিক সহায়তা', subEn: 'Always available' },
             ].map(({ icon: Icon, color, bg, titleBn, titleEn, subBn, subEn }) => (
-              <div key={titleEn} className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: bg }}>
-                  <Icon className="w-5 h-5" style={{ color }} />
+              <div key={titleEn} className="flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-3 text-center sm:text-left">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex-shrink-0 flex items-center justify-center" style={{ backgroundColor: bg }}>
+                  <Icon className="w-4 h-4 sm:w-5 sm:h-5" style={{ color }} />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-gray-900">{lang === 'bn' ? titleBn : titleEn}</p>
-                  <p className="text-[10px] text-gray-400">{lang === 'bn' ? subBn : subEn}</p>
+                  <p className="text-[11px] sm:text-xs font-bold text-gray-900">{lang === 'bn' ? titleBn : titleEn}</p>
+                  <p className="text-[9px] sm:text-[10px] text-gray-400 hidden sm:block">{lang === 'bn' ? subBn : subEn}</p>
                 </div>
               </div>
             ))}

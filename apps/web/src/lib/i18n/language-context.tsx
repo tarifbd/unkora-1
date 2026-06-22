@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { translations, type Lang } from './translations';
 
 type DeepMutable<T> = {
@@ -28,8 +28,18 @@ const LanguageContext = createContext<LanguageContextValue>({
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>('bn');
 
+  // Hydrate from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('unkora_lang') as Lang | null;
+    if (saved === 'en' || saved === 'bn') {
+      setLangState(saved);
+      document.documentElement.lang = saved;
+    }
+  }, []);
+
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
+    localStorage.setItem('unkora_lang', l);
     document.documentElement.lang = l === 'bn' ? 'bn' : 'en';
   }, []);
 

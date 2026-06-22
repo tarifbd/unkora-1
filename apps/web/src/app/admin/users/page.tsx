@@ -7,7 +7,9 @@ import {
   Calendar, Phone, Mail, Shield, ShieldAlert, ShieldCheck,
   ChevronRight, UserCheck, UserX, Crown, Ban, CheckCircle2,
   AlertTriangle, Clock, TrendingUp, Package, MoreVertical,
+  Plus, Trash2, Eye, EyeOff, KeyRound,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { adminApi } from '@/lib/api/admin';
 import api from '@/lib/api';
 
@@ -57,7 +59,8 @@ interface Order {
 
 interface UserDetail {
   id: string;
-  name: string;
+  firstName?: string;
+  lastName?: string;
   email: string;
   phone?: string;
   role: string;
@@ -67,6 +70,15 @@ interface UserDetail {
   addresses?: Address[];
   orders?: Order[];
   totalSpent?: number;
+}
+
+function userDisplayName(u: Pick<UserDetail, 'firstName' | 'lastName' | 'email'>): string {
+  const name = [u.firstName, u.lastName].filter(Boolean).join(' ');
+  return name || u.email;
+}
+
+function userInitials(u: Pick<UserDetail, 'firstName' | 'lastName' | 'email'>): string {
+  return userDisplayName(u).split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('');
 }
 
 type RiskLevel = 'low' | 'medium' | 'high';
@@ -102,6 +114,298 @@ function RiskBadge({ level }: { level: RiskLevel }) {
   );
 }
 
+interface CreateUserForm {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  password: string;
+  role: string;
+}
+
+const defaultCreateForm: CreateUserForm = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  password: '',
+  role: 'CUSTOMER',
+};
+
+function CreateUserModal({ onClose }: { onClose: () => void }) {
+  const qc = useQueryClient();
+  const [form, setForm] = useState<CreateUserForm>(defaultCreateForm);
+  const [showPassword, setShowPassword] = useState(false);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  const createMutation = useMutation({
+    mutationFn: (data: Record<string, unknown>) => api.post('/admin/users', data).then(r => r.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success('User created successfully');
+      onClose();
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message ?? 'Failed to create user';
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload: Record<string, unknown> = {
+      firstName: form.firstName.trim(),
+      lastName: form.lastName.trim(),
+      email: form.email.trim(),
+      password: form.password,
+      role: form.role,
+    };
+    if (form.phone.trim()) payload.phone = form.phone.trim();
+    createMutation.mutate(payload);
+  };
+
+  const inputCls = 'w-full rounded-xl border bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50';
+
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      onClick={e => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="w-full max-w-md rounded-2xl border bg-white dark:bg-gray-800 shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-6 py-4 border-b bg-gray-50 dark:bg-gray-900">
+          <h2 className="font-bold text-base text-gray-900 dark:text-white">নতুন ইউজার তৈরি করুন</h2>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors">
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-400">First Name <span className="text-red-500">*</span></label>
+              <input
+                required
+                value={form.firstName}
+                onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))}
+                placeholder="John"
+                className={inputCls}
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-400">Last Name <span className="text-red-500">*</span></label>
+              <input
+                required
+                value={form.lastName}
+                onChange={e => setForm(f => ({ ...f, lastName: e.target.value }))}
+                placeholder="Doe"
+                className={inputCls}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-400">Email <span className="text-red-500">*</span></label>
+            <input
+              required
+              type="email"
+              value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              placeholder="john@example.com"
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-400">Phone <span className="text-gray-400 font-normal">(optional)</span></label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+              placeholder="+880..."
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-400">Password <span className="text-red-500">*</span></label>
+            <div className="relative">
+              <input
+                required
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                placeholder="Min 8 chars, upper, lower, number"
+                className={`${inputCls} pr-10`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(s => !s)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600 dark:text-gray-400">Role</label>
+            <select
+              value={form.role}
+              onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+              className={inputCls}
+            >
+              <option value="CUSTOMER">Customer</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border px-4 py-2 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={createMutation.isPending}
+              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+            >
+              {createMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              Create User
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+interface ResetCredsForm { email: string; password: string; confirmPassword: string }
+
+function ResetCredentialsModal({ userId, currentEmail, onClose }: { userId: string; currentEmail: string; onClose: () => void }) {
+  const qc = useQueryClient();
+  const [form, setForm] = useState<ResetCredsForm>({ email: currentEmail, password: '', confirmPassword: '' });
+  const [showPw, setShowPw] = useState(false);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  const resetMutation = useMutation({
+    mutationFn: (payload: { email?: string; password?: string }) =>
+      api.patch(`/admin/users/${userId}/credentials`, payload).then(r => r.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin-users'] });
+      void qc.invalidateQueries({ queryKey: ['admin-user-detail', userId] });
+      toast.success('Credentials updated successfully');
+      onClose();
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.message ?? 'Failed to update credentials';
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (form.password && form.password !== form.confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (!form.email && !form.password) {
+      toast.error('Enter a new email or password');
+      return;
+    }
+    const payload: { email?: string; password?: string } = {};
+    if (form.email && form.email !== currentEmail) payload.email = form.email.trim();
+    if (form.password) payload.password = form.password;
+    if (!payload.email && !payload.password) {
+      toast.error('No changes detected');
+      return;
+    }
+    resetMutation.mutate(payload);
+  };
+
+  const inputCls = 'w-full rounded-xl border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50';
+
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+      onClick={e => { if (e.target === overlayRef.current) onClose(); }}
+    >
+      <div className="w-full max-w-sm rounded-2xl border bg-white shadow-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b bg-gray-50">
+          <div className="flex items-center gap-2">
+            <KeyRound className="w-4 h-4 text-primary" />
+            <h2 className="font-bold text-sm text-gray-900">Reset Email / Password</h2>
+          </div>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors">
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600">New Email</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              className={inputCls}
+              placeholder="Leave unchanged if not updating"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-gray-600">New Password <span className="text-gray-400 font-normal">(optional)</span></label>
+            <div className="relative">
+              <input
+                type={showPw ? 'text' : 'password'}
+                value={form.password}
+                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                placeholder="Leave blank to keep current"
+                className={`${inputCls} pr-10`}
+              />
+              <button type="button" onClick={() => setShowPw(s => !s)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+          {form.password && (
+            <div>
+              <label className="mb-1 block text-xs font-semibold text-gray-600">Confirm Password</label>
+              <input
+                type="password"
+                value={form.confirmPassword}
+                onChange={e => setForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                className={inputCls}
+                placeholder="Re-enter new password"
+              />
+            </div>
+          )}
+          <div className="flex justify-end gap-3 pt-1">
+            <button type="button" onClick={onClose}
+              className="rounded-xl border px-4 py-2 text-sm font-medium hover:bg-gray-50 transition-colors">
+              Cancel
+            </button>
+            <button type="submit" disabled={resetMutation.isPending}
+              className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
+              {resetMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function CustomerModal({ user, onClose }: { user: UserDetail; onClose: () => void }) {
   const qc = useQueryClient();
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -113,7 +417,7 @@ function CustomerModal({ user, onClose }: { user: UserDetail; onClose: () => voi
 
   const u = fullUser ?? user;
   const risk = getRiskLevel(u);
-  const initials = u.name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('');
+  const initials = userInitials(u);
   const colorClass = avatarColor(u.id);
 
   const changeRole = useMutation({
@@ -125,6 +429,8 @@ function CustomerModal({ user, onClose }: { user: UserDetail; onClose: () => voi
     mutationFn: (status: string) => api.patch(`/admin/users/${u.id}`, { status }).then(r => r.data.data),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['admin-users'] }); qc.invalidateQueries({ queryKey: ['admin-user-detail', u.id] }); },
   });
+
+  const [showResetCreds, setShowResetCreds] = useState(false);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -171,7 +477,7 @@ function CustomerModal({ user, onClose }: { user: UserDetail; onClose: () => voi
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-bold text-gray-900 text-lg leading-tight">{u.name}</h3>
+                      <h3 className="font-bold text-gray-900 text-lg leading-tight">{userDisplayName(u)}</h3>
                       <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                         <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${ROLE_BADGE[u.role] ?? 'bg-gray-100'}`}>
                           {u.role === 'SUPER_ADMIN' ? 'Super Admin' : u.role === 'ADMIN' ? 'Admin' : 'Customer'}
@@ -344,8 +650,21 @@ function CustomerModal({ user, onClose }: { user: UserDetail; onClose: () => voi
                   </button>
                 )}
               </div>
+              <button
+                onClick={() => setShowResetCreds(true)}
+                className="mt-2 w-full flex items-center justify-center gap-1.5 bg-primary/10 text-primary rounded-xl py-2.5 text-xs font-bold hover:bg-primary/20 transition-colors border border-primary/20"
+              >
+                <KeyRound className="w-3.5 h-3.5" /> Reset Email / Password
+              </button>
             </div>
           </div>
+        )}
+        {showResetCreds && (
+          <ResetCredentialsModal
+            userId={u.id}
+            currentEmail={u.email}
+            onClose={() => setShowResetCreds(false)}
+          />
         )}
       </div>
     </div>
@@ -355,13 +674,22 @@ function CustomerModal({ user, onClose }: { user: UserDetail; onClose: () => voi
 function UserRow({ user, onOpen }: { user: UserDetail; onOpen: () => void }) {
   const qc = useQueryClient();
   const risk = getRiskLevel(user);
-  const initials = user.name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('');
+  const initials = userInitials(user);
   const colorClass = avatarColor(user.id);
   const primaryAddress = user.addresses?.find(a => a.isDefault) ?? user.addresses?.[0];
 
   const changeStatus = useMutation({
     mutationFn: (status: string) => api.patch(`/admin/users/${user.id}`, { status }).then(r => r.data.data),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete(`/admin/users/${user.id}`),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin-users'] });
+      toast.success('User deleted successfully');
+    },
+    onError: () => toast.error('Failed to delete user'),
   });
 
   return (
@@ -372,7 +700,7 @@ function UserRow({ user, onOpen }: { user: UserDetail; onOpen: () => void }) {
             {initials}
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-sm text-gray-900 truncate">{user.name}</p>
+            <p className="font-semibold text-sm text-gray-900 truncate">{userDisplayName(user)}</p>
             <p className="text-xs text-gray-400 truncate">{user.email}</p>
           </div>
         </div>
@@ -421,6 +749,18 @@ function UserRow({ user, onOpen }: { user: UserDetail; onOpen: () => void }) {
               : user.status === 'ACTIVE' ? 'Suspend' : 'Activate'}
           </button>
           <button
+            onClick={() => {
+              if (window.confirm(`Delete user "${userDisplayName(user)}"? This will suspend their account.`)) {
+                deleteMutation.mutate();
+              }
+            }}
+            disabled={deleteMutation.isPending}
+            className="p-1 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
+            title="Delete user"
+          >
+            {deleteMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+          </button>
+          <button
             onClick={onOpen}
             className="p-1 rounded-lg hover:bg-gray-100 transition-colors opacity-0 group-hover:opacity-100"
           >
@@ -439,6 +779,7 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedUser, setSelectedUser] = useState<UserDetail | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -491,6 +832,13 @@ export default function AdminUsersPage() {
             className="w-full rounded-xl border bg-white pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
           />
         </div>
+
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+        >
+          <Plus className="w-4 h-4" /> নতুন ইউজার
+        </button>
 
         <div className="flex flex-wrap items-center gap-1.5">
           {ROLE_TABS.map(r => (
@@ -599,6 +947,9 @@ export default function AdminUsersPage() {
           </div>
         </div>
       )}
+
+      {/* Create User modal */}
+      {showCreateModal && <CreateUserModal onClose={() => setShowCreateModal(false)} />}
 
       {/* Customer detail modal */}
       {selectedUser && <CustomerModal user={selectedUser} onClose={() => setSelectedUser(null)} />}
