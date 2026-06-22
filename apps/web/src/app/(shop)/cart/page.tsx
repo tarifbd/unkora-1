@@ -151,10 +151,10 @@ export default function CartPage() {
   const total = subtotal + shipping;
 
   return (
-    <div className="container py-8">
+    <div className="container py-4 sm:py-8">
       <h1 className="mb-6 font-serif text-2xl font-bold">{t.cart.title} ({cart.items.length} {t.cart.items})</h1>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:gap-8 lg:grid-cols-3">
         {/* Items */}
         <div className="lg:col-span-2 space-y-4">
           {cart.items.map(item => (

@@ -155,7 +155,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           {product.bookDetail && (
             <div className="rounded-lg border bg-muted/30 p-4">
               <div className="flex items-center gap-2 mb-3 text-sm font-semibold"><BookOpen className="h-4 w-4" /> {t.productDetail.bookDetails}</div>
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <dl className="grid grid-cols-2 gap-x-2 sm:gap-x-4 gap-y-2 text-sm">
                 {[
                   [t.productDetail.author, product.bookDetail.author],
                   [t.productDetail.publisher, product.bookDetail.publisher],
@@ -190,13 +190,13 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           {product.stockQuantity > 0 && (
             <div ref={buyBtnRef} className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 sm:gap-2 rounded-md border px-2 sm:px-3 py-2 flex-shrink-0">
-                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="hover:text-brand-600 transition-colors p-0.5"><Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></button>
-                  <span className="min-w-[24px] text-center font-medium text-sm">{qty}</span>
-                  <button onClick={() => setQty(Math.min(product.stockQuantity, qty + 1))} className="hover:text-brand-600 transition-colors p-0.5"><Plus className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></button>
+                <div className="flex items-center rounded-md border flex-shrink-0">
+                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="flex h-11 w-11 items-center justify-center hover:text-brand-600 transition-colors touch-manipulation"><Minus className="h-4 w-4" /></button>
+                  <span className="min-w-[32px] text-center font-medium text-sm">{qty}</span>
+                  <button onClick={() => setQty(Math.min(product.stockQuantity, qty + 1))} className="flex h-11 w-11 items-center justify-center hover:text-brand-600 transition-colors touch-manipulation"><Plus className="h-4 w-4" /></button>
                 </div>
                 <button onClick={handleAddToCart} disabled={addItem.isPending}
-                  className="flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-gradient-to-b from-slate-700 to-slate-900 py-2.5 text-xs sm:text-sm font-black text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-[0.98] disabled:opacity-50 transition-all ring-1 ring-white/10">
+                  className="flex flex-1 items-center justify-center gap-1.5 sm:gap-2 rounded-xl bg-gradient-to-b from-slate-700 to-slate-900 py-3 text-xs sm:text-sm font-black text-white shadow-lg shadow-slate-900/40 hover:from-slate-600 hover:to-slate-800 active:scale-[0.98] disabled:opacity-50 transition-all ring-1 ring-white/10">
                   {addItem.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShoppingCart className="h-4 w-4" />}
                   {t.productDetail.addToCart}
                 </button>
@@ -256,8 +256,9 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
       <ProductQA productId={product.id} />
 
       {/* ── Mobile sticky buy bar — shows when main button scrolls out of view ── */}
+      {/* Positioned above the bottom nav (h-16) on mobile, at bottom-0 on md+ where nav is hidden */}
       {product.stockQuantity > 0 && (
-        <div className={`fixed bottom-0 left-0 right-0 z-50 lg:hidden transition-transform duration-300 ${stickyVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+        <div className={`fixed bottom-16 md:bottom-0 left-0 right-0 z-40 lg:hidden transition-transform duration-300 ${stickyVisible ? 'translate-y-0' : 'translate-y-full'}`}>
           {/* Notification-style top hint */}
           <div className="mx-3 mb-1 flex items-center gap-2 rounded-xl bg-gray-900/90 backdrop-blur-sm px-4 py-2.5 shadow-2xl">
             <div className="relative flex-shrink-0">
@@ -273,22 +274,22 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
               <button
                 onClick={handleAddToCart}
                 disabled={addItem.isPending}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-white/20 text-white text-xs font-bold hover:bg-white/10 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2.5 min-h-[44px] rounded-lg border border-white/20 text-white text-xs font-bold hover:bg-white/10 transition-colors"
               >
-                <ShoppingCart className="h-3.5 w-3.5" />
-                <span className="hidden xs:inline">{t.productDetail.cartShort}</span>
+                <ShoppingCart className="h-4 w-4" />
+                <span>{t.productDetail.cartShort}</span>
               </button>
               <Link
                 href={`/checkout?productSlug=${product.slug}&qty=${qty}`}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-orange-500 text-white text-xs font-black hover:bg-orange-600 active:scale-95 transition-all"
+                className="flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg bg-orange-500 text-white text-xs font-black hover:bg-orange-600 active:scale-95 transition-all"
               >
-                <Zap className="h-3.5 w-3.5" />
+                <Zap className="h-4 w-4" />
                 {t.productDetail.buyNow}
               </Link>
             </div>
           </div>
-          {/* Safe area padding for iOS */}
-          <div className="bg-gray-900/90 pb-safe" style={{ height: 'env(safe-area-inset-bottom)' }} />
+          {/* Safe area padding for md+ (no bottom nav) */}
+          <div className="hidden md:block bg-gray-900/90" style={{ height: 'env(safe-area-inset-bottom)' }} />
         </div>
       )}
     </div>
@@ -308,7 +309,7 @@ function RelatedProducts({ categorySlug, currentId }: { categorySlug: string; cu
       <h2 className="text-xl font-bold text-gray-900 mb-4">{t.productDetail.relatedProducts}</h2>
       <div className="flex gap-3 overflow-x-auto pb-3 [scrollbar-width:thin] [scrollbar-color:#e5e7eb_transparent]">
         {related.map(p => (
-          <div key={p.id} className="flex-shrink-0 w-48">
+          <div key={p.id} className="flex-shrink-0 w-40 sm:w-48">
             <ProductCard product={p} mini />
           </div>
         ))}

@@ -1466,7 +1466,7 @@ export function Header() {
                   {subItems.length > 0 && (
                     <button
                       onClick={() => setMobileExpandedCat(isExpanded ? null : cat.slug)}
-                      className="p-1.5 rounded-md hover:bg-gray-200 transition-colors flex-shrink-0 min-w-[36px] min-h-[36px] flex items-center justify-center"
+                      className="p-1.5 rounded-md hover:bg-gray-200 transition-colors flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center"
                       aria-label={isExpanded ? 'Collapse' : 'Expand'}
                     >
                       <ChevronDown className={cn('w-4 h-4 transition-transform duration-200 text-gray-500', isExpanded && 'rotate-180 text-primary')} />
