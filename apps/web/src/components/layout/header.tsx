@@ -1306,7 +1306,7 @@ export function Header() {
           </div>
         )
       )}
-      <header className="sticky top-0 z-50 w-full shadow-sm border-b border-gray-200 bg-white">
+      <header className="sticky top-0 z-50 w-full shadow-sm border-b border-gray-200 bg-white overflow-x-hidden">
 
         {/* ── Tier 1: Utility bar ── */}
         <div className="bg-[#1a1a1a] py-1.5 hidden md:block">
@@ -1417,28 +1417,28 @@ export function Header() {
         </div>
 
         {/* ── Tier 2: Main bar ── */}
-        <div className="max-w-[1400px] mx-auto px-4 py-3 md:py-4 relative z-50 bg-white">
-          <div className="flex items-center justify-between gap-4 md:gap-6 lg:gap-8">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 lg:px-6 py-2 sm:py-3 md:py-4 relative z-50 bg-white">
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 lg:gap-6">
 
             {/* Mobile toggle + Logo */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 -ml-2 text-gray-800 hover:text-secondary transition-colors"
+                className="lg:hidden -ml-1 text-gray-800 hover:text-secondary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                 aria-label="Open menu"
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
-              <Link href="/" className="text-2xl md:text-3xl font-black tracking-tight flex items-center">
+              <Link href="/" className="text-lg sm:text-2xl md:text-3xl font-black tracking-tight flex items-center whitespace-nowrap">
                 <span className="text-gray-900">UNKORA</span>
                 <span className="text-secondary">.SHOP</span>
               </Link>
             </div>
 
             {/* Desktop Search */}
-            <form onSubmit={handleSearch} className="hidden md:flex flex-grow max-w-3xl relative">
+            <form onSubmit={handleSearch} className="hidden md:flex flex-1 min-w-0 max-w-3xl relative">
               <div className="flex w-full rounded-lg overflow-hidden border-2 border-gray-200 focus-within:border-primary focus-within:shadow-md transition-all duration-300">
-                <select className="bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-600 border-r border-gray-200 cursor-pointer hover:bg-gray-200 focus:outline-none">
+                <select className="hidden lg:block bg-gray-100 px-3 py-2.5 text-sm font-medium text-gray-600 border-r border-gray-200 cursor-pointer hover:bg-gray-200 focus:outline-none shrink-0 max-w-[120px]">
                   <option value="">{lang === 'bn' ? 'সব' : 'All'}</option>
                   {dynamicNavCategories.map(c => (
                     <option key={c.slug} value={c.slug}>{getCatName(c)}</option>
@@ -1449,29 +1449,29 @@ export function Header() {
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder={t.header.searchPlaceholder}
-                  className="w-full px-4 py-2.5 outline-none text-[15px] placeholder:text-gray-400 text-black border-none"
+                  className="flex-1 min-w-0 px-3 sm:px-4 py-2.5 outline-none text-sm sm:text-[15px] placeholder:text-gray-400 text-black border-none"
                 />
                 <button
                   type="submit"
-                  className="bg-primary hover:bg-primary/80 text-white px-8 transition-colors flex items-center justify-center font-bold"
+                  className="bg-primary hover:bg-primary/80 text-white px-4 sm:px-6 lg:px-8 transition-colors flex items-center justify-center font-bold shrink-0"
                 >
-                  <Search className="w-5 h-5" />
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </form>
 
             {/* Icons */}
-            <div className="flex items-center gap-5 md:gap-6 lg:gap-8 flex-shrink-0 text-gray-800">
+            <div className="flex items-center gap-0 sm:gap-1 md:gap-2 shrink-0 text-gray-800 ml-auto">
               {/* Account */}
               <div ref={accountRef} className="relative group">
                 {/* Trigger */}
                 <div
                   ref={accountTriggerRef}
-                  className="flex items-center gap-2 cursor-pointer transition-colors"
+                  className="flex items-center gap-1 cursor-pointer transition-colors"
                   onClick={openAccountDropdown}
                 >
-                  <div className={`p-2 transition-colors ${accountOpen ? 'text-secondary' : 'hover:text-secondary'}`}>
-                    <User className="w-[26px] h-[26px]" />
+                  <div className={`min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors ${accountOpen ? 'text-secondary' : 'hover:text-secondary'}`}>
+                    <User className="w-6 h-6" />
                   </div>
                   <div className="hidden lg:block text-left">
                     <p className="text-[10px] text-gray-500 font-bold uppercase leading-tight">
@@ -1507,61 +1507,57 @@ export function Header() {
               {/* Wishlist */}
               <Link
                 href="/account/wishlist"
-                className="relative group cursor-pointer p-2 hover:text-secondary transition-colors flex items-center gap-2"
+                className="relative min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-secondary transition-colors"
                 aria-label="Wishlist"
               >
                 <div className="relative">
-                  <Heart className="w-[26px] h-[26px]" />
+                  <Heart className="w-6 h-6" />
                   {wishlistCount > 0 && (
-                    <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[11px] font-black h-5 w-5 rounded-full flex items-center justify-center border-2 border-white">
+                    <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[10px] font-black h-[18px] w-[18px] rounded-full flex items-center justify-center border-2 border-white leading-none">
                       {wishlistCount > 9 ? '9+' : wishlistCount}
                     </span>
                   )}
                 </div>
-                <div className="hidden xl:block text-left pt-2">
-                  <p className="text-sm font-bold leading-tight">{lang === 'bn' ? 'উইশলিস্ট' : 'Wishlist'}</p>
-                </div>
+                <span className="hidden xl:block text-sm font-bold ml-1.5">{lang === 'bn' ? 'উইশলিস্ট' : 'Wishlist'}</span>
               </Link>
 
               {/* Cart */}
               <button
                 onClick={toggleCart}
-                className="relative group cursor-pointer p-2 hover:text-secondary transition-colors flex items-center gap-2"
+                className="relative min-h-[44px] min-w-[44px] flex items-center justify-center hover:text-secondary transition-colors"
                 aria-label="Cart"
               >
                 <div className="relative">
-                  <ShoppingCart className="w-[28px] h-[28px]" />
-                  <span className="absolute -top-1.5 -right-2 bg-secondary text-white text-[11px] font-black h-5 w-5 rounded-full flex items-center justify-center border-2 border-white">
+                  <ShoppingCart className="w-6 h-6" />
+                  <span className="absolute -top-1.5 -right-2 bg-secondary text-white text-[10px] font-black h-[18px] w-[18px] rounded-full flex items-center justify-center border-2 border-white leading-none">
                     {itemCount > 9 ? '9+' : itemCount}
                   </span>
                 </div>
-                <div className="hidden xl:block text-left pt-2">
-                  <p className="text-sm font-bold leading-tight">{t.header.cart}</p>
-                </div>
+                <span className="hidden xl:block text-sm font-bold ml-1.5">{t.header.cart}</span>
               </button>
             </div>
           </div>
 
           {/* Mobile Search */}
-          <div className="mt-2 pb-2 md:hidden">
+          <div className="mt-1.5 pb-1 md:hidden">
             <form onSubmit={handleSearch} className="flex rounded-lg overflow-hidden border-2 border-gray-200 bg-white focus-within:border-primary transition-all duration-300">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder={t.header.searchPlaceholderMobile}
-                className="w-full px-4 py-2.5 outline-none text-sm placeholder:text-gray-400 text-black"
+                className="flex-1 min-w-0 px-3 py-2.5 outline-none text-sm placeholder:text-gray-400 text-black"
               />
-              <button type="submit" className="bg-primary text-white px-5 hover:bg-primary/80 transition-colors flex items-center justify-center">
-                <Search className="w-[18px] h-[18px]" />
+              <button type="submit" className="bg-primary text-white px-4 hover:bg-primary/80 transition-colors flex items-center justify-center min-h-[44px] shrink-0">
+                <Search className="w-5 h-5" />
               </button>
             </form>
           </div>
         </div>
 
         {/* ── Tier 3: Category nav (desktop) ── */}
-        <div className="bg-white hidden lg:block border-b border-gray-200 relative z-30" ref={megaRef}>
-          <div className="max-w-[1400px] mx-auto pl-4 pr-4 flex items-start relative">
+        <div className="bg-white hidden lg:block border-b border-gray-200 relative z-30 overflow-hidden" ref={megaRef}>
+          <div className="max-w-[1400px] mx-auto pl-4 xl:pl-6 pr-4 flex items-start relative">
             {/* All Departments button */}
             <div className="relative h-[44px] flex items-center mr-6 shrink-0">
               <button
@@ -1765,18 +1761,17 @@ export function Header() {
             </div>
 
             {/* Right column: categories wrap here; All Depts space below stays empty */}
-            <div className="flex flex-1 flex-wrap items-center min-w-0">
+            <div className="flex flex-1 flex-wrap items-center min-w-0 overflow-hidden">
               {dynamicNavCategories.map((cat, idx) => (
                 <Link
                   key={cat.slug}
                   href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
                   onMouseEnter={() => setActiveCategoryIndex(idx)}
                   className={cn(
-                    'px-2 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[12px] font-bold',
+                    'px-2 xl:px-3 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold shrink-0',
                     activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
                   )}
                 >
-                  <cat.icon className={cn('w-3.5 h-3.5 hidden', activeCategoryIndex === idx ? 'text-primary' : 'opacity-70')} />
                   {getCatName(cat)}
                   {activeCategoryIndex === idx && (
                     <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
@@ -1785,15 +1780,15 @@ export function Header() {
               ))}
 
               {/* Special links — pushed to far right of row 1 */}
-              <div className="flex items-center gap-0.5 ml-auto shrink-0">
-                <Link href="/quick-commerce" className="px-3 h-[44px] flex items-center gap-1 text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
+              <div className="flex items-center ml-auto shrink-0">
+                <Link href="/quick-commerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
                   ⚡ {lang === 'bn' ? 'কুইক ডেলিভারি' : 'Quick Commerce'}
                 </Link>
-                <Link href="/recommerce" className="px-3 h-[44px] flex items-center gap-1 text-[12px] font-black text-indigo-600 hover:text-indigo-700 transition-colors whitespace-nowrap">
+                <Link href="/recommerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-indigo-600 hover:text-indigo-700 transition-colors whitespace-nowrap">
                   ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
                 </Link>
-                <Link href="/flash-deals" className="px-4 h-[44px] flex items-center text-sm font-bold text-secondary hover:text-amber-600 transition-colors">
-                  {t.header.dealOfDay} <span className="text-red-600 text-lg ml-1">🔥</span>
+                <Link href="/flash-deals" className="px-2 xl:px-4 h-[44px] flex items-center text-[11px] xl:text-sm font-bold text-secondary hover:text-amber-600 transition-colors whitespace-nowrap">
+                  {t.header.dealOfDay} <span className="text-red-600 text-base xl:text-lg ml-1">🔥</span>
                 </Link>
               </div>
             </div>
