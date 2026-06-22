@@ -9,7 +9,7 @@ import { Loader2, Star, Trash2, Eye, EyeOff, ChevronLeft, ChevronRight } from 'l
 interface Review {
   id: string;
   rating: number;
-  comment: string;
+  body: string | null;
   isPublished: boolean;
   createdAt: string;
   user: { id: string; firstName: string; lastName: string; email: string } | null;
@@ -177,7 +177,7 @@ export default function ReviewsPage() {
 
                       {/* Review text */}
                       <td className="px-4 py-3 text-muted-foreground max-w-[240px]">
-                        <p className="line-clamp-2 text-xs">{review.comment}</p>
+                        <p className="line-clamp-2 text-xs">{review.body ?? '—'}</p>
                       </td>
 
                       {/* Date */}
