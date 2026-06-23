@@ -1286,47 +1286,52 @@ export function Header() {
   // Also sync display names if admin renamed a category.
   const dynamicNavCategories: NavCategory[] = useMemo(() => {
     if (!apiCategories || apiCategories.length === 0) return NAV_CATEGORIES;
-    const featured = (apiCategories as ApiCat[])
-      .filter(c => c.isFeatured)
-      .sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
-    if (featured.length === 0) return NAV_CATEGORIES;
-    return featured.map(apiCat => {
-      const staticCat = SLUG_TO_NAV[apiCat.slug];
-      return {
-        slug: apiCat.slug,
-        displayName: apiCat.name,
-        nameKey: staticCat?.nameKey ?? 'books' as NavCategory['nameKey'],
-        icon: staticCat?.icon ?? ShoppingBag,
-        subnav: staticCat?.subnav ?? [],
-      };
-    });
+    const apiMap = new Map((apiCategories as ApiCat[]).map(c => [c.slug, c]));
+    // Show a category if:
+    //   1. It exists in API with isFeatured:true (admin explicitly enabled), OR
+    //   2. It is in NAV_CATEGORIES but NOT in the API at all (not in DB yet → static fallback)
+    // This lets admin hide categories via the mega-menu toggle while still showing
+    // new static categories that haven't been created in the DB yet.
+    return NAV_CATEGORIES
+      .filter(cat => {
+        const apiCat = apiMap.get(cat.slug);
+        return !apiCat || apiCat.isFeatured === true;
+      })
+      .map(cat => {
+        const apiCat = apiMap.get(cat.slug);
+        return apiCat ? { ...cat, displayName: apiCat.name } : cat;
+      });
   }, [apiCategories]);
 
   // Mega-menu left panel: featured categories in admin order, with API children as subs
   const dynamicMegaCategories = useMemo(() => {
     if (!apiCategories || apiCategories.length === 0) return MEGA_CATEGORIES as unknown as MegaCat[];
-    const featured = (apiCategories as ApiCat[])
-      .filter(c => c.isFeatured)
-      .sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
-    if (featured.length === 0) return MEGA_CATEGORIES as unknown as MegaCat[];
-    return featured.map(apiCat => {
-      const st = MEGA_CATS_BY_SLUG[apiCat.slug];
-      const apiChildren = (apiCat.children ?? []).filter(c => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
-      const subs: MegaCat['subs'] = apiChildren.length > 0
-        ? [
-            ...apiChildren.map(child => ({ label: child.name, labelBn: child.name, href: `/products?categorySlug=${apiCat.slug}&sub=${child.slug}` })),
-            { label: `All ${apiCat.name} →`, labelBn: `সব ${apiCat.name} →`, href: apiCat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${apiCat.slug}` },
-          ]
-        : (st?.subs as MegaCat['subs'] ?? []);
-      return {
-        slug: apiCat.slug,
-        emoji: apiCat.icon ?? st?.emoji ?? '🏷️',
-        name: apiCat.name,
-        nameBn: st?.nameBn ?? apiCat.name,
-        href: apiCat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${apiCat.slug}`,
-        subs,
-      } satisfies MegaCat;
-    });
+    const apiMap = new Map((apiCategories as ApiCat[]).map(c => [c.slug, c]));
+    // Same filter rule as dynamicNavCategories: show if in API+featured OR not in API at all
+    return MEGA_SLUGS
+      .filter(slug => {
+        const apiCat = apiMap.get(slug);
+        return !apiCat || apiCat.isFeatured === true;
+      })
+      .map(slug => {
+        const apiCat = apiMap.get(slug);
+        const st = MEGA_CATS_BY_SLUG[slug];
+        const apiChildren = apiCat ? (apiCat.children ?? []).filter(c => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99)) : [];
+        const subs: MegaCat['subs'] = apiChildren.length > 0
+          ? [
+              ...apiChildren.map(child => ({ label: child.name, labelBn: child.name, href: `/products?categorySlug=${slug}&sub=${child.slug}` })),
+              { label: `All ${apiCat?.name ?? st?.name ?? slug} →`, labelBn: `সব ${apiCat?.name ?? st?.nameBn ?? slug} →`, href: slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${slug}` },
+            ]
+          : (st?.subs as MegaCat['subs'] ?? []);
+        return {
+          slug,
+          emoji: apiCat?.icon ?? st?.emoji ?? '🏷️',
+          name: apiCat?.name ?? st?.name ?? slug,
+          nameBn: st?.nameBn ?? apiCat?.name ?? slug,
+          href: slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${slug}`,
+          subs,
+        } satisfies MegaCat;
+      });
   }, [apiCategories]);
 
   const handleSearch = (e: React.FormEvent) => {
