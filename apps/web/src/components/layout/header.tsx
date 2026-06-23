@@ -1214,52 +1214,14 @@ export function Header() {
     setSearchQuery(q ?? '');
   }, [searchParams]);
 
+  // Always use the full curated static list so the nav never jumps when the API loads.
+  // Override displayName from the API if the admin has renamed a category.
   const dynamicNavCategories: NavCategory[] = (() => {
     if (!apiCategories || apiCategories.length === 0) return NAV_CATEGORIES;
-    const featured = apiCategories
-      .filter(c => c.isFeatured)
-      .sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
-    // If fewer than 5 categories are marked featured, show all sorted by sortOrder
-    const source = featured.length >= 5
-      ? featured
-      : [...apiCategories].sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99)).slice(0, 8);
-    if (source.length === 0) return NAV_CATEGORIES;
-    const mapped = source.map(c => {
-      const meta = SLUG_TO_NAV[c.slug];
-      return {
-        nameKey: (meta?.nameKey ?? 'books') as NavCategory['nameKey'],
-        displayName: c.name,
-        icon: meta?.icon ?? ShoppingBag,
-        slug: c.slug,
-        subnav: meta?.subnav ?? [],
-      };
+    return NAV_CATEGORIES.map(cat => {
+      const apiCat = apiCategories.find(c => c.slug === cat.slug);
+      return apiCat ? { ...cat, displayName: apiCat.name } : cat;
     });
-
-    // Always ensure books appears first
-    const booksIdx = mapped.findIndex(c => c.slug === 'books');
-    let ordered: NavCategory[];
-    if (booksIdx > 0) {
-      const booksCat = mapped[booksIdx]!;
-      ordered = [booksCat, ...mapped.filter((_, i) => i !== booksIdx)];
-    } else if (booksIdx === -1) {
-      ordered = [NAV_CATEGORIES[0]!, ...mapped.slice(0, 7)];
-    } else {
-      ordered = mapped;
-    }
-
-    // Always ensure Islamic Lifestyle appears
-    if (!ordered.some(c => c.slug === 'islamic-lifestyle')) {
-      const islamicStatic = NAV_CATEGORIES.find(c => c.slug === 'islamic-lifestyle')!;
-      const organicIdx = ordered.findIndex(c => c.slug === 'organic-foods');
-      const insertAt = organicIdx !== -1 ? organicIdx + 1 : Math.min(4, ordered.length);
-      ordered = [
-        ...ordered.slice(0, insertAt),
-        islamicStatic,
-        ...ordered.slice(insertAt),
-      ].slice(0, 8);
-    }
-
-    return ordered;
   })();
 
 
@@ -1782,7 +1744,7 @@ export function Header() {
               {/* Special links — pushed to far right of row 1 */}
               <div className="flex items-center ml-auto shrink-0">
                 <Link href="/quick-commerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
-                  ⚡ {lang === 'bn' ? 'কুইক ডেলিভারি' : 'Quick Commerce'}
+                  ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
                 </Link>
                 <Link href="/recommerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-indigo-600 hover:text-indigo-700 transition-colors whitespace-nowrap">
                   ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
@@ -1969,8 +1931,18 @@ export function Header() {
               </div>
             );
           })}
-          <Link href="/products" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-orange-50 font-bold text-secondary flex items-center justify-between mt-1 min-h-[48px]">
+          <Link href="/flash-deals" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-orange-50 font-bold text-secondary flex items-center gap-2 min-h-[48px]">
             <span>{t.header.dealOfDay} 🔥</span>
+          </Link>
+          <Link href="/quick-commerce" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-emerald-50 font-bold text-emerald-600 flex items-center gap-2 min-h-[48px] border-t border-gray-100">
+            <span>⚡</span>
+            <span>{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
+            <span className="ml-auto text-[11px] font-medium text-emerald-500 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">{lang === 'bn' ? '১০-৩০ মিনিট' : '10-30 min'}</span>
+          </Link>
+          <Link href="/recommerce" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-indigo-50 font-bold text-indigo-600 flex items-center gap-2 min-h-[48px] border-t border-gray-100">
+            <span>♻️</span>
+            <span>{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
+            <span className="ml-auto text-[11px] font-medium text-indigo-500 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">{lang === 'bn' ? 'রিফার্বিশড' : 'Refurbished'}</span>
           </Link>
         </div>
 
@@ -2000,6 +1972,8 @@ export function Header() {
               <X className="w-4 h-4" /> {t.header.signOut}
             </button>
           )}
+          {/* Spacer so bottom nav bar never covers the last item */}
+          <div className="h-[calc(4.5rem+env(safe-area-inset-bottom,0px))]" />
         </div>
       </aside>
 
