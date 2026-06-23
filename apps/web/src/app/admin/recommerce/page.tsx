@@ -1,9 +1,10 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import {
   CheckCircle2, XCircle, Eye, Edit2, Package, Users,
-  TrendingUp, Clock, BarChart2, Download, AlertTriangle,
+  TrendingUp, Clock, BarChart2, Download, AlertTriangle, ExternalLink, Tag,
 } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -182,6 +183,22 @@ export default function AdminRecommercePage() {
           </div>
           <p className="text-sm text-gray-500">Manage refurbished &amp; used item listings, sellers, and grading</p>
         </div>
+      </div>
+
+      {/* Quick nav to sub-pages */}
+      <div className="flex flex-wrap gap-2">
+        {[
+          { href: '/admin/recommerce/listings', icon: Package,  label: 'Manage Listings' },
+          { href: '/admin/recommerce/sellers',  icon: Users,    label: 'Manage Sellers' },
+          { href: '/admin/recommerce/grading',  icon: Tag,      label: 'Grading Criteria' },
+          { href: '/recommerce',                icon: ExternalLink, label: 'View Salvage Yard' },
+        ].map(link => (
+          <Link key={link.href} href={link.href}
+            className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-white border rounded-lg hover:border-emerald-400 hover:text-emerald-700 transition-colors text-gray-600">
+            <link.icon className="w-3.5 h-3.5" />
+            {link.label}
+          </Link>
+        ))}
       </div>
 
       {/* Stats Row */}
