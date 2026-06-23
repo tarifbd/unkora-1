@@ -1157,6 +1157,10 @@ const MEGA_CONTENT_BY_SLUG = Object.fromEntries(
   MEGA_SLUGS.map((slug, i) => [slug, MEGA_CONTENT[i]!] as const)
 ) as Record<string, typeof MEGA_CONTENT[number]>;
 
+const NAV_BY_SLUG = Object.fromEntries(
+  NAV_CATEGORIES.map(c => [c.slug, c] as const)
+) as Record<string, NavCategory>;
+
 type ApiCat = {
   id: string; slug: string; name: string; isFeatured?: boolean; sortOrder?: number;
   icon?: string; color?: string; imageUrl?: string;
@@ -1281,58 +1285,59 @@ export function Header() {
     setSearchQuery(q ?? '');
   }, [searchParams]);
 
-  // During initial load (no API data): show all static categories so layout doesn't jump.
-  // Once API data arrives: respect admin enable/disable — only show categories present in API.
-  // Also sync display names if admin renamed a category.
-  const dynamicNavCategories: NavCategory[] = useMemo(() => {
-    if (!apiCategories || apiCategories.length === 0) return NAV_CATEGORIES;
-    const apiMap = new Map((apiCategories as ApiCat[]).map(c => [c.slug, c]));
-    // Show a category if:
-    //   1. It exists in API with isFeatured:true (admin explicitly enabled), OR
-    //   2. It is in NAV_CATEGORIES but NOT in the API at all (not in DB yet → static fallback)
-    // This lets admin hide categories via the mega-menu toggle while still showing
-    // new static categories that haven't been created in the DB yet.
-    return NAV_CATEGORIES
-      .filter(cat => {
-        const apiCat = apiMap.get(cat.slug);
-        return !apiCat || apiCat.isFeatured === true;
-      })
-      .map(cat => {
-        const apiCat = apiMap.get(cat.slug);
-        return apiCat ? { ...cat, displayName: apiCat.name } : cat;
-      });
+  // Single source of truth: which category slugs are visible, in nav order.
+  // Rules (stable — no layout flicker):
+  //   • No API yet            → show the full static set.
+  //   • API loaded, none of   → show the full static set (admin hasn't curated;
+  //     the cats featured        default isFeatured:false must NOT hide everything).
+  //   • API loaded, some       → show featured DB cats + static-only cats
+  //     featured                 (those not yet created in the DB).
+  const { apiBySlug, visibleSlugs } = useMemo(() => {
+    const map = new Map((apiCategories as ApiCat[] | undefined ?? []).map(c => [c.slug, c]));
+    if (map.size === 0) return { apiBySlug: map, visibleSlugs: MEGA_SLUGS as readonly string[] };
+    const adminCurated = (apiCategories as ApiCat[]).some(c => c.isFeatured);
+    const slugs = MEGA_SLUGS.filter(slug => {
+      const apiCat = map.get(slug);
+      if (!apiCat) return true;            // not in DB → static fallback
+      if (!adminCurated) return true;      // admin hasn't curated → show all
+      return apiCat.isFeatured === true;   // curated → only featured
+    });
+    return { apiBySlug: map, visibleSlugs: slugs };
   }, [apiCategories]);
 
-  // Mega-menu left panel: featured categories in admin order, with API children as subs
-  const dynamicMegaCategories = useMemo(() => {
-    if (!apiCategories || apiCategories.length === 0) return MEGA_CATEGORIES as unknown as MegaCat[];
-    const apiMap = new Map((apiCategories as ApiCat[]).map(c => [c.slug, c]));
-    // Same filter rule as dynamicNavCategories: show if in API+featured OR not in API at all
-    return MEGA_SLUGS
-      .filter(slug => {
-        const apiCat = apiMap.get(slug);
-        return !apiCat || apiCat.isFeatured === true;
-      })
-      .map(slug => {
-        const apiCat = apiMap.get(slug);
-        const st = MEGA_CATS_BY_SLUG[slug];
-        const apiChildren = apiCat ? (apiCat.children ?? []).filter(c => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99)) : [];
-        const subs: MegaCat['subs'] = apiChildren.length > 0
-          ? [
-              ...apiChildren.map(child => ({ label: child.name, labelBn: child.name, href: `/products?categorySlug=${slug}&sub=${child.slug}` })),
-              { label: `All ${apiCat?.name ?? st?.name ?? slug} →`, labelBn: `সব ${apiCat?.name ?? st?.nameBn ?? slug} →`, href: slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${slug}` },
-            ]
-          : (st?.subs as MegaCat['subs'] ?? []);
-        return {
-          slug,
-          emoji: apiCat?.icon ?? st?.emoji ?? '🏷️',
-          name: apiCat?.name ?? st?.name ?? slug,
-          nameBn: st?.nameBn ?? apiCat?.name ?? slug,
-          href: slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${slug}`,
-          subs,
-        } satisfies MegaCat;
-      });
-  }, [apiCategories]);
+  const dynamicNavCategories: NavCategory[] = useMemo(() =>
+    visibleSlugs.map(slug => {
+      const base = NAV_BY_SLUG[slug]!;
+      const apiCat = apiBySlug.get(slug);
+      return apiCat ? { ...base, displayName: apiCat.name } : base;
+    }),
+  [visibleSlugs, apiBySlug]);
+
+  // Mega-menu left panel: same visible set, with API child categories as sub-items.
+  const dynamicMegaCategories = useMemo(() =>
+    visibleSlugs.map(slug => {
+      const apiCat = apiBySlug.get(slug);
+      const st = MEGA_CATS_BY_SLUG[slug];
+      const apiChildren = (apiCat?.children ?? [])
+        .filter(c => c.isActive !== false)
+        .sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
+      const allHref = slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${slug}`;
+      const subs: MegaCat['subs'] = apiChildren.length > 0
+        ? [
+            ...apiChildren.map(child => ({ label: child.name, labelBn: child.name, href: `/products?categorySlug=${slug}&sub=${child.slug}` })),
+            { label: `All ${apiCat?.name ?? st?.name ?? slug} →`, labelBn: `সব ${apiCat?.name ?? st?.nameBn ?? slug} →`, href: allHref },
+          ]
+        : (st?.subs as MegaCat['subs'] ?? []);
+      return {
+        slug,
+        emoji: apiCat?.icon ?? st?.emoji ?? '🏷️',
+        name: apiCat?.name ?? st?.name ?? slug,
+        nameBn: st?.nameBn ?? apiCat?.name ?? slug,
+        href: allHref,
+        subs,
+      } satisfies MegaCat;
+    }),
+  [visibleSlugs, apiBySlug]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
