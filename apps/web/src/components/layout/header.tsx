@@ -1268,7 +1268,7 @@ export function Header() {
           </div>
         )
       )}
-      <header className="sticky top-0 z-50 w-full shadow-sm border-b border-gray-200 bg-white overflow-x-hidden">
+      <header className="sticky top-0 z-50 w-full shadow-sm border-b border-gray-200 bg-white overflow-x-hidden lg:overflow-visible">
 
         {/* ── Tier 1: Utility bar ── */}
         <div className="bg-[#1a1a1a] py-1.5 hidden md:block">
@@ -1518,7 +1518,7 @@ export function Header() {
         </div>
 
         {/* ── Tier 3: Category nav (desktop) ── */}
-        <div className="bg-white hidden lg:block border-b border-gray-200 relative z-30 overflow-hidden" ref={megaRef}>
+        <div className="bg-white hidden lg:block border-b border-gray-200 relative z-30" ref={megaRef}>
           <div className="max-w-[1400px] mx-auto pl-4 xl:pl-6 pr-4 flex items-start relative">
             {/* All Departments button */}
             <div className="relative h-[44px] flex items-center mr-6 shrink-0">
@@ -1722,8 +1722,10 @@ export function Header() {
               )}
             </div>
 
-            {/* Right column: two explicit rows — no flex-wrap needed */}
-            <div className="flex-1 min-w-0 flex flex-col">
+            {/* Right column: two explicit rows. overflow-hidden here clips any
+                category bleed without touching the mega dropdown (which lives in
+                the All Departments column on the left). */}
+            <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
               {/* Row 1: original 8 categories + special links pinned right */}
               <div className="flex items-center">
                 {dynamicNavCategories.slice(0, 8).map((cat, idx) => (
