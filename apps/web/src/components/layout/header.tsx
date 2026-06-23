@@ -1722,36 +1722,41 @@ export function Header() {
               )}
             </div>
 
-            {/* Right column: categories wrap here; All Depts space below stays empty */}
-            <div className="flex flex-1 flex-wrap items-center min-w-0">
-              {dynamicNavCategories.map((cat, idx) => (
-                <Link
-                  key={cat.slug}
-                  href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
-                  onMouseEnter={() => setActiveCategoryIndex(idx)}
-                  className={cn(
-                    'px-2 xl:px-3 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold shrink-0',
-                    activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
-                  )}
-                >
-                  {getCatName(cat)}
-                  {activeCategoryIndex === idx && (
-                    <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
-                  )}
-                </Link>
-              ))}
+            {/* Right column: flex item that holds a definite-width wrap container.
+                Keeping the flex-item role (flex-1 min-w-0) separate from the
+                flex-wrap container (inner w-full) is what makes wrapping work —
+                a flex-basis:0 element can't compute wrap widths on its own. */}
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center w-full">
+                {dynamicNavCategories.map((cat, idx) => (
+                  <Link
+                    key={cat.slug}
+                    href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
+                    onMouseEnter={() => setActiveCategoryIndex(idx)}
+                    className={cn(
+                      'px-2 xl:px-3 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold shrink-0',
+                      activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
+                    )}
+                  >
+                    {getCatName(cat)}
+                    {activeCategoryIndex === idx && (
+                      <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
+                    )}
+                  </Link>
+                ))}
 
-              {/* Special links — pushed to far right of row 1 */}
-              <div className="flex items-center ml-auto shrink-0">
-                <Link href="/quick-commerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
-                  ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
-                </Link>
-                <Link href="/recommerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-indigo-600 hover:text-indigo-700 transition-colors whitespace-nowrap">
-                  ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
-                </Link>
-                <Link href="/flash-deals" className="px-2 xl:px-4 h-[44px] flex items-center text-[11px] xl:text-sm font-bold text-secondary hover:text-amber-600 transition-colors whitespace-nowrap">
-                  {t.header.dealOfDay} <span className="text-red-600 text-base xl:text-lg ml-1">🔥</span>
-                </Link>
+                {/* Special links — pushed to the right; wraps cleanly with the categories */}
+                <div className="flex items-center ml-auto shrink-0">
+                  <Link href="/quick-commerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
+                    ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
+                  </Link>
+                  <Link href="/recommerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-indigo-600 hover:text-indigo-700 transition-colors whitespace-nowrap">
+                    ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
+                  </Link>
+                  <Link href="/flash-deals" className="px-2 xl:px-4 h-[44px] flex items-center text-[11px] xl:text-sm font-bold text-secondary hover:text-amber-600 transition-colors whitespace-nowrap">
+                    {t.header.dealOfDay} <span className="text-red-600 text-base xl:text-lg ml-1">🔥</span>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
