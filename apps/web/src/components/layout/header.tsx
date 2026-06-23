@@ -451,33 +451,36 @@ const MEGA_CATEGORIES = [
     emoji: '👶', name: 'Baby Products', nameBn: 'শিশু পণ্য',
     href: '/products?categorySlug=baby-products',
     subs: [
-      { label: 'Diapers',      labelBn: 'ডায়াপার',        href: '/products?categorySlug=baby-products' },
-      { label: 'Baby Food',    labelBn: 'শিশু খাদ্য',      href: '/products?categorySlug=baby-products' },
-      { label: 'Toys',         labelBn: 'খেলনা',           href: '/products?categorySlug=baby-products' },
-      { label: 'Clothing',     labelBn: 'শিশু পোশাক',      href: '/products?categorySlug=baby-products' },
-      { label: 'All Baby →',   labelBn: 'সব শিশু পণ্য →', href: '/products?categorySlug=baby-products' },
+      { label: 'Diapers & Care',   labelBn: 'ডায়াপার ও যত্ন',   href: '/products?categorySlug=baby-products&sub=diapers' },
+      { label: 'Feeding & Nursing',labelBn: 'ফিডিং',              href: '/products?categorySlug=baby-products&sub=feeding' },
+      { label: 'Gear & Strollers', labelBn: 'গিয়ার ও স্ট্রোলার', href: '/products?categorySlug=baby-products&sub=gear' },
+      { label: 'Toys & Learning',  labelBn: 'খেলনা ও শিক্ষা',    href: '/products?categorySlug=baby-products&sub=toys' },
+      { label: 'Baby Clothing',    labelBn: 'শিশু পোশাক',         href: '/products?categorySlug=baby-products&sub=clothing' },
+      { label: 'All Baby →',       labelBn: 'সব শিশু পণ্য →',     href: '/products?categorySlug=baby-products' },
     ],
   },
   {
     emoji: '👜', name: 'Leather', nameBn: 'চামড়া পণ্য',
     href: '/products?categorySlug=leather-products',
     subs: [
-      { label: 'Wallets',        labelBn: 'মানিব্যাগ',    href: '/products?categorySlug=leather-products' },
-      { label: 'Bags',           labelBn: 'ব্যাগ',         href: '/products?categorySlug=leather-products' },
-      { label: 'Belts',          labelBn: 'বেল্ট',         href: '/products?categorySlug=leather-products' },
-      { label: 'Shoes',          labelBn: 'জুতা',          href: '/products?categorySlug=leather-products' },
-      { label: 'All Leather →',  labelBn: 'সব চামড়া →',  href: '/products?categorySlug=leather-products' },
+      { label: 'Wallets & Cardholders', labelBn: 'পার্স ও কার্ড হোল্ডার', href: '/products?categorySlug=leather-products&sub=wallets' },
+      { label: 'Bags & Backpacks',      labelBn: 'ব্যাগ ও ব্যাকপ্যাক',    href: '/products?categorySlug=leather-products&sub=bags' },
+      { label: 'Belts & Accessories',   labelBn: 'বেল্ট ও আনুষাঙ্গিক',    href: '/products?categorySlug=leather-products&sub=belts' },
+      { label: "Men's Footwear",        labelBn: 'পুরুষ জুতা',             href: '/products?categorySlug=leather-products&sub=mens-shoes' },
+      { label: "Women's Footwear",      labelBn: 'মহিলা জুতা',             href: '/products?categorySlug=leather-products&sub=womens-shoes' },
+      { label: 'All Leather →',         labelBn: 'সব চামড়া →',            href: '/products?categorySlug=leather-products' },
     ],
   },
   {
     emoji: '🌿', name: 'Organic', nameBn: 'অর্গানিক',
     href: '/products?categorySlug=organic-foods',
     subs: [
-      { label: 'Honey',          labelBn: 'মধু',            href: '/products?categorySlug=organic-foods' },
-      { label: 'Nuts & Seeds',   labelBn: 'বাদাম ও বীজ',   href: '/products?categorySlug=organic-foods' },
-      { label: 'Spices',         labelBn: 'মশলা',           href: '/products?categorySlug=organic-foods' },
-      { label: 'Tea',            labelBn: 'চা',             href: '/products?categorySlug=organic-foods' },
-      { label: 'All Organic →',  labelBn: 'সব অর্গানিক →', href: '/products?categorySlug=organic-foods' },
+      { label: 'Honey & Sweeteners', labelBn: 'মধু ও গুড়',      href: '/products?categorySlug=organic-foods&sub=honey' },
+      { label: 'Nuts & Seeds',       labelBn: 'বাদাম ও বীজ',     href: '/products?categorySlug=organic-foods&sub=nuts' },
+      { label: 'Spices & Herbs',     labelBn: 'মশলা ও ভেষজ',     href: '/products?categorySlug=organic-foods&sub=spices' },
+      { label: 'Tea & Beverages',    labelBn: 'চা ও পানীয়',      href: '/products?categorySlug=organic-foods&sub=tea' },
+      { label: 'Dried Fruits',       labelBn: 'শুকনো ফল',        href: '/products?categorySlug=organic-foods&sub=dried-fruits' },
+      { label: 'All Organic →',      labelBn: 'সব অর্গানিক →',   href: '/products?categorySlug=organic-foods' },
     ],
   },
   {
@@ -495,33 +498,36 @@ const MEGA_CATEGORIES = [
     emoji: '🎨', name: 'Handicrafts', nameBn: 'হস্তশিল্প',
     href: '/products?categorySlug=handicrafts',
     subs: [
-      { label: 'Wall Art',       labelBn: 'দেওয়াল শিল্প',  href: '/products?categorySlug=handicrafts' },
-      { label: 'Showpieces',     labelBn: 'শোপিস',          href: '/products?categorySlug=handicrafts' },
-      { label: 'Traditional',    labelBn: 'ঐতিহ্যবাহী',    href: '/products?categorySlug=handicrafts' },
-      { label: 'Pottery',        labelBn: 'মাটির পণ্য',     href: '/products?categorySlug=handicrafts' },
-      { label: 'All Crafts →',   labelBn: 'সব হস্তশিল্প →', href: '/products?categorySlug=handicrafts' },
+      { label: 'Wall Art & Paintings',  labelBn: 'দেওয়াল শিল্প',       href: '/products?categorySlug=handicrafts&sub=wall-art' },
+      { label: 'Showpieces',            labelBn: 'শোপিস',               href: '/products?categorySlug=handicrafts&sub=showpieces' },
+      { label: 'Nakshi Kantha',         labelBn: 'নকশি কাঁথা',          href: '/products?categorySlug=handicrafts&sub=nakshi-kantha' },
+      { label: 'Jute & Clay Products',  labelBn: 'পাট ও মাটির পণ্য',   href: '/products?categorySlug=handicrafts&sub=jute-clay' },
+      { label: 'Traditional Weaves',    labelBn: 'ঐতিহ্যবাহী বুনন',     href: '/products?categorySlug=handicrafts&sub=weaves' },
+      { label: 'All Crafts →',          labelBn: 'সব হস্তশিল্প →',      href: '/products?categorySlug=handicrafts' },
     ],
   },
   {
     emoji: '⚡', name: 'Electronics', nameBn: 'ইলেকট্রনিক্স',
     href: '/products?categorySlug=electronics',
     subs: [
-      { label: 'Mobiles',         labelBn: 'মোবাইল',            href: '/products?categorySlug=electronics' },
-      { label: 'Laptops',         labelBn: 'ল্যাপটপ',           href: '/products?categorySlug=electronics' },
-      { label: 'Accessories',     labelBn: 'আনুষাঙ্গিক',        href: '/products?categorySlug=electronics' },
-      { label: 'Gadgets',         labelBn: 'গ্যাজেট',           href: '/products?categorySlug=electronics' },
-      { label: 'All Electronics →', labelBn: 'সব ইলেকট্রনিক্স →', href: '/products?categorySlug=electronics' },
+      { label: 'Mobiles & Tablets', labelBn: 'মোবাইল ও ট্যাবলেট',    href: '/products?categorySlug=electronics&sub=mobiles' },
+      { label: 'Laptops & PCs',     labelBn: 'ল্যাপটপ ও কম্পিউটার',  href: '/products?categorySlug=electronics&sub=laptops' },
+      { label: 'Audio & Earbuds',   labelBn: 'অডিও ও ইয়ারবাডস',      href: '/products?categorySlug=electronics&sub=audio' },
+      { label: 'Smart Gadgets',     labelBn: 'স্মার্ট গ্যাজেট',        href: '/products?categorySlug=electronics&sub=gadgets' },
+      { label: 'Home Appliances',   labelBn: 'হোম অ্যাপ্লায়েন্স',     href: '/products?categorySlug=electronics&sub=appliances' },
+      { label: 'All Electronics →', labelBn: 'সব ইলেকট্রনিক্স →',     href: '/products?categorySlug=electronics' },
     ],
   },
   {
     emoji: '🛒', name: 'Daily Needs', nameBn: 'দৈনন্দিন',
     href: '/products?categorySlug=daily-needs',
     subs: [
-      { label: 'Grocery',        labelBn: 'মুদি পণ্য',          href: '/products?categorySlug=daily-needs' },
-      { label: 'Personal Care',  labelBn: 'ব্যক্তিগত যত্ন',     href: '/products?categorySlug=daily-needs' },
-      { label: 'Household',      labelBn: 'গৃহস্থালি',           href: '/products?categorySlug=daily-needs' },
-      { label: 'Stationery',     labelBn: 'স্টেশনারি',           href: '/products?categorySlug=daily-needs' },
-      { label: 'All Daily →',    labelBn: 'সব দৈনন্দিন →',      href: '/products?categorySlug=daily-needs' },
+      { label: 'Grocery & Staples',  labelBn: 'মুদি ও খাদ্যপণ্য',     href: '/products?categorySlug=daily-needs&sub=grocery' },
+      { label: 'Personal Care',      labelBn: 'ব্যক্তিগত যত্ন',         href: '/products?categorySlug=daily-needs&sub=personal-care' },
+      { label: 'Household Cleaning', labelBn: 'গৃহস্থালি ও ক্লিনিং',   href: '/products?categorySlug=daily-needs&sub=household' },
+      { label: 'Stationery',         labelBn: 'স্টেশনারি',               href: '/products?categorySlug=daily-needs&sub=stationery' },
+      { label: 'Pet Care',           labelBn: 'পোষা প্রাণীর যত্ন',       href: '/products?categorySlug=daily-needs&sub=pet-care' },
+      { label: 'All Daily →',        labelBn: 'সব দৈনন্দিন →',           href: '/products?categorySlug=daily-needs' },
     ],
   },
   {
@@ -710,42 +716,51 @@ const MEGA_CONTENT = [
   {
     columns: [
       { heading: 'Diapering & Care', headingBn: 'ডায়াপার ও যত্ন', links: [
-        { label: 'Diapers',    labelBn: 'ডায়াপার',    href: '/products?categorySlug=baby-products' },
-        { label: 'Baby Wipes', labelBn: 'বেবি ওয়াইপস', href: '/products?categorySlug=baby-products' },
-        { label: 'Baby Wash',  labelBn: 'বেবি ওয়াশ',  href: '/products?categorySlug=baby-products' },
-        { label: 'Rash Cream', labelBn: 'র‍্যাশ ক্রিম', href: '/products?categorySlug=baby-products' },
+        { label: 'Diapers',          labelBn: 'ডায়াপার',         href: '/products?categorySlug=baby-products&sub=diapers' },
+        { label: 'Baby Wipes',       labelBn: 'বেবি ওয়াইপস',     href: '/products?categorySlug=baby-products&sub=wipes' },
+        { label: 'Baby Wash',        labelBn: 'বেবি ওয়াশ',       href: '/products?categorySlug=baby-products&sub=baby-wash' },
+        { label: 'Rash Cream',       labelBn: 'র‍্যাশ ক্রিম',      href: '/products?categorySlug=baby-products&sub=rash-cream' },
+        { label: 'Baby Oils',        labelBn: 'বেবি অয়েল',        href: '/products?categorySlug=baby-products&sub=baby-oil' },
       ]},
-      { heading: 'Feeding & Nursing', headingBn: 'ফিডিং', links: [
-        { label: 'Baby Bottles', labelBn: 'ফিডিং বোতল',   href: '/products?categorySlug=baby-products' },
-        { label: 'Breast Pumps', labelBn: 'ব্রেস্ট পাম্প', href: '/products?categorySlug=baby-products' },
-        { label: 'Baby Food',    labelBn: 'বেবি ফুড',      href: '/products?categorySlug=baby-products' },
-        { label: 'High Chairs',  labelBn: 'হাই চেয়ার',     href: '/products?categorySlug=baby-products' },
+      { heading: 'Feeding & Nursing', headingBn: 'ফিডিং ও নার্সিং', links: [
+        { label: 'Baby Bottles',     labelBn: 'ফিডিং বোতল',        href: '/products?categorySlug=baby-products&sub=bottles' },
+        { label: 'Breast Pumps',     labelBn: 'ব্রেস্ট পাম্প',      href: '/products?categorySlug=baby-products&sub=breast-pump' },
+        { label: 'Baby Food',        labelBn: 'বেবি ফুড',           href: '/products?categorySlug=baby-products&sub=baby-food' },
+        { label: 'High Chairs',      labelBn: 'হাই চেয়ার',          href: '/products?categorySlug=baby-products&sub=high-chair' },
+        { label: 'Bottle Sterilizer',labelBn: 'স্টেরিলাইজার',        href: '/products?categorySlug=baby-products&sub=sterilizer' },
       ]},
       { heading: 'Gear & Clothing', headingBn: 'গিয়ার ও পোশাক', links: [
-        { label: 'Strollers',     labelBn: 'স্ট্রোলার',  href: '/products?categorySlug=baby-products' },
-        { label: 'Car Seats',     labelBn: 'কার সিট',    href: '/products?categorySlug=baby-products' },
-        { label: 'Toys',          labelBn: 'খেলনা',      href: '/products?categorySlug=baby-products' },
-        { label: 'Baby Clothing', labelBn: 'শিশু পোশাক', href: '/products?categorySlug=baby-products' },
-        { label: 'All Baby →',    labelBn: 'সব পণ্য →',  href: '/products?categorySlug=baby-products' },
+        { label: 'Strollers',        labelBn: 'স্ট্রোলার',           href: '/products?categorySlug=baby-products&sub=stroller' },
+        { label: 'Car Seats',        labelBn: 'কার সিট',             href: '/products?categorySlug=baby-products&sub=car-seat' },
+        { label: 'Baby Carriers',    labelBn: 'বেবি ক্যারিয়ার',      href: '/products?categorySlug=baby-products&sub=carrier' },
+        { label: 'Educational Toys', labelBn: 'শিক্ষামূলক খেলনা',    href: '/products?categorySlug=baby-products&sub=edu-toys' },
+        { label: 'All Baby →',       labelBn: 'সব পণ্য →',           href: '/products?categorySlug=baby-products' },
       ]},
     ],
   },
   // 2 — Leather
   {
     columns: [
-      { heading: 'Wallets & Bags', headingBn: 'পার্স ও ব্যাগ', links: [
-        { label: 'Bifold Wallets', labelBn: 'বাইফোল্ড পার্স', href: '/products?categorySlug=leather-products' },
-        { label: 'Card Holders',   labelBn: 'কার্ড হোল্ডার',  href: '/products?categorySlug=leather-products' },
-        { label: 'Office Bags',    labelBn: 'অফিস ব্যাগ',     href: '/products?categorySlug=leather-products' },
-        { label: 'Backpacks',      labelBn: 'ব্যাকপ্যাক',     href: '/products?categorySlug=leather-products' },
-        { label: 'Ladies Bags',    labelBn: 'লেডিস ব্যাগ',    href: '/products?categorySlug=leather-products' },
+      { heading: 'Wallets & Accessories', headingBn: 'পার্স ও আনুষাঙ্গিক', links: [
+        { label: 'Bifold Wallets',   labelBn: 'বাইফোল্ড পার্স',     href: '/products?categorySlug=leather-products&sub=bifold' },
+        { label: 'Card Holders',     labelBn: 'কার্ড হোল্ডার',       href: '/products?categorySlug=leather-products&sub=card-holder' },
+        { label: 'Coin Purses',      labelBn: 'কয়েন পার্স',          href: '/products?categorySlug=leather-products&sub=coin-purse' },
+        { label: 'Keychains',        labelBn: 'কী চেইন',             href: '/products?categorySlug=leather-products&sub=keychain' },
+        { label: 'Belts',            labelBn: 'বেল্ট',               href: '/products?categorySlug=leather-products&sub=belts' },
       ]},
-      { heading: 'Belts & Footwear', headingBn: 'বেল্ট ও জুতা', links: [
-        { label: 'Formal Belts',  labelBn: 'ফর্মাল বেল্ট', href: '/products?categorySlug=leather-products' },
-        { label: 'Formal Shoes',  labelBn: 'ফর্মাল জুতা',  href: '/products?categorySlug=leather-products' },
-        { label: 'Ladies Heels',  labelBn: 'হিলস',          href: '/products?categorySlug=leather-products' },
-        { label: 'Sandals',       labelBn: 'স্যান্ডেল',     href: '/products?categorySlug=leather-products' },
-        { label: 'All Leather →', labelBn: 'সব চামড়া →',  href: '/products?categorySlug=leather-products' },
+      { heading: 'Bags', headingBn: 'ব্যাগ', links: [
+        { label: 'Office Bags',      labelBn: 'অফিস ব্যাগ',          href: '/products?categorySlug=leather-products&sub=office-bag' },
+        { label: 'Backpacks',        labelBn: 'ব্যাকপ্যাক',           href: '/products?categorySlug=leather-products&sub=backpack' },
+        { label: 'Ladies Bags',      labelBn: 'লেডিস ব্যাগ',         href: '/products?categorySlug=leather-products&sub=ladies-bag' },
+        { label: 'Clutches',         labelBn: 'ক্লাচ ব্যাগ',          href: '/products?categorySlug=leather-products&sub=clutch' },
+        { label: 'Sling Bags',       labelBn: 'স্লিং ব্যাগ',          href: '/products?categorySlug=leather-products&sub=sling' },
+      ]},
+      { heading: 'Footwear', headingBn: 'জুতা', links: [
+        { label: 'Formal Shoes',     labelBn: 'ফর্মাল জুতা',          href: '/products?categorySlug=leather-products&sub=formal-shoes' },
+        { label: 'Loafers',          labelBn: 'লোফার',               href: '/products?categorySlug=leather-products&sub=loafers' },
+        { label: 'Ladies Heels',     labelBn: 'হিলস',                 href: '/products?categorySlug=leather-products&sub=heels' },
+        { label: 'Sandals',          labelBn: 'স্যান্ডেল',             href: '/products?categorySlug=leather-products&sub=sandals' },
+        { label: 'All Leather →',    labelBn: 'সব চামড়া →',           href: '/products?categorySlug=leather-products' },
       ]},
     ],
   },
@@ -753,21 +768,25 @@ const MEGA_CONTENT = [
   {
     columns: [
       { heading: 'Honey & Sweeteners', headingBn: 'মধু ও মিষ্টি', links: [
-        { label: 'Wild Honey',    labelBn: 'বন মধু',       href: '/products?categorySlug=organic-foods' },
-        { label: 'Mustard Honey', labelBn: 'সরিষার মধু',   href: '/products?categorySlug=organic-foods' },
-        { label: 'Date Molasses', labelBn: 'খেজুরের গুড়', href: '/products?categorySlug=organic-foods' },
+        { label: 'Wild Forest Honey', labelBn: 'বন মধু',              href: '/products?categorySlug=organic-foods&sub=wild-honey' },
+        { label: 'Mustard Honey',     labelBn: 'সরিষার মধু',           href: '/products?categorySlug=organic-foods&sub=mustard-honey' },
+        { label: 'Date Molasses',     labelBn: 'খেজুরের গুড়',          href: '/products?categorySlug=organic-foods&sub=date-molasses' },
+        { label: 'Jaggery',           labelBn: 'আখের গুড়',             href: '/products?categorySlug=organic-foods&sub=jaggery' },
+        { label: 'Stevia',            labelBn: 'স্টেভিয়া',              href: '/products?categorySlug=organic-foods&sub=stevia' },
       ]},
       { heading: 'Nuts, Seeds & Spices', headingBn: 'বাদাম ও মশলা', links: [
-        { label: 'Almonds',      labelBn: 'কাঠবাদাম', href: '/products?categorySlug=organic-foods' },
-        { label: 'Black Seed',   labelBn: 'কালিজিরা', href: '/products?categorySlug=organic-foods' },
-        { label: 'Turmeric',     labelBn: 'হলুদ',     href: '/products?categorySlug=organic-foods' },
-        { label: 'Dried Fruits', labelBn: 'শুকনো ফল', href: '/products?categorySlug=organic-foods' },
+        { label: 'Almonds',           labelBn: 'কাঠবাদাম',             href: '/products?categorySlug=organic-foods&sub=almonds' },
+        { label: 'Cashews',           labelBn: 'কাজুবাদাম',            href: '/products?categorySlug=organic-foods&sub=cashews' },
+        { label: 'Black Seed (Kalonji)',labelBn: 'কালিজিরা',            href: '/products?categorySlug=organic-foods&sub=black-seed' },
+        { label: 'Turmeric',          labelBn: 'হলুদ',                 href: '/products?categorySlug=organic-foods&sub=turmeric' },
+        { label: 'Dried Fruits',      labelBn: 'শুকনো ফল',             href: '/products?categorySlug=organic-foods&sub=dried-fruits' },
       ]},
-      { heading: 'Tea & Snacks', headingBn: 'চা ও স্ন্যাকস', links: [
-        { label: 'Green Tea',    labelBn: 'গ্রিন টি',    href: '/products?categorySlug=organic-foods' },
-        { label: 'Herbal Tea',   labelBn: 'হার্বাল টি',  href: '/products?categorySlug=organic-foods' },
-        { label: 'Granola Bars', labelBn: 'গ্রানোলা বার', href: '/products?categorySlug=organic-foods' },
-        { label: 'All Organic →',labelBn: 'সব অর্গানিক →', href: '/products?categorySlug=organic-foods' },
+      { heading: 'Tea & Healthy Snacks', headingBn: 'চা ও স্ন্যাকস', links: [
+        { label: 'Green Tea',         labelBn: 'গ্রিন টি',              href: '/products?categorySlug=organic-foods&sub=green-tea' },
+        { label: 'Herbal Tea',        labelBn: 'হার্বাল টি',             href: '/products?categorySlug=organic-foods&sub=herbal-tea' },
+        { label: 'Pumpkin Seeds',     labelBn: 'কুমড়ার বীজ',           href: '/products?categorySlug=organic-foods&sub=pumpkin-seeds' },
+        { label: 'Granola & Oats',    labelBn: 'গ্রানোলা ও ওটস',       href: '/products?categorySlug=organic-foods&sub=granola' },
+        { label: 'All Organic →',     labelBn: 'সব অর্গানিক →',         href: '/products?categorySlug=organic-foods' },
       ]},
     ],
   },
@@ -775,86 +794,104 @@ const MEGA_CONTENT = [
   {
     columns: [
       { heading: 'Prayer & Worship', headingBn: 'নামাজ ও ইবাদত', links: [
-        { label: 'Prayer Mats',       labelBn: 'জায়নামাজ',          href: '/islamic-lifestyle' },
-        { label: 'Prayer Caps',       labelBn: 'টুপি',               href: '/islamic-lifestyle' },
-        { label: 'Tasbih Beads',      labelBn: 'তাসবিহ',             href: '/islamic-lifestyle' },
-        { label: 'Miswak',            labelBn: 'মিসওয়াক',            href: '/islamic-lifestyle' },
-        { label: 'Quran Stands',      labelBn: 'কুরআন স্ট্যান্ড',    href: '/islamic-lifestyle' },
+        { label: 'Prayer Mats',        labelBn: 'জায়নামাজ',           href: '/islamic-lifestyle?sub=prayer-mat' },
+        { label: 'Prayer Caps',        labelBn: 'টুপি',                href: '/islamic-lifestyle?sub=prayer-cap' },
+        { label: 'Tasbih Beads',       labelBn: 'তাসবিহ',              href: '/islamic-lifestyle?sub=tasbih' },
+        { label: 'Miswak',             labelBn: 'মিসওয়াক',             href: '/islamic-lifestyle?sub=miswak' },
+        { label: 'Quran Stands',       labelBn: 'কুরআন স্ট্যান্ড',     href: '/islamic-lifestyle?sub=quran-stand' },
+        { label: 'Quran & Books',      labelBn: 'কুরআন ও বই',          href: '/products?categorySlug=books&genre=Islamic' },
       ]},
       { heading: 'Islamic Clothing', headingBn: 'ইসলামিক পোশাক', links: [
-        { label: 'Panjabi / Jubbah',  labelBn: 'পাঞ্জাবি / জুব্বা',  href: '/islamic-lifestyle' },
-        { label: 'Hijab',             labelBn: 'হিজাব',               href: '/islamic-lifestyle' },
-        { label: 'Abaya',             labelBn: 'আবায়া',               href: '/islamic-lifestyle' },
-        { label: 'Islamic Kids Wear', labelBn: 'শিশু ইসলামিক পোশাক', href: '/islamic-lifestyle' },
+        { label: 'Panjabi / Jubbah',   labelBn: 'পাঞ্জাবি / জুব্বা',   href: '/islamic-lifestyle?sub=panjabi' },
+        { label: 'Hijab',              labelBn: 'হিজাব',                href: '/islamic-lifestyle?sub=hijab' },
+        { label: 'Abaya',              labelBn: 'আবায়া',                href: '/islamic-lifestyle?sub=abaya' },
+        { label: 'Islamic Kids Wear',  labelBn: 'শিশু ইসলামিক পোশাক',  href: '/islamic-lifestyle?sub=kids-wear' },
+        { label: 'Niqab & Accessories',labelBn: 'নিকাব ও আনুষাঙ্গিক',  href: '/islamic-lifestyle?sub=niqab' },
       ]},
       { heading: 'Perfumes & Décor', headingBn: 'আতর ও ডেকোর', links: [
-        { label: 'Attar / Oud',       labelBn: 'আতর / আউড',           href: '/islamic-lifestyle' },
-        { label: 'Islamic Wall Art',  labelBn: 'ইসলামিক ওয়াল আর্ট',  href: '/islamic-lifestyle' },
-        { label: 'Calligraphy',       labelBn: 'ক্যালিগ্রাফি',         href: '/islamic-lifestyle' },
-        { label: 'All Islamic →',     labelBn: 'সব পণ্য দেখুন →',     href: '/islamic-lifestyle' },
+        { label: 'Attar / Oud',        labelBn: 'আতর / আউড',            href: '/islamic-lifestyle?sub=attar' },
+        { label: 'Bakhoor Incense',    labelBn: 'বাখুর আগরবাতি',        href: '/islamic-lifestyle?sub=bakhoor' },
+        { label: 'Islamic Wall Art',   labelBn: 'ইসলামিক ওয়াল আর্ট',   href: '/islamic-lifestyle?sub=wall-art' },
+        { label: 'Calligraphy',        labelBn: 'ক্যালিগ্রাফি',          href: '/islamic-lifestyle?sub=calligraphy' },
+        { label: 'All Islamic →',      labelBn: 'সব পণ্য দেখুন →',      href: '/islamic-lifestyle' },
       ]},
     ],
   },
   // 5 — Handicrafts
   {
     columns: [
-      { heading: 'Wall Art & Decor', headingBn: 'দেওয়াল শিল্প', links: [
-        { label: 'Canvas Prints', labelBn: 'ক্যানভাস',     href: '/products?categorySlug=handicrafts' },
-        { label: 'Calligraphy',   labelBn: 'ক্যালিগ্রাফি', href: '/products?categorySlug=handicrafts' },
-        { label: 'Paintings',     labelBn: 'চিত্রকর্ম',    href: '/products?categorySlug=handicrafts' },
-        { label: 'Clay Items',    labelBn: 'মাটির জিনিস',  href: '/products?categorySlug=handicrafts' },
+      { heading: 'Wall Art & Décor', headingBn: 'দেওয়াল শিল্প ও ডেকোর', links: [
+        { label: 'Canvas Prints',      labelBn: 'ক্যানভাস প্রিন্ট',     href: '/products?categorySlug=handicrafts&sub=canvas' },
+        { label: 'Calligraphy',        labelBn: 'ক্যালিগ্রাফি',          href: '/products?categorySlug=handicrafts&sub=calligraphy' },
+        { label: 'Oil Paintings',      labelBn: 'তেল চিত্রকর্ম',         href: '/products?categorySlug=handicrafts&sub=paintings' },
+        { label: 'Clay & Terracotta',  labelBn: 'মাটির পণ্য',            href: '/products?categorySlug=handicrafts&sub=clay' },
+        { label: 'Showpieces',         labelBn: 'শোপিস',                  href: '/products?categorySlug=handicrafts&sub=showpieces' },
       ]},
-      { heading: 'Traditional Crafts', headingBn: 'ঐতিহ্যবাহী', links: [
-        { label: 'Nakshi Kantha', labelBn: 'নকশি কাঁথা',     href: '/products?categorySlug=handicrafts' },
-        { label: 'Muslin',        labelBn: 'মসলিন',           href: '/products?categorySlug=handicrafts' },
-        { label: 'Jamdani',       labelBn: 'জামদানি',         href: '/products?categorySlug=handicrafts' },
-        { label: 'Jute Products', labelBn: 'পাটের পণ্য',     href: '/products?categorySlug=handicrafts' },
-        { label: 'All Crafts →',  labelBn: 'সব হস্তশিল্প →', href: '/products?categorySlug=handicrafts' },
+      { heading: 'Traditional Crafts', headingBn: 'ঐতিহ্যবাহী শিল্প', links: [
+        { label: 'Nakshi Kantha',      labelBn: 'নকশি কাঁথা',            href: '/products?categorySlug=handicrafts&sub=nakshi-kantha' },
+        { label: 'Muslin & Jamdani',   labelBn: 'মসলিন ও জামদানি',       href: '/products?categorySlug=handicrafts&sub=muslin' },
+        { label: 'Jute Products',      labelBn: 'পাটের পণ্য',             href: '/products?categorySlug=handicrafts&sub=jute' },
+        { label: 'Bamboo & Cane',      labelBn: 'বাঁশ ও বেতের পণ্য',     href: '/products?categorySlug=handicrafts&sub=bamboo' },
+        { label: 'Kantha & Embroidery',labelBn: 'কাঁথা ও সূচিকর্ম',      href: '/products?categorySlug=handicrafts&sub=embroidery' },
+      ]},
+      { heading: 'Handmade Gifts', headingBn: 'হাতে তৈরি উপহার', links: [
+        { label: 'Gift Baskets',       labelBn: 'গিফট বাস্কেট',           href: '/products?categorySlug=handicrafts&sub=gift-basket' },
+        { label: 'Pottery',            labelBn: 'মাটির বাসন',              href: '/products?categorySlug=handicrafts&sub=pottery' },
+        { label: 'Wooden Crafts',      labelBn: 'কাঠের হস্তশিল্প',        href: '/products?categorySlug=handicrafts&sub=wooden' },
+        { label: 'Brass & Metal Art',  labelBn: 'পিতল ও ধাতু শিল্প',     href: '/products?categorySlug=handicrafts&sub=brass' },
+        { label: 'All Crafts →',       labelBn: 'সব হস্তশিল্প →',         href: '/products?categorySlug=handicrafts' },
       ]},
     ],
   },
   // 6 — Electronics
   {
     columns: [
-      { heading: 'Mobiles & Laptops', headingBn: 'মোবাইল ও ল্যাপটপ', links: [
-        { label: 'Samsung',        labelBn: 'স্যামসাং',     href: '/products?categorySlug=electronics' },
-        { label: 'iPhone',         labelBn: 'আইফোন',        href: '/products?categorySlug=electronics' },
-        { label: 'Gaming Laptops', labelBn: 'গেমিং ল্যাপটপ', href: '/products?categorySlug=electronics' },
-        { label: 'MacBook',        labelBn: 'ম্যাকবুক',     href: '/products?categorySlug=electronics' },
+      { heading: 'Mobiles & Tablets', headingBn: 'মোবাইল ও ট্যাবলেট', links: [
+        { label: 'Samsung Phones',     labelBn: 'স্যামসাং ফোন',          href: '/products?categorySlug=electronics&sub=mobiles&search=samsung' },
+        { label: 'iPhone',             labelBn: 'আইফোন',                  href: '/products?categorySlug=electronics&sub=mobiles&search=iphone' },
+        { label: 'Budget Phones',      labelBn: 'বাজেট ফোন',              href: '/products?categorySlug=electronics&sub=mobiles' },
+        { label: 'Tablets & iPads',    labelBn: 'ট্যাবলেট',                href: '/products?categorySlug=electronics&sub=tablets' },
+        { label: 'Phone Accessories',  labelBn: 'ফোনের আনুষাঙ্গিক',       href: '/products?categorySlug=electronics&sub=phone-accessories' },
       ]},
-      { heading: 'Accessories', headingBn: 'আনুষাঙ্গিক', links: [
-        { label: 'Earbuds & TWS', labelBn: 'ইয়ারবাডস',    href: '/products?categorySlug=electronics' },
-        { label: 'Smartwatches',  labelBn: 'স্মার্টওয়াচ',  href: '/products?categorySlug=electronics' },
-        { label: 'Power Banks',   labelBn: 'পাওয়ার ব্যাংক', href: '/products?categorySlug=electronics' },
-        { label: 'Chargers',      labelBn: 'চার্জার',       href: '/products?categorySlug=electronics' },
+      { heading: 'Laptops & Computing', headingBn: 'ল্যাপটপ ও কম্পিউটার', links: [
+        { label: 'Gaming Laptops',     labelBn: 'গেমিং ল্যাপটপ',          href: '/products?categorySlug=electronics&sub=gaming-laptop' },
+        { label: 'Office / Ultrabooks',labelBn: 'অফিস ল্যাপটপ',           href: '/products?categorySlug=electronics&sub=office-laptop' },
+        { label: 'MacBook',            labelBn: 'ম্যাকবুক',                href: '/products?categorySlug=electronics&sub=macbook' },
+        { label: 'Monitors',           labelBn: 'মনিটর',                   href: '/products?categorySlug=electronics&sub=monitors' },
+        { label: 'Keyboards & Mouse',  labelBn: 'কীবোর্ড ও মাউস',         href: '/products?categorySlug=electronics&sub=peripherals' },
       ]},
-      { heading: 'Gadgets & Home', headingBn: 'গ্যাজেট', links: [
-        { label: 'Smart Cameras',    labelBn: 'ক্যামেরা',            href: '/products?categorySlug=electronics' },
-        { label: 'Air Purifiers',    labelBn: 'এয়ার পিউরিফায়ার',    href: '/products?categorySlug=electronics' },
-        { label: 'Rice Cookers',     labelBn: 'রাইস কুকার',          href: '/products?categorySlug=electronics' },
-        { label: 'All Electronics →',labelBn: 'সব ইলেকট্রনিক্স →',  href: '/products?categorySlug=electronics' },
+      { heading: 'Audio, Gadgets & Home', headingBn: 'অডিও ও গ্যাজেট', links: [
+        { label: 'Earbuds & TWS',      labelBn: 'ইয়ারবাডস',               href: '/products?categorySlug=electronics&sub=earbuds' },
+        { label: 'Smartwatches',       labelBn: 'স্মার্টওয়াচ',             href: '/products?categorySlug=electronics&sub=smartwatch' },
+        { label: 'Power Banks',        labelBn: 'পাওয়ার ব্যাংক',           href: '/products?categorySlug=electronics&sub=power-bank' },
+        { label: 'Smart Cameras',      labelBn: 'স্মার্ট ক্যামেরা',         href: '/products?categorySlug=electronics&sub=cameras' },
+        { label: 'All Electronics →',  labelBn: 'সব ইলেকট্রনিক্স →',      href: '/products?categorySlug=electronics' },
       ]},
     ],
   },
   // 7 — Daily Needs
   {
     columns: [
-      { heading: 'Grocery', headingBn: 'মুদি পণ্য', links: [
-        { label: 'Rice & Flour', labelBn: 'চাল ও আটা',  href: '/products?categorySlug=daily-needs' },
-        { label: 'Cooking Oil',  labelBn: 'রান্নার তেল', href: '/products?categorySlug=daily-needs' },
-        { label: 'Pulses',       labelBn: 'ডাল',         href: '/products?categorySlug=daily-needs' },
+      { heading: 'Grocery & Kitchen', headingBn: 'মুদি ও রান্নাঘর', links: [
+        { label: 'Rice & Flour',       labelBn: 'চাল ও আটা',              href: '/products?categorySlug=daily-needs&sub=rice-flour' },
+        { label: 'Cooking Oil',        labelBn: 'রান্নার তেল',              href: '/products?categorySlug=daily-needs&sub=cooking-oil' },
+        { label: 'Pulses & Lentils',   labelBn: 'ডাল ও শস্য',              href: '/products?categorySlug=daily-needs&sub=pulses' },
+        { label: 'Spices & Condiments',labelBn: 'মশলা ও মসলা',             href: '/products?categorySlug=daily-needs&sub=spices' },
+        { label: 'Kitchen Tools',      labelBn: 'কিচেন সরঞ্জাম',           href: '/products?categorySlug=daily-needs&sub=kitchen-tools' },
       ]},
-      { heading: 'Personal Care & Household', headingBn: 'ব্যক্তিগত যত্ন', links: [
-        { label: 'Skin Care',     labelBn: 'স্কিন কেয়ার', href: '/products?categorySlug=daily-needs' },
-        { label: 'Hair Care',     labelBn: 'হেয়ার কেয়ার', href: '/products?categorySlug=daily-needs' },
-        { label: 'Kitchen Tools', labelBn: 'কিচেন টুলস',  href: '/products?categorySlug=daily-needs' },
-        { label: 'Cleaning',      labelBn: 'ক্লিনিং',     href: '/products?categorySlug=daily-needs' },
+      { heading: 'Personal Care', headingBn: 'ব্যক্তিগত যত্ন', links: [
+        { label: 'Skin Care',          labelBn: 'স্কিন কেয়ার',              href: '/products?categorySlug=daily-needs&sub=skin-care' },
+        { label: 'Hair Care',          labelBn: 'হেয়ার কেয়ার',             href: '/products?categorySlug=daily-needs&sub=hair-care' },
+        { label: 'Oral Care',          labelBn: 'মুখের যত্ন',               href: '/products?categorySlug=daily-needs&sub=oral-care' },
+        { label: 'Soaps & Body Wash',  labelBn: 'সাবান ও বডি ওয়াশ',       href: '/products?categorySlug=daily-needs&sub=soaps' },
+        { label: 'Deodorant',          labelBn: 'ডিওডোরেন্ট',               href: '/products?categorySlug=daily-needs&sub=deodorant' },
       ]},
-      { heading: 'Stationery & Pet', headingBn: 'স্টেশনারি', links: [
-        { label: 'Notebooks',    labelBn: 'নোটবুক',             href: '/products?categorySlug=daily-needs' },
-        { label: 'Pens',         labelBn: 'কলম',                href: '/products?categorySlug=daily-needs' },
-        { label: 'Pet Food',     labelBn: 'পোষা প্রাণীর খাবার', href: '/products?categorySlug=daily-needs' },
-        { label: 'All Daily →',  labelBn: 'সব পণ্য →',          href: '/products?categorySlug=daily-needs' },
+      { heading: 'Household & Stationery', headingBn: 'গৃহস্থালি ও স্টেশনারি', links: [
+        { label: 'Cleaning Supplies',  labelBn: 'পরিষ্কার সামগ্রী',         href: '/products?categorySlug=daily-needs&sub=cleaning' },
+        { label: 'Notebooks & Pens',   labelBn: 'নোটবুক ও কলম',            href: '/products?categorySlug=daily-needs&sub=stationery' },
+        { label: 'Pet Food & Care',    labelBn: 'পোষা প্রাণীর যত্ন',        href: '/products?categorySlug=daily-needs&sub=pet-care' },
+        { label: 'Air Fresheners',     labelBn: 'এয়ার ফ্রেশনার',            href: '/products?categorySlug=daily-needs&sub=air-freshener' },
+        { label: 'All Daily →',        labelBn: 'সব পণ্য →',                href: '/products?categorySlug=daily-needs' },
       ]},
     ],
   },
@@ -1214,13 +1251,17 @@ export function Header() {
     setSearchQuery(q ?? '');
   }, [searchParams]);
 
-  // Always use the full curated static list so the nav never jumps when the API loads.
-  // Override displayName from the API if the admin has renamed a category.
+  // During initial load (no API data): show all static categories so layout doesn't jump.
+  // Once API data arrives: respect admin enable/disable — only show categories present in API.
+  // Also sync display names if admin renamed a category.
   const dynamicNavCategories: NavCategory[] = (() => {
     if (!apiCategories || apiCategories.length === 0) return NAV_CATEGORIES;
-    return NAV_CATEGORIES.map(cat => {
-      const apiCat = apiCategories.find(c => c.slug === cat.slug);
-      return apiCat ? { ...cat, displayName: apiCat.name } : cat;
+    const apiSlugs = new Set(apiCategories.map((c: { slug: string }) => c.slug));
+    const filtered = NAV_CATEGORIES.filter(cat => apiSlugs.has(cat.slug));
+    if (filtered.length === 0) return NAV_CATEGORIES; // fallback if API slugs don't match static data
+    return filtered.map(cat => {
+      const apiCat = apiCategories.find((c: { slug: string; name: string }) => c.slug === cat.slug)!;
+      return { ...cat, displayName: apiCat.name };
     });
   })();
 
@@ -1722,13 +1763,13 @@ export function Header() {
               )}
             </div>
 
-            {/* Right column: two explicit rows. overflow-hidden here clips any
-                category bleed without touching the mega dropdown (which lives in
-                the All Departments column on the left). */}
+            {/* Right column: dynamic 1 or 2 rows depending on active category count.
+                overflow-hidden here clips any category bleed without touching the
+                mega dropdown (which lives in the All Departments column on the left). */}
             <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-              {/* Row 1: original 8 categories + special links pinned right */}
+              {/* Row 1: first 8 categories (or all if ≤8) + special links pinned right */}
               <div className="flex items-center">
-                {dynamicNavCategories.slice(0, 8).map((cat, idx) => (
+                {(dynamicNavCategories.length > 8 ? dynamicNavCategories.slice(0, 8) : dynamicNavCategories).map((cat, idx) => (
                   <Link
                     key={cat.slug}
                     href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
@@ -1756,28 +1797,30 @@ export function Header() {
                   </Link>
                 </div>
               </div>
-              {/* Row 2: remaining 7 niche categories */}
-              <div className="flex items-center border-t border-gray-100">
-                {dynamicNavCategories.slice(8).map((cat, i) => {
-                  const idx = i + 8;
-                  return (
-                    <Link
-                      key={cat.slug}
-                      href={`/products?categorySlug=${cat.slug}`}
-                      onMouseEnter={() => setActiveCategoryIndex(idx)}
-                      className={cn(
-                        'px-2 xl:px-3 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold shrink-0',
-                        activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
-                      )}
-                    >
-                      {getCatName(cat)}
-                      {activeCategoryIndex === idx && (
-                        <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
+              {/* Row 2: shown only when there are more than 8 active categories */}
+              {dynamicNavCategories.length > 8 && (
+                <div className="flex items-center border-t border-gray-100">
+                  {dynamicNavCategories.slice(8).map((cat, i) => {
+                    const idx = i + 8;
+                    return (
+                      <Link
+                        key={cat.slug}
+                        href={`/products?categorySlug=${cat.slug}`}
+                        onMouseEnter={() => setActiveCategoryIndex(idx)}
+                        className={cn(
+                          'px-2 xl:px-3 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold shrink-0',
+                          activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
+                        )}
+                      >
+                        {getCatName(cat)}
+                        {activeCategoryIndex === idx && (
+                          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

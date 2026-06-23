@@ -146,7 +146,7 @@ const BINDINGS = [
 ];
 
 // ─── Filter Panel ──────────────────────────────────────────────────────────────
-function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, totalProducts, activeCount, advanced }: {
+function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, totalProducts, activeCount, advanced, isBookCategory }: {
   filters: FilterState;
   categories: CategoryWithChildren[] | undefined;
   filterOptions: { genres: string[]; authors: string[]; publishers: string[]; bindings: string[]; } | undefined;
@@ -155,6 +155,7 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
   totalProducts?: number;
   activeCount: number;
   advanced?: boolean;
+  isBookCategory?: boolean;
 }) {
   const { t, lang } = useLanguage();
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
@@ -192,7 +193,7 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
   return (
     <div className="bg-white rounded-2xl border overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3.5 bg-gray-50 border-b">
+      <div className="flex items-center justify-between px-4 py-3.5 bg-gray-50 border-b sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="w-4 h-4 text-gray-500" />
           <span className="text-sm font-black text-gray-800">{t.products.filters}</span>
@@ -272,8 +273,8 @@ function FilterPanel({ filters, categories, filterOptions, onFilter, onClear, to
         <CheckRow label={t.products.onSale} active={filters.hasDiscount} onClick={() => onFilter({ hasDiscount: !filters.hasDiscount })} icon={Tag} iconClass="text-red-400" />
       </Section>
 
-      {/* Language / Genre / Author / Publisher / Binding — top bar on desktop; shown in mobile drawer only when not advanced */}
-      {!advanced && (
+      {/* Language / Genre / Author / Publisher / Binding — books only; shown in mobile drawer only when not advanced */}
+      {!advanced && isBookCategory && (
         <>
           <Section title={t.books.language} icon={Globe} badge={filters.language ? 1 : 0} defaultOpen={false}>
             <div className="space-y-0.5">
@@ -458,10 +459,13 @@ function ProductsContent() {
 
   const { data: categories } = useQuery({ queryKey: ['categories-roots'], queryFn: () => categoriesApi.getRoots() });
 
+  const isBookCategory = !categorySlug || categorySlug === 'books';
+
   const { data: filterOptions } = useQuery({
     queryKey: ['books-filter-options'],
     queryFn: () => booksApi.getFilterOptions(),
     staleTime: 10 * 60 * 1000,
+    enabled: isBookCategory,
   });
 
   const setParams = useCallback((updates: Record<string, string | undefined>) => {
@@ -524,6 +528,7 @@ function ProductsContent() {
     onClear: clearAllFilters,
     totalProducts: data?.meta.total,
     activeCount,
+    isBookCategory,
   };
 
   const pageTitle = categorySlug
@@ -600,8 +605,8 @@ function ProductsContent() {
         )}
       </div>
 
-      {/* Top filter bar — Language, Genre, Author, Publisher, Format only */}
-      <div className="hidden lg:flex items-center gap-2 flex-wrap mb-4 pb-3 border-b border-gray-100">
+      {/* Top filter bar — Language, Genre, Author, Publisher, Format — books only */}
+      {isBookCategory && <div className="hidden lg:flex items-center gap-2 flex-wrap mb-4 pb-3 border-b border-gray-100">
         {/* Language */}
         <FilterDropdown label={language ?? t.books.language} icon={Globe} active={!!language}>
           <div className="p-2 space-y-0.5">
@@ -658,11 +663,11 @@ function ProductsContent() {
             ))}
           </div>
         </FilterDropdown>
-      </div>
+      </div>}
 
       <div className="flex gap-5 items-start">
         {/* Desktop sidebar — advanced filters (Category, Price, Type, Availability…) */}
-        <aside className="hidden lg:block w-60 flex-shrink-0 sticky top-4">
+        <aside className="hidden lg:block w-60 flex-shrink-0 sticky top-4 max-h-[calc(100vh-5rem)] overflow-y-auto">
           <FilterPanel {...filterPanelProps} advanced />
         </aside>
 
