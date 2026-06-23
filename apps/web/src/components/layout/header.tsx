@@ -1723,7 +1723,7 @@ export function Header() {
             </div>
 
             {/* Right column: categories wrap here; All Depts space below stays empty */}
-            <div className="flex flex-1 flex-wrap items-center min-w-0 overflow-hidden">
+            <div className="flex flex-1 flex-wrap items-center min-w-0">
               {dynamicNavCategories.map((cat, idx) => (
                 <Link
                   key={cat.slug}
