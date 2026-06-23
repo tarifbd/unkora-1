@@ -45,6 +45,7 @@ interface CategoryRow {
   color?: string;
   navLabel?: string;
   navLink?: string;
+  childrenCount?: number;
 }
 
 // ─── Icon Picker Popover ───────────────────────────────────────
@@ -261,6 +262,7 @@ export default function MegaMenuPage() {
           icon: c.icon,
           imageUrl: c.imageUrl,
           color: c.color,
+          childrenCount: c.children?.length ?? 0,
         }))
     );
   }
@@ -273,8 +275,12 @@ export default function MegaMenuPage() {
         icon: row.icon,
         color: row.color,
         imageUrl: row.imageUrl,
+        name: row.navLabel || undefined, // custom nav label saves to category name
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['categories-all-admin'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['categories-all-admin'] });
+      qc.invalidateQueries({ queryKey: ['nav-categories'] });
+    },
   });
 
   const handleSaveAll = async () => {
@@ -354,8 +360,9 @@ export default function MegaMenuPage() {
       <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5"><Eye className="h-3.5 w-3.5 text-green-600" /> Shown in nav</span>
         <span className="flex items-center gap-1.5"><EyeOff className="h-3.5 w-3.5 text-gray-400" /> Hidden</span>
-        <span className="flex items-center gap-1.5"><LayoutGrid className="h-3.5 w-3.5" /> {featured.length} of {rows.length} categories visible</span>
-        <span className="flex items-center gap-1.5 text-blue-600"><Palette className="h-3.5 w-3.5" /> Click icon to edit style &amp; options</span>
+        <span className="flex items-center gap-1.5"><LayoutGrid className="h-3.5 w-3.5" /> {featured.length} of {rows.length} visible · auto {featured.length > 8 ? '2-row' : '1-row'} nav</span>
+        <span className="flex items-center gap-1.5 text-blue-600"><Palette className="h-3.5 w-3.5" /> Click icon to edit style</span>
+        <span className="flex items-center gap-1.5 text-green-700">Sub-items = child categories (click to manage)</span>
       </div>
 
       {/* Category rows */}
@@ -380,16 +387,24 @@ export default function MegaMenuPage() {
             <div>
               <p className="font-semibold text-sm">{row.name}</p>
               <p className="text-xs text-muted-foreground">/categories/{row.slug}</p>
-              {row.navLabel && (
-                <span className="inline-block mt-0.5 text-[10px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-md">
-                  Nav: {row.navLabel}
-                </span>
-              )}
-              {row.navLink && (
-                <span className="inline-block mt-0.5 ml-1 text-[10px] font-bold bg-purple-50 text-purple-600 px-1.5 py-0.5 rounded-md">
-                  Custom link
-                </span>
-              )}
+              <div className="flex flex-wrap gap-1 mt-0.5">
+                {(row.childrenCount ?? 0) > 0 ? (
+                  <a href={`/admin/categories?parentSlug=${row.slug}`} target="_blank" rel="noreferrer"
+                    className="text-[10px] font-bold bg-green-50 text-green-700 px-1.5 py-0.5 rounded-md hover:bg-green-100 transition-colors">
+                    {row.childrenCount} sub-items ↗
+                  </a>
+                ) : (
+                  <a href={`/admin/categories?parentSlug=${row.slug}`} target="_blank" rel="noreferrer"
+                    className="text-[10px] font-bold bg-gray-50 text-gray-500 px-1.5 py-0.5 rounded-md hover:bg-gray-100 transition-colors">
+                    + Add sub-items ↗
+                  </a>
+                )}
+                {row.navLabel && (
+                  <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-md">
+                    Label: {row.navLabel}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Icon preview — click to open drawer */}

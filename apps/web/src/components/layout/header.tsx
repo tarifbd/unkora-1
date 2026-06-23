@@ -9,7 +9,7 @@ import {
   Package, Heart, CreditCard, Settings, LogOut, Gift, Truck, CalendarClock, Store,
   Dumbbell, Shirt, Home, Car, Wheat, Gamepad2, Luggage,
 } from 'lucide-react';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
@@ -1142,6 +1142,36 @@ const MEGA_CONTENT = [
   },
 ] as const;
 
+// Slug order matching MEGA_CATEGORIES / MEGA_CONTENT above
+const MEGA_SLUGS = [
+  'books','baby-products','leather-products','organic-foods','islamic-lifestyle',
+  'handicrafts','electronics','daily-needs','health-sports','fashion-lifestyle',
+  'home-furniture','automotive','agriculture','toys-gaming','travel-bags',
+] as const;
+
+const MEGA_CATS_BY_SLUG = Object.fromEntries(
+  MEGA_SLUGS.map((slug, i) => [slug, MEGA_CATEGORIES[i]!] as const)
+) as Record<string, typeof MEGA_CATEGORIES[number]>;
+
+const MEGA_CONTENT_BY_SLUG = Object.fromEntries(
+  MEGA_SLUGS.map((slug, i) => [slug, MEGA_CONTENT[i]!] as const)
+) as Record<string, typeof MEGA_CONTENT[number]>;
+
+type ApiCat = {
+  id: string; slug: string; name: string; isFeatured?: boolean; sortOrder?: number;
+  icon?: string; color?: string; imageUrl?: string;
+  children?: Array<{ id: string; name: string; slug: string; sortOrder?: number; isActive?: boolean }>;
+};
+
+type MegaCat = {
+  slug: string;
+  emoji: string;
+  name: string;
+  nameBn: string;
+  href: string;
+  subs: { label: string; labelBn: string; href: string }[];
+};
+
 export function Header() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -1254,17 +1284,50 @@ export function Header() {
   // During initial load (no API data): show all static categories so layout doesn't jump.
   // Once API data arrives: respect admin enable/disable — only show categories present in API.
   // Also sync display names if admin renamed a category.
-  const dynamicNavCategories: NavCategory[] = (() => {
+  const dynamicNavCategories: NavCategory[] = useMemo(() => {
     if (!apiCategories || apiCategories.length === 0) return NAV_CATEGORIES;
-    const apiSlugs = new Set(apiCategories.map((c: { slug: string }) => c.slug));
-    const filtered = NAV_CATEGORIES.filter(cat => apiSlugs.has(cat.slug));
-    if (filtered.length === 0) return NAV_CATEGORIES; // fallback if API slugs don't match static data
-    return filtered.map(cat => {
-      const apiCat = apiCategories.find((c: { slug: string; name: string }) => c.slug === cat.slug)!;
-      return { ...cat, displayName: apiCat.name };
+    const featured = (apiCategories as ApiCat[])
+      .filter(c => c.isFeatured)
+      .sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
+    if (featured.length === 0) return NAV_CATEGORIES;
+    return featured.map(apiCat => {
+      const staticCat = SLUG_TO_NAV[apiCat.slug];
+      return {
+        slug: apiCat.slug,
+        displayName: apiCat.name,
+        nameKey: staticCat?.nameKey ?? 'books' as NavCategory['nameKey'],
+        icon: staticCat?.icon ?? ShoppingBag,
+        subnav: staticCat?.subnav ?? [],
+      };
     });
-  })();
+  }, [apiCategories]);
 
+  // Mega-menu left panel: featured categories in admin order, with API children as subs
+  const dynamicMegaCategories = useMemo(() => {
+    if (!apiCategories || apiCategories.length === 0) return MEGA_CATEGORIES as unknown as MegaCat[];
+    const featured = (apiCategories as ApiCat[])
+      .filter(c => c.isFeatured)
+      .sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
+    if (featured.length === 0) return MEGA_CATEGORIES as unknown as MegaCat[];
+    return featured.map(apiCat => {
+      const st = MEGA_CATS_BY_SLUG[apiCat.slug];
+      const apiChildren = (apiCat.children ?? []).filter(c => c.isActive !== false).sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
+      const subs: MegaCat['subs'] = apiChildren.length > 0
+        ? [
+            ...apiChildren.map(child => ({ label: child.name, labelBn: child.name, href: `/products?categorySlug=${apiCat.slug}&sub=${child.slug}` })),
+            { label: `All ${apiCat.name} →`, labelBn: `সব ${apiCat.name} →`, href: apiCat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${apiCat.slug}` },
+          ]
+        : (st?.subs as MegaCat['subs'] ?? []);
+      return {
+        slug: apiCat.slug,
+        emoji: apiCat.icon ?? st?.emoji ?? '🏷️',
+        name: apiCat.name,
+        nameBn: st?.nameBn ?? apiCat.name,
+        href: apiCat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${apiCat.slug}`,
+        subs,
+      } satisfies MegaCat;
+    });
+  }, [apiCategories]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1583,9 +1646,9 @@ export function Header() {
                   <div className="flex flex-1 min-h-0">
                     {/* ── Left sidebar ── */}
                     <div className="w-48 bg-gray-50 border-r border-gray-100 py-1.5 flex-shrink-0 overflow-y-auto">
-                      {MEGA_CATEGORIES.map((cat, i) => (
+                      {dynamicMegaCategories.map((cat, i) => (
                         <div
-                          key={cat.href}
+                          key={cat.slug}
                           onMouseEnter={() => setMegaHoverCat(i)}
                           className={cn(
                             'relative flex items-center gap-2.5 px-4 py-2.5 cursor-pointer transition-colors text-[13px]',
@@ -1605,8 +1668,8 @@ export function Header() {
                     <div className="flex-1 p-5 overflow-y-auto">
 
                       {/* ── BOOKS (special — Rokomari + Amazon style) ── */}
-                      {megaHoverCat === 0 && (() => {
-                        const content = MEGA_CONTENT[0];
+                      {dynamicMegaCategories[megaHoverCat]?.slug === 'books' && (() => {
+                        const content = MEGA_CONTENT_BY_SLUG['books'] as typeof MEGA_CONTENT[0];
                         return (
                           <>
                             <div className="flex items-center justify-between mb-3">
@@ -1708,10 +1771,13 @@ export function Header() {
                       })()}
 
                       {/* ── Other categories ── */}
-                      {megaHoverCat !== 0 && (() => {
-                        const cat = MEGA_CATEGORIES[megaHoverCat]!;
-                        const raw = MEGA_CONTENT[megaHoverCat as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14];
-                        const content = raw as unknown as { columns: { heading: string; headingBn: string; links: { label: string; labelBn: string; href: string }[] }[] };
+                      {dynamicMegaCategories[megaHoverCat]?.slug !== 'books' && (() => {
+                        const cat = dynamicMegaCategories[megaHoverCat]!;
+                        const staticContent = cat?.slug ? MEGA_CONTENT_BY_SLUG[cat.slug] : undefined;
+                        // Fall back to building columns from the category's own subs list
+                        const content: { columns: { heading: string; headingBn: string; links: { label: string; labelBn: string; href: string }[] }[] } | undefined =
+                          (staticContent as unknown as { columns: { heading: string; headingBn: string; links: { label: string; labelBn: string; href: string }[] }[] } | undefined)
+                          ?? (cat?.subs?.length ? { columns: [{ heading: 'Browse', headingBn: 'ব্রাউজ করুন', links: cat.subs }] } : undefined);
                         if (!content?.columns) return null;
                         return (
                           <>
@@ -1752,7 +1818,7 @@ export function Header() {
                   {/* Footer */}
                   <div className="bg-gray-50 border-t border-gray-100 px-5 py-2.5 flex items-center justify-between flex-shrink-0">
                     <p className="text-[11px] text-gray-400">
-                      {lang === 'bn' ? '১৫টি বিভাগে হাজারো পণ্য' : '1000s of products across 15 departments'}
+                      {lang === 'bn' ? `${dynamicMegaCategories.length}টি বিভাগে হাজারো পণ্য` : `1000s of products across ${dynamicMegaCategories.length} departments`}
                     </p>
                     <Link href="/products" onClick={() => setMegaOpen(false)}
                       className="text-xs font-bold text-primary hover:text-primary/80 flex items-center gap-1 bg-primary/5 px-3 py-1.5 rounded-full transition-colors hover:bg-primary/10">
