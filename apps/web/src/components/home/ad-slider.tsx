@@ -74,7 +74,6 @@ export function AdSlider({ fallback, lang = 'en' }: { fallback?: React.ReactNode
               src={s.imageUrl}
               alt={s.title}
               fill
-              unoptimized={s.imageUrl.includes('unsplash') || s.imageUrl.startsWith('http')}
               className={`object-cover transition-transform duration-[6000ms] ease-out ${i === idx ? 'scale-110' : 'scale-100'}`}
               sizes="(max-width: 768px) 100vw, 360px"
               priority={i === 0}

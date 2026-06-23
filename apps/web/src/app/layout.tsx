@@ -31,6 +31,15 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="bn" suppressHydrationWarning>
+      <head>
+        {/* Preconnect to image/asset origins for faster LCP */}
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="preconnect" href="https://pub-c7c71d2de0d04a0099ccdff17d97daba.r2.dev" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
+        <link rel="dns-prefetch" href="https://www.clarity.ms" />
+        <link rel="dns-prefetch" href="https://analytics.tiktok.com" />
+      </head>
       <body className="font-sans antialiased">
         <Providers><PopupRenderer />{children}</Providers>
         <AnalyticsScripts />

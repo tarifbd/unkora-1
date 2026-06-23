@@ -232,7 +232,6 @@ export function HeroSlider({ lang = 'en' }: { lang?: 'en' | 'bn' }) {
                 alt={s.title}
                 fill
                 priority={i === 0}
-                unoptimized
                 className="object-cover"
                 style={isActive
                   ? { animation: `hs-kenburns ${ROTATE_MS + 2000}ms ease-out forwards` }

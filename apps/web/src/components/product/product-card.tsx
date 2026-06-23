@@ -24,7 +24,6 @@ export function ProductCard({ product, className, listView, mini }: ProductCardP
   const { lang } = useLanguage();
 
   const image = product.images?.[0]?.url;
-  const isUnsplash = image?.includes('unsplash.com') ?? false;
   const hasDiscount = product.salePrice && Number(product.salePrice) < Number(product.basePrice);
   const price = Number(product.salePrice ?? product.basePrice);
   const discountPct = hasDiscount
@@ -54,7 +53,7 @@ export function ProductCard({ product, className, listView, mini }: ProductCardP
         {/* Thumbnail */}
         <div className="relative w-20 h-28 flex-shrink-0 rounded-lg overflow-hidden bg-gray-50">
           {image ? (
-            <Image src={image} alt={product.name} fill unoptimized={isUnsplash} className="object-cover" sizes="80px" />
+            <Image src={image} alt={product.name} fill className="object-cover" sizes="80px" />
           ) : (
             <div className="flex h-full items-center justify-center text-3xl text-gray-200">📚</div>
           )}
@@ -130,7 +129,6 @@ export function ProductCard({ product, className, listView, mini }: ProductCardP
             src={image}
             alt={product.name}
             fill
-            unoptimized={isUnsplash}
             className="object-cover transition-transform duration-500 group-hover:scale-110"
             sizes="(max-width: 480px) 50vw, (max-width: 1024px) 33vw, 240px"
           />
