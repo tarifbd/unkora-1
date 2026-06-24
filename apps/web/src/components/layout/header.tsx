@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
-  Book, Baby, Briefcase, Leaf, Palette, Zap, ShoppingBag, Moon,
+  Book, Baby, Briefcase, Leaf, Palette, Zap, ShoppingBag, Moon, Sprout,
   Menu, X, Search, User, ShoppingCart, ChevronDown,
   MapPin, Phone, HelpCircle,
   Package, Heart, CreditCard, Settings, LogOut, Gift, Truck, CalendarClock, Store,
@@ -48,6 +48,7 @@ const NAV_CATEGORIES: NavCategory[] = [
   { nameKey: 'agriculture',    displayName: 'Agriculture',      icon: Wheat,    slug: 'agriculture',    subnav: ['Seeds & Plants', 'Fertilizers', 'Farming Tools', 'Irrigation', 'Organic Farming', 'Livestock'] },
   { nameKey: 'toysGaming',     displayName: 'Toys & Gaming',    icon: Gamepad2, slug: 'toys-gaming',    subnav: ['Action Figures', 'Board Games', 'Video Games', 'Consoles & Accessories', 'Outdoor Toys', 'Educational Toys'] },
   { nameKey: 'travelBags',     displayName: 'Travel & Bags',    icon: Luggage,  slug: 'travel-bags',    subnav: ['Luggage & Trolleys', 'Travel Accessories', 'Backpacks', 'Laptop Bags', 'Ladies Bags', 'Travel Pillows'] },
+  { nameKey: 'ecoFriendly',   displayName: 'Eco Friendly',     icon: Sprout,   slug: 'eco-friendly',   subnav: ['Organic Foods', 'Natural Skincare', 'Bamboo Products', 'Eco Stationery', 'Herbal Products', 'Sustainable Fashion'] },
 ];
 
 const SLUG_TO_NAV: Record<string, Partial<NavCategory>> = {
@@ -66,6 +67,7 @@ const SLUG_TO_NAV: Record<string, Partial<NavCategory>> = {
   'agriculture':    { nameKey: 'agriculture',    icon: Wheat,    subnav: ['Seeds & Plants', 'Fertilizers', 'Farming Tools', 'Irrigation', 'Organic Farming', 'Livestock'] },
   'toys-gaming':    { nameKey: 'toysGaming',     icon: Gamepad2, subnav: ['Action Figures', 'Board Games', 'Video Games', 'Consoles & Accessories', 'Outdoor Toys', 'Educational Toys'] },
   'travel-bags':    { nameKey: 'travelBags',     icon: Luggage,  subnav: ['Luggage & Trolleys', 'Travel Accessories', 'Backpacks', 'Laptop Bags', 'Ladies Bags', 'Travel Pillows'] },
+  'eco-friendly':   { nameKey: 'ecoFriendly',   icon: Sprout,   subnav: ['Organic Foods', 'Natural Skincare', 'Bamboo Products', 'Eco Stationery', 'Herbal Products', 'Sustainable Fashion'] },
 };
 
 function getSubnavHref(catSlug: string, sub: string): string {
@@ -426,6 +428,7 @@ const BN_SUBNAV: Record<string, Record<string, string>> = {
   'agriculture':     { 'Seeds & Plants': 'বীজ ও গাছপালা', 'Fertilizers': 'সার', 'Farming Tools': 'কৃষি সরঞ্জাম', 'Irrigation': 'সেচ', 'Organic Farming': 'জৈব চাষ', 'Livestock': 'গবাদি পশু' },
   'toys-gaming':     { 'Action Figures': 'অ্যাকশন ফিগার', 'Board Games': 'বোর্ড গেমস', 'Video Games': 'ভিডিও গেমস', 'Consoles & Accessories': 'কনসোল', 'Outdoor Toys': 'আউটডোর খেলনা', 'Educational Toys': 'শিক্ষামূলক খেলনা' },
   'travel-bags':     { 'Luggage & Trolleys': 'লাগেজ ও ট্রলি', 'Travel Accessories': 'ট্রাভেল সামগ্রী', 'Backpacks': 'ব্যাকপ্যাক', 'Laptop Bags': 'ল্যাপটপ ব্যাগ', 'Ladies Bags': 'লেডিস ব্যাগ', 'Travel Pillows': 'ট্রাভেল বালিশ' },
+  'eco-friendly':    { 'Organic Foods': 'অর্গানিক খাবার', 'Natural Skincare': 'প্রাকৃতিক স্কিনকেয়ার', 'Bamboo Products': 'বাঁশের পণ্য', 'Eco Stationery': 'ইকো স্টেশনারি', 'Herbal Products': 'ভেষজ পণ্য', 'Sustainable Fashion': 'টেকসই পোশাক' },
 };
 
 const MEGA_CATEGORIES = [
@@ -617,6 +620,22 @@ const MEGA_CATEGORIES = [
       { label: 'Laptop Bags',           labelBn: 'ল্যাপটপ ব্যাগ',        href: '/products?categorySlug=travel-bags&sub=laptop-bag' },
       { label: 'Ladies Bags',           labelBn: 'লেডিস ব্যাগ',         href: '/products?categorySlug=travel-bags&sub=ladies-bag' },
       { label: 'All Travel & Bags →',   labelBn: 'সব পণ্য →',           href: '/products?categorySlug=travel-bags' },
+    ],
+  },
+  {
+    emoji: '🌱', name: 'Eco Friendly', nameBn: 'পরিবেশবান্ধব পণ্য',
+    href: '/products?categorySlug=eco-friendly',
+    subs: [
+      { label: 'Organic Foods',         labelBn: 'অর্গানিক খাবার',          href: '/products?categorySlug=eco-friendly&sub=organic-foods' },
+      { label: 'Natural Skincare',      labelBn: 'প্রাকৃতিক স্কিনকেয়ার',    href: '/products?categorySlug=eco-friendly&sub=natural-skincare' },
+      { label: 'Recycled Products',     labelBn: 'পুনর্ব্যবহৃত পণ্য',       href: '/products?categorySlug=eco-friendly&sub=recycled' },
+      { label: 'Bamboo Products',       labelBn: 'বাঁশের পণ্য',              href: '/products?categorySlug=eco-friendly&sub=bamboo' },
+      { label: 'Eco Stationery',        labelBn: 'ইকো স্টেশনারি',            href: '/products?categorySlug=eco-friendly&sub=stationery' },
+      { label: 'Herbal Products',       labelBn: 'ভেষজ পণ্য',               href: '/products?categorySlug=eco-friendly&sub=herbal' },
+      { label: 'Sustainable Fashion',   labelBn: 'টেকসই পোশাক',             href: '/products?categorySlug=eco-friendly&sub=sustainable-fashion' },
+      { label: 'Green Home',            labelBn: 'গ্রিন হোম',               href: '/products?categorySlug=eco-friendly&sub=green-home' },
+      { label: 'Jute & Natural Fiber',  labelBn: 'পাট ও প্রাকৃতিক তন্তু',   href: '/products?categorySlug=eco-friendly&sub=jute' },
+      { label: 'All Eco Friendly →',    labelBn: 'সব পরিবেশবান্ধব →',      href: '/products?categorySlug=eco-friendly' },
     ],
   },
 ];
@@ -1140,6 +1159,46 @@ const MEGA_CONTENT = [
       ]},
     ],
   },
+  // 15 — Eco Friendly Products
+  {
+    ecoTiles: [
+      { label: 'Organic Foods',       labelBn: 'অর্গানিক খাবার',        emoji: '🥗', color: 'bg-green-50 border-green-200 text-green-700',   href: '/products?categorySlug=eco-friendly&sub=organic-foods' },
+      { label: 'Natural Skincare',    labelBn: 'প্রাকৃতিক স্কিনকেয়ার', emoji: '🌸', color: 'bg-pink-50 border-pink-200 text-pink-700',     href: '/products?categorySlug=eco-friendly&sub=natural-skincare' },
+      { label: 'Bamboo Products',     labelBn: 'বাঁশের পণ্য',           emoji: '🎋', color: 'bg-lime-50 border-lime-200 text-lime-700',     href: '/products?categorySlug=eco-friendly&sub=bamboo' },
+      { label: 'Herbal Products',     labelBn: 'ভেষজ পণ্য',             emoji: '🌿', color: 'bg-emerald-50 border-emerald-200 text-emerald-700', href: '/products?categorySlug=eco-friendly&sub=herbal' },
+      { label: 'Recycled Products',   labelBn: 'পুনর্ব্যবহৃত পণ্য',    emoji: '♻️', color: 'bg-teal-50 border-teal-200 text-teal-700',    href: '/products?categorySlug=eco-friendly&sub=recycled' },
+      { label: 'Eco Stationery',      labelBn: 'ইকো স্টেশনারি',         emoji: '📝', color: 'bg-yellow-50 border-yellow-200 text-yellow-700', href: '/products?categorySlug=eco-friendly&sub=stationery' },
+      { label: 'Sustainable Fashion', labelBn: 'টেকসই পোশাক',           emoji: '👗', color: 'bg-violet-50 border-violet-200 text-violet-700', href: '/products?categorySlug=eco-friendly&sub=sustainable-fashion' },
+      { label: 'Green Home',          labelBn: 'গ্রিন হোম',             emoji: '🏡', color: 'bg-cyan-50 border-cyan-200 text-cyan-700',    href: '/products?categorySlug=eco-friendly&sub=green-home' },
+      { label: 'Jute & Natural Fiber',labelBn: 'পাট ও প্রাকৃতিক তন্তু', emoji: '🌾', color: 'bg-amber-50 border-amber-200 text-amber-700', href: '/products?categorySlug=eco-friendly&sub=jute' },
+    ],
+    columns: [
+      { heading: 'Food & Wellness', headingBn: 'খাদ্য ও সুস্থতা', links: [
+        { label: 'Organic Foods',       labelBn: 'অর্গানিক খাবার',      href: '/products?categorySlug=eco-friendly&sub=organic-foods' },
+        { label: 'Herbal Supplements',  labelBn: 'ভেষজ সাপ্লিমেন্ট',    href: '/products?categorySlug=eco-friendly&sub=supplements' },
+        { label: 'Natural Honey',       labelBn: 'প্রাকৃতিক মধু',       href: '/products?categorySlug=eco-friendly&sub=honey' },
+        { label: 'Organic Tea',         labelBn: 'অর্গানিক চা',         href: '/products?categorySlug=eco-friendly&sub=tea' },
+        { label: 'Herbal Products',     labelBn: 'ভেষজ পণ্য',           href: '/products?categorySlug=eco-friendly&sub=herbal' },
+        { label: 'All Food →',          labelBn: 'সব খাদ্য →',          href: '/products?categorySlug=eco-friendly&sub=organic-foods' },
+      ]},
+      { heading: 'Home & Beauty', headingBn: 'হোম ও বিউটি', links: [
+        { label: 'Natural Skincare',    labelBn: 'প্রাকৃতিক স্কিনকেয়ার', href: '/products?categorySlug=eco-friendly&sub=natural-skincare' },
+        { label: 'Bamboo Products',     labelBn: 'বাঁশের পণ্য',          href: '/products?categorySlug=eco-friendly&sub=bamboo' },
+        { label: 'Recycled Products',   labelBn: 'পুনর্ব্যবহৃত পণ্য',   href: '/products?categorySlug=eco-friendly&sub=recycled' },
+        { label: 'Green Home Decor',    labelBn: 'গ্রিন হোম ডেকোর',     href: '/products?categorySlug=eco-friendly&sub=home-decor' },
+        { label: 'Jute & Natural Fiber',labelBn: 'পাট ও প্রাকৃতিক তন্তু', href: '/products?categorySlug=eco-friendly&sub=jute' },
+        { label: 'All Home →',          labelBn: 'সব হোম →',            href: '/products?categorySlug=eco-friendly&sub=green-home' },
+      ]},
+      { heading: 'Fashion & Office', headingBn: 'ফ্যাশন ও অফিস', links: [
+        { label: 'Sustainable Fashion', labelBn: 'টেকসই পোশাক',        href: '/products?categorySlug=eco-friendly&sub=sustainable-fashion' },
+        { label: 'Eco Stationery',      labelBn: 'ইকো স্টেশনারি',       href: '/products?categorySlug=eco-friendly&sub=stationery' },
+        { label: 'Recycled Paper',      labelBn: 'রিসাইকেলড কাগজ',      href: '/products?categorySlug=eco-friendly&sub=recycled-paper' },
+        { label: 'Organic Cotton',      labelBn: 'অর্গানিক কটন পোশাক',  href: '/products?categorySlug=eco-friendly&sub=organic-cotton' },
+        { label: 'Eco Bags',            labelBn: 'ইকো ব্যাগ',            href: '/products?categorySlug=eco-friendly&sub=eco-bags' },
+        { label: 'All Fashion →',       labelBn: 'সব ফ্যাশন →',         href: '/products?categorySlug=eco-friendly&sub=sustainable-fashion' },
+      ]},
+    ],
+  },
 ] as const;
 
 // Slug order matching MEGA_CATEGORIES / MEGA_CONTENT above
@@ -1147,6 +1206,7 @@ const MEGA_SLUGS = [
   'books','baby-products','leather-products','organic-foods','islamic-lifestyle',
   'handicrafts','electronics','daily-needs','health-sports','fashion-lifestyle',
   'home-furniture','automotive','agriculture','toys-gaming','travel-bags',
+  'eco-friendly',
 ] as const;
 
 const MEGA_CATS_BY_SLUG = Object.fromEntries(
@@ -1662,14 +1722,24 @@ export function Header() {
                           onMouseEnter={() => setMegaHoverCat(i)}
                           className={cn(
                             'relative flex items-center gap-2.5 px-4 py-2.5 cursor-pointer transition-colors text-[13px]',
-                            megaHoverCat === i
-                              ? 'bg-white text-primary font-bold border-r-2 border-primary'
-                              : 'text-gray-700 font-medium hover:bg-white hover:text-primary',
+                            cat.slug === 'eco-friendly'
+                              ? megaHoverCat === i
+                                ? 'bg-white text-green-600 font-bold border-r-2 border-green-500'
+                                : 'text-green-600 font-medium hover:bg-green-50 hover:text-green-700'
+                              : megaHoverCat === i
+                                ? 'bg-white text-primary font-bold border-r-2 border-primary'
+                                : 'text-gray-700 font-medium hover:bg-white hover:text-primary',
                           )}
                         >
                           <span className="text-base leading-none flex-shrink-0">{cat.emoji}</span>
                           <span className="leading-tight">{lang === 'bn' ? cat.nameBn : cat.name}</span>
-                          <ChevronDown className="w-3 h-3 ml-auto -rotate-90 opacity-40 flex-shrink-0" />
+                          {cat.slug === 'eco-friendly' && (
+                            <span className="relative flex h-1.5 w-1.5 ml-auto mr-1">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
+                            </span>
+                          )}
+                          {cat.slug !== 'eco-friendly' && <ChevronDown className="w-3 h-3 ml-auto -rotate-90 opacity-40 flex-shrink-0" />}
                         </div>
                       ))}
                     </div>
@@ -1780,8 +1850,84 @@ export function Header() {
                         );
                       })()}
 
+                      {/* ── Eco Friendly (special animated) ── */}
+                      {dynamicMegaCategories[megaHoverCat]?.slug === 'eco-friendly' && (() => {
+                        const ecoContent = MEGA_CONTENT_BY_SLUG['eco-friendly'] as typeof MEGA_CONTENT[15];
+                        if (!ecoContent) return null;
+                        return (
+                          <>
+                            <div className="flex items-center justify-between mb-3">
+                              <h3 className="text-[15px] font-black text-gray-900 flex items-center gap-2">
+                                🌱 {lang === 'bn' ? 'পরিবেশবান্ধব পণ্য' : 'Eco Friendly Products'}
+                                <span className="relative inline-flex">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-50" />
+                                  <span className="relative text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full border border-green-300">🌍 Green</span>
+                                </span>
+                              </h3>
+                              <Link href="/products?categorySlug=eco-friendly" onClick={() => setMegaOpen(false)} className="text-xs text-green-600 hover:underline font-semibold">
+                                {lang === 'bn' ? 'সব পরিবেশবান্ধব পণ্য →' : 'Browse all eco products →'}
+                              </Link>
+                            </div>
+                            {/* Animated category tiles */}
+                            <div className="mb-4">
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                {lang === 'bn' ? 'বিভাগ অনুযায়ী ব্রাউজ করুন' : 'Browse by Category'}
+                              </p>
+                              <div className="grid grid-cols-5 gap-2">
+                                {(ecoContent as any).ecoTiles?.map((tile: any) => (
+                                  <Link
+                                    key={tile.label}
+                                    href={tile.href}
+                                    onClick={() => setMegaOpen(false)}
+                                    className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border ${tile.color} hover:shadow-md hover:scale-105 transition-all text-center group`}
+                                  >
+                                    <span className="text-xl leading-none group-hover:scale-110 transition-transform">{tile.emoji}</span>
+                                    <span className="text-[9px] font-bold leading-tight">{lang === 'bn' ? tile.labelBn : tile.label}</span>
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                            {/* Three-column links */}
+                            <div className="grid grid-cols-3 gap-x-8">
+                              {ecoContent.columns.map((col: any) => (
+                                <div key={col.heading}>
+                                  <p className="text-[11px] font-bold text-green-600 uppercase tracking-wider mb-2 pb-1 border-b border-green-100">
+                                    {lang === 'bn' ? col.headingBn : col.heading}
+                                  </p>
+                                  <ul className="space-y-0.5">
+                                    {col.links.map((link: any) => (
+                                      <li key={link.label}>
+                                        <Link href={link.href} onClick={() => setMegaOpen(false)}
+                                          className="text-[13px] text-gray-600 hover:text-green-600 transition-colors block py-1.5">
+                                          {lang === 'bn' ? link.labelBn : link.label}
+                                        </Link>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              ))}
+                            </div>
+                            {/* Green pledge banner */}
+                            <div className="mt-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-3 flex items-center justify-between">
+                              <div>
+                                <p className="text-[11px] font-black text-green-800">
+                                  {lang === 'bn' ? '🌍 পরিবেশ রক্ষায় আমরা প্রতিশ্রুতিবদ্ধ' : '🌍 We are committed to protecting the environment'}
+                                </p>
+                                <p className="text-[10px] text-green-600 mt-0.5">
+                                  {lang === 'bn' ? 'প্রতিটি ক্রয়ের সাথে একটি গাছ লাগানো হয়' : 'A tree is planted with every purchase'}
+                                </p>
+                              </div>
+                              <Link href="/products?categorySlug=eco-friendly" onClick={() => setMegaOpen(false)}
+                                className="text-[11px] font-bold text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded-full transition-colors flex-shrink-0">
+                                {lang === 'bn' ? 'শপ করুন →' : 'Shop Now →'}
+                              </Link>
+                            </div>
+                          </>
+                        );
+                      })()}
+
                       {/* ── Other categories ── */}
-                      {dynamicMegaCategories[megaHoverCat]?.slug !== 'books' && (() => {
+                      {dynamicMegaCategories[megaHoverCat]?.slug !== 'books' && dynamicMegaCategories[megaHoverCat]?.slug !== 'eco-friendly' && (() => {
                         const cat = dynamicMegaCategories[megaHoverCat]!;
                         const staticContent = cat?.slug ? MEGA_CONTENT_BY_SLUG[cat.slug] : undefined;
                         // Fall back to building columns from the category's own subs list
@@ -1852,24 +1998,35 @@ export function Header() {
                     onMouseEnter={() => setActiveCategoryIndex(idx)}
                     className={cn(
                       'px-2 xl:px-3 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold shrink-0',
-                      activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
+                      cat.slug === 'eco-friendly'
+                        ? 'text-green-600 hover:text-green-700 font-black'
+                        : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
                     )}
                   >
-                    {getCatName(cat)}
+                    {cat.slug === 'eco-friendly' ? (
+                      <span className="flex items-center gap-1">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
+                        </span>
+                        {getCatName(cat)}
+                      </span>
+                    ) : getCatName(cat)}
                     {activeCategoryIndex === idx && (
-                      <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
+                      <div className={`absolute bottom-0 left-0 w-full h-0.5 ${cat.slug === 'eco-friendly' ? 'bg-green-500' : 'bg-primary'}`} />
                     )}
                   </Link>
                 ))}
                 <div className="flex items-center ml-auto shrink-0">
-                  <Link href="/quick-commerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
+                  <Link href="/quick-commerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1.5 text-[12px] xl:text-[13px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
                     ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
                   </Link>
-                  <Link href="/recommerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-amber-700 hover:text-amber-800 transition-colors whitespace-nowrap">
+                  <Link href="/recommerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1.5 text-[12px] xl:text-[13px] font-black text-amber-700 hover:text-amber-800 transition-colors whitespace-nowrap">
                     ♻️ {lang === 'bn' ? 'সালভেজ ইয়ার্ড' : 'Salvage Yard'}
                   </Link>
-                  <Link href="/flash-deals" className="px-2 xl:px-4 h-[44px] flex items-center text-[11px] xl:text-sm font-bold text-secondary hover:text-amber-600 transition-colors whitespace-nowrap">
-                    {t.header.dealOfDay} <span className="text-red-600 text-base xl:text-lg ml-1">🔥</span>
+                  <Link href="/flash-deals" className="px-2 xl:px-4 h-[44px] flex items-center gap-1.5 text-[12px] xl:text-[13px] font-black text-secondary hover:text-amber-600 transition-colors whitespace-nowrap">
+                    <span className="text-red-600 text-base xl:text-lg">🔥</span>
+                    {t.header.dealOfDay}
                   </Link>
                 </div>
               </div>
@@ -1978,7 +2135,7 @@ export function Header() {
         <Link
           href="/publish"
           onClick={() => setSidebarOpen(false)}
-          className="mx-4 my-3 flex items-center justify-center gap-2.5 min-h-[48px] rounded-full bg-gradient-to-r from-slate-800 to-slate-900 text-white font-bold text-sm hover:from-slate-700 hover:to-slate-800 transition-colors"
+          className="mx-4 mt-3 mb-1 flex items-center justify-center gap-2.5 min-h-[48px] rounded-full bg-gradient-to-r from-slate-800 to-slate-900 text-white font-bold text-sm hover:from-slate-700 hover:to-slate-800 transition-colors"
         >
           <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
@@ -1988,6 +2145,25 @@ export function Header() {
           <span className="text-white/40">/</span>
           <span className="text-yellow-400 font-black whitespace-nowrap">বই বিক্রি করুন</span>
         </Link>
+
+        {/* ── Special destination links ── */}
+        <div className="mx-4 mb-3 grid grid-cols-3 gap-1.5">
+          <Link href="/quick-commerce" onClick={() => setSidebarOpen(false)}
+            className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors text-center">
+            <span className="text-lg">⚡</span>
+            <span className="text-[10px] font-black leading-tight">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
+          </Link>
+          <Link href="/recommerce" onClick={() => setSidebarOpen(false)}
+            className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors text-center">
+            <span className="text-lg">♻️</span>
+            <span className="text-[10px] font-black leading-tight">{lang === 'bn' ? 'সালভেজ ইয়ার্ড' : 'Salvage Yard'}</span>
+          </Link>
+          <Link href="/flash-deals" onClick={() => setSidebarOpen(false)}
+            className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors text-center">
+            <span className="text-lg">🔥</span>
+            <span className="text-[10px] font-black leading-tight">{lang === 'bn' ? t.header.dealOfDay : 'Deal of the Day'}</span>
+          </Link>
+        </div>
 
         {/* User area */}
         <div className="px-5 py-4 bg-primary text-white flex items-center gap-4">
@@ -2075,19 +2251,6 @@ export function Header() {
               </div>
             );
           })}
-          <Link href="/flash-deals" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-orange-50 font-bold text-secondary flex items-center gap-2 min-h-[48px]">
-            <span>{t.header.dealOfDay} 🔥</span>
-          </Link>
-          <Link href="/quick-commerce" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-emerald-50 font-bold text-emerald-600 flex items-center gap-2 min-h-[48px] border-t border-gray-100">
-            <span>⚡</span>
-            <span>{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
-            <span className="ml-auto text-[11px] font-medium text-emerald-500 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">{lang === 'bn' ? '১০-৩০ মিনিট' : '10-30 min'}</span>
-          </Link>
-          <Link href="/recommerce" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-amber-50 font-bold text-amber-700 flex items-center gap-2 min-h-[48px] border-t border-gray-100">
-            <span>♻️</span>
-            <span>{lang === 'bn' ? 'সালভেজ ইয়ার্ড' : 'Salvage Yard'}</span>
-            <span className="ml-auto text-[11px] font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">{lang === 'bn' ? 'পুরানো পণ্য' : 'Pre-owned'}</span>
-          </Link>
         </div>
 
         {/* Help */}

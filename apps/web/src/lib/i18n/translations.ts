@@ -59,6 +59,7 @@ export const translations = {
       agriculture: 'কৃষি',
       toysGaming: 'খেলনা ও গেমিং',
       travelBags: 'ট্রাভেল ও ব্যাগ',
+      ecoFriendly: 'পরিবেশবান্ধব পণ্য',
     },
     booksSubnav: {
       Authors: 'লেখক',
@@ -362,6 +363,7 @@ export const translations = {
       electronics: 'Electronics',
       dailyNeeds: 'Daily Needs',
       islamicLifestyle: 'Islamic Lifestyle',
+      ecoFriendly: 'Eco Friendly',
     },
     booksSubnav: {
       Authors: 'Authors',

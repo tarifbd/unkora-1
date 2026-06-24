@@ -18,6 +18,21 @@ import { WishlistButton } from '@/components/product/wishlist-button';
 import { PreorderCTA } from '@/components/product/preorder-cta';
 import { trackViewProduct, trackAddToCart } from '@/lib/analytics';
 import { useLanguage } from '@/lib/i18n/language-context';
+import { isPreorderProduct } from '@/lib/preorder';
+
+const USED_KEYWORDS = ['used', 'refurbished', 'pre-owned', 'preowned', 'second-hand', 'secondhand', 'salvage', 'reconditioned', 'পুরানো', 'রিফার্বিশড', 'সেকেন্ড হ্যান্ড'];
+const FASHION_SLUGS = ['fashion-lifestyle', 'fashion', 'lifestyle', 'clothing', 'garments', 'apparel'];
+
+function isUsedProduct(tags: string[], categoryName: string, categorySlug: string): boolean {
+  const haystack = `${categoryName} ${categorySlug}`.toLowerCase();
+  if (USED_KEYWORDS.some(k => haystack.includes(k))) return true;
+  return tags.some(t => USED_KEYWORDS.some(k => t.toLowerCase().includes(k)));
+}
+
+function isFashionCategory(slug: string, parentSlug?: string): boolean {
+  const check = (s: string) => FASHION_SLUGS.some(f => s.toLowerCase().includes(f));
+  return check(slug) || (parentSlug ? check(parentSlug) : false);
+}
 
 export default function ProductDetailClient({ slug }: { slug: string }) {
   const { data: product, isLoading } = useQuery({
@@ -36,7 +51,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const [stickyVisible, setStickyVisible] = useState(false);
   const { addItem } = useCart();
   const { openCart } = useCartStore();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const buyBtnRef = useRef<HTMLDivElement>(null);
 
   // Show sticky bar when the main buy button scrolls out of view
@@ -83,6 +98,11 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
     (tryonCategoryIds.length === 0 ||
       tryonCategoryIds.includes(product.category?.id ?? '') ||
       (product.category?.parentId != null && tryonCategoryIds.includes(product.category.parentId)));
+
+  const isPreorder = isPreorderProduct(product);
+  const isUsed = isUsedProduct(product.tags ?? [], product.category?.name ?? '', product.category?.slug ?? '');
+  const isFashion = isFashionCategory(product.category?.slug ?? '');
+  const showVirtualTrialRoom = showTryOn || (isFashion && product.images?.length > 0);
 
   const handleAddToCart = () => {
     addItem.mutate({
@@ -138,6 +158,24 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
         <div className="flex flex-col gap-4">
           <div>
             <p className="text-sm text-muted-foreground">{product.category.name}</p>
+            {/* Smart badges */}
+            <div className="flex flex-wrap gap-1.5 mt-1 mb-1">
+              {isPreorder && (
+                <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-700 border border-emerald-300 text-[11px] font-black px-2.5 py-1 rounded-full">
+                  🗓️ {lang === 'bn' ? 'প্রি-অর্ডার' : 'Pre-Order'}
+                </span>
+              )}
+              {isUsed && (
+                <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-700 border border-amber-300 text-[11px] font-black px-2.5 py-1 rounded-full">
+                  ♻️ {lang === 'bn' ? 'পুরানো / রিফার্বিশড' : 'Used / Refurbished'}
+                </span>
+              )}
+              {isFashion && (
+                <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 border border-purple-300 text-[11px] font-bold px-2.5 py-1 rounded-full">
+                  👗 {lang === 'bn' ? 'ফ্যাশন ও লাইফস্টাইল' : 'Fashion & Lifestyle'}
+                </span>
+              )}
+            </div>
             <h1 className="mt-1 font-serif text-2xl font-bold leading-tight md:text-3xl">{product.name}</h1>
             {product.bookDetail && (
               <p className="mt-1 text-muted-foreground">by <span className="font-medium text-foreground">{product.bookDetail.author}</span></p>
@@ -211,12 +249,13 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
               >
                 <Zap className="h-4 w-4" /> {t.productDetail.buyNow}
               </Link>
-              {showTryOn && product.images?.length > 0 && (
+              {showVirtualTrialRoom && product.images?.length > 0 && (
                 <Link
                   href={`/try-on?productId=${product.id}&productName=${encodeURIComponent(product.name)}&productImage=${encodeURIComponent(product.images[0]?.url ?? '')}`}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-orange-300 text-orange-600 text-sm font-semibold hover:bg-orange-50 active:scale-[0.98] transition-all"
+                  className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-purple-300 text-purple-600 text-sm font-semibold hover:bg-purple-50 active:scale-[0.98] transition-all"
                 >
-                  <Shirt className="h-4 w-4" /> Virtual Try-On
+                  <Shirt className="h-4 w-4" />
+                  {lang === 'bn' ? 'ভার্চুয়াল ট্রাই-অন' : 'Virtual Try-On'}
                 </Link>
               )}
             </div>
