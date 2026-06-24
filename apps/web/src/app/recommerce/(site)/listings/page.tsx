@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
 import { RECOMMERCE_CATEGORIES, GRADE_META, LOCATIONS } from '../../_constants/categories';
@@ -28,7 +28,7 @@ const SORT_OPTIONS = [
   { value: 'popular',   labelBn: 'জনপ্রিয়',        labelEn: 'Most Popular' },
 ];
 
-export default function ListingsPage() {
+function ListingsContent() {
   const searchParams = useSearchParams();
   const [lang, setLang]         = useState<'bn' | 'en'>('bn');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -229,5 +229,13 @@ export default function ListingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ListingsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-gray-50" />}>
+      <ListingsContent />
+    </Suspense>
   );
 }
