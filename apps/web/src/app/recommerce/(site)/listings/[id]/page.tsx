@@ -142,15 +142,15 @@ export default function ListingDetailPage() {
           <div className="space-y-4">
             {/* Seller card */}
             <div className="bg-white rounded-2xl border p-5 space-y-4">
-              <div className="flex items-center gap-3">
+              <Link href="/recommerce/sellers/S001" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                 <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-xl font-black text-amber-700">
                   {item.seller.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="font-bold text-gray-900">{L(item.seller.nameBn, item.seller.name)}</p>
+                  <p className="font-bold text-gray-900 hover:text-amber-700 transition-colors">{L(item.seller.nameBn, item.seller.name)}</p>
                   <p className="text-[11px] text-gray-400">{L(item.seller.joinedBn, item.seller.joinedEn)}</p>
                 </div>
-              </div>
+              </Link>
 
               <div className="grid grid-cols-2 gap-2 text-center">
                 <div className="bg-gray-50 rounded-xl py-2">

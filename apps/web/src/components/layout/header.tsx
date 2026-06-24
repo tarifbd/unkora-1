@@ -1865,8 +1865,8 @@ export function Header() {
                   <Link href="/quick-commerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
                     ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
                   </Link>
-                  <Link href="/recommerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-indigo-600 hover:text-indigo-700 transition-colors whitespace-nowrap">
-                    ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
+                  <Link href="/recommerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-amber-700 hover:text-amber-800 transition-colors whitespace-nowrap">
+                    ♻️ {lang === 'bn' ? 'সালভেজ ইয়ার্ড' : 'Salvage Yard'}
                   </Link>
                   <Link href="/flash-deals" className="px-2 xl:px-4 h-[44px] flex items-center text-[11px] xl:text-sm font-bold text-secondary hover:text-amber-600 transition-colors whitespace-nowrap">
                     {t.header.dealOfDay} <span className="text-red-600 text-base xl:text-lg ml-1">🔥</span>
@@ -2083,10 +2083,10 @@ export function Header() {
             <span>{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
             <span className="ml-auto text-[11px] font-medium text-emerald-500 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">{lang === 'bn' ? '১০-৩০ মিনিট' : '10-30 min'}</span>
           </Link>
-          <Link href="/recommerce" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-indigo-50 font-bold text-indigo-600 flex items-center gap-2 min-h-[48px] border-t border-gray-100">
+          <Link href="/recommerce" onClick={() => setSidebarOpen(false)} className="py-3.5 px-5 hover:bg-amber-50 font-bold text-amber-700 flex items-center gap-2 min-h-[48px] border-t border-gray-100">
             <span>♻️</span>
-            <span>{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
-            <span className="ml-auto text-[11px] font-medium text-indigo-500 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full">{lang === 'bn' ? 'রিফার্বিশড' : 'Refurbished'}</span>
+            <span>{lang === 'bn' ? 'সালভেজ ইয়ার্ড' : 'Salvage Yard'}</span>
+            <span className="ml-auto text-[11px] font-medium text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">{lang === 'bn' ? 'পুরানো পণ্য' : 'Pre-owned'}</span>
           </Link>
         </div>
 

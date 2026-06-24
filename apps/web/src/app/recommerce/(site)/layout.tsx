@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils';
 const NAV = [
   { href: '/recommerce',          labelBn: 'হোম',            labelEn: 'Home' },
   { href: '/recommerce/listings', labelBn: 'সব বিজ্ঞাপন',   labelEn: 'Browse' },
-  { href: '/recommerce/post',     labelBn: 'বিজ্ঞাপন দিন',  labelEn: 'Post Ad', highlight: true },
+  { href: '/recommerce/post-ad',  labelBn: 'বিজ্ঞাপন দিন',  labelEn: 'Post Ad', highlight: true },
 ];
 
 const CATS_QUICK = [
@@ -94,7 +94,7 @@ function RecommerceHeader() {
           </button>
 
           {/* Post Ad CTA */}
-          <Link href="/recommerce/post"
+          <Link href="/recommerce/post-ad"
             className="hidden sm:flex items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition-colors whitespace-nowrap">
             <Plus className="w-3.5 h-3.5" />
             {L('বিজ্ঞাপন দিন', 'Post Ad')}
