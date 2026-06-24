@@ -145,7 +145,7 @@ export function SocialLoginButtons({ onSuccess, redirectTo = '/account' }: Socia
     <div className="space-y-3">
       <div className="relative flex items-center gap-3">
         <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-        <span className="text-xs text-gray-400 font-medium">or continue with</span>
+        <span className="text-xs text-gray-600 font-medium">or continue with</span>
         <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
       </div>
       <div className="grid grid-cols-2 gap-3">

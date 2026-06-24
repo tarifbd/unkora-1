@@ -74,7 +74,8 @@ export default function RecommerceRegisterPage() {
                 placeholder={L('কমপক্ষে ৬ অক্ষর', 'At least 6 characters')}
                 className="w-full border rounded-xl px-4 py-3 text-sm outline-none focus:border-amber-400 pr-11" />
               <button type="button" onClick={() => setShowPw(s => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                aria-label={showPw ? L('পাসওয়ার্ড লুকান', 'Hide password') : L('পাসওয়ার্ড দেখান', 'Show password')}
+                className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700">
                 {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>

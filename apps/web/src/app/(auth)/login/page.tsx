@@ -176,7 +176,7 @@ function LoginContent() {
       </div>
 
       {/* Right panel – form */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-white">
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-white">
         {/* Mobile logo */}
         <div className="lg:hidden mb-8 flex items-center gap-2">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
@@ -190,7 +190,8 @@ function LoginContent() {
           <div className="flex justify-end mb-6">
             <button
               onClick={() => setLang(l => l === 'bn' ? 'en' : 'bn')}
-              className="text-xs text-gray-400 hover:text-primary border border-gray-200 rounded-full px-3 py-1 transition-colors"
+              aria-label={lang === 'bn' ? 'Switch to English' : 'বাংলায় পরিবর্তন করুন'}
+              className="text-xs text-gray-600 hover:text-primary border border-gray-200 rounded-full px-3 py-1 transition-colors"
             >
               {lang === 'bn' ? 'EN' : 'বাং'}
             </button>
@@ -245,7 +246,8 @@ function LoginContent() {
                   <button
                     type="button"
                     onClick={() => setShowPw(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    aria-label={showPw ? (lang === 'bn' ? 'পাসওয়ার্ড লুকান' : 'Hide password') : (lang === 'bn' ? 'পাসওয়ার্ড দেখান' : 'Show password')}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700"
                   >
                     {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -350,7 +352,7 @@ function LoginContent() {
             </Link>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
