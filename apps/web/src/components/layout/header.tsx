@@ -2022,7 +2022,7 @@ export function Header() {
                     ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
                   </Link>
                   <Link href="/recommerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1.5 text-[12px] xl:text-[13px] font-black text-amber-700 hover:text-amber-800 transition-colors whitespace-nowrap">
-                    ♻️ {lang === 'bn' ? 'সালভেজ ইয়ার্ড' : 'Salvage Yard'}
+                    ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
                   </Link>
                   <Link href="/flash-deals" className="px-2 xl:px-4 h-[44px] flex items-center gap-1.5 text-[12px] xl:text-[13px] font-black text-secondary hover:text-amber-600 transition-colors whitespace-nowrap">
                     <span className="text-red-600 text-base xl:text-lg">🔥</span>
@@ -2156,7 +2156,7 @@ export function Header() {
           <Link href="/recommerce" onClick={() => setSidebarOpen(false)}
             className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors text-center">
             <span className="text-lg">♻️</span>
-            <span className="text-[10px] font-black leading-tight">{lang === 'bn' ? 'সালভেজ ইয়ার্ড' : 'Salvage Yard'}</span>
+            <span className="text-[10px] font-black leading-tight">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
           </Link>
           <Link href="/flash-deals" onClick={() => setSidebarOpen(false)}
             className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors text-center">
