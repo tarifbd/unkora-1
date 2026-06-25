@@ -1991,7 +1991,7 @@ export function Header() {
             <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
               {/* Row 1: first 8 categories (or all if ≤8) + special links pinned right */}
               <div className="flex items-center">
-                {(dynamicNavCategories.length > 8 ? dynamicNavCategories.slice(0, 8) : dynamicNavCategories).map((cat, idx) => (
+                {(dynamicNavCategories.length > 6 ? dynamicNavCategories.slice(0, 6) : dynamicNavCategories).map((cat, idx) => (
                   <Link
                     key={cat.slug}
                     href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
@@ -2031,10 +2031,10 @@ export function Header() {
                 </div>
               </div>
               {/* Row 2: shown only when there are more than 8 active categories */}
-              {dynamicNavCategories.length > 8 && (
+              {dynamicNavCategories.length > 6 && (
                 <div className="flex items-center border-t border-gray-100">
-                  {dynamicNavCategories.slice(8).map((cat, i) => {
-                    const idx = i + 8;
+                  {dynamicNavCategories.slice(6).map((cat, i) => {
+                    const idx = i + 6;
                     return (
                       <Link
                         key={cat.slug}
