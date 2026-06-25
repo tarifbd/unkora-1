@@ -2017,15 +2017,15 @@ export function Header() {
                     )}
                   </Link>
                 ))}
-                <div className="flex items-center ml-auto shrink-0">
-                  <Link href="/quick-commerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1.5 text-[12px] xl:text-[13px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
+                <div className="flex items-center ml-auto shrink-0 border-l border-gray-200 pl-1">
+                  <Link href="/quick-commerce" className="px-1.5 xl:px-2 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
                     ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
                   </Link>
-                  <Link href="/recommerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1.5 text-[12px] xl:text-[13px] font-black text-amber-700 hover:text-amber-800 transition-colors whitespace-nowrap">
+                  <Link href="/recommerce" className="px-1.5 xl:px-2 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-amber-700 hover:text-amber-800 transition-colors whitespace-nowrap">
                     ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
                   </Link>
-                  <Link href="/flash-deals" className="px-2 xl:px-4 h-[44px] flex items-center gap-1.5 text-[12px] xl:text-[13px] font-black text-secondary hover:text-amber-600 transition-colors whitespace-nowrap">
-                    <span className="text-red-600 text-base xl:text-lg">🔥</span>
+                  <Link href="/flash-deals" className="px-1.5 xl:px-2 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-secondary hover:text-amber-600 transition-colors whitespace-nowrap">
+                    <span className="text-red-600 text-sm xl:text-base">🔥</span>
                     {t.header.dealOfDay}
                   </Link>
                 </div>
