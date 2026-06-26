@@ -1209,6 +1209,12 @@ const MEGA_SLUGS = [
   'eco-friendly',
 ] as const;
 
+// Priority categories always shown in the main nav row (full text, no truncation)
+const MAIN_ROW_SLUGS = new Set([
+  'books', 'baby-products', 'leather-products', 'islamic-lifestyle',
+  'electronics', 'daily-needs', 'health-sports', 'fashion-lifestyle', 'eco-friendly',
+]);
+
 const MEGA_CATS_BY_SLUG = Object.fromEntries(
   MEGA_SLUGS.map((slug, i) => [slug, MEGA_CATEGORIES[i]!] as const)
 ) as Record<string, typeof MEGA_CATEGORIES[number]>;
@@ -1382,6 +1388,10 @@ export function Header() {
       return apiCat ? { ...base, displayName: apiCat.name } : base;
     }),
   [visibleSlugs, apiBySlug]);
+
+  // Split into main-row (priority) and More overflow
+  const mainRowCats = useMemo(() => dynamicNavCategories.filter(c => MAIN_ROW_SLUGS.has(c.slug)), [dynamicNavCategories]);
+  const moreCats    = useMemo(() => dynamicNavCategories.filter(c => !MAIN_ROW_SLUGS.has(c.slug)), [dynamicNavCategories]);
 
   // Mega-menu left panel: same visible set, with API child categories as sub-items.
   const dynamicMegaCategories = useMemo(() =>
@@ -1999,15 +2009,15 @@ export function Header() {
             {/* ── Thin separator ─────────────────────────────────────────────── */}
             <div className="w-px bg-gray-100 my-2.5 mx-1 flex-shrink-0" />
 
-            {/* ── Category links — flex-1 = equal width in EN and BN ─────────── */}
+            {/* ── Category links — natural width + equal padding ────────────── */}
             <div className="flex-1 min-w-0 flex items-stretch">
-              {dynamicNavCategories.slice(0, 10).map((cat, idx) => (
+              {mainRowCats.map((cat, idx) => (
                 <Link
                   key={cat.slug}
                   href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
                   onMouseEnter={() => setActiveCategoryIndex(idx)}
                   className={cn(
-                    'flex flex-1 items-center justify-center px-1 h-full min-w-0 transition-all relative text-[10.5px] xl:text-[11px] font-semibold',
+                    'flex items-center justify-center px-3 xl:px-4 h-full transition-all relative text-[11px] font-semibold whitespace-nowrap flex-shrink-0',
                     cat.slug === 'eco-friendly'
                       ? activeCategoryIndex === idx
                         ? 'text-green-600'
@@ -2018,27 +2028,27 @@ export function Header() {
                   )}
                 >
                   {cat.slug === 'eco-friendly' ? (
-                    <span className="flex items-center gap-1 min-w-0">
+                    <span className="flex items-center gap-1">
                       <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                         <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
                       </span>
-                      <span className="truncate">{getCatName(cat)}</span>
+                      {getCatName(cat)}
                     </span>
-                  ) : <span className="truncate">{getCatName(cat)}</span>}
+                  ) : getCatName(cat)}
                   {activeCategoryIndex === idx && (
                     <div className={`absolute bottom-0 left-0 w-full h-[2px] ${cat.slug === 'eco-friendly' ? 'bg-green-500' : 'bg-primary'}`} />
                   )}
                 </Link>
               ))}
 
-              {/* More ▾ — overflow dropdown for categories 11+ */}
-              {dynamicNavCategories.length > 10 && (
+              {/* More ▾ — overflow dropdown for non-priority categories */}
+              {moreCats.length > 0 && (
                 <div ref={moreRef} className="relative flex items-stretch flex-shrink-0">
                   <button
                     onClick={() => setMoreOpen(o => !o)}
                     className={cn(
-                      'flex items-center gap-1 px-3 h-full text-[10.5px] xl:text-[11px] font-semibold transition-all whitespace-nowrap relative',
+                      'flex items-center gap-1 px-3 xl:px-4 h-full text-[11px] font-semibold transition-all whitespace-nowrap relative',
                       moreOpen ? 'text-primary' : 'text-gray-500 hover:text-primary',
                     )}
                   >
@@ -2048,7 +2058,7 @@ export function Header() {
                   </button>
                   {moreOpen && (
                     <div className="absolute top-full right-0 bg-white shadow-2xl rounded-b-xl overflow-hidden border border-gray-100 border-t-2 border-t-primary py-1 min-w-[200px] z-50">
-                      {dynamicNavCategories.slice(10).map((cat) => (
+                      {moreCats.map((cat) => (
                         <Link
                           key={cat.slug}
                           href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
@@ -2095,7 +2105,7 @@ export function Header() {
                 className="flex items-center gap-1.5 px-2.5 xl:px-3 h-full text-[10.5px] xl:text-[11px] font-bold text-rose-600 hover:bg-rose-50 transition-colors whitespace-nowrap"
               >
                 <span>🔥</span>
-                <span>{lang === 'bn' ? t.header.dealOfDay : 'Flash Deals'}</span>
+                <span>{lang === 'bn' ? t.header.dealOfDay : 'Deal of the Day'}</span>
               </Link>
             </div>
           </div>
