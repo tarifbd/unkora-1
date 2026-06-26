@@ -1985,20 +1985,57 @@ export function Header() {
               )}
             </div>
 
-            {/* Right column: dynamic 1 or 2 rows depending on active category count.
-                overflow-hidden here clips any category bleed without touching the
-                mega dropdown (which lives in the All Departments column on the left). */}
+            {/* Right column: special-links strip + category rows.
+                overflow-hidden clips category bleed; the mega-dropdown lives in the
+                All Departments column to the left so it is unaffected. */}
             <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-              {/* Row 1: first 6 categories + 3 special links — each flex-1 so cells grow
-                  equally to fill the row (even spacing in both EN & BN). */}
-              <div className="flex items-center">
-                {(dynamicNavCategories.length > 6 ? dynamicNavCategories.slice(0, 6) : dynamicNavCategories).map((cat, idx) => (
+
+              {/* ── Special Links Strip ────────────────────────────────────────────
+                  These are NOT mega-menu categories — they are distinct promotional
+                  routes. Pill badges make that immediately clear in both EN & BN. */}
+              <div className="flex items-center gap-2 px-3 h-[30px] bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-gray-100/80">
+                <Link
+                  href="/quick-commerce"
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] xl:text-[11px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 transition-colors whitespace-nowrap"
+                >
+                  ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
+                </Link>
+                <span className="text-gray-200 text-xs select-none">|</span>
+                <Link
+                  href="/recommerce"
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] xl:text-[11px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 transition-colors whitespace-nowrap"
+                >
+                  ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
+                </Link>
+                <span className="text-gray-200 text-xs select-none">|</span>
+                <Link
+                  href="/flash-deals"
+                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] xl:text-[11px] font-extrabold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:border-rose-300 transition-colors whitespace-nowrap"
+                >
+                  🔥 {t.header.dealOfDay}
+                </Link>
+                <div className="flex-1" />
+                <span className="hidden xl:inline text-[10px] text-gray-400 font-medium pr-1">
+                  {lang === 'bn'
+                    ? `${dynamicNavCategories.length}টি ক্যাটাগরি`
+                    : `${dynamicNavCategories.length} categories`}
+                </span>
+              </div>
+
+              {/* ── Category Rows ─────────────────────────────────────────────────
+                  flex-1 on every Link → all cells share width equally regardless
+                  of text length, so EN and BN spacing is always identical. */}
+              <div className="flex items-stretch">
+                {(dynamicNavCategories.length > 8
+                  ? dynamicNavCategories.slice(0, 8)
+                  : dynamicNavCategories
+                ).map((cat, idx) => (
                   <Link
                     key={cat.slug}
                     href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
                     onMouseEnter={() => setActiveCategoryIndex(idx)}
                     className={cn(
-                      'px-2 h-[44px] flex flex-1 items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold',
+                      'flex flex-1 items-center justify-center px-1 h-[40px] transition-colors whitespace-nowrap relative text-[10px] xl:text-[11px] font-bold',
                       cat.slug === 'eco-friendly'
                         ? 'text-green-600 hover:text-green-700 font-black'
                         : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
@@ -2018,29 +2055,19 @@ export function Header() {
                     )}
                   </Link>
                 ))}
-                <Link href="/quick-commerce" className="px-2 h-[44px] flex flex-1 items-center justify-center gap-1 text-[11px] xl:text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
-                  ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
-                </Link>
-                <Link href="/recommerce" className="px-2 h-[44px] flex flex-1 items-center justify-center gap-1 text-[11px] xl:text-[12px] font-black text-amber-700 hover:text-amber-800 transition-colors whitespace-nowrap">
-                  ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
-                </Link>
-                <Link href="/flash-deals" className="px-2 h-[44px] flex flex-1 items-center justify-center gap-1 text-[11px] xl:text-[12px] font-black text-secondary hover:text-amber-600 transition-colors whitespace-nowrap">
-                  <span className="text-red-600 text-sm xl:text-base">🔥</span>
-                  {t.header.dealOfDay}
-                </Link>
               </div>
-              {/* Row 2: remaining categories — each flex-1 to fill the row evenly */}
-              {dynamicNavCategories.length > 6 && (
-                <div className="flex items-center border-t border-gray-100">
-                  {dynamicNavCategories.slice(6).map((cat, i) => {
-                    const idx = i + 6;
+
+              {dynamicNavCategories.length > 8 && (
+                <div className="flex items-stretch border-t border-gray-100">
+                  {dynamicNavCategories.slice(8).map((cat, i) => {
+                    const idx = i + 8;
                     return (
                       <Link
                         key={cat.slug}
-                        href={`/products?categorySlug=${cat.slug}`}
+                        href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
                         onMouseEnter={() => setActiveCategoryIndex(idx)}
                         className={cn(
-                          'px-2 h-[44px] flex flex-1 items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold',
+                          'flex flex-1 items-center justify-center px-1 h-[40px] transition-colors whitespace-nowrap relative text-[10px] xl:text-[11px] font-bold',
                           cat.slug === 'eco-friendly'
                             ? 'text-green-600 hover:text-green-700 font-black'
                             : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
