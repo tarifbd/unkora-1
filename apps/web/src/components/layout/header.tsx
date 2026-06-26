@@ -1333,7 +1333,7 @@ export function Header() {
     ? (wishlistItems?.length ?? 0)
     : guestWishlist.productIds.length;
 
-  const { data: apiCategories } = useQuery({
+  const { data: apiCategories, isPending: navCatsPending } = useQuery({
     queryKey: ['nav-categories'],
     queryFn: () => categoriesApi.getAll(false),
     staleTime: 5 * 60 * 1000,
@@ -1370,6 +1370,9 @@ export function Header() {
   //   • API loaded, some       → show featured DB cats + static-only cats
   //     featured                 (those not yet created in the DB).
   const { apiBySlug, visibleSlugs } = useMemo(() => {
+    // While loading: return empty so the category row renders a skeleton instead of
+    // flashing the full static set and then collapsing to the real featured subset.
+    if (navCatsPending) return { apiBySlug: new Map<string, ApiCat>(), visibleSlugs: [] as string[] };
     const map = new Map((apiCategories as ApiCat[] | undefined ?? []).map(c => [c.slug, c]));
     if (map.size === 0) return { apiBySlug: map, visibleSlugs: MEGA_SLUGS as readonly string[] };
     const adminCurated = (apiCategories as ApiCat[]).some(c => c.isFeatured);
@@ -2012,7 +2015,14 @@ export function Header() {
 
             {/* ── Category links — overflow-hidden so they never bleed into More/special ── */}
             <div className="flex-1 min-w-0 flex items-stretch overflow-hidden">
-              {mainRowCats.map((cat, idx) => (
+              {navCatsPending ? (
+                // Skeleton shimmer — prevents the static→API flash on first load
+                <div className="flex items-center gap-3 px-2">
+                  {[80, 72, 96, 80, 100, 88, 76].map((w, i) => (
+                    <div key={i} className="h-4 rounded-full bg-gray-100 animate-pulse flex-shrink-0" style={{ width: w }} />
+                  ))}
+                </div>
+              ) : mainRowCats.map((cat, idx) => (
                 <Link
                   key={cat.slug}
                   href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
