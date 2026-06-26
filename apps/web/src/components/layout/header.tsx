@@ -1714,19 +1714,19 @@ export function Header() {
 
         {/* ── Tier 3: Category nav (desktop) ── */}
         <div className="bg-white hidden lg:block border-b border-gray-200 relative z-30" ref={megaRef}>
-          <div className="max-w-[1400px] mx-auto pl-4 xl:pl-6 pr-0 flex items-stretch h-[42px] relative">
+          <div className="max-w-[1400px] mx-auto pl-4 xl:pl-6 pr-0 flex items-stretch h-[50px] relative">
             {/* All Departments button */}
             <div className="relative flex items-stretch shrink-0">
               <button
                 onClick={() => setMegaOpen(o => !o)}
                 className={cn(
-                  'h-full flex items-center gap-2 px-4 xl:px-5 font-bold text-[12.5px] cursor-pointer transition-colors whitespace-nowrap',
+                  'h-full flex items-center gap-2 px-4 xl:px-5 font-bold text-[13.5px] cursor-pointer transition-colors whitespace-nowrap',
                   megaOpen ? 'bg-primary text-white' : 'bg-gray-900 text-white hover:bg-gray-800',
                 )}
               >
-                <Menu className="w-4 h-4 flex-shrink-0" />
+                <Menu className="w-[18px] h-[18px] flex-shrink-0" />
                 <span className="hidden xl:inline">{t.header.allDepartments}</span>
-                <ChevronDown className={cn('w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0', megaOpen && 'rotate-180')} />
+                <ChevronDown className={cn('w-4 h-4 transition-transform duration-200 flex-shrink-0', megaOpen && 'rotate-180')} />
               </button>
 
               {/* ── Mega Menu Dropdown ── */}
@@ -2018,10 +2018,10 @@ export function Header() {
                   href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
                   onMouseEnter={() => setActiveCategoryIndex(idx)}
                   className={cn(
-                    'flex items-center justify-center px-3 xl:px-4 h-full transition-all relative text-[11px] font-semibold whitespace-nowrap flex-shrink-0',
+                    'flex items-center justify-center px-3.5 xl:px-5 h-full transition-all relative text-[13px] font-semibold whitespace-nowrap flex-shrink-0',
                     cat.slug === 'eco-friendly'
                       ? activeCategoryIndex === idx ? 'text-green-600' : 'text-green-600 hover:text-green-700'
-                      : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-600 hover:text-primary',
+                      : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
                   )}
                 >
                   {cat.slug === 'eco-friendly' ? (
@@ -2046,12 +2046,12 @@ export function Header() {
                 <button
                   onClick={() => setMoreOpen(o => !o)}
                   className={cn(
-                    'flex items-center gap-1 px-3 xl:px-4 h-full text-[11px] font-semibold transition-all whitespace-nowrap relative border-l border-gray-100',
-                    moreOpen ? 'text-primary bg-gray-50' : 'text-gray-500 hover:text-primary hover:bg-gray-50',
+                    'flex items-center gap-1 px-3.5 xl:px-4 h-full text-[13px] font-semibold transition-all whitespace-nowrap relative border-l border-gray-100',
+                    moreOpen ? 'text-primary bg-gray-50' : 'text-gray-600 hover:text-primary hover:bg-gray-50',
                   )}
                 >
                   {lang === 'bn' ? 'আরও' : 'More'}
-                  <ChevronDown className={cn('w-3 h-3 transition-transform duration-200 flex-shrink-0', moreOpen && 'rotate-180')} />
+                  <ChevronDown className={cn('w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0', moreOpen && 'rotate-180')} />
                   {moreOpen && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-primary" />}
                 </button>
                 {moreOpen && (
@@ -2081,27 +2081,27 @@ export function Header() {
             <div className="flex items-stretch flex-shrink-0 border-l border-gray-100 ml-1">
               <Link
                 href="/quick-commerce"
-                className="flex items-center gap-1.5 px-2.5 xl:px-3 h-full text-[10.5px] xl:text-[11px] font-bold text-emerald-600 hover:bg-emerald-50 transition-colors whitespace-nowrap"
+                className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-full text-[12px] xl:text-[13px] font-bold text-emerald-600 hover:bg-emerald-50 transition-colors whitespace-nowrap"
               >
-                <span>⚡</span>
+                <span className="text-[15px]">⚡</span>
                 <span className="hidden xl:inline">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
                 <span className="xl:hidden">{lang === 'bn' ? 'কুইক' : 'Quick'}</span>
               </Link>
-              <div className="w-px bg-gray-100 my-2.5 flex-shrink-0" />
+              <div className="w-px bg-gray-100 my-3 flex-shrink-0" />
               <Link
                 href="/recommerce"
-                className="flex items-center gap-1.5 px-2.5 xl:px-3 h-full text-[10.5px] xl:text-[11px] font-bold text-amber-600 hover:bg-amber-50 transition-colors whitespace-nowrap"
+                className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-full text-[12px] xl:text-[13px] font-bold text-amber-600 hover:bg-amber-50 transition-colors whitespace-nowrap"
               >
-                <span>♻️</span>
+                <span className="text-[15px]">♻️</span>
                 <span className="hidden xl:inline">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
                 <span className="xl:hidden">{lang === 'bn' ? 'রিকমার্স' : 'Reco'}</span>
               </Link>
-              <div className="w-px bg-gray-100 my-2.5 flex-shrink-0" />
+              <div className="w-px bg-gray-100 my-3 flex-shrink-0" />
               <Link
                 href="/flash-deals"
-                className="flex items-center gap-1.5 px-2.5 xl:px-3 h-full text-[10.5px] xl:text-[11px] font-bold text-rose-600 hover:bg-rose-50 transition-colors whitespace-nowrap"
+                className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-full text-[12px] xl:text-[13px] font-bold text-rose-600 hover:bg-rose-50 transition-colors whitespace-nowrap"
               >
-                <span>🔥</span>
+                <span className="text-[15px]">🔥</span>
                 <span>{lang === 'bn' ? t.header.dealOfDay : 'Deal of the Day'}</span>
               </Link>
             </div>
