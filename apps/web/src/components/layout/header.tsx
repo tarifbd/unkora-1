@@ -1209,6 +1209,13 @@ const MEGA_SLUGS = [
   'eco-friendly',
 ] as const;
 
+// Priority categories always shown in the main nav row (full text, no truncation).
+// Keep this list short enough that even long BN names fit at 1200px+.
+const MAIN_ROW_SLUGS = new Set([
+  'books', 'baby-products', 'leather-products', 'islamic-lifestyle',
+  'handicrafts', 'health-sports', 'eco-friendly',
+]);
+
 const MEGA_CATS_BY_SLUG = Object.fromEntries(
   MEGA_SLUGS.map((slug, i) => [slug, MEGA_CATEGORIES[i]!] as const)
 ) as Record<string, typeof MEGA_CATEGORIES[number]>;
@@ -1253,7 +1260,9 @@ export function Header() {
   const [megaHoverCat, setMegaHoverCat] = useState(0);
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileExpandedCat, setMobileExpandedCat] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
   const megaRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
   const accountTriggerRef = useRef<HTMLDivElement>(null);
   const accountPanelRef = useRef<HTMLDivElement>(null);
@@ -1273,6 +1282,14 @@ export function Header() {
     }
     return () => document.removeEventListener('mousedown', handleClick);
   }, [megaOpen]);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    };
+    if (moreOpen) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [moreOpen]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -1372,6 +1389,10 @@ export function Header() {
       return apiCat ? { ...base, displayName: apiCat.name } : base;
     }),
   [visibleSlugs, apiBySlug]);
+
+  // Split into main-row (priority) and More overflow
+  const mainRowCats = useMemo(() => dynamicNavCategories.filter(c => MAIN_ROW_SLUGS.has(c.slug)), [dynamicNavCategories]);
+  const moreCats    = useMemo(() => dynamicNavCategories.filter(c => !MAIN_ROW_SLUGS.has(c.slug)), [dynamicNavCategories]);
 
   // Mega-menu left panel: same visible set, with API child categories as sub-items.
   const dynamicMegaCategories = useMemo(() =>
@@ -1693,18 +1714,19 @@ export function Header() {
 
         {/* ── Tier 3: Category nav (desktop) ── */}
         <div className="bg-white hidden lg:block border-b border-gray-200 relative z-30" ref={megaRef}>
-          <div className="max-w-[1400px] mx-auto pl-4 xl:pl-6 pr-4 flex items-start relative">
+          <div className="max-w-[1400px] mx-auto pl-4 xl:pl-6 pr-0 flex items-stretch h-[50px] relative">
             {/* All Departments button */}
-            <div className="relative h-[44px] flex items-center mr-6 shrink-0">
+            <div className="relative flex items-stretch shrink-0">
               <button
                 onClick={() => setMegaOpen(o => !o)}
                 className={cn(
-                  'h-full flex items-center gap-2 px-5 font-bold text-sm cursor-pointer transition-colors',
+                  'h-full flex items-center gap-2 px-4 xl:px-5 font-bold text-[13.5px] cursor-pointer transition-colors whitespace-nowrap',
                   megaOpen ? 'bg-primary text-white' : 'bg-gray-900 text-white hover:bg-gray-800',
                 )}
               >
-                <Menu className="w-[18px] h-[18px]" /> {t.header.allDepartments}
-                <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', megaOpen && 'rotate-180')} />
+                <Menu className="w-[18px] h-[18px] flex-shrink-0" />
+                <span className="hidden xl:inline">{t.header.allDepartments}</span>
+                <ChevronDown className={cn('w-4 h-4 transition-transform duration-200 flex-shrink-0', megaOpen && 'rotate-180')} />
               </button>
 
               {/* ── Mega Menu Dropdown ── */}
@@ -1985,75 +2007,103 @@ export function Header() {
               )}
             </div>
 
-            {/* Right column: dynamic 1 or 2 rows depending on active category count.
-                overflow-hidden here clips any category bleed without touching the
-                mega dropdown (which lives in the All Departments column on the left). */}
-            <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-              {/* Row 1: first 8 categories (or all if ≤8) + special links pinned right */}
-              <div className="flex items-center">
-                {(dynamicNavCategories.length > 8 ? dynamicNavCategories.slice(0, 8) : dynamicNavCategories).map((cat, idx) => (
-                  <Link
-                    key={cat.slug}
-                    href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
-                    onMouseEnter={() => setActiveCategoryIndex(idx)}
-                    className={cn(
-                      'px-2 xl:px-3 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold shrink-0',
-                      cat.slug === 'eco-friendly'
-                        ? 'text-green-600 hover:text-green-700 font-black'
-                        : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
-                    )}
-                  >
-                    {cat.slug === 'eco-friendly' ? (
-                      <span className="flex items-center gap-1">
-                        <span className="relative flex h-1.5 w-1.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
-                        </span>
-                        {getCatName(cat)}
+            {/* ── Thin separator ─────────────────────────────────────────────── */}
+            <div className="w-px bg-gray-100 my-2.5 mx-1 flex-shrink-0" />
+
+            {/* ── Category links — overflow-hidden so they never bleed into More/special ── */}
+            <div className="flex-1 min-w-0 flex items-stretch overflow-hidden">
+              {mainRowCats.map((cat, idx) => (
+                <Link
+                  key={cat.slug}
+                  href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
+                  onMouseEnter={() => setActiveCategoryIndex(idx)}
+                  className={cn(
+                    'flex items-center justify-center px-3.5 xl:px-5 h-full transition-all relative text-[13px] font-semibold whitespace-nowrap flex-shrink-0',
+                    cat.slug === 'eco-friendly'
+                      ? activeCategoryIndex === idx ? 'text-green-600' : 'text-green-600 hover:text-green-700'
+                      : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
+                  )}
+                >
+                  {cat.slug === 'eco-friendly' ? (
+                    <span className="flex items-center gap-1">
+                      <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
                       </span>
-                    ) : getCatName(cat)}
-                    {activeCategoryIndex === idx && (
-                      <div className={`absolute bottom-0 left-0 w-full h-0.5 ${cat.slug === 'eco-friendly' ? 'bg-green-500' : 'bg-primary'}`} />
-                    )}
-                  </Link>
-                ))}
-                <div className="flex items-center ml-auto shrink-0">
-                  <Link href="/quick-commerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1.5 text-[12px] xl:text-[13px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
-                    ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
-                  </Link>
-                  <Link href="/recommerce" className="px-2 xl:px-3 h-[44px] flex items-center gap-1.5 text-[12px] xl:text-[13px] font-black text-amber-700 hover:text-amber-800 transition-colors whitespace-nowrap">
-                    ♻️ {lang === 'bn' ? 'সালভেজ ইয়ার্ড' : 'Salvage Yard'}
-                  </Link>
-                  <Link href="/flash-deals" className="px-2 xl:px-4 h-[44px] flex items-center gap-1.5 text-[12px] xl:text-[13px] font-black text-secondary hover:text-amber-600 transition-colors whitespace-nowrap">
-                    <span className="text-red-600 text-base xl:text-lg">🔥</span>
-                    {t.header.dealOfDay}
-                  </Link>
-                </div>
-              </div>
-              {/* Row 2: shown only when there are more than 8 active categories */}
-              {dynamicNavCategories.length > 8 && (
-                <div className="flex items-center border-t border-gray-100">
-                  {dynamicNavCategories.slice(8).map((cat, i) => {
-                    const idx = i + 8;
-                    return (
+                      {getCatName(cat)}
+                    </span>
+                  ) : getCatName(cat)}
+                  {activeCategoryIndex === idx && (
+                    <div className={`absolute bottom-0 left-0 w-full h-[2px] ${cat.slug === 'eco-friendly' ? 'bg-green-500' : 'bg-primary'}`} />
+                  )}
+                </Link>
+              ))}
+            </div>
+
+            {/* ── More ▾ — sibling of category container so the dropdown isn't clipped ── */}
+            {moreCats.length > 0 && (
+              <div ref={moreRef} className="relative flex items-stretch flex-shrink-0">
+                <button
+                  onClick={() => setMoreOpen(o => !o)}
+                  className={cn(
+                    'flex items-center gap-1 px-3.5 xl:px-4 h-full text-[13px] font-semibold transition-all whitespace-nowrap relative border-l border-gray-100',
+                    moreOpen ? 'text-primary bg-gray-50' : 'text-gray-600 hover:text-primary hover:bg-gray-50',
+                  )}
+                >
+                  {lang === 'bn' ? 'আরও' : 'More'}
+                  <ChevronDown className={cn('w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0', moreOpen && 'rotate-180')} />
+                  {moreOpen && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-primary" />}
+                </button>
+                {moreOpen && (
+                  <div className="absolute top-full right-0 bg-white shadow-2xl rounded-b-xl overflow-hidden border border-gray-100 border-t-2 border-t-primary py-1 min-w-[200px] z-50">
+                    {moreCats.map((cat) => (
                       <Link
                         key={cat.slug}
-                        href={`/products?categorySlug=${cat.slug}`}
-                        onMouseEnter={() => setActiveCategoryIndex(idx)}
+                        href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
+                        onClick={() => setMoreOpen(false)}
                         className={cn(
-                          'px-2 xl:px-3 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold shrink-0',
-                          activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
+                          'flex items-center gap-3 px-4 py-2.5 text-[12.5px] font-medium transition-colors',
+                          cat.slug === 'eco-friendly'
+                            ? 'text-green-600 hover:bg-green-50'
+                            : 'text-gray-700 hover:text-primary hover:bg-gray-50',
                         )}
                       >
+                        <cat.icon className="w-3.5 h-3.5 flex-shrink-0 opacity-50" />
                         {getCatName(cat)}
-                        {activeCategoryIndex === idx && (
-                          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
-                        )}
                       </Link>
-                    );
-                  })}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ── Special promotional links — right-anchored, accent-colored ───── */}
+            <div className="flex items-stretch flex-shrink-0 border-l border-gray-100 ml-1">
+              <Link
+                href="/quick-commerce"
+                className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-full text-[12px] xl:text-[13px] font-bold text-emerald-600 hover:bg-emerald-50 transition-colors whitespace-nowrap"
+              >
+                <span className="text-[15px]">⚡</span>
+                <span className="hidden xl:inline">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
+                <span className="xl:hidden">{lang === 'bn' ? 'কুইক' : 'Quick'}</span>
+              </Link>
+              <div className="w-px bg-gray-100 my-3 flex-shrink-0" />
+              <Link
+                href="/recommerce"
+                className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-full text-[12px] xl:text-[13px] font-bold text-amber-600 hover:bg-amber-50 transition-colors whitespace-nowrap"
+              >
+                <span className="text-[15px]">♻️</span>
+                <span className="hidden xl:inline">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
+                <span className="xl:hidden">{lang === 'bn' ? 'রিকমার্স' : 'Reco'}</span>
+              </Link>
+              <div className="w-px bg-gray-100 my-3 flex-shrink-0" />
+              <Link
+                href="/flash-deals"
+                className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-full text-[12px] xl:text-[13px] font-bold text-rose-600 hover:bg-rose-50 transition-colors whitespace-nowrap"
+              >
+                <span className="text-[15px]">🔥</span>
+                <span>{lang === 'bn' ? t.header.dealOfDay : 'Deal of the Day'}</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -2131,37 +2181,27 @@ export function Header() {
           </button>
         </div>
 
-        {/* ── SELL YOUR BOOK CTA — pinned at top ── */}
-        <Link
-          href="/publish"
-          onClick={() => setSidebarOpen(false)}
-          className="mx-4 mt-3 mb-1 flex items-center justify-center gap-2.5 min-h-[48px] rounded-full bg-gradient-to-r from-slate-800 to-slate-900 text-white font-bold text-sm hover:from-slate-700 hover:to-slate-800 transition-colors"
-        >
-          <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-400" />
-          </span>
-          <span className="whitespace-nowrap">Sell Your Book</span>
-          <span className="text-white/40">/</span>
-          <span className="text-yellow-400 font-black whitespace-nowrap">বই বিক্রি করুন</span>
-        </Link>
-
-        {/* ── Special destination links ── */}
-        <div className="mx-4 mb-3 grid grid-cols-3 gap-1.5">
-          <Link href="/quick-commerce" onClick={() => setSidebarOpen(false)}
-            className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors text-center">
-            <span className="text-lg">⚡</span>
-            <span className="text-[10px] font-black leading-tight">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
-          </Link>
-          <Link href="/recommerce" onClick={() => setSidebarOpen(false)}
-            className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors text-center">
-            <span className="text-lg">♻️</span>
-            <span className="text-[10px] font-black leading-tight">{lang === 'bn' ? 'সালভেজ ইয়ার্ড' : 'Salvage Yard'}</span>
+        {/* ── Quick destinations — compact 2×2 grid ── */}
+        <div className="mx-4 mt-3 mb-3 grid grid-cols-2 gap-1.5">
+          <Link href="/publish" onClick={() => setSidebarOpen(false)}
+            className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg bg-gradient-to-r from-slate-800 to-slate-900 text-white hover:from-slate-700 hover:to-slate-800 transition-colors text-center">
+            <span className="text-yellow-400 text-sm">📖</span>
+            <span className="text-[11px] font-black leading-tight">{lang === 'bn' ? 'বই বিক্রি করুন' : 'Sell Your Book'}</span>
           </Link>
           <Link href="/flash-deals" onClick={() => setSidebarOpen(false)}
-            className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors text-center">
-            <span className="text-lg">🔥</span>
-            <span className="text-[10px] font-black leading-tight">{lang === 'bn' ? t.header.dealOfDay : 'Deal of the Day'}</span>
+            className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors text-center">
+            <span className="text-sm">🔥</span>
+            <span className="text-[11px] font-black leading-tight">{lang === 'bn' ? t.header.dealOfDay : 'Deal of the Day'}</span>
+          </Link>
+          <Link href="/quick-commerce" onClick={() => setSidebarOpen(false)}
+            className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors text-center">
+            <span className="text-sm">⚡</span>
+            <span className="text-[11px] font-black leading-tight">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
+          </Link>
+          <Link href="/recommerce" onClick={() => setSidebarOpen(false)}
+            className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors text-center">
+            <span className="text-sm">♻️</span>
+            <span className="text-[11px] font-black leading-tight">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
           </Link>
         </div>
 
