@@ -1437,10 +1437,10 @@ export function Header() {
 
   const getSubLabel = (sub: string) => {
     if (lang === 'bn') {
-      if (activeCategory!.slug === '/books') {
+      if (activeCategory?.slug === '/books') {
         return (t.booksSubnav as Record<string, string>)[sub] ?? sub;
       }
-      return BN_SUBNAV[activeCategory!.slug]?.[sub] ?? sub;
+      return BN_SUBNAV[activeCategory?.slug ?? '']?.[sub] ?? sub;
     }
     return sub;
   };
@@ -2122,7 +2122,7 @@ export function Header() {
         <div className="hidden">
           <div className="max-w-[1400px] mx-auto px-4">
             <nav className="flex items-center gap-6 h-[44px] overflow-x-auto hide-scrollbar">
-              {activeCategory!.subnav.map(sub => {
+              {(activeCategory?.subnav ?? []).map(sub => {
                 const dropdown = SUBNAV_DROPDOWNS[sub];
                 const isOpen = activeSubnav === sub;
                 return (
