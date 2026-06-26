@@ -1213,7 +1213,7 @@ const MEGA_SLUGS = [
 // Keep this list short enough that even long BN names fit at 1200px+.
 const MAIN_ROW_SLUGS = new Set([
   'books', 'baby-products', 'leather-products', 'islamic-lifestyle',
-  'electronics', 'health-sports', 'eco-friendly',
+  'handicrafts', 'health-sports', 'eco-friendly',
 ]);
 
 const MEGA_CATS_BY_SLUG = Object.fromEntries(
