@@ -1989,15 +1989,15 @@ export function Header() {
                 overflow-hidden here clips any category bleed without touching the
                 mega dropdown (which lives in the All Departments column on the left). */}
             <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
-              {/* Row 1: first 8 categories (or all if ≤8) + special links pinned right */}
-              <div className="flex items-center">
+              {/* Row 1: first 6 categories + 3 special links, evenly spread edge-to-edge */}
+              <div className="flex items-center justify-between">
                 {(dynamicNavCategories.length > 6 ? dynamicNavCategories.slice(0, 6) : dynamicNavCategories).map((cat, idx) => (
                   <Link
                     key={cat.slug}
                     href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
                     onMouseEnter={() => setActiveCategoryIndex(idx)}
                     className={cn(
-                      'px-2 xl:px-3 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold shrink-0',
+                      'px-2 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold shrink-0',
                       cat.slug === 'eco-friendly'
                         ? 'text-green-600 hover:text-green-700 font-black'
                         : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
@@ -2017,22 +2017,20 @@ export function Header() {
                     )}
                   </Link>
                 ))}
-                <div className="flex items-center ml-auto shrink-0 border-l border-gray-200 pl-1">
-                  <Link href="/quick-commerce" className="px-1.5 xl:px-2 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap">
-                    ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
-                  </Link>
-                  <Link href="/recommerce" className="px-1.5 xl:px-2 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-amber-700 hover:text-amber-800 transition-colors whitespace-nowrap">
-                    ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
-                  </Link>
-                  <Link href="/flash-deals" className="px-1.5 xl:px-2 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-secondary hover:text-amber-600 transition-colors whitespace-nowrap">
-                    <span className="text-red-600 text-sm xl:text-base">🔥</span>
-                    {t.header.dealOfDay}
-                  </Link>
-                </div>
+                <Link href="/quick-commerce" className="px-2 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-emerald-600 hover:text-emerald-700 transition-colors whitespace-nowrap shrink-0">
+                  ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
+                </Link>
+                <Link href="/recommerce" className="px-2 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-amber-700 hover:text-amber-800 transition-colors whitespace-nowrap shrink-0">
+                  ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
+                </Link>
+                <Link href="/flash-deals" className="px-2 h-[44px] flex items-center gap-1 text-[11px] xl:text-[12px] font-black text-secondary hover:text-amber-600 transition-colors whitespace-nowrap shrink-0">
+                  <span className="text-red-600 text-sm xl:text-base">🔥</span>
+                  {t.header.dealOfDay}
+                </Link>
               </div>
-              {/* Row 2: shown only when there are more than 8 active categories */}
+              {/* Row 2: remaining categories, evenly spread edge-to-edge */}
               {dynamicNavCategories.length > 6 && (
-                <div className="flex items-center border-t border-gray-100">
+                <div className="flex items-center justify-between border-t border-gray-100">
                   {dynamicNavCategories.slice(6).map((cat, i) => {
                     const idx = i + 6;
                     return (
@@ -2041,13 +2039,23 @@ export function Header() {
                         href={`/products?categorySlug=${cat.slug}`}
                         onMouseEnter={() => setActiveCategoryIndex(idx)}
                         className={cn(
-                          'px-2 xl:px-3 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold shrink-0',
-                          activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
+                          'px-2 h-[44px] flex items-center justify-center gap-1 transition-colors whitespace-nowrap relative text-[11px] xl:text-[12px] font-bold shrink-0',
+                          cat.slug === 'eco-friendly'
+                            ? 'text-green-600 hover:text-green-700 font-black'
+                            : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
                         )}
                       >
-                        {getCatName(cat)}
+                        {cat.slug === 'eco-friendly' ? (
+                          <span className="flex items-center gap-1">
+                            <span className="relative flex h-1.5 w-1.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
+                            </span>
+                            {getCatName(cat)}
+                          </span>
+                        ) : getCatName(cat)}
                         {activeCategoryIndex === idx && (
-                          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-primary" />
+                          <div className={`absolute bottom-0 left-0 w-full h-0.5 ${cat.slug === 'eco-friendly' ? 'bg-green-500' : 'bg-primary'}`} />
                         )}
                       </Link>
                     );
