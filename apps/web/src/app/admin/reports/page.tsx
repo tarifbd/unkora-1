@@ -335,6 +335,55 @@ export default function ReportsPage() {
 
   const isLoading = statsLoading || chartLoading;
 
+  // Real CSV export — builds a multi-section report from live data and downloads it.
+  function exportCsv() {
+    const lines: string[] = [];
+    lines.push('UNKORA — Reports & Analytics Export');
+    lines.push(`Generated,${new Date().toISOString()}`);
+    lines.push(`Date range,${dateRange}`);
+    lines.push('');
+    lines.push('REVENUE SUMMARY');
+    lines.push('Metric,Value');
+    lines.push(`Today,${stats?.revenue.today ?? 0}`);
+    lines.push(`This Month,${stats?.revenue.thisMonth ?? 0}`);
+    lines.push(`All Time,${stats?.revenue.total ?? 0}`);
+    lines.push(`Avg Order Value,${Math.round(avgOrderValue)}`);
+    lines.push('');
+    lines.push('DAILY REVENUE');
+    lines.push('Date,Revenue');
+    (chart ?? []).forEach(p => lines.push(`${p.date},${p.revenue}`));
+    lines.push('');
+    lines.push('ORDERS BY STATUS');
+    lines.push('Status,Count');
+    (ordersByStatus ?? []).forEach(s => lines.push(`${s.status},${s.count}`));
+    lines.push('');
+    lines.push('CATEGORY SALES');
+    lines.push('Category,Revenue');
+    (categorySales ?? []).forEach(c => lines.push(`${c.category},${c.revenue}`));
+    lines.push('');
+    lines.push('TOP CUSTOMERS');
+    lines.push('Customer,Orders,Total Spent');
+    (topCustomers ?? []).forEach(c => {
+      const name = c.user ? `${c.user.firstName} ${c.user.lastName}`.trim() || c.user.email : 'Unknown';
+      lines.push(`"${name}",${c.orderCount},${c.totalSpent}`);
+    });
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `unkora-report-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('CSV downloaded ✓');
+  }
+
+  // Real PDF export — uses the browser print pipeline ("Save as PDF").
+  function exportPdf() {
+    showToast('Opening print dialog…');
+    setTimeout(() => window.print(), 300);
+  }
+
   if (isLoading) {
     return (
       <div className="flex h-96 items-center justify-center">
@@ -421,8 +470,8 @@ export default function ReportsPage() {
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               type="button"
-              onClick={() => showToast('CSV export started…')}
-              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all hover:opacity-90"
+              onClick={exportCsv}
+              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all hover:opacity-90 print:hidden"
               style={{ background: 'rgba(255,255,255,0.1)', color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.1)' }}
             >
               <Download className="h-4 w-4" />
@@ -430,8 +479,8 @@ export default function ReportsPage() {
             </button>
             <button
               type="button"
-              onClick={() => showToast('PDF report generating…')}
-              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-90"
+              onClick={exportPdf}
+              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-90 print:hidden"
               style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
             >
               <FileText className="h-4 w-4" />
