@@ -1209,10 +1209,11 @@ const MEGA_SLUGS = [
   'eco-friendly',
 ] as const;
 
-// Priority categories always shown in the main nav row (full text, no truncation)
+// Priority categories always shown in the main nav row (full text, no truncation).
+// Keep this list short enough that even long BN names fit at 1200px+.
 const MAIN_ROW_SLUGS = new Set([
   'books', 'baby-products', 'leather-products', 'islamic-lifestyle',
-  'electronics', 'daily-needs', 'health-sports', 'fashion-lifestyle', 'eco-friendly',
+  'electronics', 'health-sports', 'eco-friendly',
 ]);
 
 const MEGA_CATS_BY_SLUG = Object.fromEntries(
@@ -2009,8 +2010,8 @@ export function Header() {
             {/* ── Thin separator ─────────────────────────────────────────────── */}
             <div className="w-px bg-gray-100 my-2.5 mx-1 flex-shrink-0" />
 
-            {/* ── Category links — natural width + equal padding ────────────── */}
-            <div className="flex-1 min-w-0 flex items-stretch">
+            {/* ── Category links — overflow-hidden so they never bleed into More/special ── */}
+            <div className="flex-1 min-w-0 flex items-stretch overflow-hidden">
               {mainRowCats.map((cat, idx) => (
                 <Link
                   key={cat.slug}
@@ -2019,12 +2020,8 @@ export function Header() {
                   className={cn(
                     'flex items-center justify-center px-3 xl:px-4 h-full transition-all relative text-[11px] font-semibold whitespace-nowrap flex-shrink-0',
                     cat.slug === 'eco-friendly'
-                      ? activeCategoryIndex === idx
-                        ? 'text-green-600'
-                        : 'text-green-600 hover:text-green-700'
-                      : activeCategoryIndex === idx
-                        ? 'text-primary'
-                        : 'text-gray-600 hover:text-primary',
+                      ? activeCategoryIndex === idx ? 'text-green-600' : 'text-green-600 hover:text-green-700'
+                      : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-600 hover:text-primary',
                   )}
                 >
                   {cat.slug === 'eco-friendly' ? (
@@ -2041,44 +2038,44 @@ export function Header() {
                   )}
                 </Link>
               ))}
-
-              {/* More ▾ — overflow dropdown for non-priority categories */}
-              {moreCats.length > 0 && (
-                <div ref={moreRef} className="relative flex items-stretch flex-shrink-0">
-                  <button
-                    onClick={() => setMoreOpen(o => !o)}
-                    className={cn(
-                      'flex items-center gap-1 px-3 xl:px-4 h-full text-[11px] font-semibold transition-all whitespace-nowrap relative',
-                      moreOpen ? 'text-primary' : 'text-gray-500 hover:text-primary',
-                    )}
-                  >
-                    {lang === 'bn' ? 'আরও' : 'More'}
-                    <ChevronDown className={cn('w-3 h-3 transition-transform duration-200 flex-shrink-0', moreOpen && 'rotate-180')} />
-                    {moreOpen && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-primary" />}
-                  </button>
-                  {moreOpen && (
-                    <div className="absolute top-full right-0 bg-white shadow-2xl rounded-b-xl overflow-hidden border border-gray-100 border-t-2 border-t-primary py-1 min-w-[200px] z-50">
-                      {moreCats.map((cat) => (
-                        <Link
-                          key={cat.slug}
-                          href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
-                          onClick={() => setMoreOpen(false)}
-                          className={cn(
-                            'flex items-center gap-3 px-4 py-2.5 text-[12.5px] font-medium transition-colors',
-                            cat.slug === 'eco-friendly'
-                              ? 'text-green-600 hover:bg-green-50'
-                              : 'text-gray-700 hover:text-primary hover:bg-gray-50',
-                          )}
-                        >
-                          <cat.icon className="w-3.5 h-3.5 flex-shrink-0 opacity-50" />
-                          {getCatName(cat)}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
+
+            {/* ── More ▾ — sibling of category container so the dropdown isn't clipped ── */}
+            {moreCats.length > 0 && (
+              <div ref={moreRef} className="relative flex items-stretch flex-shrink-0">
+                <button
+                  onClick={() => setMoreOpen(o => !o)}
+                  className={cn(
+                    'flex items-center gap-1 px-3 xl:px-4 h-full text-[11px] font-semibold transition-all whitespace-nowrap relative border-l border-gray-100',
+                    moreOpen ? 'text-primary bg-gray-50' : 'text-gray-500 hover:text-primary hover:bg-gray-50',
+                  )}
+                >
+                  {lang === 'bn' ? 'আরও' : 'More'}
+                  <ChevronDown className={cn('w-3 h-3 transition-transform duration-200 flex-shrink-0', moreOpen && 'rotate-180')} />
+                  {moreOpen && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-primary" />}
+                </button>
+                {moreOpen && (
+                  <div className="absolute top-full right-0 bg-white shadow-2xl rounded-b-xl overflow-hidden border border-gray-100 border-t-2 border-t-primary py-1 min-w-[200px] z-50">
+                    {moreCats.map((cat) => (
+                      <Link
+                        key={cat.slug}
+                        href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
+                        onClick={() => setMoreOpen(false)}
+                        className={cn(
+                          'flex items-center gap-3 px-4 py-2.5 text-[12.5px] font-medium transition-colors',
+                          cat.slug === 'eco-friendly'
+                            ? 'text-green-600 hover:bg-green-50'
+                            : 'text-gray-700 hover:text-primary hover:bg-gray-50',
+                        )}
+                      >
+                        <cat.icon className="w-3.5 h-3.5 flex-shrink-0 opacity-50" />
+                        {getCatName(cat)}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* ── Special promotional links — right-anchored, accent-colored ───── */}
             <div className="flex items-stretch flex-shrink-0 border-l border-gray-100 ml-1">
