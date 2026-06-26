@@ -1253,7 +1253,9 @@ export function Header() {
   const [megaHoverCat, setMegaHoverCat] = useState(0);
   const [accountOpen, setAccountOpen] = useState(false);
   const [mobileExpandedCat, setMobileExpandedCat] = useState<string | null>(null);
+  const [moreOpen, setMoreOpen] = useState(false);
   const megaRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
   const accountRef = useRef<HTMLDivElement>(null);
   const accountTriggerRef = useRef<HTMLDivElement>(null);
   const accountPanelRef = useRef<HTMLDivElement>(null);
@@ -1273,6 +1275,14 @@ export function Header() {
     }
     return () => document.removeEventListener('mousedown', handleClick);
   }, [megaOpen]);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    };
+    if (moreOpen) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [moreOpen]);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -1693,18 +1703,19 @@ export function Header() {
 
         {/* ── Tier 3: Category nav (desktop) ── */}
         <div className="bg-white hidden lg:block border-b border-gray-200 relative z-30" ref={megaRef}>
-          <div className="max-w-[1400px] mx-auto pl-4 xl:pl-6 pr-4 flex items-start relative">
+          <div className="max-w-[1400px] mx-auto pl-4 xl:pl-6 pr-0 flex items-stretch h-[42px] relative">
             {/* All Departments button */}
-            <div className="relative h-[44px] flex items-center mr-6 shrink-0">
+            <div className="relative flex items-stretch shrink-0">
               <button
                 onClick={() => setMegaOpen(o => !o)}
                 className={cn(
-                  'h-full flex items-center gap-2 px-5 font-bold text-sm cursor-pointer transition-colors',
+                  'h-full flex items-center gap-2 px-4 xl:px-5 font-bold text-[12.5px] cursor-pointer transition-colors whitespace-nowrap',
                   megaOpen ? 'bg-primary text-white' : 'bg-gray-900 text-white hover:bg-gray-800',
                 )}
               >
-                <Menu className="w-[18px] h-[18px]" /> {t.header.allDepartments}
-                <ChevronDown className={cn('w-4 h-4 transition-transform duration-200', megaOpen && 'rotate-180')} />
+                <Menu className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden xl:inline">{t.header.allDepartments}</span>
+                <ChevronDown className={cn('w-3.5 h-3.5 transition-transform duration-200 flex-shrink-0', megaOpen && 'rotate-180')} />
               </button>
 
               {/* ── Mega Menu Dropdown ── */}
@@ -1985,111 +1996,107 @@ export function Header() {
               )}
             </div>
 
-            {/* Right column: special-links strip + category rows.
-                overflow-hidden clips category bleed; the mega-dropdown lives in the
-                All Departments column to the left so it is unaffected. */}
-            <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+            {/* ── Thin separator ─────────────────────────────────────────────── */}
+            <div className="w-px bg-gray-100 my-2.5 mx-1 flex-shrink-0" />
 
-              {/* ── Special Links Strip ────────────────────────────────────────────
-                  These are NOT mega-menu categories — they are distinct promotional
-                  routes. Pill badges make that immediately clear in both EN & BN. */}
-              <div className="flex items-center gap-2 px-3 h-[30px] bg-gradient-to-r from-slate-50 via-white to-slate-50 border-b border-gray-100/80">
+            {/* ── Category links — flex-1 = equal width in EN and BN ─────────── */}
+            <div className="flex-1 min-w-0 flex items-stretch">
+              {dynamicNavCategories.slice(0, 10).map((cat, idx) => (
                 <Link
-                  href="/quick-commerce"
-                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] xl:text-[11px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 transition-colors whitespace-nowrap"
+                  key={cat.slug}
+                  href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
+                  onMouseEnter={() => setActiveCategoryIndex(idx)}
+                  className={cn(
+                    'flex flex-1 items-center justify-center px-1 h-full min-w-0 transition-all relative text-[10.5px] xl:text-[11px] font-semibold',
+                    cat.slug === 'eco-friendly'
+                      ? activeCategoryIndex === idx
+                        ? 'text-green-600'
+                        : 'text-green-600 hover:text-green-700'
+                      : activeCategoryIndex === idx
+                        ? 'text-primary'
+                        : 'text-gray-600 hover:text-primary',
+                  )}
                 >
-                  ⚡ {lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}
+                  {cat.slug === 'eco-friendly' ? (
+                    <span className="flex items-center gap-1 min-w-0">
+                      <span className="relative flex h-1.5 w-1.5 flex-shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
+                      </span>
+                      <span className="truncate">{getCatName(cat)}</span>
+                    </span>
+                  ) : <span className="truncate">{getCatName(cat)}</span>}
+                  {activeCategoryIndex === idx && (
+                    <div className={`absolute bottom-0 left-0 w-full h-[2px] ${cat.slug === 'eco-friendly' ? 'bg-green-500' : 'bg-primary'}`} />
+                  )}
                 </Link>
-                <span className="text-gray-200 text-xs select-none">|</span>
-                <Link
-                  href="/recommerce"
-                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] xl:text-[11px] font-extrabold text-amber-700 bg-amber-50 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 transition-colors whitespace-nowrap"
-                >
-                  ♻️ {lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}
-                </Link>
-                <span className="text-gray-200 text-xs select-none">|</span>
-                <Link
-                  href="/flash-deals"
-                  className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] xl:text-[11px] font-extrabold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 hover:border-rose-300 transition-colors whitespace-nowrap"
-                >
-                  🔥 {t.header.dealOfDay}
-                </Link>
-                <div className="flex-1" />
-                <span className="hidden xl:inline text-[10px] text-gray-400 font-medium pr-1">
-                  {lang === 'bn'
-                    ? `${dynamicNavCategories.length}টি ক্যাটাগরি`
-                    : `${dynamicNavCategories.length} categories`}
-                </span>
-              </div>
+              ))}
 
-              {/* ── Category Rows ─────────────────────────────────────────────────
-                  flex-1 on every Link → all cells share width equally regardless
-                  of text length, so EN and BN spacing is always identical. */}
-              <div className="flex items-stretch">
-                {(dynamicNavCategories.length > 8
-                  ? dynamicNavCategories.slice(0, 8)
-                  : dynamicNavCategories
-                ).map((cat, idx) => (
-                  <Link
-                    key={cat.slug}
-                    href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
-                    onMouseEnter={() => setActiveCategoryIndex(idx)}
+              {/* More ▾ — overflow dropdown for categories 11+ */}
+              {dynamicNavCategories.length > 10 && (
+                <div ref={moreRef} className="relative flex items-stretch flex-shrink-0">
+                  <button
+                    onClick={() => setMoreOpen(o => !o)}
                     className={cn(
-                      'flex flex-1 items-center justify-center px-1 h-[40px] transition-colors whitespace-nowrap relative text-[10px] xl:text-[11px] font-bold',
-                      cat.slug === 'eco-friendly'
-                        ? 'text-green-600 hover:text-green-700 font-black'
-                        : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
+                      'flex items-center gap-1 px-3 h-full text-[10.5px] xl:text-[11px] font-semibold transition-all whitespace-nowrap relative',
+                      moreOpen ? 'text-primary' : 'text-gray-500 hover:text-primary',
                     )}
                   >
-                    {cat.slug === 'eco-friendly' ? (
-                      <span className="flex items-center gap-1">
-                        <span className="relative flex h-1.5 w-1.5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
-                        </span>
-                        {getCatName(cat)}
-                      </span>
-                    ) : getCatName(cat)}
-                    {activeCategoryIndex === idx && (
-                      <div className={`absolute bottom-0 left-0 w-full h-0.5 ${cat.slug === 'eco-friendly' ? 'bg-green-500' : 'bg-primary'}`} />
-                    )}
-                  </Link>
-                ))}
-              </div>
-
-              {dynamicNavCategories.length > 8 && (
-                <div className="flex items-stretch border-t border-gray-100">
-                  {dynamicNavCategories.slice(8).map((cat, i) => {
-                    const idx = i + 8;
-                    return (
-                      <Link
-                        key={cat.slug}
-                        href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
-                        onMouseEnter={() => setActiveCategoryIndex(idx)}
-                        className={cn(
-                          'flex flex-1 items-center justify-center px-1 h-[40px] transition-colors whitespace-nowrap relative text-[10px] xl:text-[11px] font-bold',
-                          cat.slug === 'eco-friendly'
-                            ? 'text-green-600 hover:text-green-700 font-black'
-                            : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
-                        )}
-                      >
-                        {cat.slug === 'eco-friendly' ? (
-                          <span className="flex items-center gap-1">
-                            <span className="relative flex h-1.5 w-1.5">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500" />
-                            </span>
-                            {getCatName(cat)}
-                          </span>
-                        ) : getCatName(cat)}
-                        {activeCategoryIndex === idx && (
-                          <div className={`absolute bottom-0 left-0 w-full h-0.5 ${cat.slug === 'eco-friendly' ? 'bg-green-500' : 'bg-primary'}`} />
-                        )}
-                      </Link>
-                    );
-                  })}
+                    {lang === 'bn' ? 'আরও' : 'More'}
+                    <ChevronDown className={cn('w-3 h-3 transition-transform duration-200 flex-shrink-0', moreOpen && 'rotate-180')} />
+                    {moreOpen && <div className="absolute bottom-0 left-0 w-full h-[2px] bg-primary" />}
+                  </button>
+                  {moreOpen && (
+                    <div className="absolute top-full right-0 bg-white shadow-2xl rounded-b-xl overflow-hidden border border-gray-100 border-t-2 border-t-primary py-1 min-w-[200px] z-50">
+                      {dynamicNavCategories.slice(10).map((cat) => (
+                        <Link
+                          key={cat.slug}
+                          href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
+                          onClick={() => setMoreOpen(false)}
+                          className={cn(
+                            'flex items-center gap-3 px-4 py-2.5 text-[12.5px] font-medium transition-colors',
+                            cat.slug === 'eco-friendly'
+                              ? 'text-green-600 hover:bg-green-50'
+                              : 'text-gray-700 hover:text-primary hover:bg-gray-50',
+                          )}
+                        >
+                          <cat.icon className="w-3.5 h-3.5 flex-shrink-0 opacity-50" />
+                          {getCatName(cat)}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
+            </div>
+
+            {/* ── Special promotional links — right-anchored, accent-colored ───── */}
+            <div className="flex items-stretch flex-shrink-0 border-l border-gray-100 ml-1">
+              <Link
+                href="/quick-commerce"
+                className="flex items-center gap-1.5 px-2.5 xl:px-3 h-full text-[10.5px] xl:text-[11px] font-bold text-emerald-600 hover:bg-emerald-50 transition-colors whitespace-nowrap"
+              >
+                <span>⚡</span>
+                <span className="hidden xl:inline">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
+                <span className="xl:hidden">{lang === 'bn' ? 'কুইক' : 'Quick'}</span>
+              </Link>
+              <div className="w-px bg-gray-100 my-2.5 flex-shrink-0" />
+              <Link
+                href="/recommerce"
+                className="flex items-center gap-1.5 px-2.5 xl:px-3 h-full text-[10.5px] xl:text-[11px] font-bold text-amber-600 hover:bg-amber-50 transition-colors whitespace-nowrap"
+              >
+                <span>♻️</span>
+                <span className="hidden xl:inline">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
+                <span className="xl:hidden">{lang === 'bn' ? 'রিকমার্স' : 'Reco'}</span>
+              </Link>
+              <div className="w-px bg-gray-100 my-2.5 flex-shrink-0" />
+              <Link
+                href="/flash-deals"
+                className="flex items-center gap-1.5 px-2.5 xl:px-3 h-full text-[10.5px] xl:text-[11px] font-bold text-rose-600 hover:bg-rose-50 transition-colors whitespace-nowrap"
+              >
+                <span>🔥</span>
+                <span>{lang === 'bn' ? t.header.dealOfDay : 'Flash Deals'}</span>
+              </Link>
             </div>
           </div>
         </div>
