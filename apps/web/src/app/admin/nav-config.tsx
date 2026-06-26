@@ -27,8 +27,9 @@ export function isDivider(item: NavItem): item is NavDivider {
 export const NAV: NavItem[] = [
   /* ───── OVERVIEW ───── */
   { type: 'divider', label: 'OVERVIEW' },
-  { href: '/admin',         label: 'Dashboard', icon: LayoutDashboard, exact: true, keywords: ['home', 'overview', 'summary', 'kpi'] },
-  { href: '/admin/reports', label: 'Reports',   icon: BarChart3,                    keywords: ['report', 'analytics', 'metrics', 'kpi', 'sales report'] },
+  { href: '/admin',                label: 'Dashboard',      icon: LayoutDashboard, exact: true, keywords: ['home', 'overview', 'summary', 'kpi'] },
+  { href: '/admin/control-center', label: 'Control Center', icon: LayoutGrid,                   keywords: ['command center', 'action queue', 'needs attention', 'pending', 'centralized', 'todo', 'tasks'] },
+  { href: '/admin/reports',        label: 'Reports',        icon: BarChart3,                    keywords: ['report', 'analytics', 'metrics', 'kpi', 'sales report'] },
 
   /* ───── CATALOGUE ───── */
   { type: 'divider', label: 'CATALOGUE' },

@@ -843,6 +843,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </p>
               <h1 className="font-bold text-foreground text-sm sm:text-[15px] leading-snug">{pageTitle}</h1>
             </div>
+
+            {/* Global search — opens the ⌘K command palette */}
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+              className="ml-2 hidden md:flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground transition-colors min-w-[220px]"
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span className="flex-1 text-left">Search anything…</span>
+              <kbd className="rounded border bg-background px-1.5 py-0.5 text-[10px] font-semibold">⌘K</kbd>
+            </button>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+              className="ml-1 md:hidden rounded-lg p-2 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+              title="Search (⌘K)"
+            >
+              <Search className="h-4 w-4" />
+            </button>
           </div>
 
           <div className="flex items-center gap-1.5 py-3">

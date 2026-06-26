@@ -72,7 +72,8 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Global open shortcut: ⌘K / Ctrl+K
+  // Global open shortcut: ⌘K / Ctrl+K, plus a custom event so the header search
+  // button (or anything else) can open the palette too.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -80,8 +81,13 @@ export function CommandPalette() {
         setOpen((v) => !v);
       }
     };
+    const onOpen = () => setOpen(true);
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener('open-command-palette', onOpen);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('open-command-palette', onOpen);
+    };
   }, []);
 
   useEffect(() => {
