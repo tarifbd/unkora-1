@@ -2139,37 +2139,27 @@ export function Header() {
           </button>
         </div>
 
-        {/* ── SELL YOUR BOOK CTA — pinned at top ── */}
-        <Link
-          href="/publish"
-          onClick={() => setSidebarOpen(false)}
-          className="mx-4 mt-3 mb-1 flex items-center justify-center gap-2.5 min-h-[48px] rounded-full bg-gradient-to-r from-slate-800 to-slate-900 text-white font-bold text-sm hover:from-slate-700 hover:to-slate-800 transition-colors"
-        >
-          <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-yellow-400" />
-          </span>
-          <span className="whitespace-nowrap">Sell Your Book</span>
-          <span className="text-white/40">/</span>
-          <span className="text-yellow-400 font-black whitespace-nowrap">বই বিক্রি করুন</span>
-        </Link>
-
-        {/* ── Special destination links ── */}
-        <div className="mx-4 mb-3 grid grid-cols-3 gap-1.5">
-          <Link href="/quick-commerce" onClick={() => setSidebarOpen(false)}
-            className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors text-center">
-            <span className="text-lg">⚡</span>
-            <span className="text-[10px] font-black leading-tight">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
-          </Link>
-          <Link href="/recommerce" onClick={() => setSidebarOpen(false)}
-            className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors text-center">
-            <span className="text-lg">♻️</span>
-            <span className="text-[10px] font-black leading-tight">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
+        {/* ── Quick destinations — compact 2×2 grid ── */}
+        <div className="mx-4 mt-3 mb-3 grid grid-cols-2 gap-1.5">
+          <Link href="/publish" onClick={() => setSidebarOpen(false)}
+            className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg bg-gradient-to-r from-slate-800 to-slate-900 text-white hover:from-slate-700 hover:to-slate-800 transition-colors text-center">
+            <span className="text-yellow-400 text-sm">📖</span>
+            <span className="text-[11px] font-black leading-tight">{lang === 'bn' ? 'বই বিক্রি করুন' : 'Sell Your Book'}</span>
           </Link>
           <Link href="/flash-deals" onClick={() => setSidebarOpen(false)}
-            className="flex flex-col items-center gap-1 py-2 px-1 rounded-xl bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors text-center">
-            <span className="text-lg">🔥</span>
-            <span className="text-[10px] font-black leading-tight">{lang === 'bn' ? t.header.dealOfDay : 'Deal of the Day'}</span>
+            className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-colors text-center">
+            <span className="text-sm">🔥</span>
+            <span className="text-[11px] font-black leading-tight">{lang === 'bn' ? t.header.dealOfDay : 'Deal of the Day'}</span>
+          </Link>
+          <Link href="/quick-commerce" onClick={() => setSidebarOpen(false)}
+            className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 transition-colors text-center">
+            <span className="text-sm">⚡</span>
+            <span className="text-[11px] font-black leading-tight">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
+          </Link>
+          <Link href="/recommerce" onClick={() => setSidebarOpen(false)}
+            className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors text-center">
+            <span className="text-sm">♻️</span>
+            <span className="text-[11px] font-black leading-tight">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
           </Link>
         </div>
 
