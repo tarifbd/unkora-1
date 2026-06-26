@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   TrendingUp,
-  BarChart3,
+  TrendingDown,
+  Minus,
   Users,
   ShoppingBag,
   Package,
@@ -26,57 +27,177 @@ import {
 import { adminApi } from '@/lib/api/admin';
 import { formatCurrency } from '@/lib/utils';
 
-/* ──────────────────────────────────────────
-   Revenue bar chart
-────────────────────────────────────────── */
-function RevenueBarChart({ data }: { data: { label: string; value: number }[] }) {
-  const max = Math.max(...data.map(d => d.value), 1);
+// ─── Live clock hook ───────────────────────────────────────────────────────────
+function useNow(intervalMs = 1000) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+  return now;
+}
+
+// ─── Trend helper: % change of recent window vs prior window ───────────────────
+function windowDelta(series: number[], window: number): number | null {
+  if (window < 1 || series.length < window * 2) return null;
+  const recent = series.slice(-window).reduce((a, b) => a + b, 0);
+  const prior = series.slice(-window * 2, -window).reduce((a, b) => a + b, 0);
+  if (prior === 0) return recent > 0 ? 100 : null;
+  return Math.round(((recent - prior) / prior) * 100);
+}
+
+// ─── Trend pill ────────────────────────────────────────────────────────────────
+function TrendPill({ delta, light = false }: { delta: number | null; light?: boolean }) {
+  if (delta === null) {
+    return (
+      <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${light ? 'bg-white/20 text-white/80' : 'bg-gray-100 text-gray-400'}`}>
+        <Minus className="h-2.5 w-2.5" /> —
+      </span>
+    );
+  }
+  const up = delta >= 0;
+  const cls = light ? 'bg-white/20 text-white' : up ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600';
   return (
-    <div>
-      <div className="flex items-end gap-px" style={{ height: 160 }}>
-        {data.map((d, i) => (
-          <div
-            key={i}
-            className="group relative flex flex-1 flex-col items-center"
-            style={{ minWidth: 0 }}
-          >
-            <div
-              className="absolute z-20 hidden group-hover:block whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs shadow-xl pointer-events-none"
-              style={{
-                bottom: '110%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                background: 'rgba(15,23,42,0.95)',
-                color: '#fff',
-                border: '1px solid rgba(255,255,255,0.1)',
-              }}
-            >
-              <span className="font-semibold">{d.label}</span>
-              <br />
-              <span style={{ color: '#6ee7b7' }}>{formatCurrency(d.value)}</span>
-            </div>
-            <div
-              className="w-full rounded-t transition-all cursor-default"
-              style={{
-                height: `${Math.max((d.value / max) * 100, 2)}%`,
-                background: d.value === max
-                  ? 'linear-gradient(180deg, #6366f1, #4f46e5)'
-                  : 'linear-gradient(180deg, #818cf8, #6366f1)',
-                opacity: d.value === max ? 1 : 0.6,
-              }}
-            />
-          </div>
+    <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${cls}`}>
+      {up ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
+      {up ? '+' : ''}{delta}%
+    </span>
+  );
+}
+
+/* ──────────────────────────────────────────
+   Interactive SVG area chart (gradient + crosshair tooltip)
+────────────────────────────────────────── */
+function RevenueAreaChart({ data, height = 220 }: { data: { label: string; value: number }[]; height?: number }) {
+  const ref = useRef<SVGSVGElement>(null);
+  const [hover, setHover] = useState<number | null>(null);
+  const [width, setWidth] = useState(800);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      for (const e of entries) setWidth(e.contentRect.width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const pad = { top: 18, right: 8, bottom: 22, left: 8 };
+  const w = width;
+  const h = height;
+  const innerW = Math.max(w - pad.left - pad.right, 1);
+  const innerH = h - pad.top - pad.bottom;
+  const max = Math.max(...data.map(d => d.value), 1);
+  const n = data.length;
+
+  const points = data.map((d, i) => ({
+    x: pad.left + (n <= 1 ? innerW / 2 : (i / (n - 1)) * innerW),
+    y: pad.top + innerH - (d.value / max) * innerH,
+    ...d,
+  }));
+
+  const linePath = useMemo(() => {
+    if (points.length === 0) return '';
+    const first = points[0]!;
+    if (points.length === 1) return `M ${first.x} ${first.y}`;
+    let dd = `M ${first.x} ${first.y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[i === 0 ? 0 : i - 1]!;
+      const p1 = points[i]!;
+      const p2 = points[i + 1]!;
+      const p3 = points[i + 2 < points.length ? i + 2 : points.length - 1]!;
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+      dd += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    }
+    return dd;
+  }, [points]);
+
+  const areaPath = linePath && points.length > 0
+    ? `${linePath} L ${points[points.length - 1]!.x} ${pad.top + innerH} L ${points[0]!.x} ${pad.top + innerH} Z`
+    : '';
+
+  const onMove = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
+    const rect = (e.currentTarget as SVGSVGElement).getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    let nearest = 0;
+    let best = Infinity;
+    points.forEach((p, i) => {
+      const dist = Math.abs(p.x - x);
+      if (dist < best) { best = dist; nearest = i; }
+    });
+    setHover(points.length > 0 ? nearest : null);
+  }, [points]);
+
+  const hp = hover !== null ? points[hover] : null;
+  const labelEvery = Math.max(1, Math.ceil(n / 8));
+
+  return (
+    <div className="relative w-full" style={{ height: h }}>
+      <svg
+        ref={ref}
+        width="100%"
+        height={h}
+        onMouseMove={onMove}
+        onMouseLeave={() => setHover(null)}
+        style={{ display: 'block', overflow: 'visible' }}
+      >
+        <defs>
+          <linearGradient id="repAreaFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#6366f1" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#6366f1" stopOpacity="0.01" />
+          </linearGradient>
+          <linearGradient id="repLineStroke" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#6366f1" />
+            <stop offset="100%" stopColor="#10b981" />
+          </linearGradient>
+        </defs>
+
+        {[0.25, 0.5, 0.75, 1].map(t => (
+          <line key={t}
+            x1={pad.left} x2={pad.left + innerW}
+            y1={pad.top + innerH * t} y2={pad.top + innerH * t}
+            stroke="#eef2f7" strokeWidth={1} strokeDasharray={t === 1 ? undefined : '4 4'} />
         ))}
-      </div>
-      <div className="flex mt-2 overflow-hidden border-t border-gray-100 pt-2">
-        {data.map((d, i) => (
-          <div key={i} className="flex-1 text-center" style={{ minWidth: 0 }}>
-            {i % 5 === 0 && (
-              <span style={{ fontSize: 9, color: '#9ca3af' }}>{d.label}</span>
-            )}
-          </div>
+
+        {areaPath && <path d={areaPath} fill="url(#repAreaFill)" />}
+        {linePath && <path d={linePath} fill="none" stroke="url(#repLineStroke)" strokeWidth={2.5} strokeLinecap="round" />}
+
+        {hp && (
+          <>
+            <line x1={hp.x} x2={hp.x} y1={pad.top} y2={pad.top + innerH} stroke="#c7d2fe" strokeWidth={1} />
+            <circle cx={hp.x} cy={hp.y} r={6} fill="#6366f1" opacity={0.2} />
+            <circle cx={hp.x} cy={hp.y} r={3.5} fill="#4f46e5" stroke="#fff" strokeWidth={1.5} />
+          </>
+        )}
+
+        {/* x-axis labels */}
+        {points.map((p, i) => (
+          i % labelEvery === 0 ? (
+            <text key={i} x={p.x} y={h - 6} textAnchor="middle" fontSize={9} fill="#9ca3af">{p.label}</text>
+          ) : null
         ))}
-      </div>
+      </svg>
+
+      {hp && (
+        <div
+          className="pointer-events-none absolute z-20 rounded-lg px-2.5 py-1.5 text-xs shadow-xl whitespace-nowrap"
+          style={{
+            left: Math.min(Math.max(hp.x, 56), w - 56),
+            top: -4,
+            transform: 'translateX(-50%)',
+            background: 'rgba(15,23,42,0.95)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            color: '#fff',
+          }}
+        >
+          <span className="text-white/50">{hp.label}</span>{' '}
+          <span className="font-bold text-emerald-300">{formatCurrency(hp.value)}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -307,6 +428,8 @@ const STATUS_META: Record<string, { color: string; icon: React.ReactNode }> = {
 export default function ReportsPage() {
   const [dateRange, setDateRange] = useState<DateRange>('30 Days');
   const { message: toastMsg, showToast } = useToast();
+  const now = useNow(1000);
+  const qc = useQueryClient();
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-stats'],
@@ -378,10 +501,37 @@ export default function ReportsPage() {
     showToast('CSV downloaded ✓');
   }
 
+  // Orders-only CSV (status breakdown).
+  function exportOrdersCsv() {
+    const lines: string[] = [];
+    lines.push('UNKORA — Orders Report');
+    lines.push(`Generated,${new Date().toISOString()}`);
+    lines.push('');
+    lines.push('Status,Count');
+    (ordersByStatus ?? []).forEach(s => lines.push(`${s.status},${s.count}`));
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `unkora-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Orders CSV downloaded ✓');
+  }
+
   // Real PDF export — uses the browser print pipeline ("Save as PDF").
   function exportPdf() {
     showToast('Opening print dialog…');
     setTimeout(() => window.print(), 300);
+  }
+
+  function refreshAll() {
+    qc.invalidateQueries({ queryKey: ['admin-stats'] });
+    qc.invalidateQueries({ queryKey: ['admin-revenue-chart'] });
+    qc.invalidateQueries({ queryKey: ['admin-orders-by-status'] });
+    qc.invalidateQueries({ queryKey: ['admin-category-sales'] });
+    qc.invalidateQueries({ queryKey: ['admin-top-customers'] });
+    showToast('Refreshing data…');
   }
 
   if (isLoading) {
@@ -408,6 +558,10 @@ export default function ReportsPage() {
 
   const filteredChartData = chartData.slice(-rangeSlice);
   const filteredRevenue = filteredChartData.reduce((s, p) => s + p.value, 0);
+  const filteredSeries = filteredChartData.map(p => p.value);
+  const revenueDelta = windowDelta(filteredSeries, Math.floor(filteredSeries.length / 2) || 1);
+  const peakDay = filteredChartData.reduce((best, p) => (p.value > (best?.value ?? -1) ? p : best), filteredChartData[0]);
+  const avgDaily = filteredSeries.length ? filteredRevenue / filteredSeries.length : 0;
 
   const last30Revenue = chartData.reduce((s, p) => s + p.value, 0);
   const totalOrders = stats?.orders.total ?? 0;
@@ -455,23 +609,44 @@ export default function ReportsPage() {
 
       {/* ── Page header ── */}
       <div
-        className="rounded-2xl px-7 py-6"
-        style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)' }}
+        className="relative overflow-hidden rounded-2xl px-7 py-6"
+        style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #312e81 100%)' }}
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="absolute -right-10 -top-12 h-44 w-44 rounded-full bg-indigo-500/20 blur-3xl print:hidden" />
+        <div className="absolute right-32 bottom-0 h-32 w-32 rounded-full bg-emerald-400/10 blur-3xl print:hidden" />
+        <div className="relative flex flex-col lg:flex-row lg:items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-white tracking-tight">
-              Reports & Analytics
-            </h1>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-black text-white tracking-tight">
+                Reports & Analytics
+              </h1>
+              <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold bg-emerald-400/20 text-emerald-200 ring-1 ring-emerald-400/30 print:hidden">
+                <span className="h-1.5 w-1.5 rounded-full animate-pulse bg-emerald-400 inline-block" />
+                Live
+              </span>
+            </div>
             <p className="text-sm mt-1" style={{ color: '#94a3b8' }}>
-              Comprehensive performance breakdown · All time data
+              Comprehensive performance breakdown
+              {' · '}
+              {now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+              {' · '}
+              <span className="tabular-nums">{now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
             </p>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0 print:hidden">
+            <button
+              type="button"
+              onClick={refreshAll}
+              className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all hover:opacity-90"
+              style={{ background: 'rgba(255,255,255,0.1)', color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.1)' }}
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </button>
             <button
               type="button"
               onClick={exportCsv}
-              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all hover:opacity-90 print:hidden"
+              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all hover:opacity-90"
               style={{ background: 'rgba(255,255,255,0.1)', color: '#e2e8f0', border: '1px solid rgba(255,255,255,0.1)' }}
             >
               <Download className="h-4 w-4" />
@@ -480,7 +655,7 @@ export default function ReportsPage() {
             <button
               type="button"
               onClick={exportPdf}
-              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-90 print:hidden"
+              className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-lg transition-all hover:opacity-90"
               style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
             >
               <FileText className="h-4 w-4" />
@@ -525,8 +700,8 @@ export default function ReportsPage() {
           <StatCard
             label="Total Revenue"
             value={formatCurrency(filteredRevenue)}
-            sub={`${dateRange} rolling`}
-            trend="up"
+            sub={revenueDelta !== null ? `${revenueDelta >= 0 ? '+' : ''}${revenueDelta}% vs prior` : `${dateRange} rolling`}
+            trend={revenueDelta === null ? 'neutral' : revenueDelta >= 0 ? 'up' : 'down'}
             gradient="linear-gradient(135deg, #10b981, #059669)"
             icon={<TrendingUp className="h-5 w-5" />}
           />
@@ -557,8 +732,11 @@ export default function ReportsPage() {
         </div>
 
         {/* Date range + chart */}
-        <div className="flex items-center justify-between mb-4">
-          <p className="text-sm font-semibold text-gray-700">Revenue Trend</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-gray-700">Revenue Trend</p>
+            <TrendPill delta={revenueDelta} />
+          </div>
           <DateRangeTabs value={dateRange} onChange={setDateRange} />
         </div>
         <div
@@ -570,11 +748,32 @@ export default function ReportsPage() {
               <Loader2 className="h-6 w-6 animate-spin" style={{ color: '#6366f1' }} />
             </div>
           ) : filteredChartData.length > 0 ? (
-            <RevenueBarChart data={filteredChartData} />
+            <RevenueAreaChart data={filteredChartData} />
           ) : (
             <p className="py-12 text-center text-sm text-gray-400">No chart data for this range</p>
           )}
         </div>
+
+        {/* Insight chips */}
+        {filteredChartData.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+            <div className="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Peak Day</p>
+              <p className="text-sm font-black text-gray-800 mt-0.5">{peakDay?.label ?? '—'}</p>
+              <p className="text-xs text-emerald-600 font-semibold">{formatCurrency(peakDay?.value ?? 0)}</p>
+            </div>
+            <div className="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Avg / Day</p>
+              <p className="text-sm font-black text-gray-800 mt-0.5">{formatCurrency(Math.round(avgDaily))}</p>
+              <p className="text-xs text-gray-400 font-medium">{dateRange} window</p>
+            </div>
+            <div className="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-3 col-span-2 sm:col-span-1">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-400">Period vs Prior</p>
+              <div className="mt-0.5"><TrendPill delta={revenueDelta} /></div>
+              <p className="text-xs text-gray-400 font-medium mt-1">Half-over-half change</p>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* ── Section 2: Orders Analytics ── */}
@@ -999,16 +1198,16 @@ export default function ReportsPage() {
               Download detailed reports for accounting, analysis, or archiving
             </p>
           </div>
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-3 flex-shrink-0 print:hidden">
             {[
-              { label: 'Revenue CSV', icon: <Download className="h-4 w-4" />, msg: 'Revenue CSV export started…' },
-              { label: 'Orders CSV', icon: <Download className="h-4 w-4" />, msg: 'Orders CSV export started…' },
-              { label: 'Full PDF Report', icon: <FileText className="h-4 w-4" />, msg: 'PDF report generating…' },
+              { label: 'Revenue CSV', icon: <Download className="h-4 w-4" />, onClick: exportCsv },
+              { label: 'Orders CSV', icon: <Download className="h-4 w-4" />, onClick: exportOrdersCsv },
+              { label: 'Full PDF Report', icon: <FileText className="h-4 w-4" />, onClick: exportPdf },
             ].map(btn => (
               <button
                 key={btn.label}
                 type="button"
-                onClick={() => showToast(btn.msg)}
+                onClick={btn.onClick}
                 className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all hover:opacity-90 hover:-translate-y-0.5"
                 style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }}
               >
