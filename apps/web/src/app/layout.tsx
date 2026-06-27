@@ -28,10 +28,40 @@ export const viewport: Viewport = {
   themeColor: '#d97706',
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+
+// Sitewide Organization + WebSite structured data (brand knowledge panel +
+// sitelinks search box eligibility).
+const ORG_JSONLD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: 'UNKORA',
+      url: SITE_URL,
+      logo: `${SITE_URL}/icon.png`,
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: 'UNKORA',
+      publisher: { '@id': `${SITE_URL}/#organization` },
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/search?q={search_term_string}` },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+  ],
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="bn" suppressHydrationWarning>
       <head>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSONLD) }} />
         {/* Preconnect to image/asset origins for faster LCP */}
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="preconnect" href="https://pub-c7c71d2de0d04a0099ccdff17d97daba.r2.dev" crossOrigin="anonymous" />

@@ -443,7 +443,7 @@ function ProductsContent() {
 
   const filters: FilterState = { categorySlug, minPrice, maxPrice, inStock, isFeatured, tags, language, genre, author, publisher, binding, hasDiscount, preorder };
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['products', { page, categorySlug, search, sortBy, sortOrder, minPrice, maxPrice, inStock, isFeatured, tagsParam, language, genre, author, publisher, binding, hasDiscount, preorder }],
     queryFn: () => productsApi.getAll({
       page, limit: 24, categorySlug, search, sortBy, sortOrder,
@@ -726,6 +726,13 @@ function ProductsContent() {
           {/* Grid */}
           {isLoading ? (
             <div className={`grid gap-3 sm:gap-4 ${gridClass}`}>{Array.from({ length: 8 }).map((_, i) => <div key={i} className="aspect-[3/4] animate-pulse rounded-xl bg-gray-100" />)}</div>
+          ) : isError ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center"><Package className="w-8 h-8 text-red-300" /></div>
+              <p className="text-base font-bold text-gray-700">{lang === 'bn' ? 'পণ্য লোড করা যায়নি' : 'Could not load products'}</p>
+              <p className="text-sm text-gray-400">{lang === 'bn' ? 'আপনার ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।' : 'Check your connection and try again.'}</p>
+              <button onClick={() => refetch()} className="mt-1 text-sm text-primary font-semibold hover:underline flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> {lang === 'bn' ? 'আবার চেষ্টা করুন' : 'Retry'}</button>
+            </div>
           ) : (data?.data ?? []).length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
               <div className="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center"><Package className="w-8 h-8 text-gray-300" /></div>

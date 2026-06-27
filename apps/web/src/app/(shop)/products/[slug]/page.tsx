@@ -24,6 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   return {
     title: `${product.name} | UNKORA`,
     description: product.shortDesc ?? product.description?.slice(0, 160) ?? `Buy ${product.name} at UNKORA`,
+    alternates: { canonical: `${BASE_URL}/products/${slug}` },
     openGraph: {
       title: product.name,
       description: product.shortDesc ?? product.description?.slice(0, 160),
@@ -43,5 +44,38 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  return <ProductDetailClient slug={slug} />;
+  const product = await getProduct(slug); // deduped with generateMetadata's fetch
+  const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+
+  // Product structured data for rich results (price, availability, rating).
+  const jsonLd = product && {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    description: product.shortDesc ?? product.description?.slice(0, 300) ?? undefined,
+    image: (product.images ?? []).map((i: { url: string }) => i.url).filter(Boolean),
+    sku: product.sku ?? product.id ?? undefined,
+    brand: product.brand ? { '@type': 'Brand', name: product.brand } : { '@type': 'Brand', name: 'UNKORA' },
+    offers: {
+      '@type': 'Offer',
+      url: `${BASE_URL}/products/${slug}`,
+      priceCurrency: 'BDT',
+      price: Number(product.salePrice ?? product.basePrice ?? 0),
+      availability: (product.stockQuantity ?? 0) > 0
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+    },
+    ...(product.ratingAvg && product.ratingCount
+      ? { aggregateRating: { '@type': 'AggregateRating', ratingValue: Number(product.ratingAvg), reviewCount: Number(product.ratingCount) } }
+      : {}),
+  };
+
+  return (
+    <>
+      {jsonLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      )}
+      <ProductDetailClient slug={slug} />
+    </>
+  );
 }
