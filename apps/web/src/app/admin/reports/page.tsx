@@ -50,7 +50,7 @@ function windowDelta(series: number[], window: number): number | null {
 function TrendPill({ delta, light = false }: { delta: number | null; light?: boolean }) {
   if (delta === null) {
     return (
-      <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${light ? 'bg-white/20 text-white/80' : 'bg-gray-100 text-gray-400'}`}>
+      <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold ${light ? 'bg-white/20 text-white/80' : 'bg-slate-100 text-slate-400'}`}>
         <Minus className="h-2.5 w-2.5" /> —
       </span>
     );
@@ -258,8 +258,8 @@ function SectionHeader({
         {icon}
       </div>
       <div>
-        <h2 className="text-base font-black text-gray-800 tracking-tight">{title}</h2>
-        <p className="text-xs text-gray-400 mt-0.5">{subtitle}</p>
+        <h2 className="text-base font-black text-slate-800 tracking-tight">{title}</h2>
+        <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
       </div>
       <div className="flex-1 self-center ml-2">
         <div className="h-px" style={{
@@ -338,9 +338,9 @@ function StatusProgressBar({
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-sm font-semibold text-gray-700">{status}</span>
+          <span className="text-sm font-semibold text-slate-700">{status}</span>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-black text-gray-800">{count}</span>
+            <span className="text-sm font-black text-slate-800">{count}</span>
             <span
               className="text-xs font-semibold rounded-full px-2 py-0.5"
               style={{ background: `${color}15`, color }}
@@ -605,7 +605,7 @@ export default function ReportsPage() {
   const CAT_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6'];
 
   return (
-    <div className="space-y-6 pb-12 relative">
+    <div className="min-h-screen bg-slate-50/50 space-y-6 pb-12 relative">
       {/* ── Error toast ── */}
       {toastMsg && (
         <div
@@ -734,7 +734,7 @@ export default function ReportsPage() {
       {/* ══════════════════════════════════════════════════════════════════
           HERO REVENUE CHART (full-width)
       ══════════════════════════════════════════════════════════════════ */}
-      <section className="rounded-2xl bg-white shadow-lg border border-gray-100 p-6">
+      <section className="rounded-2xl bg-white shadow-lg border border-slate-100 p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
             <SectionHeader
@@ -749,18 +749,18 @@ export default function ReportsPage() {
         {/* Trend + insight chips */}
         {filteredChartData.length > 0 && (
           <div className="flex flex-wrap gap-3 mb-5">
-            <div className="flex items-center gap-2 rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-2.5">
+            <div className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-2.5">
               <TrendPill delta={revenueDelta} />
-              <span className="text-xs font-semibold text-gray-500">Period vs Prior</span>
+              <span className="text-xs font-semibold text-slate-500">Period vs Prior</span>
             </div>
-            <div className="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-2.5">
-              <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mr-2">Peak Day</span>
-              <span className="text-sm font-black text-gray-800">{peakDay?.label ?? '—'}</span>
+            <div className="rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-2.5">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mr-2">Peak Day</span>
+              <span className="text-sm font-black text-slate-800">{peakDay?.label ?? '—'}</span>
               <span className="text-xs text-emerald-600 font-semibold ml-1.5">{formatCurrency(peakDay?.value ?? 0)}</span>
             </div>
-            <div className="rounded-xl border border-gray-100 bg-gray-50/60 px-4 py-2.5">
-              <span className="text-[10px] font-bold uppercase tracking-wide text-gray-400 mr-2">Avg/Day</span>
-              <span className="text-sm font-black text-gray-800">{formatCurrency(Math.round(avgDaily))}</span>
+            <div className="rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-2.5">
+              <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400 mr-2">Avg/Day</span>
+              <span className="text-sm font-black text-slate-800">{formatCurrency(Math.round(avgDaily))}</span>
             </div>
           </div>
         )}
@@ -780,7 +780,7 @@ export default function ReportsPage() {
               peakLabel={peakDay ? `${peakDay.label} · ${formatCurrency(peakDay.value)}` : undefined}
             />
           ) : (
-            <p className="py-16 text-center text-sm text-gray-400">No chart data for this range</p>
+            <p className="py-16 text-center text-sm text-slate-400">No chart data for this range</p>
           )}
         </div>
       </section>
@@ -791,7 +791,7 @@ export default function ReportsPage() {
       <div className="grid gap-5 lg:grid-cols-3">
 
         {/* ── Col 1: ORDER STATUS ── */}
-        <section className="rounded-2xl bg-white shadow-lg border border-gray-100 p-6">
+        <section className="rounded-2xl bg-white shadow-lg border border-slate-100 p-6">
           <SectionHeader
             icon={<ShoppingBag className="h-4 w-4" />}
             title="Order Status"
@@ -803,7 +803,7 @@ export default function ReportsPage() {
               <Loader2 className="h-5 w-5 animate-spin" style={{ color: '#6366f1' }} />
             </div>
           ) : !ordersByStatus || ordersByStatus.length === 0 ? (
-            <p className="text-sm text-gray-400 py-8 text-center">No order data</p>
+            <p className="text-sm text-slate-400 py-8 text-center">No order data</p>
           ) : (
             <div className="space-y-4">
               {ordersByStatus.map(item => {
@@ -819,8 +819,8 @@ export default function ReportsPage() {
                   />
                 );
               })}
-              <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Delivery rate</span>
+              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Delivery rate</span>
                 <span
                   className="text-sm font-black rounded-full px-2.5 py-1"
                   style={{ background: '#d1fae5', color: '#059669' }}
@@ -833,7 +833,7 @@ export default function ReportsPage() {
         </section>
 
         {/* ── Col 2: CATEGORY SALES ── */}
-        <section className="rounded-2xl bg-white shadow-lg border border-gray-100 p-6">
+        <section className="rounded-2xl bg-white shadow-lg border border-slate-100 p-6">
           <SectionHeader
             icon={<Package className="h-4 w-4" />}
             title="Category Sales"
@@ -845,7 +845,7 @@ export default function ReportsPage() {
               <Loader2 className="h-5 w-5 animate-spin" style={{ color: '#6366f1' }} />
             </div>
           ) : !categorySales || categorySales.length === 0 ? (
-            <p className="text-sm text-gray-400 py-8 text-center">No category data</p>
+            <p className="text-sm text-slate-400 py-8 text-center">No category data</p>
           ) : (
             <div className="space-y-3">
               {categorySales.slice(0, 8).map((cat, i) => {
@@ -860,8 +860,8 @@ export default function ReportsPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-semibold text-gray-700 truncate pr-2">{cat.category}</span>
-                        <span className="text-xs font-black text-gray-800 flex-shrink-0">{formatCurrency(cat.revenue)}</span>
+                        <span className="text-xs font-semibold text-slate-700 truncate pr-2">{cat.category}</span>
+                        <span className="text-xs font-black text-slate-800 flex-shrink-0">{formatCurrency(cat.revenue)}</span>
                       </div>
                       <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
                         <div
@@ -878,7 +878,7 @@ export default function ReportsPage() {
         </section>
 
         {/* ── Col 3: TOP CUSTOMERS ── */}
-        <section className="rounded-2xl bg-white shadow-lg border border-gray-100 p-6">
+        <section className="rounded-2xl bg-white shadow-lg border border-slate-100 p-6">
           <SectionHeader
             icon={<Users className="h-4 w-4" />}
             title="Top Customers"
@@ -890,7 +890,7 @@ export default function ReportsPage() {
               <Loader2 className="h-5 w-5 animate-spin" style={{ color: '#6366f1' }} />
             </div>
           ) : !topCustomers || topCustomers.length === 0 ? (
-            <p className="text-sm text-gray-400 py-8 text-center">No customer data</p>
+            <p className="text-sm text-slate-400 py-8 text-center">No customer data</p>
           ) : (
             <div className="space-y-3">
               {topCustomers.slice(0, 8).map((c, i) => {
@@ -911,12 +911,12 @@ export default function ReportsPage() {
                       {initials}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-800 truncate">{name}</p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-sm font-semibold text-slate-800 truncate">{name}</p>
+                      <p className="text-xs text-slate-400">
                         {c.orderCount} order{c.orderCount !== 1 ? 's' : ''}
                       </p>
                     </div>
-                    <span className="text-sm font-black text-gray-800 flex-shrink-0">
+                    <span className="text-sm font-black text-slate-800 flex-shrink-0">
                       {formatCurrency(c.totalSpent)}
                     </span>
                   </div>

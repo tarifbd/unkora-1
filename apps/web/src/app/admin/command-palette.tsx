@@ -157,21 +157,24 @@ export function CommandPalette() {
       onClick={() => setOpen(false)}>
       <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" />
       <div
-        className="relative w-full max-w-2xl rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 overflow-hidden"
+        className="relative w-full max-w-2xl rounded-2xl bg-white/75 backdrop-blur-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* gradient accent trace */}
+        <div className="absolute inset-x-0 top-0 h-[2px]" style={{ background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)' }} />
+
         {/* search input */}
-        <div className="flex items-center gap-3 px-4 border-b border-gray-100">
-          <Search className="h-5 w-5 text-gray-400 flex-shrink-0" />
+        <div className="flex items-center gap-3 px-4 border-b border-slate-100">
+          <Search className="h-5 w-5 text-slate-400 flex-shrink-0" />
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
             placeholder="Search pages, actions, products, orders…"
-            className="flex-1 py-4 text-[15px] outline-none placeholder:text-gray-400"
+            className="flex-1 py-4 text-[15px] outline-none placeholder:text-slate-400"
           />
-          <button onClick={() => setOpen(false)} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={() => setOpen(false)} className="p-1 rounded-lg hover:bg-slate-100 text-slate-400">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -179,7 +182,7 @@ export function CommandPalette() {
         {/* results */}
         <div ref={listRef} className="max-h-[55vh] overflow-y-auto py-2">
           {results.length === 0 ? (
-            <div className="px-4 py-10 text-center text-sm text-gray-400">No matches for “{query}”.</div>
+            <div className="px-4 py-10 text-center text-sm text-slate-400">No matches for “{query}”.</div>
           ) : (
             results.map((cmd, idx) => {
               const Icon = cmd.icon;
@@ -187,23 +190,23 @@ export function CommandPalette() {
               return (
                 <div key={cmd.id}>
                   {showSection && (
-                    <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">{cmd.section}</p>
+                    <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">{cmd.section}</p>
                   )}
                   <button
                     data-idx={idx}
                     onMouseEnter={() => setActive(idx)}
                     onClick={() => go(cmd)}
                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
-                      active === idx ? 'bg-indigo-50' : 'hover:bg-gray-50'
+                      active === idx ? 'bg-indigo-50/80' : 'hover:bg-slate-50'
                     }`}
                   >
                     <span className={`flex h-8 w-8 items-center justify-center rounded-lg flex-shrink-0 ${
-                      active === idx ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'
+                      active === idx ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-500'
                     }`}>
                       <Icon className="h-4 w-4" />
                     </span>
                     <span className="flex-1 min-w-0">
-                      <span className={`block text-sm font-medium truncate ${active === idx ? 'text-indigo-900' : 'text-gray-700'}`}>{cmd.label}</span>
+                      <span className={`block text-sm font-medium truncate ${active === idx ? 'text-indigo-900' : 'text-slate-700'}`}>{cmd.label}</span>
                     </span>
                     {active === idx && (
                       <CornerDownLeft className="h-4 w-4 text-indigo-400 flex-shrink-0" />
@@ -216,7 +219,7 @@ export function CommandPalette() {
         </div>
 
         {/* footer hint */}
-        <div className="flex items-center justify-between px-4 py-2.5 border-t border-gray-100 bg-gray-50/60 text-[11px] text-gray-400">
+        <div className="flex items-center justify-between px-4 py-2.5 border-t border-slate-100 bg-slate-50/60 text-[11px] text-slate-400">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1"><ArrowUp className="h-3 w-3" /><ArrowDown className="h-3 w-3" /> navigate</span>
             <span className="flex items-center gap-1"><CornerDownLeft className="h-3 w-3" /> open</span>
