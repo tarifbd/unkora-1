@@ -1216,6 +1216,10 @@ const MAIN_ROW_SLUGS = new Set([
   'handicrafts', 'health-sports', 'eco-friendly',
 ]);
 
+// Always lead the main nav row, in this exact order — shown even if admin
+// curation would hide them. Books first, then Islamic Lifestyle.
+const PINNED_FRONT: readonly string[] = ['books', 'islamic-lifestyle'];
+
 const MEGA_CATS_BY_SLUG = Object.fromEntries(
   MEGA_SLUGS.map((slug, i) => [slug, MEGA_CATEGORIES[i]!] as const)
 ) as Record<string, typeof MEGA_CATEGORIES[number]>;
@@ -1393,9 +1397,24 @@ export function Header() {
     }),
   [visibleSlugs, apiBySlug]);
 
-  // Split into main-row (priority) and More overflow
-  const mainRowCats = useMemo(() => dynamicNavCategories.filter(c => MAIN_ROW_SLUGS.has(c.slug)), [dynamicNavCategories]);
-  const moreCats    = useMemo(() => dynamicNavCategories.filter(c => !MAIN_ROW_SLUGS.has(c.slug)), [dynamicNavCategories]);
+  // Split into main-row (priority) and More overflow.
+  // PINNED_FRONT categories always lead the main row, in this exact order, and
+  // are shown even if admin curation (isFeatured) would otherwise hide them.
+  const mainRowCats = useMemo(() => {
+    const inRow = dynamicNavCategories.filter(c => MAIN_ROW_SLUGS.has(c.slug));
+    const bySlug = new Map(inRow.map(c => [c.slug, c]));
+    for (const slug of PINNED_FRONT) {
+      if (!bySlug.has(slug) && NAV_BY_SLUG[slug]) {
+        const base = NAV_BY_SLUG[slug]!;
+        const apiCat = apiBySlug.get(slug);
+        bySlug.set(slug, apiCat ? { ...base, displayName: apiCat.name } : base);
+      }
+    }
+    const pinned = PINNED_FRONT.map(s => bySlug.get(s)).filter(Boolean) as NavCategory[];
+    const rest   = inRow.filter(c => !PINNED_FRONT.includes(c.slug));
+    return [...pinned, ...rest];
+  }, [dynamicNavCategories, apiBySlug]);
+  const moreCats    = useMemo(() => dynamicNavCategories.filter(c => !MAIN_ROW_SLUGS.has(c.slug) && !PINNED_FRONT.includes(c.slug)), [dynamicNavCategories]);
 
   // Mega-menu left panel: same visible set, with API child categories as sub-items.
   const dynamicMegaCategories = useMemo(() =>
