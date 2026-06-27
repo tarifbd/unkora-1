@@ -919,7 +919,7 @@ export default function AdminDashboard() {
     { key: 'stock',     label: 'Low Stock',       count: lowStockCount,  href: '/admin/inventory',             icon: <AlertTriangle className="h-4 w-4" />, color: '#ef4444', hint: 'Restock soon' },
     { key: 'refunds',   label: 'Refunds',         count: refundsCount,   href: '/admin/refunds',               icon: <Banknote className="h-4 w-4" />,      color: '#6366f1', hint: 'Awaiting review' },
     { key: 'questions', label: 'Q&A to Moderate', count: questionsCount, href: '/admin/questions',             icon: <HelpCircle className="h-4 w-4" />,    color: '#8b5cf6', hint: 'Pending approval' },
-    { key: 'carts',     label: 'Abandoned Carts', count: abandonedCarts, href: '/admin/orders',                icon: <Inbox className="h-4 w-4" />,         color: '#0ea5e9', hint: 'Recoverable revenue' },
+    { key: 'carts',     label: 'Abandoned Carts', count: abandonedCarts, href: '/admin/orders/incomplete',     icon: <Inbox className="h-4 w-4" />,         color: '#0ea5e9', hint: 'Recoverable revenue' },
   ];
 
   // Shared system-health snapshot — drives the OEI card, the ambient glow,
