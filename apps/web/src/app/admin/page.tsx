@@ -9,8 +9,9 @@ import {
   CheckCircle2, XCircle, Truck, RefreshCw, Zap, ShoppingCart,
   Layers, CreditCard, Banknote, LayoutGrid, ChevronRight, Sparkles, Bot,
   Download, Minus, Command, Server, Timer, Bell, Sun, Lock, Shield,
+  HelpCircle, Inbox,
 } from 'lucide-react';
-import { adminApi } from '@/lib/api/admin';
+import { adminApi, refundsApi, questionsApi } from '@/lib/api/admin';
 import { formatCurrency } from '@/lib/utils';
 import api from '@/lib/api';
 
@@ -484,6 +485,78 @@ Keep it practical. Use ৳. No markdown, plain text only.`;
   );
 }
 
+// ─── Action Center ────────────────────────────────────────────────────────────
+// One triage strip surfacing everything that needs the operator right now, with
+// live counts and a one-click jump to the place it gets resolved.
+type ActionItem = {
+  key: string;
+  label: string;
+  count: number;
+  href: string;
+  icon: React.ReactNode;
+  color: string;   // accent for the "needs action" state
+  hint: string;
+};
+
+function ActionCenter({ items }: { items: ActionItem[] }) {
+  const open = items.filter(i => i.count > 0);
+  const totalOpen = open.reduce((a, i) => a + i.count, 0);
+  const allClear = open.length === 0;
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)] overflow-hidden">
+      <div className="h-0.5 bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-400" />
+      <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+        <div className="flex items-center gap-2.5">
+          <div className="relative rounded-lg p-1.5 bg-indigo-50 border border-indigo-100">
+            <Inbox className="h-4 w-4 text-indigo-600" />
+            {totalOpen > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-60" />
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-500" />
+              </span>
+            )}
+          </div>
+          <div>
+            <p className="font-bold text-sm text-slate-900">Action Center</p>
+            <p className="text-[11px] text-slate-500">
+              {allClear ? 'All caught up — nothing needs you right now' : `${totalOpen} item${totalOpen !== 1 ? 's' : ''} across ${open.length} queue${open.length !== 1 ? 's' : ''} need attention`}
+            </p>
+          </div>
+        </div>
+        {allClear && (
+          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
+            <CheckCircle2 className="h-3 w-3" /> Clear
+          </span>
+        )}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-x divide-y sm:divide-y-0 divide-slate-100">
+        {items.map(item => {
+          const active = item.count > 0;
+          return (
+            <Link key={item.key} href={item.href}
+              className={`group relative flex items-center gap-3 px-4 py-3.5 transition-colors ${active ? 'hover:bg-slate-50' : 'hover:bg-slate-50/60'}`}>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl flex-shrink-0 transition-transform group-hover:scale-105"
+                style={{ background: active ? item.color + '14' : '#f1f5f9', color: active ? item.color : '#94a3b8' }}>
+                {item.icon}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-lg font-black tabular-nums leading-none" style={{ color: active ? '#0f172a' : '#cbd5e1' }}>{item.count}</span>
+                  {active && <span className="h-1.5 w-1.5 rounded-full" style={{ background: item.color }} />}
+                </div>
+                <p className="text-[11px] font-bold text-slate-700 mt-1 leading-tight truncate">{item.label}</p>
+                <p className="text-[10px] text-slate-400 leading-tight truncate">{active ? item.hint : 'All clear'}</p>
+              </div>
+              <ChevronRight className={`h-3.5 w-3.5 flex-shrink-0 transition-all ${active ? 'text-slate-300 group-hover:text-slate-500 group-hover:translate-x-0.5' : 'text-slate-200'}`} />
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function AdminDashboard() {
   const qc = useQueryClient();
@@ -509,11 +582,36 @@ export default function AdminDashboard() {
     queryFn: () => adminApi.getTopCustomers(),
   });
 
+  // Pull a count out of the many shapes these admin list endpoints return
+  // (raw array, { items }, { data }, or a { total/meta.total } envelope).
+  const countOf = (x: any): number => {
+    if (Array.isArray(x)) return x.length;
+    return x?.total ?? x?.meta?.total ?? x?.pagination?.total
+      ?? (Array.isArray(x?.items) ? x.items.length : undefined)
+      ?? (Array.isArray(x?.data) ? x.data.length : undefined)
+      ?? 0;
+  };
+
+  const { data: pendingRefunds } = useQuery({
+    queryKey: ['admin-pending-refunds'],
+    queryFn: () => refundsApi.list({ status: 'PENDING' }).catch(() => null),
+    refetchInterval: 60000,
+    retry: false,
+  });
+  const { data: pendingQuestions } = useQuery({
+    queryKey: ['admin-pending-questions'],
+    queryFn: () => questionsApi.adminGetAll({ status: 'PENDING', limit: 1 }).catch(() => null),
+    refetchInterval: 60000,
+    retry: false,
+  });
+
   const refreshAll = useCallback(() => {
     qc.invalidateQueries({ queryKey: ['admin-stats'] });
     qc.invalidateQueries({ queryKey: ['admin-revenue-chart'] });
     qc.invalidateQueries({ queryKey: ['admin-category-sales'] });
     qc.invalidateQueries({ queryKey: ['admin-top-customers'] });
+    qc.invalidateQueries({ queryKey: ['admin-pending-refunds'] });
+    qc.invalidateQueries({ queryKey: ['admin-pending-questions'] });
   }, [qc]);
 
   const exportChartCsv = useCallback(() => {
@@ -578,6 +676,19 @@ export default function AdminDashboard() {
 
   const catColors = ['#6366f1', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899'];
   const catMax    = Math.max(...(categorySales ?? []).map(c => c.revenue), 1);
+
+  const refundsCount    = countOf(pendingRefunds);
+  const questionsCount  = countOf(pendingQuestions);
+  const pendingOrders   = stats?.orders?.pending ?? 0;
+  const abandonedCarts  = stats?.orders?.abandonedCarts ?? 0;
+
+  const actionItems: ActionItem[] = [
+    { key: 'orders',    label: 'Pending Orders',  count: pendingOrders,  href: '/admin/orders?status=PENDING', icon: <ShoppingCart className="h-4 w-4" />,  color: '#f59e0b', hint: 'Awaiting confirmation' },
+    { key: 'stock',     label: 'Low Stock',       count: lowStockCount,  href: '/admin/inventory',             icon: <AlertTriangle className="h-4 w-4" />, color: '#ef4444', hint: 'Restock soon' },
+    { key: 'refunds',   label: 'Refunds',         count: refundsCount,   href: '/admin/refunds',               icon: <Banknote className="h-4 w-4" />,      color: '#6366f1', hint: 'Awaiting review' },
+    { key: 'questions', label: 'Q&A to Moderate', count: questionsCount, href: '/admin/questions',             icon: <HelpCircle className="h-4 w-4" />,    color: '#8b5cf6', hint: 'Pending approval' },
+    { key: 'carts',     label: 'Abandoned Carts', count: abandonedCarts, href: '/admin/orders',                icon: <Inbox className="h-4 w-4" />,         color: '#0ea5e9', hint: 'Recoverable revenue' },
+  ];
 
   const secAgo       = dataUpdatedAt ? Math.floor((now.getTime() - dataUpdatedAt) / 1000) : null;
   const updatedLabel = secAgo === null ? '' : secAgo < 5 ? 'just now' : `${secAgo}s ago`;
@@ -647,6 +758,9 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* ── Action Center ────────────────────────────────────────────── */}
+      <ActionCenter items={actionItems} />
 
       {/* ── Operational Efficiency Index ─────────────────────────────── */}
       <OEIBlock stats={stats} periodRevenue={periodRevenue} todayRevenue={todayRevenue} periodDays={periodDays} />
