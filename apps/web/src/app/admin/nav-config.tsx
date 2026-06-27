@@ -6,7 +6,7 @@ import {
   FileText, Filter, Flag, FlaskConical, Gavel, Gift, GitBranch, Globe, ImageIcon,
   Layers, LayoutDashboard, LayoutGrid, LayoutList, Library, LifeBuoy, LineChart, Lock,
   Mail, Map, MapPin, Maximize2, Megaphone, MessageCircle, MessageSquare, Monitor,
-  Package, Palette, Percent, PhoneCall, PieChart, Plus, Puzzle, Radio, RefreshCw,
+  Package, Palette, Percent, PhoneCall, PieChart, Plus, Puzzle, Radio, Recycle, RefreshCw,
   Rocket, RotateCcw, ScrollText, Search, Settings, Share2, ShieldAlert, ShoppingBag,
   ShoppingCart, Sliders, Sparkles, Star, Store, Sun, Tag, Target, Ticket, TrendingUp,
   Truck, UserCog, Users, Users2, Wallet, Warehouse, Zap,
@@ -121,6 +121,19 @@ export const NAV: NavItem[] = [
       { href: '/admin/sellers/payouts',      label: 'Vendor Payouts',      icon: DollarSign,    keywords: ['payout', 'commission', 'earnings'] },
       { href: '/admin/sellers/commission',   label: 'Commission Rules',    icon: Percent,       keywords: ['rate', 'fee', 'commission'] },
       { href: '/admin/sellers/applications', label: 'Seller Applications', icon: ClipboardList, keywords: ['apply', 'onboard', 'registration'] },
+    ],
+  },
+
+  /* ───── RECOMMERCE ───── */
+  { type: 'divider', label: 'RECOMMERCE' },
+  {
+    label: 'Recommerce', icon: Recycle,
+    children: [
+      { href: '/admin/recommerce',          label: 'Overview',         icon: LayoutGrid, exact: true, keywords: ['salvage yard', 'resale', 'used', 'refurbished', 'second hand', 'recommerce'] },
+      { href: '/admin/recommerce/listings', label: 'Listings',         icon: Package,    keywords: ['ads', 'items', 'moderation', 'approve', 'reject', 'used product'] },
+      { href: '/admin/recommerce/sellers',  label: 'Sellers',          icon: Users,      keywords: ['resellers', 'vendors', 'verify', 'kyc'] },
+      { href: '/admin/recommerce/grading',  label: 'Grading Criteria', icon: Tag,        keywords: ['condition', 'grade', 'quality', 'a+ a b c', 'inspection'] },
+      { href: '/recommerce',                label: 'View Salvage Yard', icon: Store,     keywords: ['storefront', 'live site', 'recommerce site'] },
     ],
   },
 
