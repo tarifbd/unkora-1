@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let productRoutes: MetadataRoute.Sitemap = [];
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1/v1'}/products?limit=500`,
+      `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'}/products?limit=500`,
       { next: { revalidate: 3600 } },
     );
     const json = await res.json();
@@ -32,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let categoryRoutes: MetadataRoute.Sitemap = [];
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1/v1'}/categories`,
+      `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'}/categories`,
       { next: { revalidate: 3600 } },
     );
     const json = await res.json();

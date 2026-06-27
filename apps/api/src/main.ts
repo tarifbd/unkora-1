@@ -28,8 +28,21 @@ async function bootstrap() {
   const apiPrefix = config.get<string>('app.apiPrefix') ?? 'api';
   const isProd = process.env['NODE_ENV'] === 'production';
 
+  // CORS allowlist from CORS_ORIGINS (comma-separated). In non-production we
+  // reflect any origin for local-dev convenience; in production only listed
+  // origins are allowed. Requests with no Origin (curl, server-to-server,
+  // health checks) are always permitted.
+  const corsOrigins = (config.get<string>('app.corsOrigins') ?? '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+
   await app.register(cors, {
-    origin: true,
+    origin: (origin: string | undefined, cb: (err: Error | null, allow: boolean) => void) => {
+      if (!origin) return cb(null, true);
+      if (!isProd) return cb(null, true);
+      return cb(null, corsOrigins.includes(origin));
+    },
     credentials: false,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -46,10 +59,7 @@ async function bootstrap() {
       reply: { header: (k: string, v: string) => void },
       done: () => void,
     ) => {
-      reply.header('Access-Control-Allow-Origin', '*');
-      reply.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-      reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-
+      // CORS headers are handled by @fastify/cors above (allowlist-driven).
       if (!req.url.includes('/health')) {
         logger.log(`${req.method} ${req.url}`);
       }
@@ -66,10 +76,7 @@ async function bootstrap() {
       _payload: unknown,
       done: () => void,
     ) => {
-      reply.header('Access-Control-Allow-Origin', '*');
-      reply.header('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-      reply.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-
+      // Security headers on every response (CORS handled by @fastify/cors).
       reply.header('X-Content-Type-Options', 'nosniff');
       reply.header('X-Frame-Options', 'DENY');
       reply.header('X-XSS-Protection', '1; mode=block');

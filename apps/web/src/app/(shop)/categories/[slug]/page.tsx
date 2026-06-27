@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import CategoryDetailClient from './category-detail-client';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
 
 async function getCategory(slug: string) {
   try {

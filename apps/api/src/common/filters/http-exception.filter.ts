@@ -16,10 +16,13 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const exceptionResponse =
       exception instanceof HttpException ? exception.getResponse() : null;
 
+    // Only surface messages from intentional HttpExceptions. Unexpected errors
+    // (Prisma, runtime, etc.) are logged below but returned as a generic
+    // message so internal details never leak to clients.
     const message =
       typeof exceptionResponse === 'object' && exceptionResponse !== null
         ? (exceptionResponse as Record<string, unknown>)['message'] ?? 'Internal server error'
-        : exception instanceof Error
+        : exception instanceof HttpException
           ? exception.message
           : 'Internal server error';
 
