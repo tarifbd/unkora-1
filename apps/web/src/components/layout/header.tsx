@@ -2047,7 +2047,7 @@ export function Header() {
                   href={cat.slug === 'islamic-lifestyle' ? '/islamic-lifestyle' : `/products?categorySlug=${cat.slug}`}
                   onMouseEnter={() => setActiveCategoryIndex(idx)}
                   className={cn(
-                    'flex items-center justify-center px-3.5 xl:px-5 h-full transition-all relative text-[13px] font-semibold whitespace-nowrap flex-shrink-0',
+                    'flex items-center justify-center px-2 xl:px-2.5 h-full transition-all relative text-[14px] font-semibold whitespace-nowrap flex-shrink-0',
                     cat.slug === 'eco-friendly'
                       ? activeCategoryIndex === idx ? 'text-green-600' : 'text-green-600 hover:text-green-700'
                       : activeCategoryIndex === idx ? 'text-primary' : 'text-gray-700 hover:text-primary',
@@ -2110,7 +2110,7 @@ export function Header() {
             <div className="flex items-stretch flex-shrink-0 border-l border-gray-100 ml-1">
               <Link
                 href="/quick-commerce"
-                className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-full text-[12px] xl:text-[13px] font-bold text-emerald-600 hover:bg-emerald-50 transition-colors whitespace-nowrap"
+                className="flex items-center gap-1.5 px-2 xl:px-2.5 h-full text-[12px] xl:text-[13px] font-bold text-emerald-600 hover:bg-emerald-50 transition-colors whitespace-nowrap"
               >
                 <span className="text-[15px]">⚡</span>
                 <span className="hidden xl:inline">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
@@ -2119,7 +2119,7 @@ export function Header() {
               <div className="w-px bg-gray-100 my-3 flex-shrink-0" />
               <Link
                 href="/recommerce"
-                className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-full text-[12px] xl:text-[13px] font-bold text-amber-600 hover:bg-amber-50 transition-colors whitespace-nowrap"
+                className="flex items-center gap-1.5 px-2 xl:px-2.5 h-full text-[12px] xl:text-[13px] font-bold text-amber-600 hover:bg-amber-50 transition-colors whitespace-nowrap"
               >
                 <span className="text-[15px]">♻️</span>
                 <span className="hidden xl:inline">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
@@ -2128,7 +2128,7 @@ export function Header() {
               <div className="w-px bg-gray-100 my-3 flex-shrink-0" />
               <Link
                 href="/flash-deals"
-                className="flex items-center gap-1.5 px-2.5 xl:px-3.5 h-full text-[12px] xl:text-[13px] font-bold text-rose-600 hover:bg-rose-50 transition-colors whitespace-nowrap"
+                className="flex items-center gap-1.5 px-2 xl:px-2.5 h-full text-[12px] xl:text-[13px] font-bold text-rose-600 hover:bg-rose-50 transition-colors whitespace-nowrap"
               >
                 <span className="text-[15px]">🔥</span>
                 <span>{lang === 'bn' ? t.header.dealOfDay : 'Deal of the Day'}</span>
