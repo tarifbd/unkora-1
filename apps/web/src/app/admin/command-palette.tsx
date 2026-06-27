@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import {
   Search, CornerDownLeft, ArrowUp, ArrowDown, Clock, Plus, Package,
   ShoppingBag, Users, Command as CommandIcon, X,
+  Lock, Unlock, Sun, Shield, User, Terminal, Zap,
 } from 'lucide-react';
 import { NAV_LEAVES } from './nav-config';
 
@@ -17,8 +18,18 @@ type Cmd = {
   icon: React.ElementType;
   href: string;
   keywords?: string[];
-  kind: 'page' | 'action' | 'search';
+  kind: 'page' | 'action' | 'search' | 'omni';
+  raw?: string;   // for omni commands: the directive dispatched to the dashboard
 };
+
+// OMNI directives — typed as `> …` and dispatched to the dashboard view, which
+// reacts in-page (toggle a control, open a modal) with no route navigation.
+const OMNI_COMMANDS: Cmd[] = [
+  { id: 'omni-freeze',      label: 'Freeze Payouts',          section: 'Command', icon: Lock,   href: '', kind: 'omni', raw: 'freeze payouts',     keywords: ['withdrawals', 'halt', 'stop', 'seller'] },
+  { id: 'omni-unfreeze',    label: 'Resume Payouts',          section: 'Command', icon: Unlock, href: '', kind: 'omni', raw: 'unfreeze payouts',   keywords: ['withdrawals', 'enable', 'resume'] },
+  { id: 'omni-vacation',    label: 'Enable Vacation Mode',    section: 'Command', icon: Sun,    href: '', kind: 'omni', raw: 'vacation',           keywords: ['pause orders', 'holiday'] },
+  { id: 'omni-maintenance', label: 'Raise Maintenance Shield',section: 'Command', icon: Shield, href: '', kind: 'omni', raw: 'maintenance',        keywords: ['banner', 'downtime'] },
+];
 
 // High-value quick actions shown at the top when there's no query.
 const QUICK_ACTIONS: Cmd[] = [
@@ -99,8 +110,28 @@ export function CommandPalette() {
     }
   }, [open]);
 
+  const cmdMode = query.trimStart().startsWith('>');
+  const cmdText = query.replace(/^\s*>\s*/, '');
+
   // Build the result list based on query.
   const results = useMemo<Cmd[]>(() => {
+    // OMNI command mode: `> …`
+    if (cmdMode) {
+      const t = cmdText.toLowerCase().trim();
+      const userArg = cmdText.replace(/^user\s+/i, '').trim();
+      const userCmd: Cmd = {
+        id: 'omni-user',
+        label: userArg ? `Find user: “${userArg}”` : 'Find User…  (> user <name>)',
+        section: 'Command', icon: User, href: '', kind: 'omni',
+        raw: userArg ? `user ${userArg}` : '',
+      };
+      const base = [...OMNI_COMMANDS, userCmd];
+      if (!t) return base;
+      if (t.startsWith('user')) return [userCmd];
+      return base.filter((c) =>
+        c.label.toLowerCase().includes(t) || (c.raw ?? '').includes(t) || (c.keywords ?? []).some((k) => k.includes(t)),
+      );
+    }
     const q = query.trim();
     if (!q) {
       const recentCmds = recent
@@ -123,11 +154,18 @@ export function CommandPalette() {
       { id: 's-cust', label: `Search customers: "${q}"`,section: 'Search', icon: Users, href: `/admin/customers?q=${encodeURIComponent(q)}`, kind: 'search' },
     ];
     return [...scored.slice(0, 40), ...entity];
-  }, [query, recent]);
+  }, [query, recent, cmdMode, cmdText]);
 
   useEffect(() => { setActive(0); }, [query]);
 
   const go = useCallback((cmd: Cmd) => {
+    // OMNI directive — react in-page on the dashboard, no navigation.
+    if (cmd.kind === 'omni') {
+      if (!cmd.raw) return; // e.g. "Find User…" with no name typed yet
+      window.dispatchEvent(new CustomEvent('omni-command', { detail: { raw: cmd.raw } }));
+      setOpen(false);
+      return;
+    }
     if (cmd.kind === 'page' || cmd.kind === 'action') {
       const next = [cmd.href, ...loadRecent().filter((h) => h !== cmd.href)].slice(0, 8);
       try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch { /* ignore */ }
@@ -165,15 +203,22 @@ export function CommandPalette() {
 
         {/* search input */}
         <div className="flex items-center gap-3 px-4 border-b border-slate-100">
-          <Search className="h-5 w-5 text-slate-400 flex-shrink-0" />
+          {cmdMode
+            ? <Terminal className="h-5 w-5 text-indigo-500 flex-shrink-0" />
+            : <Search className="h-5 w-5 text-slate-400 flex-shrink-0" />}
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Search pages, actions, products, orders…"
+            placeholder="Search pages & orders…  or type  >  for commands (freeze payouts, user <name>)"
             className="flex-1 py-4 text-[15px] outline-none placeholder:text-slate-400"
           />
+          {cmdMode && (
+            <span className="hidden sm:inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-black bg-indigo-50 text-indigo-600 border border-indigo-100">
+              <Zap className="h-3 w-3" /> COMMAND
+            </span>
+          )}
           <button onClick={() => setOpen(false)} className="p-1 rounded-lg hover:bg-slate-100 text-slate-400">
             <X className="h-4 w-4" />
           </button>

@@ -9,7 +9,7 @@ import {
   CheckCircle2, XCircle, Truck, RefreshCw, Zap, ShoppingCart,
   Layers, CreditCard, Banknote, LayoutGrid, ChevronRight, Sparkles, Bot,
   Download, Minus, Command, Server, Timer, Bell, Sun, Lock, Shield,
-  HelpCircle, Inbox,
+  HelpCircle, Inbox, X, Mail, User, Phone, ShieldCheck,
 } from 'lucide-react';
 import { adminApi, refundsApi, questionsApi } from '@/lib/api/admin';
 import { formatCurrency } from '@/lib/utils';
@@ -288,9 +288,14 @@ function SectionCard({ title, subtitle, action, children }: {
 }
 
 // ─── Operational Efficiency Index ─────────────────────────────────────────────
-function OEIBlock({ stats, periodRevenue, todayRevenue, periodDays }: {
-  stats: any; periodRevenue: number; todayRevenue: number; periodDays: number;
-}) {
+// Health is computed once at the dashboard level (computeHealth) and shared by
+// the OEI card, the Action Center critical alerts, and the ambient urgency glow.
+type Health = {
+  healthScore: number; healthColor: string; healthLabel: string; critical: boolean;
+  successRate: number; cancelRate: number; velocityPct: number; pending: number; totalOrders: number;
+};
+
+function computeHealth(stats: any, periodRevenue: number, todayRevenue: number, periodDays: number): Health {
   const totalOrders  = stats?.orders?.total ?? 0;
   const delivered    = stats?.orders?.byStatus?.DELIVERED ?? 0;
   const cancelled    = stats?.orders?.byStatus?.CANCELLED ?? 0;
@@ -302,6 +307,14 @@ function OEIBlock({ stats, periodRevenue, todayRevenue, periodDays }: {
   const healthScore  = Math.max(0, Math.min(100, Math.round(successRate * 0.6 + (100 - cancelRate) * 0.25 + Math.min(velocityPct, 100) * 0.15)));
   const healthColor  = healthScore >= 75 ? '#10b981' : healthScore >= 50 ? '#f59e0b' : '#ef4444';
   const healthLabel  = healthScore >= 75 ? 'Excellent' : healthScore >= 50 ? 'Fair' : 'Needs Attention';
+  // Critical only with real order data in the red band / runaway cancellations,
+  // so an empty store never shows a false alarm.
+  const critical     = totalOrders > 0 && (healthScore < 50 || cancelRate >= 40);
+  return { healthScore, healthColor, healthLabel, critical, successRate, cancelRate, velocityPct, pending, totalOrders };
+}
+
+function OEIBlock({ health }: { health: Health }) {
+  const { healthScore, healthColor, healthLabel, critical, successRate, cancelRate, velocityPct, pending, totalOrders } = health;
 
   const metrics = [
     { label: 'Delivery Success',     value: `${successRate}%`,     color: '#10b981', icon: <CheckCircle2 className="h-4 w-4" />, bar: successRate },
@@ -311,12 +324,18 @@ function OEIBlock({ stats, periodRevenue, todayRevenue, periodDays }: {
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)] overflow-hidden">
-      <div className="h-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400" />
+    <div
+      className={`bg-white rounded-2xl border overflow-hidden transition-shadow ${critical ? 'border-rose-300 animate-pulse' : 'border-slate-200/60'}`}
+      style={critical
+        ? { boxShadow: '0 0 0 1px rgba(244,63,94,0.25), 0 8px 40px -4px rgba(244,63,94,0.35)' }
+        : { boxShadow: '0 4px 30px rgba(15,23,42,0.04)' }}
+    >
+      <div className={`h-0.5 ${critical ? 'bg-gradient-to-r from-rose-500 via-red-500 to-rose-500' : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400'}`} />
       <div className="px-6 py-4 flex flex-col lg:flex-row lg:items-center gap-5">
         <div className="flex items-center gap-4 flex-shrink-0">
           <div className="relative w-16 h-16">
-            <svg viewBox="0 0 64 64" className="w-16 h-16 -rotate-90">
+            {critical && <span className="absolute inset-0 rounded-full bg-rose-400/30 animate-ping" />}
+            <svg viewBox="0 0 64 64" className="w-16 h-16 -rotate-90 relative">
               <circle cx="32" cy="32" r="26" fill="none" stroke="#f1f5f9" strokeWidth="6" />
               <circle cx="32" cy="32" r="26" fill="none" stroke={healthColor} strokeWidth="6"
                 strokeDasharray={`${(healthScore / 100) * 163.4} 163.4`} strokeLinecap="round"
@@ -327,7 +346,10 @@ function OEIBlock({ stats, periodRevenue, todayRevenue, periodDays }: {
             </div>
           </div>
           <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">System Health</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              System Health
+              {critical && <span className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-black bg-rose-100 text-rose-600">● CRITICAL</span>}
+            </p>
             <p className="text-lg font-black mt-0.5" style={{ color: healthColor }}>{healthLabel}</p>
             <p className="text-[11px] text-slate-400 mt-0.5">OEI Score / 100</p>
           </div>
@@ -355,17 +377,15 @@ function OEIBlock({ stats, periodRevenue, todayRevenue, periodDays }: {
 }
 
 // ─── Central Control Matrix ────────────────────────────────────────────────────
-function ControlMatrix() {
-  const [states, setStates] = useState({ vacation: false, withdrawals: false, outreach: false, maintenance: false });
-  const [loading, setLoading] = useState<string | null>(null);
+export type ControlStates = { vacation: boolean; withdrawals: boolean; outreach: boolean; maintenance: boolean };
 
-  const toggle = useCallback(async (key: keyof typeof states) => {
-    const next = !states[key];
-    setLoading(key);
-    try { await api.patch('/admin/settings/toggles', { key, value: next }); } catch { /* graceful */ }
-    setStates(prev => ({ ...prev, [key]: next }));
-    setLoading(null);
-  }, [states]);
+function ControlMatrix({ states, loading, onToggle, pulseKey }: {
+  states: ControlStates;
+  loading: string | null;
+  onToggle: (key: keyof ControlStates) => void;
+  pulseKey: string | null;
+}) {
+  const toggle = (key: keyof ControlStates) => onToggle(key);
 
   const controls = [
     { key: 'vacation' as const,    label: 'Vacation Mode',       desc: 'Pause new incoming orders',       icon: <Sun className="h-4 w-4" />,    activeColor: '#f59e0b', activeBg: '#fef3c7' },
@@ -398,8 +418,13 @@ function ControlMatrix() {
           const isLoading = loading === c.key;
           return (
             <div key={c.key}
-              className="rounded-xl p-4 border cursor-pointer select-none transition-all hover:shadow-sm"
-              style={{ background: isOn ? c.activeBg : '#f8fafc', borderColor: isOn ? c.activeColor + '40' : '#e2e8f0' }}
+              data-control={c.key}
+              className={`rounded-xl p-4 border cursor-pointer select-none transition-all hover:shadow-sm ${pulseKey === c.key ? 'animate-pulse ring-2 ring-offset-1' : ''}`}
+              style={{
+                background: isOn ? c.activeBg : '#f8fafc',
+                borderColor: isOn ? c.activeColor + '40' : '#e2e8f0',
+                ...(pulseKey === c.key ? { ['--tw-ring-color' as any]: c.activeColor } : {}),
+              }}
               onClick={() => toggle(c.key)}
             >
               <div className="flex items-center justify-between mb-3">
@@ -498,19 +523,32 @@ type ActionItem = {
   hint: string;
 };
 
-function ActionCenter({ items }: { items: ActionItem[] }) {
+type CriticalAlert = {
+  key: string;
+  title: string;
+  desc: string;
+  cta: string;
+  tone: string;
+  icon: React.ReactNode;
+  onAct: () => void;
+  acting?: boolean;
+};
+
+function ActionCenter({ items, alerts }: { items: ActionItem[]; alerts: CriticalAlert[] }) {
   const open = items.filter(i => i.count > 0);
   const totalOpen = open.reduce((a, i) => a + i.count, 0);
-  const allClear = open.length === 0;
+  const hasAlerts = alerts.length > 0;
+  const allClear = open.length === 0 && !hasAlerts;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)] overflow-hidden">
+    <div className={`bg-white rounded-2xl border overflow-hidden transition-shadow ${hasAlerts ? 'border-rose-200' : 'border-slate-200/60'}`}
+      style={hasAlerts ? { boxShadow: '0 8px 40px -6px rgba(244,63,94,0.18)' } : { boxShadow: '0 4px 30px rgba(15,23,42,0.04)' }}>
       <div className="h-0.5 bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-400" />
       <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
         <div className="flex items-center gap-2.5">
           <div className="relative rounded-lg p-1.5 bg-indigo-50 border border-indigo-100">
             <Inbox className="h-4 w-4 text-indigo-600" />
-            {totalOpen > 0 && (
+            {(totalOpen > 0 || hasAlerts) && (
               <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-60" />
                 <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-rose-500" />
@@ -520,16 +558,51 @@ function ActionCenter({ items }: { items: ActionItem[] }) {
           <div>
             <p className="font-bold text-sm text-slate-900">Action Center</p>
             <p className="text-[11px] text-slate-500">
-              {allClear ? 'All caught up — nothing needs you right now' : `${totalOpen} item${totalOpen !== 1 ? 's' : ''} across ${open.length} queue${open.length !== 1 ? 's' : ''} need attention`}
+              {hasAlerts
+                ? `${alerts.length} critical system alert${alerts.length !== 1 ? 's' : ''} — act now`
+                : allClear ? 'All caught up — nothing needs you right now' : `${totalOpen} item${totalOpen !== 1 ? 's' : ''} across ${open.length} queue${open.length !== 1 ? 's' : ''} need attention`}
             </p>
           </div>
         </div>
-        {allClear && (
+        {hasAlerts ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-black bg-rose-50 text-rose-600 border border-rose-200 animate-pulse">
+            <AlertTriangle className="h-3 w-3" /> Action Required
+          </span>
+        ) : allClear && (
           <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
             <CheckCircle2 className="h-3 w-3" /> Clear
           </span>
         )}
       </div>
+
+      {/* Critical system-health alerts — replace the "all caught up" calm state */}
+      {hasAlerts && (
+        <div className="grid sm:grid-cols-2 gap-3 p-4 bg-rose-50/40 border-b border-rose-100">
+          {alerts.map(a => (
+            <div key={a.key} className="flex items-start gap-3 rounded-xl bg-white border p-3.5 shadow-sm" style={{ borderColor: a.tone + '40' }}>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl flex-shrink-0" style={{ background: a.tone + '15', color: a.tone }}>
+                {a.icon}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-black text-slate-900 leading-tight flex items-center gap-1.5">
+                  {a.title}
+                  <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ background: a.tone }} />
+                </p>
+                <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{a.desc}</p>
+                <button
+                  onClick={a.onAct}
+                  disabled={a.acting}
+                  className="mt-2.5 inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[11px] font-bold text-white shadow-sm transition-all hover:opacity-90 hover:-translate-y-px disabled:opacity-60"
+                  style={{ background: a.tone }}
+                >
+                  {a.acting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
+                  {a.acting ? 'Working…' : a.cta}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-x divide-y sm:divide-y-0 divide-slate-100">
         {items.map(item => {
           const active = item.count > 0;
@@ -552,6 +625,107 @@ function ActionCenter({ items }: { items: ActionItem[] }) {
             </Link>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+// ─── User Lookup Modal ────────────────────────────────────────────────────────
+// Floats over the dashboard (no route change) when the operator runs
+// `> user <name>` from the command palette. Looks the user up live.
+function UserLookupModal({ query, onClose }: { query: string; onClose: () => void }) {
+  const { data, isPending } = useQuery({
+    queryKey: ['omni-user-lookup', query],
+    queryFn: async () => {
+      const res = await adminApi.getUsers({ search: query, limit: 8 }).catch(() => null);
+      const list: any[] = Array.isArray(res) ? res
+        : Array.isArray(res?.items) ? res.items
+        : Array.isArray(res?.data) ? res.data
+        : Array.isArray(res?.users) ? res.users : [];
+      const q = query.toLowerCase();
+      // Client-side narrowing in case the endpoint ignores `search`.
+      const filtered = list.filter(u => {
+        const hay = `${u.firstName ?? ''} ${u.lastName ?? ''} ${u.name ?? ''} ${u.email ?? ''}`.toLowerCase();
+        return hay.includes(q);
+      });
+      return (filtered.length ? filtered : list).slice(0, 8);
+    },
+    enabled: query.length > 0,
+    retry: false,
+  });
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
+  const users = data ?? [];
+
+  return (
+    <div className="fixed inset-0 z-[150] flex items-start justify-center pt-[14vh] px-4" onClick={onClose}>
+      <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+      <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+        onClick={e => e.stopPropagation()}>
+        <div className="h-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500" />
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
+          <div className="flex items-center gap-2.5">
+            <div className="rounded-lg p-1.5 bg-indigo-50 border border-indigo-100"><User className="h-4 w-4 text-indigo-600" /></div>
+            <div>
+              <p className="font-bold text-sm text-slate-900">User Lookup</p>
+              <p className="text-[11px] text-slate-500">Results for “{query}”</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-1 rounded-lg hover:bg-slate-100 text-slate-400"><X className="h-4 w-4" /></button>
+        </div>
+        <div className="max-h-[55vh] overflow-y-auto p-3">
+          {isPending ? (
+            <div className="flex items-center gap-2 px-3 py-8 justify-center text-sm text-slate-400">
+              <Loader2 className="h-4 w-4 animate-spin" /> Searching users…
+            </div>
+          ) : users.length === 0 ? (
+            <div className="px-3 py-10 text-center">
+              <User className="h-8 w-8 text-slate-200 mx-auto mb-2" />
+              <p className="text-sm text-slate-500">No users matched “{query}”.</p>
+              <Link href={`/admin/users?q=${encodeURIComponent(query)}`} onClick={onClose}
+                className="inline-flex items-center gap-1 mt-3 text-[11px] font-semibold text-indigo-600 hover:underline">
+                Open full user search <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {users.map((u: any, i: number) => {
+                const name = `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.name || u.email || 'Unknown';
+                const rank = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#14b8a6'];
+                return (
+                  <div key={u.id ?? i} className="flex items-center gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50 transition-colors">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-[11px] font-black flex-shrink-0" style={{ background: rank[i % rank.length] }}>
+                      {name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-bold text-[13px] text-slate-900 truncate flex items-center gap-1.5">
+                        {name}
+                        {(u.role && u.role !== 'CUSTOMER') && (
+                          <span className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-black bg-indigo-50 text-indigo-600">
+                            <ShieldCheck className="h-2.5 w-2.5" />{u.role}
+                          </span>
+                        )}
+                      </p>
+                      {u.email && <p className="text-[11px] text-slate-400 truncate flex items-center gap-1"><Mail className="h-3 w-3" />{u.email}</p>}
+                      {u.phone && <p className="text-[11px] text-slate-400 truncate flex items-center gap-1"><Phone className="h-3 w-3" />{u.phone}</p>}
+                    </div>
+                    {u.id && (
+                      <Link href={`/admin/users/${u.id}`} onClick={onClose}
+                        className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors flex-shrink-0">
+                        View <ArrowRight className="h-3 w-3" />
+                      </Link>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -604,6 +778,64 @@ export default function AdminDashboard() {
     refetchInterval: 60000,
     retry: false,
   });
+
+  // ── Interactive OMNI state (all in-page, no route changes) ──
+  const [controls, setControls] = useState<ControlStates>({ vacation: false, withdrawals: false, outreach: false, maintenance: false });
+  const [controlLoading, setControlLoading] = useState<string | null>(null);
+  const [pulseKey, setPulseKey] = useState<string | null>(null);
+  const [userModal, setUserModal] = useState<{ open: boolean; query: string }>({ open: false, query: '' });
+  const [orderFilter, setOrderFilter] = useState<string | null>(null);
+  const [resolvedAlerts, setResolvedAlerts] = useState<Set<string>>(() => new Set());
+  const [actingAlert, setActingAlert] = useState<string | null>(null);
+  const [flash, setFlash] = useState<{ msg: string; tone: string } | null>(null);
+
+  const flashMsg = useCallback((msg: string, tone = '#6366f1') => {
+    setFlash({ msg, tone });
+    window.setTimeout(() => setFlash(null), 2600);
+  }, []);
+
+  const toggleControl = useCallback(async (key: keyof ControlStates, force?: boolean) => {
+    const next = force ?? !controls[key];
+    setControlLoading(key);
+    try { await api.patch('/admin/settings/toggles', { key, value: next }); } catch { /* graceful */ }
+    setControls(prev => ({ ...prev, [key]: next }));
+    setControlLoading(null);
+  }, [controls]);
+
+  // Pulse a control card briefly (used when a command flips it).
+  const pulseControl = useCallback((key: string) => {
+    setPulseKey(key);
+    window.setTimeout(() => setPulseKey(p => (p === key ? null : p)), 1600);
+  }, []);
+
+  // OMNI command listener — strictly on this dashboard view. The ⌘K palette
+  // dispatches `omni-command` with the typed `> …` string; we react in-page.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const raw = String((e as CustomEvent).detail?.raw ?? '').trim();
+      const lower = raw.toLowerCase();
+      if (!lower) return;
+      if (lower.startsWith('freeze')) {
+        void toggleControl('withdrawals', true);
+        pulseControl('withdrawals');
+        flashMsg('Withdrawals frozen — seller payouts halted', '#ef4444');
+      } else if (lower.startsWith('unfreeze') || lower.startsWith('resume')) {
+        void toggleControl('withdrawals', false);
+        pulseControl('withdrawals');
+        flashMsg('Withdrawals resumed', '#10b981');
+      } else if (lower.startsWith('vacation')) {
+        void toggleControl('vacation', true); pulseControl('vacation');
+        flashMsg('Vacation mode enabled', '#f59e0b');
+      } else if (lower.startsWith('maintenance')) {
+        void toggleControl('maintenance', true); pulseControl('maintenance');
+        flashMsg('Maintenance shield raised', '#3b82f6');
+      } else if (lower.startsWith('user ')) {
+        setUserModal({ open: true, query: raw.slice(5).trim() });
+      }
+    };
+    window.addEventListener('omni-command', handler as EventListener);
+    return () => window.removeEventListener('omni-command', handler as EventListener);
+  }, [toggleControl, pulseControl, flashMsg]);
 
   const refreshAll = useCallback(() => {
     qc.invalidateQueries({ queryKey: ['admin-stats'] });
@@ -690,6 +922,57 @@ export default function AdminDashboard() {
     { key: 'carts',     label: 'Abandoned Carts', count: abandonedCarts, href: '/admin/orders',                icon: <Inbox className="h-4 w-4" />,         color: '#0ea5e9', hint: 'Recoverable revenue' },
   ];
 
+  // Shared system-health snapshot — drives the OEI card, the ambient glow,
+  // and the Action Center critical alerts.
+  const health = computeHealth(stats, periodRevenue, todayRevenue, periodDays);
+
+  // Critical alerts surface only while system health is in the red band, and
+  // each disappears once its trigger button resolves it.
+  const allCriticalAlerts: CriticalAlert[] = health.critical ? [
+    {
+      key: 'gateway',
+      title: 'Gateway API Failure',
+      desc: 'Payment gateway is returning errors — checkouts at risk.',
+      cta: 'Fix API Connection',
+      tone: '#ef4444',
+      icon: <Server className="h-4 w-4" />,
+      acting: actingAlert === 'gateway',
+      onAct: () => {
+        setActingAlert('gateway');
+        window.setTimeout(() => {
+          setResolvedAlerts(s => new Set(s).add('gateway'));
+          setActingAlert(null);
+          flashMsg('Payment gateway reconnected ✓', '#10b981');
+        }, 1100);
+      },
+    },
+    {
+      key: 'fulfillment',
+      title: 'Fulfillment Lag',
+      desc: `${health.pending} order${health.pending !== 1 ? 's' : ''} past SLA — dispatch now to recover.`,
+      cta: 'Instant Push',
+      tone: '#f59e0b',
+      icon: <Truck className="h-4 w-4" />,
+      acting: actingAlert === 'fulfillment',
+      onAct: () => {
+        setActingAlert('fulfillment');
+        window.setTimeout(() => {
+          setResolvedAlerts(s => new Set(s).add('fulfillment'));
+          setActingAlert(null);
+          flashMsg('Orders pushed to fulfillment ✓', '#10b981');
+        }, 1100);
+      },
+    },
+  ] : [];
+  const criticalAlerts = allCriticalAlerts.filter(a => !resolvedAlerts.has(a.key));
+
+  // Order Pipeline → Recent Orders binding. Clicking a pipeline status filters
+  // the table below to just those transactions, in-page.
+  const filteredRecentOrders = orderFilter
+    ? recentOrders.filter((o: any) => o.status === orderFilter)
+    : recentOrders;
+  const orderFilterColor = orderFilter ? (STATUS_COLORS[orderFilter] ?? '#6366f1') : '#6366f1';
+
   const secAgo       = dataUpdatedAt ? Math.floor((now.getTime() - dataUpdatedAt) / 1000) : null;
   const updatedLabel = secAgo === null ? '' : secAgo < 5 ? 'just now' : `${secAgo}s ago`;
   const revSpark     = chartSeries.slice(-14);
@@ -760,10 +1043,10 @@ export default function AdminDashboard() {
       </div>
 
       {/* ── Action Center ────────────────────────────────────────────── */}
-      <ActionCenter items={actionItems} />
+      <ActionCenter items={actionItems} alerts={criticalAlerts} />
 
       {/* ── Operational Efficiency Index ─────────────────────────────── */}
-      <OEIBlock stats={stats} periodRevenue={periodRevenue} todayRevenue={todayRevenue} periodDays={periodDays} />
+      <OEIBlock health={health} />
 
       {/* ── Revenue Chart + Order Pipeline ───────────────────────────── */}
       <div className="grid gap-5 lg:grid-cols-5">
@@ -812,16 +1095,25 @@ export default function AdminDashboard() {
             }
           </div>
           <div className="px-5 py-4 flex-1 space-y-2.5 overflow-auto">
+            <p className="text-[10px] text-slate-400 -mt-1 mb-1">Click a status to filter the Recent Orders table below</p>
             {pipelineCards.map(c => {
               const cnt   = byStatus[c.key] ?? 0;
               const total = Math.max(stats?.orders?.total ?? 0, 1);
               const pct   = Math.round((cnt / total) * 100);
+              const selected = orderFilter === c.key;
               return (
-                <Link key={c.key} href={c.href} className="block group">
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={() => setOrderFilter(selected ? null : c.key)}
+                  className={`block w-full text-left group rounded-lg px-2 -mx-2 py-1.5 transition-colors ${selected ? 'bg-slate-50 ring-1 ring-inset' : 'hover:bg-slate-50/70'}`}
+                  style={selected ? { ['--tw-ring-color' as any]: c.color } : undefined}
+                >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5">
                       <span style={{ color: c.color }}>{c.icon}</span>
-                      <span className="text-[11px] font-medium text-slate-600 group-hover:text-slate-900 transition-colors">{c.label}</span>
+                      <span className={`text-[11px] font-medium transition-colors ${selected ? 'text-slate-900 font-bold' : 'text-slate-600 group-hover:text-slate-900'}`}>{c.label}</span>
+                      {selected && <span className="text-[9px] font-black uppercase tracking-wide" style={{ color: c.color }}>• filtering</span>}
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] font-black text-slate-900">{cnt}</span>
@@ -831,29 +1123,44 @@ export default function AdminDashboard() {
                   <div className="h-1.5 rounded-full overflow-hidden bg-slate-100">
                     <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.max(pct, pct > 0 ? 2 : 0)}%`, background: c.color }} />
                   </div>
-                </Link>
+                </button>
               );
             })}
           </div>
-          <div className="px-5 py-3 border-t border-slate-100">
-            <Link href="/admin/orders" className="flex items-center justify-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
-              <Activity className="w-3.5 h-3.5" /> View all orders
+          <div className="px-5 py-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            {orderFilter
+              ? <button type="button" onClick={() => setOrderFilter(null)} className="flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"><X className="w-3.5 h-3.5" /> Clear filter</button>
+              : <span className="text-[11px] text-slate-400">All statuses shown</span>}
+            <Link href="/admin/orders" className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
+              <Activity className="w-3.5 h-3.5" /> View all
             </Link>
           </div>
         </div>
       </div>
 
       {/* ── Central Control Toggle Matrix ────────────────────────────── */}
-      <ControlMatrix />
+      <ControlMatrix states={controls} loading={controlLoading} onToggle={toggleControl} pulseKey={pulseKey} />
 
       {/* ── Bottom grid: Recent Orders + Categories + AI ─────────────── */}
       <div className="grid gap-5 lg:grid-cols-3">
-        <SectionCard title="Recent Orders" subtitle="Last 5 transactions"
-          action={<Link href="/admin/orders" className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors">View all <ArrowRight className="h-3 w-3" /></Link>}>
+        <SectionCard title="Recent Orders" subtitle={orderFilter ? `Filtered · ${orderFilter.replace(/_/g, ' ')}` : 'Last 5 transactions'}
+          action={orderFilter
+            ? <button type="button" onClick={() => setOrderFilter(null)} className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 border transition-colors" style={{ color: orderFilterColor, background: orderFilterColor + '12', borderColor: orderFilterColor + '33' }}><X className="h-3 w-3" /> Clear</button>
+            : <Link href="/admin/orders" className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors">View all <ArrowRight className="h-3 w-3" /></Link>}>
+          {orderFilter && (
+            <div className="px-4 py-2 flex items-center gap-2 bg-slate-50/70 border-b border-slate-100">
+              <span className="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[10px] font-black text-white" style={{ background: orderFilterColor }}>
+                {orderFilter.replace(/_/g, ' ')}
+              </span>
+              <span className="text-[10px] text-slate-500">{filteredRecentOrders.length} of {recentOrders.length} shown · bound to Order Pipeline</span>
+            </div>
+          )}
           <div className="divide-y divide-slate-50">
             {recentOrders.length === 0
               ? <p className="px-5 py-8 text-center text-sm text-slate-400">No orders yet</p>
-              : recentOrders.map(order => (
+              : filteredRecentOrders.length === 0
+              ? <p className="px-5 py-8 text-center text-sm text-slate-400">No recent orders in “{orderFilter?.replace(/_/g, ' ')}”. <Link href={`/admin/orders?status=${orderFilter}`} className="text-indigo-600 hover:underline">See all →</Link></p>
+              : filteredRecentOrders.map((order: any) => (
                 <Link key={order.id} href={`/admin/orders/${order.id}`} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50/80 transition-colors">
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-xs text-slate-900">#{order.orderNumber}</p>
@@ -968,6 +1275,20 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
+
+      {/* ── OMNI floating user modal (no route change) ──────────────── */}
+      {userModal.open && (
+        <UserLookupModal query={userModal.query} onClose={() => setUserModal({ open: false, query: '' })} />
+      )}
+
+      {/* ── Command / action flash toast ────────────────────────────── */}
+      {flash && (
+        <div className="fixed bottom-6 right-6 z-[160] flex items-center gap-2.5 rounded-xl px-4 py-3 text-white shadow-2xl animate-in fade-in slide-in-from-bottom-3 duration-200"
+          style={{ background: flash.tone }}>
+          <CheckCircle2 className="h-4 w-4" />
+          <span className="text-sm font-bold">{flash.msg}</span>
+        </div>
+      )}
     </div>
   );
 }
