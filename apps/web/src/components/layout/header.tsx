@@ -1343,6 +1343,15 @@ export function Header() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Store settings → lets admin hide Recommerce from the storefront.
+  const { data: storeSettings } = useQuery<Record<string, string>>({
+    queryKey: ['store-settings'],
+    queryFn: () => api.get('/settings/store').then(r => (r.data?.data ?? {}) as Record<string, string>).catch(() => ({} as Record<string, string>)),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  });
+  const recommerceEnabled = (storeSettings?.['recommerce.enabled'] ?? 'true') !== 'false';
+
   const { data: contactConfig } = useQuery<Record<string, string>>({
     queryKey: ['chatbot-config'],
     queryFn: () => api.get('/chatbot/config').then(r => (r.data?.data ?? {}) as Record<string, string>),
@@ -2118,15 +2127,19 @@ export function Header() {
                 <span className="hidden 2xl:inline">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
                 <span className="2xl:hidden">{lang === 'bn' ? 'কুইক' : 'Quick'}</span>
               </Link>
-              <div className="w-px bg-gray-100 my-3 flex-shrink-0" />
-              <Link
-                href="/recommerce"
-                className="flex items-center gap-1.5 px-2 xl:px-2.5 h-full text-[12px] xl:text-[13px] font-bold text-amber-600 hover:bg-amber-50 transition-colors whitespace-nowrap"
-              >
-                <span className="text-[15px]">♻️</span>
-                <span className="hidden 2xl:inline">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
-                <span className="2xl:hidden">{lang === 'bn' ? 'রিকমার্স' : 'Reco'}</span>
-              </Link>
+              {recommerceEnabled && (
+                <>
+                  <div className="w-px bg-gray-100 my-3 flex-shrink-0" />
+                  <Link
+                    href="/recommerce"
+                    className="flex items-center gap-1.5 px-2 xl:px-2.5 h-full text-[12px] xl:text-[13px] font-bold text-amber-600 hover:bg-amber-50 transition-colors whitespace-nowrap"
+                  >
+                    <span className="text-[15px]">♻️</span>
+                    <span className="hidden 2xl:inline">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
+                    <span className="2xl:hidden">{lang === 'bn' ? 'রিকমার্স' : 'Reco'}</span>
+                  </Link>
+                </>
+              )}
               <div className="w-px bg-gray-100 my-3 flex-shrink-0" />
               <Link
                 href="/flash-deals"
@@ -2230,11 +2243,13 @@ export function Header() {
             <span className="text-sm">⚡</span>
             <span className="text-[11px] font-black leading-tight">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
           </Link>
-          <Link href="/recommerce" onClick={() => setSidebarOpen(false)}
-            className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors text-center">
-            <span className="text-sm">♻️</span>
-            <span className="text-[11px] font-black leading-tight">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
-          </Link>
+          {recommerceEnabled && (
+            <Link href="/recommerce" onClick={() => setSidebarOpen(false)}
+              className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors text-center">
+              <span className="text-sm">♻️</span>
+              <span className="text-[11px] font-black leading-tight">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
+            </Link>
+          )}
         </div>
 
         {/* User area */}

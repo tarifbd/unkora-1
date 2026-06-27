@@ -2,10 +2,67 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   CheckCircle2, XCircle, Eye, Edit2, Package, Users,
   TrendingUp, Clock, BarChart2, Download, AlertTriangle, ExternalLink, Tag,
+  Power, PowerOff, Loader2,
 } from 'lucide-react';
+import api from '@/lib/api';
+
+// ─── Recommerce enable/disable ─────────────────────────────────────────────────
+// Persists to the shared store-settings KV (recommerce.enabled). The public
+// storefront reads the same key to show/hide the Recommerce entry points.
+function RecommerceToggle() {
+  const qc = useQueryClient();
+  const { data: settings, isPending } = useQuery({
+    queryKey: ['store-settings'],
+    queryFn: () => api.get('/settings/store').then(r => (r.data?.data ?? {}) as Record<string, string>).catch(() => ({} as Record<string, string>)),
+    staleTime: 60_000,
+  });
+  const enabled = (settings?.['recommerce.enabled'] ?? 'true') !== 'false';
+
+  const mutation = useMutation({
+    mutationFn: (next: boolean) => api.patch('/settings/store', { 'recommerce.enabled': next ? 'true' : 'false' }),
+    onMutate: async (next: boolean) => {
+      await qc.cancelQueries({ queryKey: ['store-settings'] });
+      const prev = qc.getQueryData<Record<string, string>>(['store-settings']);
+      qc.setQueryData(['store-settings'], { ...(prev ?? {}), 'recommerce.enabled': next ? 'true' : 'false' });
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => { if (ctx?.prev) qc.setQueryData(['store-settings'], ctx.prev); },
+    onSettled: () => { void qc.invalidateQueries({ queryKey: ['store-settings'] }); },
+  });
+
+  const busy = isPending || mutation.isPending;
+
+  return (
+    <div className={`flex items-center gap-3 rounded-2xl border px-4 py-3 transition-colors ${enabled ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
+      <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${enabled ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+        {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : enabled ? <Power className="h-4 w-4" /> : <PowerOff className="h-4 w-4" />}
+      </div>
+      <div className="min-w-0">
+        <p className={`text-sm font-black leading-tight ${enabled ? 'text-emerald-800' : 'text-rose-800'}`}>
+          {enabled ? 'Recommerce Enabled' : 'Recommerce Disabled'}
+        </p>
+        <p className={`text-[11px] leading-tight ${enabled ? 'text-emerald-600' : 'text-rose-600'}`}>
+          {enabled ? 'Live on the storefront' : 'Hidden from the storefront'}
+        </p>
+      </div>
+      <button
+        type="button"
+        onClick={() => mutation.mutate(!enabled)}
+        disabled={busy}
+        aria-pressed={enabled}
+        aria-label={enabled ? 'Disable Recommerce' : 'Enable Recommerce'}
+        className="relative h-6 w-11 rounded-full transition-colors flex-shrink-0 disabled:opacity-60"
+        style={{ background: enabled ? '#10b981' : '#cbd5e1' }}
+      >
+        <span className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all" style={{ left: enabled ? '22px' : '2px' }} />
+      </button>
+    </div>
+  );
+}
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ConditionGrade = 'A+' | 'A' | 'B' | 'C';
@@ -183,6 +240,7 @@ export default function AdminRecommercePage() {
           </div>
           <p className="text-sm text-gray-500">Manage refurbished &amp; used item listings, sellers, and grading</p>
         </div>
+        <RecommerceToggle />
       </div>
 
       {/* Quick nav to sub-pages */}
