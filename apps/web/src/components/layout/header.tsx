@@ -2032,8 +2032,10 @@ export function Header() {
             {/* ── Thin separator ─────────────────────────────────────────────── */}
             <div className="w-px bg-gray-100 my-2.5 mx-1 flex-shrink-0" />
 
-            {/* ── Category links — overflow-hidden so they never bleed into More/special ── */}
-            <div className="flex-1 min-w-0 flex items-stretch overflow-hidden">
+            {/* ── Category links — scrollable (never clipped) so the SAME priority
+                 set always renders in both BN & EN at every width; English's wider
+                 labels simply scroll instead of dropping different items. ── */}
+            <div className="flex-1 min-w-0 flex items-stretch overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {navCatsPending ? (
                 // Skeleton shimmer — prevents the static→API flash on first load
                 <div className="flex items-center gap-3 px-2">
@@ -2113,8 +2115,8 @@ export function Header() {
                 className="flex items-center gap-1.5 px-2 xl:px-2.5 h-full text-[12px] xl:text-[13px] font-bold text-emerald-600 hover:bg-emerald-50 transition-colors whitespace-nowrap"
               >
                 <span className="text-[15px]">⚡</span>
-                <span className="hidden xl:inline">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
-                <span className="xl:hidden">{lang === 'bn' ? 'কুইক' : 'Quick'}</span>
+                <span className="hidden 2xl:inline">{lang === 'bn' ? 'কুইক কমার্স' : 'Quick Commerce'}</span>
+                <span className="2xl:hidden">{lang === 'bn' ? 'কুইক' : 'Quick'}</span>
               </Link>
               <div className="w-px bg-gray-100 my-3 flex-shrink-0" />
               <Link
@@ -2122,8 +2124,8 @@ export function Header() {
                 className="flex items-center gap-1.5 px-2 xl:px-2.5 h-full text-[12px] xl:text-[13px] font-bold text-amber-600 hover:bg-amber-50 transition-colors whitespace-nowrap"
               >
                 <span className="text-[15px]">♻️</span>
-                <span className="hidden xl:inline">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
-                <span className="xl:hidden">{lang === 'bn' ? 'রিকমার্স' : 'Reco'}</span>
+                <span className="hidden 2xl:inline">{lang === 'bn' ? 'রিকমার্স' : 'Recommerce'}</span>
+                <span className="2xl:hidden">{lang === 'bn' ? 'রিকমার্স' : 'Reco'}</span>
               </Link>
               <div className="w-px bg-gray-100 my-3 flex-shrink-0" />
               <Link
@@ -2131,7 +2133,8 @@ export function Header() {
                 className="flex items-center gap-1.5 px-2 xl:px-2.5 h-full text-[12px] xl:text-[13px] font-bold text-rose-600 hover:bg-rose-50 transition-colors whitespace-nowrap"
               >
                 <span className="text-[15px]">🔥</span>
-                <span>{lang === 'bn' ? t.header.dealOfDay : 'Deal of the Day'}</span>
+                <span className="hidden 2xl:inline">{lang === 'bn' ? t.header.dealOfDay : 'Deal of the Day'}</span>
+                <span className="2xl:hidden">{lang === 'bn' ? 'অফার' : 'Deal'}</span>
               </Link>
             </div>
           </div>
