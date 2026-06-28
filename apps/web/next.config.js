@@ -29,7 +29,29 @@ const nextConfig = {
 
   // ── Security headers applied to every route ──
   async headers() {
+    // Content-Security-Policy — defense-in-depth against XSS. Permissive enough
+    // for Next.js (inline runtime), Tailwind (inline styles) and the configured
+    // analytics/image third parties, while still pinning script/connect origins.
+    const apiOrigin = (() => {
+      try { return new URL(process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000').origin; }
+      catch { return 'http://localhost:4000'; }
+    })();
+    const csp = [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'self'",
+      "form-action 'self'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data: https:",
+      "style-src 'self' 'unsafe-inline'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://connect.facebook.net https://www.clarity.ms https://analytics.tiktok.com",
+      `connect-src 'self' ${apiOrigin} https://www.google-analytics.com https://www.clarity.ms https://analytics.tiktok.com https://*.r2.dev https://images.unsplash.com`,
+      'upgrade-insecure-requests',
+    ].join('; ');
+
     const securityHeaders = [
+      { key: 'Content-Security-Policy', value: csp },
       { key: 'X-DNS-Prefetch-Control', value: 'on' },
       // Force HTTPS for 2 years incl. subdomains (preload-eligible)
       { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },

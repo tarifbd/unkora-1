@@ -5,6 +5,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { ClassifiedsService } from './classifieds.service';
+import { CreateClassifiedDto, UpdateClassifiedDto } from './dto/classified.dto';
 
 @ApiTags('classifieds')
 @Controller('classifieds')
@@ -25,12 +26,12 @@ export class ClassifiedsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  create(@CurrentUser('id') userId: string, @Body() dto: any) { return this.svc.create(userId, dto); }
+  create(@CurrentUser('id') userId: string, @Body() dto: CreateClassifiedDto) { return this.svc.create(userId, dto); }
 
   @Put(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  update(@Param('id') id: string, @CurrentUser('id') userId: string, @Body() dto: any) { return this.svc.update(id, userId, dto); }
+  update(@Param('id') id: string, @CurrentUser('id') userId: string, @Body() dto: UpdateClassifiedDto) { return this.svc.update(id, userId, dto); }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)

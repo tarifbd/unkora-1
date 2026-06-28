@@ -11,6 +11,7 @@ import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
+import { PhoneLoginDto, GoogleLoginDto, FacebookLoginDto } from './dto/social-login.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -82,14 +83,14 @@ export class AuthController {
   @Post('login/phone')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with phone number + OTP' })
-  loginWithPhone(@Body() dto: { phone: string; code: string }) {
+  loginWithPhone(@Body() dto: PhoneLoginDto) {
     return this.authService.loginWithPhone(dto.phone, dto.code);
   }
 
   @Post('social/google')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login/register with Google ID token' })
-  async googleLogin(@Body() dto: { idToken: string }) {
+  async googleLogin(@Body() dto: GoogleLoginDto) {
     const profile = await this.authService.verifyGoogleToken(dto.idToken);
     return this.authService.socialLogin({ provider: 'google', ...profile });
   }
@@ -97,7 +98,7 @@ export class AuthController {
   @Post('social/facebook')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login/register with Facebook access token' })
-  async facebookLogin(@Body() dto: { accessToken: string }) {
+  async facebookLogin(@Body() dto: FacebookLoginDto) {
     const profile = await this.authService.verifyFacebookToken(dto.accessToken);
     if (!profile.email) throw new Error('Facebook account has no email — cannot create account');
     return this.authService.socialLogin({ provider: 'facebook', ...profile });
