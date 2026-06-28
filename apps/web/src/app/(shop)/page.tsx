@@ -672,8 +672,8 @@ export default function HomePage() {
             </div>
             <div className="flex items-center gap-2">
               <Link href="/products" className="text-[11px] font-bold text-orange-500 hover:underline">{lang === 'bn' ? 'সব দেখুন' : 'View All'}</Link>
-              <button onClick={() => scroll(flashRef, 'l')} className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronLeft className="w-4 h-4 text-gray-500" /></button>
-              <button onClick={() => scroll(flashRef, 'r')} className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronRight className="w-4 h-4 text-gray-500" /></button>
+              <button onClick={() => scroll(flashRef, 'l')} aria-label="Scroll left" className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronLeft className="w-4 h-4 text-gray-500" /></button>
+              <button onClick={() => scroll(flashRef, 'r')} aria-label="Scroll right" className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronRight className="w-4 h-4 text-gray-500" /></button>
             </div>
           </div>
           <div ref={flashRef} className="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">
@@ -715,8 +715,8 @@ export default function HomePage() {
                 ))}
               </div>
               <div className="flex gap-1 flex-shrink-0">
-                <button onClick={() => scroll(shelfRef, 'l')} className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronLeft className="w-4 h-4 text-gray-500" /></button>
-                <button onClick={() => scroll(shelfRef, 'r')} className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronRight className="w-4 h-4 text-gray-500" /></button>
+                <button onClick={() => scroll(shelfRef, 'l')} aria-label="Scroll left" className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronLeft className="w-4 h-4 text-gray-500" /></button>
+                <button onClick={() => scroll(shelfRef, 'r')} aria-label="Scroll right" className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronRight className="w-4 h-4 text-gray-500" /></button>
               </div>
             </div>
           </div>
@@ -993,8 +993,8 @@ export default function HomePage() {
               <h2 className="text-base font-black text-gray-900">{lang === 'bn' ? '✍️ জনপ্রিয় লেখক' : '✍️ Popular Authors'}</h2>
             </div>
             <div className="flex gap-1">
-              <button onClick={() => scroll(authorsRef, 'l')} className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronLeft className="w-4 h-4 text-gray-500" /></button>
-              <button onClick={() => scroll(authorsRef, 'r')} className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronRight className="w-4 h-4 text-gray-500" /></button>
+              <button onClick={() => scroll(authorsRef, 'l')} aria-label="Scroll left" className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronLeft className="w-4 h-4 text-gray-500" /></button>
+              <button onClick={() => scroll(authorsRef, 'r')} aria-label="Scroll right" className="p-1 rounded border border-gray-200 hover:bg-gray-50"><ChevronRight className="w-4 h-4 text-gray-500" /></button>
             </div>
           </div>
           <div ref={authorsRef} className="flex gap-5 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden scroll-smooth">

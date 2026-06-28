@@ -1736,7 +1736,7 @@ export function Header() {
                 placeholder={t.header.searchPlaceholderMobile}
                 className="flex-1 min-w-0 px-3 py-2.5 outline-none text-sm placeholder:text-gray-400 text-black"
               />
-              <button type="submit" className="bg-primary text-white px-4 hover:bg-primary/80 transition-colors flex items-center justify-center min-h-[44px] shrink-0">
+              <button type="submit" aria-label={lang === 'bn' ? 'খুঁজুন' : 'Search'} className="bg-primary text-white px-4 hover:bg-primary/80 transition-colors flex items-center justify-center min-h-[44px] shrink-0">
                 <Search className="w-5 h-5" />
               </button>
             </form>

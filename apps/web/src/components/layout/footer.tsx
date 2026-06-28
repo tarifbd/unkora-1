@@ -114,6 +114,7 @@ export function Footer() {
                   />
                   <button
                     type="submit"
+                    aria-label={f.subscribe}
                     className="bg-secondary text-white px-5 py-3.5 font-bold hover:bg-amber-500 transition-colors flex items-center gap-2 shrink-0 text-sm"
                   >
                     <Send className="w-4 h-4" />
