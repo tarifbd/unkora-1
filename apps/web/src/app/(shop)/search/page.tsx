@@ -3,15 +3,17 @@
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, AlertCircle, RotateCcw } from 'lucide-react';
 import { searchApi } from '@/lib/api/products';
 import { ProductGrid } from '@/components/product/product-grid';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 function SearchContent() {
   const searchParams = useSearchParams();
   const query = searchParams.get('q') ?? '';
+  const { lang } = useLanguage();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['search', query],
     queryFn: () => searchApi.search(query),
     enabled: query.length > 0,
@@ -37,7 +39,16 @@ function SearchContent() {
         </div>
       )}
 
-      {query && <ProductGrid products={data?.hits ?? []} loading={isLoading} />}
+      {query && isError ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center"><AlertCircle className="w-8 h-8 text-red-300" /></div>
+          <p className="text-base font-bold text-gray-700">{lang === 'bn' ? 'অনুসন্ধান লোড করা যায়নি' : 'Could not load search results'}</p>
+          <p className="text-sm text-gray-400">{lang === 'bn' ? 'আপনার ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।' : 'Check your connection and try again.'}</p>
+          <button onClick={() => refetch()} className="mt-1 text-sm text-primary font-semibold hover:underline flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> {lang === 'bn' ? 'আবার চেষ্টা করুন' : 'Retry'}</button>
+        </div>
+      ) : query ? (
+        <ProductGrid products={data?.hits ?? []} loading={isLoading} />
+      ) : null}
     </div>
   );
 }

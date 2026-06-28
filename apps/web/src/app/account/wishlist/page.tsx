@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Heart, Loader2, Trash2, ShoppingCart, LogIn } from 'lucide-react';
+import { Heart, Loader2, Trash2, ShoppingCart, LogIn, AlertCircle, RotateCcw } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { wishlistApi } from '@/lib/api/wishlist';
@@ -33,14 +33,14 @@ export default function WishlistPage() {
   const { lang } = useLanguage();
 
   // Authenticated users: server wishlist
-  const { data: serverItems, isLoading: serverLoading } = useQuery({
+  const { data: serverItems, isLoading: serverLoading, isError: serverError, refetch: refetchServer } = useQuery({
     queryKey: ['wishlist'],
     queryFn: () => wishlistApi.getAll(),
     enabled: isAuthenticated,
   });
 
   // Guests: fetch the products they saved locally
-  const { data: guestProducts, isLoading: guestLoading } = useQuery({
+  const { data: guestProducts, isLoading: guestLoading, isError: guestError, refetch: refetchGuest } = useQuery({
     queryKey: ['guest-wishlist-products', guestWishlist.productIds],
     queryFn: () => productsApi.getByIds(guestWishlist.productIds),
     enabled: !isAuthenticated && guestWishlist.productIds.length > 0,
@@ -62,6 +62,8 @@ export default function WishlistPage() {
     : (guestProducts ?? []);
 
   const isLoading = isAuthenticated ? serverLoading : guestLoading;
+  const isError = isAuthenticated ? serverError : guestError;
+  const refetch = isAuthenticated ? refetchServer : refetchGuest;
 
   const removeItem = (productId: string) => {
     if (isAuthenticated) {
@@ -102,6 +104,17 @@ export default function WishlistPage() {
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => <WishlistSkeleton key={i} />)}
+        </div>
+      ) : isError ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center gap-3">
+          <AlertCircle className="h-12 w-12 text-red-300" />
+          <div>
+            <h2 className="font-bold text-lg mb-1">{lang === 'en' ? 'Could not load your wishlist' : 'উইশলিস্ট লোড করা যায়নি'}</h2>
+            <p className="text-sm text-muted-foreground">{lang === 'en' ? 'Check your connection and try again.' : 'আপনার ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।'}</p>
+          </div>
+          <button onClick={() => refetch()} className="inline-flex items-center gap-1.5 text-sm text-primary font-semibold hover:underline">
+            <RotateCcw className="h-3.5 w-3.5" /> {lang === 'en' ? 'Retry' : 'আবার চেষ্টা করুন'}
+          </button>
         </div>
       ) : isEmpty ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-16 text-center gap-4">

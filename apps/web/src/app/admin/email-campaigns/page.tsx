@@ -538,9 +538,11 @@ Return only the HTML code.`;
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              <div
-                className="border rounded-xl overflow-hidden"
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
+              <iframe
+                title="Email Preview"
+                sandbox=""
+                srcDoc={previewHtml}
+                className="w-full min-h-[400px] border rounded-xl"
               />
             </div>
           </div>

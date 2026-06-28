@@ -4,20 +4,14 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { X, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
+import DOMPurify from 'dompurify';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
 const SEEN_KEY = 'unkora_seen_popups';
 
 function sanitizeHtml(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<iframe[\s\S]*?>/gi, '')
-    .replace(/<object[\s\S]*?>/gi, '')
-    .replace(/<embed[\s\S]*?>/gi, '')
-    .replace(/<link[^>]*>/gi, '')
-    .replace(/<base[^>]*>/gi, '')
-    .replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
-    .replace(/javascript\s*:/gi, 'javascript_:');
+  // Renders client-side, so DOMPurify (which needs the DOM) is safe here.
+  return DOMPurify.sanitize(html);
 }
 
 function getSeenPopups(): string[] {

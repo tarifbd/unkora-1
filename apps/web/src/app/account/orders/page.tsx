@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Package, ChevronRight } from 'lucide-react';
+import { Package, ChevronRight, AlertCircle, RotateCcw } from 'lucide-react';
 import { ordersApi } from '@/lib/api/orders';
 import { formatCurrency } from '@/lib/utils';
+import { useLanguage } from '@/lib/i18n/language-context';
 
 const STATUS_COLORS: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-700',
@@ -18,8 +19,9 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function OrdersPage() {
   const [page, setPage] = useState(1);
+  const { lang } = useLanguage();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['my-orders', page],
     queryFn: () => ordersApi.getMyOrders({ page, limit: 10 }),
   });
@@ -36,7 +38,18 @@ export default function OrdersPage() {
         </div>
       )}
 
-      {!isLoading && !data?.data?.length && (
+      {!isLoading && isError && (
+        <div className="rounded-xl border bg-card p-12 text-center flex flex-col items-center gap-3">
+          <AlertCircle className="h-10 w-10 text-red-300" />
+          <p className="font-bold text-gray-700">{lang === 'en' ? 'Could not load your orders' : 'অর্ডার লোড করা যায়নি'}</p>
+          <p className="text-sm text-muted-foreground">{lang === 'en' ? 'Check your connection and try again.' : 'আপনার ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।'}</p>
+          <button onClick={() => refetch()} className="inline-flex items-center gap-1.5 text-sm text-primary font-semibold hover:underline">
+            <RotateCcw className="h-3.5 w-3.5" /> {lang === 'en' ? 'Retry' : 'আবার চেষ্টা করুন'}
+          </button>
+        </div>
+      )}
+
+      {!isLoading && !isError && !data?.data?.length && (
         <div className="rounded-xl border bg-card p-12 text-center">
           <Package className="mx-auto mb-3 h-10 w-10 text-muted-foreground opacity-30" />
           <p className="text-muted-foreground">No orders yet</p>
