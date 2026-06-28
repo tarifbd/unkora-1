@@ -492,6 +492,8 @@ model Order {
   @@index([orderNumber])
   @@index([status])
   @@index([deliveryBoyId])
+  @@index([paymentStatus])
+  @@index([createdAt])
   @@map("orders")
 }
 
@@ -571,6 +573,7 @@ model Review {
   @@unique([productId, userId])
   @@index([productId])
   @@index([productId, isPublished])
+  @@index([userId])
   @@map("reviews")
 }
 
@@ -589,6 +592,7 @@ model Wishlist {
 
   @@unique([userId, productId])
   @@index([userId])
+  @@index([productId])
   @@map("wishlists")
 }
 
@@ -620,6 +624,7 @@ model Coupon {
   usages        CouponUsage[]
 
   @@index([code])
+  @@index([isActive, expiresAt])
   @@map("coupons")
 }
 
