@@ -77,8 +77,9 @@ export class AuthService {
   }
 
   async refreshTokens(refreshToken: string) {
+    const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
     const stored = await this.prisma.token.findUnique({
-      where: { token: refreshToken },
+      where: { token: tokenHash },
       include: { user: true },
     });
 
@@ -351,8 +352,11 @@ export class AuthService {
   private async saveRefreshToken(userId: string, token: string) {
     const expiresIn = this.config.get<string>('jwt.refreshExpiresIn') ?? '7d';
     const expiresAt = new Date(Date.now() + this.parseExpiresIn(expiresIn));
+    // Store only a SHA-256 hash (same as reset/verification tokens) so a
+    // read-only DB leak does not hand out usable refresh tokens.
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     await this.prisma.token.create({
-      data: { userId, token, type: TokenType.REFRESH, expiresAt },
+      data: { userId, token: tokenHash, type: TokenType.REFRESH, expiresAt },
     });
   }
 
