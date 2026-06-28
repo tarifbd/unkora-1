@@ -34,4 +34,15 @@ export class RecaptchaService {
     const valid = await this.verify(token, action);
     if (!valid) throw new BadRequestException('reCAPTCHA verification failed. Please try again.');
   }
+
+  /**
+   * Flag-gated enforcement. reCAPTCHA is OFF by default and only enforced when
+   * RECAPTCHA_ENABLED === 'true'. When disabled, behavior is unchanged (no-op).
+   */
+  async verifyOrThrow(token: string | undefined, action?: string): Promise<void> {
+    if (process.env['RECAPTCHA_ENABLED'] !== 'true') return; // disabled — unchanged behavior
+    if (!token) throw new BadRequestException('reCAPTCHA token is required.');
+    const valid = await this.verify(token, action);
+    if (!valid) throw new BadRequestException('reCAPTCHA verification failed. Please try again.');
+  }
 }

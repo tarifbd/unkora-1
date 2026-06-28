@@ -18,6 +18,7 @@ import { OtpService } from '../otp/otp.service';
 import { UsersService } from '../users/users.service';
 import type { LoginDto } from './dto/login.dto';
 import type { RegisterDto } from './dto/register.dto';
+import { RecaptchaService } from './recaptcha.service';
 
 @Injectable()
 export class AuthService {
@@ -28,9 +29,12 @@ export class AuthService {
     private readonly config: ConfigService,
     private readonly emailService: EmailService,
     private readonly otpService: OtpService,
+    private readonly recaptcha: RecaptchaService,
   ) {}
 
   async register(dto: RegisterDto) {
+    await this.recaptcha.verifyOrThrow(dto.recaptchaToken, 'register');
+
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existing) throw new ConflictException('Email already registered');
 
@@ -57,6 +61,8 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
+    await this.recaptcha.verifyOrThrow(dto.recaptchaToken, 'login');
+
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (!user || !user.passwordHash) throw new UnauthorizedException('Invalid credentials');
 
@@ -111,7 +117,9 @@ export class AuthService {
 
   // ─── Password Reset ────────────────────────────────────────
 
-  async forgotPassword(email: string) {
+  async forgotPassword(email: string, recaptchaToken?: string) {
+    await this.recaptcha.verifyOrThrow(recaptchaToken, 'forgot_password');
+
     const user = await this.prisma.user.findUnique({ where: { email } });
     // Always return success to prevent email enumeration
     if (!user) return { message: 'If that email is registered, a reset link has been sent.' };

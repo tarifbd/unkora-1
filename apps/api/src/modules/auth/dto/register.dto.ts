@@ -28,4 +28,9 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @ApiPropertyOptional({ description: 'reCAPTCHA token (required only when RECAPTCHA_ENABLED=true)' })
+  @IsOptional()
+  @IsString()
+  recaptchaToken?: string;
 }

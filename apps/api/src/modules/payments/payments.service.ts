@@ -445,6 +445,11 @@ export class PaymentsService {
     const payment = await this.prisma.payment.findFirst({ where: { transactionId } });
     if (!payment) return;
 
+    // Idempotency: if the payment is already in the target status, a duplicate
+    // webhook/callback arrived. Early-return so side effects (order status,
+    // paidAt) are not re-applied.
+    if (payment.status === status) return;
+
     await this.prisma.$transaction(async (tx) => {
       await tx.payment.update({
         where: { id: payment.id },
