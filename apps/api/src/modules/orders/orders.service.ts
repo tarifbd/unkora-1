@@ -97,21 +97,27 @@ export class OrdersService {
         include: { items: true, payment: true },
       });
 
-      // Deduct stock and create stock movement records
+      // Deduct stock atomically. The validation above is best-effort; this
+      // conditional update is the real guard — under concurrent checkouts only
+      // the order that still sees enough stock succeeds, preventing oversell.
       for (const item of cart.items) {
-        await tx.product.update({
-          where: { id: item.productId },
+        const res = await tx.product.updateMany({
+          where: { id: item.productId, stockQuantity: { gte: item.quantity } },
           data: { stockQuantity: { decrement: item.quantity } },
         });
-        await tx.stockMovement.create({
-          data: {
-            productId: item.productId,
-            type: 'SALE',
-            quantity: -item.quantity,
-            note: `Order ${newOrder.id}`,
-          },
-        });
+        if (res.count === 0) {
+          // Rolls back the whole transaction (order creation included).
+          throw new BadRequestException(`Insufficient stock for "${item.product.name}"`);
+        }
       }
+      await tx.stockMovement.createMany({
+        data: cart.items.map((item) => ({
+          productId: item.productId,
+          type: 'SALE' as const,
+          quantity: -item.quantity,
+          note: `Order ${newOrder.id}`,
+        })),
+      });
 
       // Clear cart
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
@@ -242,20 +248,25 @@ export class OrdersService {
         include: { items: true },
       });
 
+      // Atomic, oversell-safe stock deduction (see createOrder for rationale).
       for (const orderItem of dto.items) {
-        await tx.product.update({
-          where: { id: orderItem.productId },
+        const res = await tx.product.updateMany({
+          where: { id: orderItem.productId, stockQuantity: { gte: orderItem.quantity } },
           data: { stockQuantity: { decrement: orderItem.quantity } },
         });
-        await tx.stockMovement.create({
-          data: {
-            productId: orderItem.productId,
-            type: 'SALE',
-            quantity: -orderItem.quantity,
-            note: `Order ${newOrder.id}`,
-          },
-        });
+        if (res.count === 0) {
+          const name = products.find((p) => p.id === orderItem.productId)?.name ?? orderItem.productId;
+          throw new BadRequestException(`Insufficient stock for "${name}"`);
+        }
       }
+      await tx.stockMovement.createMany({
+        data: dto.items.map((orderItem) => ({
+          productId: orderItem.productId,
+          type: 'SALE' as const,
+          quantity: -orderItem.quantity,
+          note: `Order ${newOrder.id}`,
+        })),
+      });
 
       return newOrder;
     });
