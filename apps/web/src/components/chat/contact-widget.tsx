@@ -96,7 +96,7 @@ export function ContactWidget() {
 
   return (
     <>
-      <div className="fixed right-3 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col gap-3">
+      <div className="fixed left-3 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col gap-3">
         {whatsapp && (
           <a
             href={`https://wa.me/${whatsapp}`}
