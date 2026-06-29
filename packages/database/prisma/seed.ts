@@ -180,7 +180,7 @@ async function main() {
   await upsertCat({ slug: 'eco-friendly',     name: 'Eco Friendly',       icon: '🌱', color: 'bg-teal-100 text-teal-700',     sortOrder: 16, isFeatured: false, description: 'পরিবেশবান্ধব পণ্য' });
 
   // Sub-categories — Books
-  for (const [i, sub] of [
+  for (const [slug, name, order] of [
     ['fiction',         'Fiction',            1],
     ['islamic-books',   'Islamic Books',      2],
     ['academic',        'Academic Books',     3],
@@ -189,7 +189,7 @@ async function main() {
     ['non-fiction',     'Non-Fiction',        6],
     ['e-books',         'E-Books',            7],
   ] as [string, string, number][]) {
-    await upsertCat({ slug: sub[0] as string, name: sub[1] as string, parentSlug: 'books', sortOrder: sub[2] as number });
+    await upsertCat({ slug, name, parentSlug: 'books', sortOrder: order });
   }
 
   // Sub-categories — Islamic Lifestyle
