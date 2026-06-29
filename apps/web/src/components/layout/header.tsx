@@ -733,6 +733,17 @@ const MEGA_CONTENT = [
   },
   // 1 — Baby Products
   {
+    tiles: [
+      { label: 'Diapers',          labelBn: 'ডায়াপার',         emoji: '🍼', color: 'bg-pink-50 border-pink-200 text-pink-700',    href: '/products?categorySlug=baby-products&sub=diapers' },
+      { label: 'Baby Food',        labelBn: 'বেবি ফুড',          emoji: '🥣', color: 'bg-amber-50 border-amber-200 text-amber-700',  href: '/products?categorySlug=baby-products&sub=baby-food' },
+      { label: 'Strollers',        labelBn: 'স্ট্রোলার',         emoji: '👶', color: 'bg-blue-50 border-blue-200 text-blue-700',    href: '/products?categorySlug=baby-products&sub=stroller' },
+      { label: 'Baby Clothing',    labelBn: 'বেবি পোশাক',        emoji: '👕', color: 'bg-purple-50 border-purple-200 text-purple-700', href: '/products?categorySlug=baby-products&sub=clothing' },
+      { label: 'Baby Toys',        labelBn: 'শিশু খেলনা',        emoji: '🧸', color: 'bg-rose-50 border-rose-200 text-rose-700',    href: '/products?categorySlug=baby-products&sub=edu-toys' },
+      { label: 'Baby Care',        labelBn: 'শিশু যত্ন',          emoji: '💊', color: 'bg-teal-50 border-teal-200 text-teal-700',    href: '/products?categorySlug=baby-products&sub=baby-wash' },
+      { label: 'Feeding',          labelBn: 'ফিডিং',              emoji: '🍶', color: 'bg-green-50 border-green-200 text-green-700',  href: '/products?categorySlug=baby-products&sub=bottles' },
+      { label: 'Car Seats',        labelBn: 'কার সিট',            emoji: '🚗', color: 'bg-indigo-50 border-indigo-200 text-indigo-700', href: '/products?categorySlug=baby-products&sub=car-seat' },
+    ],
+    banner: { text: '👶 Safe & certified products for your little one', textBn: '👶 আপনার শিশুর জন্য নিরাপদ ও প্রত্যয়িত পণ্য', sub: 'Trusted by 50,000+ parents', subBn: '৫০,০০০+ বাবা-মায়ের বিশ্বাস', color: 'from-pink-50 to-rose-50 border-pink-200', textColor: 'text-pink-800', subColor: 'text-pink-600', btnColor: 'bg-pink-600 hover:bg-pink-700', href: '/products?categorySlug=baby-products' },
     columns: [
       { heading: 'Diapering & Care', headingBn: 'ডায়াপার ও যত্ন', links: [
         { label: 'Diapers',          labelBn: 'ডায়াপার',         href: '/products?categorySlug=baby-products&sub=diapers' },
@@ -759,6 +770,17 @@ const MEGA_CONTENT = [
   },
   // 2 — Leather
   {
+    tiles: [
+      { label: 'Wallets',        labelBn: 'পার্স',           emoji: '👛', color: 'bg-amber-50 border-amber-200 text-amber-800',   href: '/products?categorySlug=leather-products&sub=bifold' },
+      { label: 'Bags',           labelBn: 'ব্যাগ',            emoji: '👜', color: 'bg-orange-50 border-orange-200 text-orange-800', href: '/products?categorySlug=leather-products&sub=office-bag' },
+      { label: 'Formal Shoes',   labelBn: 'ফর্মাল জুতা',     emoji: '👞', color: 'bg-stone-50 border-stone-200 text-stone-800',   href: '/products?categorySlug=leather-products&sub=formal-shoes' },
+      { label: 'Belts',          labelBn: 'বেল্ট',            emoji: '🪢', color: 'bg-yellow-50 border-yellow-200 text-yellow-800', href: '/products?categorySlug=leather-products&sub=belts' },
+      { label: 'Card Holders',   labelBn: 'কার্ড হোল্ডার',    emoji: '💳', color: 'bg-red-50 border-red-200 text-red-800',         href: '/products?categorySlug=leather-products&sub=card-holder' },
+      { label: 'Ladies Bags',    labelBn: 'লেডিস ব্যাগ',     emoji: '👝', color: 'bg-rose-50 border-rose-200 text-rose-800',       href: '/products?categorySlug=leather-products&sub=ladies-bag' },
+      { label: 'Backpacks',      labelBn: 'ব্যাকপ্যাক',       emoji: '🎒', color: 'bg-brown-50 border-amber-300 text-amber-900',  href: '/products?categorySlug=leather-products&sub=backpack' },
+      { label: 'Sandals',        labelBn: 'স্যান্ডেল',         emoji: '👡', color: 'bg-purple-50 border-purple-200 text-purple-800', href: '/products?categorySlug=leather-products&sub=sandals' },
+    ],
+    banner: { text: '👜 Genuine leather — crafted to last a lifetime', textBn: '👜 খাঁটি চামড়া — আজীবন টেকসই', sub: 'Handcrafted by skilled artisans', subBn: 'দক্ষ কারিগরের হাতের কাজ', color: 'from-amber-50 to-orange-50 border-amber-200', textColor: 'text-amber-900', subColor: 'text-amber-700', btnColor: 'bg-amber-700 hover:bg-amber-800', href: '/products?categorySlug=leather-products' },
     columns: [
       { heading: 'Wallets & Accessories', headingBn: 'পার্স ও আনুষাঙ্গিক', links: [
         { label: 'Bifold Wallets',   labelBn: 'বাইফোল্ড পার্স',     href: '/products?categorySlug=leather-products&sub=bifold' },
@@ -785,6 +807,17 @@ const MEGA_CONTENT = [
   },
   // 3 — Organic Foods
   {
+    tiles: [
+      { label: 'Wild Honey',     labelBn: 'বন মধু',         emoji: '🍯', color: 'bg-amber-50 border-amber-200 text-amber-800',  href: '/products?categorySlug=organic-foods&sub=wild-honey' },
+      { label: 'Nuts & Seeds',   labelBn: 'বাদাম ও বীজ',    emoji: '🥜', color: 'bg-yellow-50 border-yellow-200 text-yellow-800', href: '/products?categorySlug=organic-foods&sub=almonds' },
+      { label: 'Spices',         labelBn: 'মশলা',            emoji: '🌶️', color: 'bg-red-50 border-red-200 text-red-800',       href: '/products?categorySlug=organic-foods&sub=turmeric' },
+      { label: 'Green Tea',      labelBn: 'গ্রিন টি',         emoji: '🍵', color: 'bg-green-50 border-green-200 text-green-800',  href: '/products?categorySlug=organic-foods&sub=green-tea' },
+      { label: 'Kalonji',        labelBn: 'কালিজিরা',        emoji: '🌱', color: 'bg-emerald-50 border-emerald-200 text-emerald-800', href: '/products?categorySlug=organic-foods&sub=black-seed' },
+      { label: 'Dried Fruits',   labelBn: 'শুকনো ফল',        emoji: '🍇', color: 'bg-purple-50 border-purple-200 text-purple-800', href: '/products?categorySlug=organic-foods&sub=dried-fruits' },
+      { label: 'Herbal Tea',     labelBn: 'হার্বাল টি',       emoji: '🌿', color: 'bg-teal-50 border-teal-200 text-teal-800',    href: '/products?categorySlug=organic-foods&sub=herbal-tea' },
+      { label: 'Granola',        labelBn: 'গ্রানোলা',         emoji: '🥣', color: 'bg-orange-50 border-orange-200 text-orange-800', href: '/products?categorySlug=organic-foods&sub=granola' },
+    ],
+    banner: { text: '🌿 100% natural — straight from nature to your door', textBn: '🌿 ১০০% প্রাকৃতিক — সরাসরি প্রকৃতি থেকে', sub: 'No preservatives, no additives', subBn: 'কোনো প্রিজার্ভেটিভ বা কৃত্রিম উপাদান নেই', color: 'from-green-50 to-emerald-50 border-green-200', textColor: 'text-green-900', subColor: 'text-green-700', btnColor: 'bg-green-700 hover:bg-green-800', href: '/products?categorySlug=organic-foods' },
     columns: [
       { heading: 'Honey & Sweeteners', headingBn: 'মধু ও মিষ্টি', links: [
         { label: 'Wild Forest Honey', labelBn: 'বন মধু',              href: '/products?categorySlug=organic-foods&sub=wild-honey' },
@@ -811,6 +844,17 @@ const MEGA_CONTENT = [
   },
   // 4 — Islamic Lifestyle
   {
+    tiles: [
+      { label: 'Prayer Mat',    labelBn: 'জায়নামাজ',       emoji: '🕌', color: 'bg-emerald-50 border-emerald-200 text-emerald-800', href: '/islamic-lifestyle?sub=prayer-mat' },
+      { label: 'Panjabi',       labelBn: 'পাঞ্জাবি',        emoji: '👘', color: 'bg-teal-50 border-teal-200 text-teal-800',       href: '/islamic-lifestyle?sub=panjabi' },
+      { label: 'Hijab',         labelBn: 'হিজাব',           emoji: '🧣', color: 'bg-rose-50 border-rose-200 text-rose-800',        href: '/islamic-lifestyle?sub=hijab' },
+      { label: 'Attar & Oud',   labelBn: 'আতর ও আউড',      emoji: '🌹', color: 'bg-amber-50 border-amber-200 text-amber-800',     href: '/islamic-lifestyle?sub=attar' },
+      { label: 'Tasbih',        labelBn: 'তাসবিহ',          emoji: '📿', color: 'bg-purple-50 border-purple-200 text-purple-800',  href: '/islamic-lifestyle?sub=tasbih' },
+      { label: 'Quran & Books', labelBn: 'কুরআন ও বই',      emoji: '📖', color: 'bg-blue-50 border-blue-200 text-blue-800',        href: '/products?categorySlug=books&genre=Islamic' },
+      { label: 'Abaya',         labelBn: 'আবায়া',           emoji: '🌙', color: 'bg-slate-50 border-slate-200 text-slate-800',     href: '/islamic-lifestyle?sub=abaya' },
+      { label: 'Islamic Decor', labelBn: 'ইসলামিক ডেকোর',   emoji: '🪔', color: 'bg-yellow-50 border-yellow-200 text-yellow-800',  href: '/islamic-lifestyle?sub=wall-art' },
+    ],
+    banner: { text: '🕌 Everything for a blessed & beautiful lifestyle', textBn: '🕌 বরকতময় জীবনযাপনের জন্য সব কিছু', sub: 'Halal-certified products', subBn: 'হালাল সার্টিফাইড পণ্য', color: 'from-emerald-50 to-teal-50 border-emerald-200', textColor: 'text-emerald-900', subColor: 'text-emerald-700', btnColor: 'bg-emerald-700 hover:bg-emerald-800', href: '/islamic-lifestyle' },
     columns: [
       { heading: 'Prayer & Worship', headingBn: 'নামাজ ও ইবাদত', links: [
         { label: 'Prayer Mats',        labelBn: 'জায়নামাজ',           href: '/islamic-lifestyle?sub=prayer-mat' },
@@ -838,6 +882,17 @@ const MEGA_CONTENT = [
   },
   // 5 — Handicrafts
   {
+    tiles: [
+      { label: 'Wall Art',      labelBn: 'ওয়াল আর্ট',     emoji: '🎨', color: 'bg-purple-50 border-purple-200 text-purple-800',  href: '/products?categorySlug=handicrafts&sub=canvas' },
+      { label: 'Nakshi Kantha', labelBn: 'নকশি কাঁথা',     emoji: '🧵', color: 'bg-rose-50 border-rose-200 text-rose-800',       href: '/products?categorySlug=handicrafts&sub=nakshi-kantha' },
+      { label: 'Clay Art',      labelBn: 'মাটির শিল্প',    emoji: '🏺', color: 'bg-amber-50 border-amber-200 text-amber-800',     href: '/products?categorySlug=handicrafts&sub=clay' },
+      { label: 'Jute Crafts',   labelBn: 'পাটের পণ্য',     emoji: '🌾', color: 'bg-yellow-50 border-yellow-200 text-yellow-800',  href: '/products?categorySlug=handicrafts&sub=jute' },
+      { label: 'Wood Crafts',   labelBn: 'কাঠের হস্তশিল্প', emoji: '🪵', color: 'bg-orange-50 border-orange-200 text-orange-800', href: '/products?categorySlug=handicrafts&sub=wooden' },
+      { label: 'Brass & Metal', labelBn: 'পিতল ও ধাতু',    emoji: '✨', color: 'bg-zinc-50 border-zinc-200 text-zinc-800',       href: '/products?categorySlug=handicrafts&sub=brass' },
+      { label: 'Pottery',       labelBn: 'মাটির বাসন',     emoji: '🫙', color: 'bg-stone-50 border-stone-200 text-stone-800',    href: '/products?categorySlug=handicrafts&sub=pottery' },
+      { label: 'Showpieces',    labelBn: 'শোপিস',          emoji: '🪆', color: 'bg-pink-50 border-pink-200 text-pink-800',        href: '/products?categorySlug=handicrafts&sub=showpieces' },
+    ],
+    banner: { text: '🎨 Supporting local artisans of Bangladesh', textBn: '🎨 বাংলাদেশের স্থানীয় কারিগরদের সহায়তা করছি', sub: 'Every purchase supports a craftsperson', subBn: 'প্রতিটি কেনাকাটায় একজন কারিগর উপকৃত হন', color: 'from-purple-50 to-pink-50 border-purple-200', textColor: 'text-purple-900', subColor: 'text-purple-700', btnColor: 'bg-purple-700 hover:bg-purple-800', href: '/products?categorySlug=handicrafts' },
     columns: [
       { heading: 'Wall Art & Décor', headingBn: 'দেওয়াল শিল্প ও ডেকোর', links: [
         { label: 'Canvas Prints',      labelBn: 'ক্যানভাস প্রিন্ট',     href: '/products?categorySlug=handicrafts&sub=canvas' },
@@ -864,6 +919,17 @@ const MEGA_CONTENT = [
   },
   // 6 — Electronics
   {
+    tiles: [
+      { label: 'Mobiles',       labelBn: 'মোবাইল',         emoji: '📱', color: 'bg-blue-50 border-blue-200 text-blue-800',       href: '/products?categorySlug=electronics&sub=mobiles' },
+      { label: 'Laptops',       labelBn: 'ল্যাপটপ',         emoji: '💻', color: 'bg-slate-50 border-slate-200 text-slate-800',    href: '/products?categorySlug=electronics&sub=office-laptop' },
+      { label: 'Earbuds',       labelBn: 'ইয়ারবাডস',       emoji: '🎧', color: 'bg-purple-50 border-purple-200 text-purple-800', href: '/products?categorySlug=electronics&sub=earbuds' },
+      { label: 'Smartwatch',    labelBn: 'স্মার্টওয়াচ',    emoji: '⌚', color: 'bg-green-50 border-green-200 text-green-800',    href: '/products?categorySlug=electronics&sub=smartwatch' },
+      { label: 'Camera',        labelBn: 'ক্যামেরা',        emoji: '📷', color: 'bg-orange-50 border-orange-200 text-orange-800', href: '/products?categorySlug=electronics&sub=cameras' },
+      { label: 'Power Banks',   labelBn: 'পাওয়ার ব্যাংক',  emoji: '🔋', color: 'bg-yellow-50 border-yellow-200 text-yellow-800', href: '/products?categorySlug=electronics&sub=power-bank' },
+      { label: 'Tablets',       labelBn: 'ট্যাবলেট',        emoji: '📲', color: 'bg-cyan-50 border-cyan-200 text-cyan-800',       href: '/products?categorySlug=electronics&sub=tablets' },
+      { label: 'Gadgets',       labelBn: 'গ্যাজেট',         emoji: '⚡', color: 'bg-indigo-50 border-indigo-200 text-indigo-800',  href: '/products?categorySlug=electronics' },
+    ],
+    banner: { text: '⚡ Best tech deals — updated every day', textBn: '⚡ সেরা প্রযুক্তি অফার — প্রতিদিন আপডেট', sub: 'Warranty on all products', subBn: 'সকল পণ্যে ওয়ারেন্টি', color: 'from-blue-50 to-indigo-50 border-blue-200', textColor: 'text-blue-900', subColor: 'text-blue-700', btnColor: 'bg-blue-700 hover:bg-blue-800', href: '/products?categorySlug=electronics' },
     columns: [
       { heading: 'Mobiles & Tablets', headingBn: 'মোবাইল ও ট্যাবলেট', links: [
         { label: 'Samsung Phones',     labelBn: 'স্যামসাং ফোন',          href: '/products?categorySlug=electronics&sub=mobiles&search=samsung' },
@@ -890,6 +956,17 @@ const MEGA_CONTENT = [
   },
   // 7 — Daily Needs
   {
+    tiles: [
+      { label: 'Grocery',       labelBn: 'মুদি পণ্য',       emoji: '🛒', color: 'bg-orange-50 border-orange-200 text-orange-800', href: '/products?categorySlug=daily-needs&sub=rice-flour' },
+      { label: 'Skin Care',     labelBn: 'স্কিন কেয়ার',    emoji: '💆', color: 'bg-pink-50 border-pink-200 text-pink-800',       href: '/products?categorySlug=daily-needs&sub=skin-care' },
+      { label: 'Hair Care',     labelBn: 'হেয়ার কেয়ার',    emoji: '💇', color: 'bg-purple-50 border-purple-200 text-purple-800', href: '/products?categorySlug=daily-needs&sub=hair-care' },
+      { label: 'Cleaning',      labelBn: 'পরিষ্কার',        emoji: '🧹', color: 'bg-blue-50 border-blue-200 text-blue-800',       href: '/products?categorySlug=daily-needs&sub=cleaning' },
+      { label: 'Oral Care',     labelBn: 'মুখের যত্ন',      emoji: '🦷', color: 'bg-cyan-50 border-cyan-200 text-cyan-800',       href: '/products?categorySlug=daily-needs&sub=oral-care' },
+      { label: 'Stationery',    labelBn: 'স্টেশনারি',       emoji: '📝', color: 'bg-yellow-50 border-yellow-200 text-yellow-800', href: '/products?categorySlug=daily-needs&sub=stationery' },
+      { label: 'Pet Care',      labelBn: 'পোষা প্রাণী',     emoji: '🐾', color: 'bg-green-50 border-green-200 text-green-800',    href: '/products?categorySlug=daily-needs&sub=pet-care' },
+      { label: 'Soaps',         labelBn: 'সাবান',           emoji: '🧼', color: 'bg-teal-50 border-teal-200 text-teal-800',       href: '/products?categorySlug=daily-needs&sub=soaps' },
+    ],
+    banner: { text: '🛒 Daily essentials delivered to your door', textBn: '🛒 দৈনন্দিন প্রয়োজনীয় পণ্য দরজায় পৌঁছে দিই', sub: 'Same-day delivery available', subBn: 'একই দিনে ডেলিভারি পাওয়া যায়', color: 'from-orange-50 to-amber-50 border-orange-200', textColor: 'text-orange-900', subColor: 'text-orange-700', btnColor: 'bg-orange-600 hover:bg-orange-700', href: '/products?categorySlug=daily-needs' },
     columns: [
       { heading: 'Grocery & Kitchen', headingBn: 'মুদি ও রান্নাঘর', links: [
         { label: 'Rice & Flour',       labelBn: 'চাল ও আটা',              href: '/products?categorySlug=daily-needs&sub=rice-flour' },
@@ -916,6 +993,17 @@ const MEGA_CONTENT = [
   },
   // 8 — Health & Sports
   {
+    tiles: [
+      { label: 'Dumbbells',     labelBn: 'ডাম্বেল',         emoji: '🏋️', color: 'bg-red-50 border-red-200 text-red-800',          href: '/products?categorySlug=health-sports&sub=dumbbells' },
+      { label: 'Cricket',       labelBn: 'ক্রিকেট',         emoji: '🏏', color: 'bg-green-50 border-green-200 text-green-800',    href: '/products?categorySlug=health-sports&sub=cricket' },
+      { label: 'Yoga',          labelBn: 'যোগব্যায়াম',      emoji: '🧘', color: 'bg-purple-50 border-purple-200 text-purple-800', href: '/products?categorySlug=health-sports&sub=yoga' },
+      { label: 'Protein',       labelBn: 'প্রোটিন',          emoji: '💪', color: 'bg-orange-50 border-orange-200 text-orange-800', href: '/products?categorySlug=health-sports&sub=protein' },
+      { label: 'BP Monitor',    labelBn: 'বিপি মনিটর',      emoji: '❤️', color: 'bg-rose-50 border-rose-200 text-rose-800',       href: '/products?categorySlug=health-sports&sub=bp-monitor' },
+      { label: 'Football',      labelBn: 'ফুটবল',           emoji: '⚽', color: 'bg-blue-50 border-blue-200 text-blue-800',       href: '/products?categorySlug=health-sports&sub=football' },
+      { label: 'Cycling',       labelBn: 'সাইক্লিং',        emoji: '🚴', color: 'bg-teal-50 border-teal-200 text-teal-800',       href: '/products?categorySlug=health-sports&sub=cycling' },
+      { label: 'Badminton',     labelBn: 'ব্যাডমিন্টন',     emoji: '🏸', color: 'bg-yellow-50 border-yellow-200 text-yellow-800', href: '/products?categorySlug=health-sports&sub=badminton' },
+    ],
+    banner: { text: '💪 Your health is our priority', textBn: '💪 আপনার স্বাস্থ্যই আমাদের অগ্রাধিকার', sub: 'Trusted by 100,000+ fitness enthusiasts', subBn: '১,০০,০০০+ ফিটনেস প্রেমীর বিশ্বাস', color: 'from-red-50 to-orange-50 border-red-200', textColor: 'text-red-900', subColor: 'text-red-700', btnColor: 'bg-red-600 hover:bg-red-700', href: '/products?categorySlug=health-sports' },
     columns: [
       { heading: 'Fitness Equipment', headingBn: 'ফিটনেস সরঞ্জাম', links: [
         { label: 'Dumbbells & Barbells',  labelBn: 'ডাম্বেল ও বারবেল',     href: '/products?categorySlug=health-sports&sub=dumbbells' },
@@ -951,6 +1039,17 @@ const MEGA_CONTENT = [
   },
   // 9 — Fashion & Lifestyle
   {
+    tiles: [
+      { label: 'Panjabi',       labelBn: 'পাঞ্জাবি',        emoji: '👘', color: 'bg-indigo-50 border-indigo-200 text-indigo-800',  href: '/products?categorySlug=fashion-lifestyle&sub=panjabi' },
+      { label: 'Saree',         labelBn: 'শাড়ি',            emoji: '👗', color: 'bg-rose-50 border-rose-200 text-rose-800',        href: '/products?categorySlug=fashion-lifestyle&sub=saree' },
+      { label: 'T-Shirts',      labelBn: 'টি-শার্ট',        emoji: '👕', color: 'bg-blue-50 border-blue-200 text-blue-800',        href: '/products?categorySlug=fashion-lifestyle&sub=tshirts' },
+      { label: 'Shoes',         labelBn: 'জুতা',            emoji: '👟', color: 'bg-gray-50 border-gray-200 text-gray-800',        href: '/products?categorySlug=fashion-lifestyle&sub=mens-shoes' },
+      { label: 'Hijab',         labelBn: 'হিজাব',           emoji: '🧣', color: 'bg-emerald-50 border-emerald-200 text-emerald-800', href: '/products?categorySlug=fashion-lifestyle&sub=hijab' },
+      { label: 'Makeup',        labelBn: 'মেকআপ',           emoji: '💄', color: 'bg-pink-50 border-pink-200 text-pink-800',        href: '/products?categorySlug=fashion-lifestyle&sub=makeup' },
+      { label: 'Kids Fashion',  labelBn: 'শিশু ফ্যাশন',    emoji: '🧒', color: 'bg-yellow-50 border-yellow-200 text-yellow-800',  href: '/products?categorySlug=fashion-lifestyle&sub=kids' },
+      { label: 'Accessories',   labelBn: 'আনুষাঙ্গিক',      emoji: '👒', color: 'bg-purple-50 border-purple-200 text-purple-800',  href: '/products?categorySlug=fashion-lifestyle&sub=womens-acc' },
+    ],
+    banner: { text: '👗 Style for every occasion & every budget', textBn: '👗 প্রতিটি অনুষ্ঠানের জন্য পোশাক', sub: 'New arrivals every week', subBn: 'প্রতি সপ্তাহে নতুন সংগ্রহ', color: 'from-rose-50 to-pink-50 border-rose-200', textColor: 'text-rose-900', subColor: 'text-rose-700', btnColor: 'bg-rose-600 hover:bg-rose-700', href: '/products?categorySlug=fashion-lifestyle' },
     columns: [
       { heading: "Men's Fashion", headingBn: 'পুরুষ ফ্যাশন', links: [
         { label: 'Panjabi & Kurta',   labelBn: 'পাঞ্জাবি ও কুর্তা',   href: '/products?categorySlug=fashion-lifestyle&sub=panjabi' },
@@ -986,6 +1085,17 @@ const MEGA_CONTENT = [
   },
   // 10 — Home & Furniture
   {
+    tiles: [
+      { label: 'Sofas',         labelBn: 'সোফা',           emoji: '🛋️', color: 'bg-amber-50 border-amber-200 text-amber-800',    href: '/products?categorySlug=home-furniture&sub=sofa' },
+      { label: 'Beds',          labelBn: 'বিছানা',          emoji: '🛏️', color: 'bg-blue-50 border-blue-200 text-blue-800',       href: '/products?categorySlug=home-furniture&sub=beds' },
+      { label: 'Kitchen',       labelBn: 'রান্নাঘর',        emoji: '🍳', color: 'bg-orange-50 border-orange-200 text-orange-800', href: '/products?categorySlug=home-furniture&sub=cookware' },
+      { label: 'Home Decor',    labelBn: 'হোম ডেকোর',      emoji: '🪴', color: 'bg-green-50 border-green-200 text-green-800',    href: '/products?categorySlug=home-furniture&sub=vases' },
+      { label: 'Lighting',      labelBn: 'আলো',             emoji: '💡', color: 'bg-yellow-50 border-yellow-200 text-yellow-800', href: '/products?categorySlug=home-furniture&sub=ceiling-light' },
+      { label: 'Curtains',      labelBn: 'পর্দা',           emoji: '🪟', color: 'bg-purple-50 border-purple-200 text-purple-800', href: '/products?categorySlug=home-furniture&sub=curtains' },
+      { label: 'Wardrobes',     labelBn: 'আলমারি',          emoji: '🗄️', color: 'bg-slate-50 border-slate-200 text-slate-800',    href: '/products?categorySlug=home-furniture&sub=wardrobe' },
+      { label: 'Bedsheets',     labelBn: 'বেডশিট',         emoji: '🛌', color: 'bg-pink-50 border-pink-200 text-pink-800',       href: '/products?categorySlug=home-furniture&sub=bedsheet' },
+    ],
+    banner: { text: '🏠 Transform your home into a haven', textBn: '🏠 আপনার বাড়িকে স্বপ্নের বাড়ি করুন', sub: 'Free installation on furniture orders', subBn: 'আসবাবপত্রের অর্ডারে বিনামূল্যে ইনস্টলেশন', color: 'from-amber-50 to-yellow-50 border-amber-200', textColor: 'text-amber-900', subColor: 'text-amber-700', btnColor: 'bg-amber-700 hover:bg-amber-800', href: '/products?categorySlug=home-furniture' },
     columns: [
       { heading: 'Furniture', headingBn: 'আসবাবপত্র', links: [
         { label: 'Sofa & Sectionals',     labelBn: 'সোফা',               href: '/products?categorySlug=home-furniture&sub=sofa' },
@@ -1021,6 +1131,17 @@ const MEGA_CONTENT = [
   },
   // 11 — Automotive
   {
+    tiles: [
+      { label: 'Car Accessories', labelBn: 'কার সামগ্রী',   emoji: '🚗', color: 'bg-slate-50 border-slate-200 text-slate-800',    href: '/products?categorySlug=automotive&sub=seat-cover' },
+      { label: 'Helmets',         labelBn: 'হেলমেট',        emoji: '🪖', color: 'bg-red-50 border-red-200 text-red-800',          href: '/products?categorySlug=automotive&sub=helmet' },
+      { label: 'Car Care',        labelBn: 'গাড়ির যত্ন',   emoji: '🪣', color: 'bg-blue-50 border-blue-200 text-blue-800',       href: '/products?categorySlug=automotive&sub=wash' },
+      { label: 'GPS',             labelBn: 'জিপিএস',        emoji: '🗺️', color: 'bg-green-50 border-green-200 text-green-800',    href: '/products?categorySlug=automotive&sub=gps' },
+      { label: 'Dash Cam',        labelBn: 'ড্যাশ ক্যাম',  emoji: '📹', color: 'bg-purple-50 border-purple-200 text-purple-800', href: '/products?categorySlug=automotive&sub=dashcam' },
+      { label: 'Tools',           labelBn: 'সরঞ্জাম',       emoji: '🔧', color: 'bg-orange-50 border-orange-200 text-orange-800', href: '/products?categorySlug=automotive&sub=hand-tools' },
+      { label: 'Engine Oil',      labelBn: 'ইঞ্জিন অয়েল', emoji: '🛢️', color: 'bg-amber-50 border-amber-200 text-amber-800',    href: '/products?categorySlug=automotive&sub=engine-oil' },
+      { label: 'Bike Acc',        labelBn: 'বাইক সামগ্রী',  emoji: '🏍️', color: 'bg-zinc-50 border-zinc-200 text-zinc-800',      href: '/products?categorySlug=automotive&sub=bike-acc' },
+    ],
+    banner: { text: '🚗 Everything your vehicle needs, in one place', textBn: '🚗 আপনার গাড়ির সব প্রয়োজন এখানেই', sub: 'Genuine parts & accessories', subBn: 'আসল যন্ত্রাংশ ও আনুষাঙ্গিক', color: 'from-slate-50 to-gray-50 border-slate-200', textColor: 'text-slate-900', subColor: 'text-slate-600', btnColor: 'bg-slate-700 hover:bg-slate-800', href: '/products?categorySlug=automotive' },
     columns: [
       { heading: 'Car Accessories', headingBn: 'গাড়ির সামগ্রী', links: [
         { label: 'Seat Covers',           labelBn: 'সিট কভার',             href: '/products?categorySlug=automotive&sub=seat-cover' },
@@ -1056,6 +1177,17 @@ const MEGA_CONTENT = [
   },
   // 12 — Agriculture
   {
+    tiles: [
+      { label: 'Veg Seeds',      labelBn: 'সবজির বীজ',     emoji: '🌱', color: 'bg-green-50 border-green-200 text-green-800',    href: '/products?categorySlug=agriculture&sub=veg-seeds' },
+      { label: 'Fertilizers',    labelBn: 'সার',            emoji: '🌿', color: 'bg-emerald-50 border-emerald-200 text-emerald-800', href: '/products?categorySlug=agriculture&sub=fertilizer' },
+      { label: 'Sprayers',       labelBn: 'স্প্রেয়ার',      emoji: '💦', color: 'bg-blue-50 border-blue-200 text-blue-800',       href: '/products?categorySlug=agriculture&sub=sprayer' },
+      { label: 'Fruit Plants',   labelBn: 'ফলের গাছ',       emoji: '🌳', color: 'bg-lime-50 border-lime-200 text-lime-800',        href: '/products?categorySlug=agriculture&sub=fruit' },
+      { label: 'Poultry',        labelBn: 'পোল্ট্রি',       emoji: '🐔', color: 'bg-yellow-50 border-yellow-200 text-yellow-800', href: '/products?categorySlug=agriculture&sub=poultry' },
+      { label: 'Fish Feed',      labelBn: 'মাছের খাবার',   emoji: '🐟', color: 'bg-cyan-50 border-cyan-200 text-cyan-800',        href: '/products?categorySlug=agriculture&sub=fish-feed' },
+      { label: 'Water Pumps',    labelBn: 'ওয়াটার পাম্প', emoji: '⚙️', color: 'bg-slate-50 border-slate-200 text-slate-800',    href: '/products?categorySlug=agriculture&sub=pump' },
+      { label: 'Pesticides',     labelBn: 'কীটনাশক',       emoji: '🧪', color: 'bg-orange-50 border-orange-200 text-orange-800', href: '/products?categorySlug=agriculture&sub=pesticide' },
+    ],
+    banner: { text: '🌾 Empowering Bangladesh\'s farmers', textBn: '🌾 বাংলাদেশের কৃষকদের সহায়তায় আমরা', sub: 'Quality seeds & tools for better yield', subBn: 'ভালো ফলনের জন্য মানসম্পন্ন বীজ ও সরঞ্জাম', color: 'from-green-50 to-lime-50 border-green-200', textColor: 'text-green-900', subColor: 'text-green-700', btnColor: 'bg-green-700 hover:bg-green-800', href: '/products?categorySlug=agriculture' },
     columns: [
       { heading: 'Seeds & Plants', headingBn: 'বীজ ও গাছপালা', links: [
         { label: 'Vegetable Seeds',       labelBn: 'সবজির বীজ',            href: '/products?categorySlug=agriculture&sub=veg-seeds' },
@@ -1091,6 +1223,17 @@ const MEGA_CONTENT = [
   },
   // 13 — Toys & Gaming
   {
+    tiles: [
+      { label: 'Action Figures', labelBn: 'অ্যাকশন ফিগার',  emoji: '🦸', color: 'bg-red-50 border-red-200 text-red-800',          href: '/products?categorySlug=toys-gaming&sub=action' },
+      { label: 'Board Games',    labelBn: 'বোর্ড গেমস',     emoji: '🎲', color: 'bg-blue-50 border-blue-200 text-blue-800',        href: '/products?categorySlug=toys-gaming&sub=board' },
+      { label: 'PlayStation',    labelBn: 'প্লেস্টেশন',     emoji: '🎮', color: 'bg-indigo-50 border-indigo-200 text-indigo-800',  href: '/products?categorySlug=toys-gaming&sub=ps5' },
+      { label: 'LEGO & Blocks',  labelBn: 'লেগো ও ব্লকস',  emoji: '🧱', color: 'bg-yellow-50 border-yellow-200 text-yellow-800',  href: '/products?categorySlug=toys-gaming&sub=lego' },
+      { label: 'Outdoor Toys',   labelBn: 'আউটডোর খেলনা',  emoji: '🏃', color: 'bg-green-50 border-green-200 text-green-800',    href: '/products?categorySlug=toys-gaming&sub=outdoor' },
+      { label: 'Dolls',          labelBn: 'পুতুল',          emoji: '🪆', color: 'bg-pink-50 border-pink-200 text-pink-800',        href: '/products?categorySlug=toys-gaming&sub=dolls' },
+      { label: 'RC Toys',        labelBn: 'রিমোট কন্ট্রোল', emoji: '🚁', color: 'bg-purple-50 border-purple-200 text-purple-800', href: '/products?categorySlug=toys-gaming&sub=rc-toys' },
+      { label: 'Educational',    labelBn: 'শিক্ষামূলক',    emoji: '📚', color: 'bg-teal-50 border-teal-200 text-teal-800',        href: '/products?categorySlug=toys-gaming&sub=educational' },
+    ],
+    banner: { text: '🎮 Level up your playtime!', textBn: '🎮 খেলার আনন্দ আরো বাড়িয়ে নিন!', sub: 'Latest consoles & bestselling games', subBn: 'সর্বশেষ কনসোল ও বেস্টসেলার গেমস', color: 'from-indigo-50 to-purple-50 border-indigo-200', textColor: 'text-indigo-900', subColor: 'text-indigo-700', btnColor: 'bg-indigo-600 hover:bg-indigo-700', href: '/products?categorySlug=toys-gaming' },
     columns: [
       { heading: "Children's Toys", headingBn: 'শিশুদের খেলনা', links: [
         { label: 'Action Figures',        labelBn: 'অ্যাকশন ফিগার',       href: '/products?categorySlug=toys-gaming&sub=action' },
@@ -1126,6 +1269,17 @@ const MEGA_CONTENT = [
   },
   // 14 — Travel & Bags
   {
+    tiles: [
+      { label: 'Trolleys',       labelBn: 'ট্রলি',          emoji: '🧳', color: 'bg-sky-50 border-sky-200 text-sky-800',          href: '/products?categorySlug=travel-bags&sub=cabin' },
+      { label: 'Backpacks',      labelBn: 'ব্যাকপ্যাক',     emoji: '🎒', color: 'bg-blue-50 border-blue-200 text-blue-800',       href: '/products?categorySlug=travel-bags&sub=backpack' },
+      { label: 'Handbags',       labelBn: 'হ্যান্ডব্যাগ',   emoji: '👜', color: 'bg-rose-50 border-rose-200 text-rose-800',       href: '/products?categorySlug=travel-bags&sub=handbag' },
+      { label: 'Laptop Bags',    labelBn: 'ল্যাপটপ ব্যাগ',  emoji: '💼', color: 'bg-slate-50 border-slate-200 text-slate-800',    href: '/products?categorySlug=travel-bags&sub=laptop-bag' },
+      { label: 'School Bags',    labelBn: 'স্কুল ব্যাগ',    emoji: '🏫', color: 'bg-green-50 border-green-200 text-green-800',    href: '/products?categorySlug=travel-bags&sub=school-bag' },
+      { label: 'Passport Holder',labelBn: 'পাসপোর্ট হোল্ডার', emoji: '🛂', color: 'bg-amber-50 border-amber-200 text-amber-800', href: '/products?categorySlug=travel-bags&sub=passport' },
+      { label: 'Clutches',       labelBn: 'ক্লাচ',          emoji: '👝', color: 'bg-purple-50 border-purple-200 text-purple-800', href: '/products?categorySlug=travel-bags&sub=clutch' },
+      { label: 'Travel Pillows', labelBn: 'ট্রাভেল বালিশ',  emoji: '😴', color: 'bg-teal-50 border-teal-200 text-teal-800',       href: '/products?categorySlug=travel-bags&sub=pillow' },
+    ],
+    banner: { text: '🧳 Travel light, travel right', textBn: '🧳 হালকা সাথে, ঠিকঠাক ভ্রমণ করুন', sub: 'TSA-approved locks on all luggage', subBn: 'সকল লাগেজে নিরাপদ লক', color: 'from-sky-50 to-blue-50 border-sky-200', textColor: 'text-sky-900', subColor: 'text-sky-700', btnColor: 'bg-sky-600 hover:bg-sky-700', href: '/products?categorySlug=travel-bags' },
     columns: [
       { heading: 'Luggage & Travel Bags', headingBn: 'লাগেজ ও ট্রাভেল ব্যাগ', links: [
         { label: 'Cabin Trolleys',        labelBn: 'ক্যাবিন ট্রলি',        href: '/products?categorySlug=travel-bags&sub=cabin' },
@@ -1161,7 +1315,7 @@ const MEGA_CONTENT = [
   },
   // 15 — Eco Friendly Products
   {
-    ecoTiles: [
+    tiles: [
       { label: 'Organic Foods',       labelBn: 'অর্গানিক খাবার',        emoji: '🥗', color: 'bg-green-50 border-green-200 text-green-700',   href: '/products?categorySlug=eco-friendly&sub=organic-foods' },
       { label: 'Natural Skincare',    labelBn: 'প্রাকৃতিক স্কিনকেয়ার', emoji: '🌸', color: 'bg-pink-50 border-pink-200 text-pink-700',     href: '/products?categorySlug=eco-friendly&sub=natural-skincare' },
       { label: 'Bamboo Products',     labelBn: 'বাঁশের পণ্য',           emoji: '🎋', color: 'bg-lime-50 border-lime-200 text-lime-700',     href: '/products?categorySlug=eco-friendly&sub=bamboo' },
@@ -1927,7 +2081,7 @@ export function Header() {
                                 {lang === 'bn' ? 'বিভাগ অনুযায়ী ব্রাউজ করুন' : 'Browse by Category'}
                               </p>
                               <div className="grid grid-cols-5 gap-2">
-                                {(ecoContent as any).ecoTiles?.map((tile: any) => (
+                                {(ecoContent as any).tiles?.map((tile: any) => (
                                   <Link
                                     key={tile.label}
                                     href={tile.href}
@@ -1983,14 +2137,15 @@ export function Header() {
                       {dynamicMegaCategories[megaHoverCat]?.slug !== 'books' && dynamicMegaCategories[megaHoverCat]?.slug !== 'eco-friendly' && (() => {
                         const cat = dynamicMegaCategories[megaHoverCat]!;
                         const staticContent = cat?.slug ? MEGA_CONTENT_BY_SLUG[cat.slug] : undefined;
-                        // Fall back to building columns from the category's own subs list
                         const content: { columns: { heading: string; headingBn: string; links: { label: string; labelBn: string; href: string }[] }[] } | undefined =
                           (staticContent as unknown as { columns: { heading: string; headingBn: string; links: { label: string; labelBn: string; href: string }[] }[] } | undefined)
                           ?? (cat?.subs?.length ? { columns: [{ heading: 'Browse', headingBn: 'ব্রাউজ করুন', links: cat.subs }] } : undefined);
                         if (!content?.columns) return null;
+                        const tiles = (staticContent as any)?.tiles as Array<{ label: string; labelBn: string; emoji: string; color: string; href: string }> | undefined;
+                        const banner = (staticContent as any)?.banner as { text: string; textBn: string; sub: string; subBn: string; color: string; textColor: string; subColor: string; btnColor: string; href: string } | undefined;
                         return (
                           <>
-                            <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center justify-between mb-3">
                               <h3 className="text-[15px] font-black text-gray-900 flex items-center gap-2">
                                 {cat.emoji} {lang === 'bn' ? cat.nameBn : cat.name}
                               </h3>
@@ -1998,6 +2153,26 @@ export function Header() {
                                 {lang === 'bn' ? 'সব দেখুন →' : 'Browse all →'}
                               </Link>
                             </div>
+                            {tiles && tiles.length > 0 && (
+                              <div className="mb-4">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                                  {lang === 'bn' ? 'বিভাগ অনুযায়ী ব্রাউজ করুন' : 'Browse by Category'}
+                                </p>
+                                <div className="grid grid-cols-4 gap-2">
+                                  {tiles.slice(0, 8).map((tile) => (
+                                    <Link
+                                      key={tile.label}
+                                      href={tile.href}
+                                      onClick={() => setMegaOpen(false)}
+                                      className={`flex flex-col items-center gap-1.5 p-2 rounded-xl border ${tile.color} hover:shadow-md hover:scale-105 transition-all text-center group`}
+                                    >
+                                      <span className="text-xl leading-none group-hover:scale-110 transition-transform">{tile.emoji}</span>
+                                      <span className="text-[9px] font-bold leading-tight">{lang === 'bn' ? tile.labelBn : tile.label}</span>
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                             <div className={`grid gap-x-8 ${content.columns.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                               {content.columns.map(col => (
                                 <div key={col.heading}>
@@ -2017,6 +2192,18 @@ export function Header() {
                                 </div>
                               ))}
                             </div>
+                            {banner && (
+                              <div className={`mt-3 bg-gradient-to-r ${banner.color} rounded-xl p-3 flex items-center justify-between border`}>
+                                <div>
+                                  <p className={`text-[11px] font-black ${banner.textColor}`}>{lang === 'bn' ? banner.textBn : banner.text}</p>
+                                  <p className={`text-[10px] ${banner.subColor} mt-0.5`}>{lang === 'bn' ? banner.subBn : banner.sub}</p>
+                                </div>
+                                <Link href={banner.href} onClick={() => setMegaOpen(false)}
+                                  className={`text-[11px] font-bold text-white ${banner.btnColor} px-3 py-1.5 rounded-full transition-colors flex-shrink-0`}>
+                                  {lang === 'bn' ? 'শপ করুন →' : 'Shop Now →'}
+                                </Link>
+                              </div>
+                            )}
                           </>
                         );
                       })()}
