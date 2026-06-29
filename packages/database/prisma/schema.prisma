@@ -1394,6 +1394,7 @@ enum CourierProvider {
   PAPERFLY
   SUNDARBAN
   SA_PORIBAHAN
+  CARRYBEE
 }
 
 enum CourierShipmentStatus {

@@ -12,7 +12,7 @@ const courierApi = {
   getCodPending: () => api.get('/courier/cod-pending').then(r => r.data.data),
 };
 
-const PROVIDERS = ['ALL', 'PATHAO', 'STEADFAST', 'REDX', 'PAPERFLY', 'SUNDARBAN', 'SA_PORIBAHAN'];
+const PROVIDERS = ['ALL', 'PATHAO', 'STEADFAST', 'REDX', 'PAPERFLY', 'SUNDARBAN', 'SA_PORIBAHAN', 'CARRYBEE'];
 const STATUSES = ['ALL', 'PENDING', 'CREATED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'RETURNED', 'CANCELLED'];
 
 const STATUS_COLORS: Record<string, string> = {
@@ -32,6 +32,7 @@ const PROVIDER_COLORS: Record<string, string> = {
   PAPERFLY: 'bg-green-100 text-green-700',
   SUNDARBAN: 'bg-purple-100 text-purple-700',
   SA_PORIBAHAN: 'bg-teal-100 text-teal-700',
+  CARRYBEE: 'bg-amber-100 text-amber-700',
 };
 
 export default function CourierPage() {

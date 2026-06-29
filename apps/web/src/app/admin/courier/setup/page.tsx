@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Save, Loader2, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
+import { Save, Loader2, Eye, EyeOff, CheckCircle, XCircle, FlaskConical } from 'lucide-react';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 
 interface CourierConfig {
   enabled: boolean;
-  [key: string]: string | boolean;
+  sandbox?: boolean;
+  [key: string]: string | boolean | undefined;
 }
 
 type CourierField = { key: string; label: string; placeholder: string; secret?: boolean };
@@ -19,6 +20,8 @@ const COURIERS: {
   logo: string;
   desc: string;
   color: string;
+  hasSandbox: boolean;
+  sandboxNote?: string;
   fields: CourierField[];
 }[] = [
   {
@@ -27,6 +30,7 @@ const COURIERS: {
     logo: '🟢',
     desc: 'On-demand delivery — Dhaka & CTG',
     color: '#009444',
+    hasSandbox: true,
     fields: [
       { key: 'clientId',     label: 'Client ID',      placeholder: 'pathao_client_id',     secret: false },
       { key: 'clientSecret', label: 'Client Secret',  placeholder: 'pathao_secret_...',    secret: true  },
@@ -40,6 +44,7 @@ const COURIERS: {
     logo: '📦',
     desc: 'E-commerce courier — nationwide',
     color: '#FF6B35',
+    hasSandbox: true,
     fields: [
       { key: 'apiKey',       label: 'API Key',        placeholder: 'sf_api_key_...',       secret: true  },
       { key: 'secretKey',    label: 'Secret Key',     placeholder: 'sf_secret_...',        secret: true  },
@@ -51,6 +56,8 @@ const COURIERS: {
     logo: '🔴',
     desc: 'Last-mile delivery — Bangladesh',
     color: '#E53935',
+    hasSandbox: true,
+    sandboxNote: 'Same endpoint — sandbox header is added automatically',
     fields: [
       { key: 'bearerToken',  label: 'Bearer Token',   placeholder: 'Bearer eyJ...',        secret: true  },
     ],
@@ -61,6 +68,7 @@ const COURIERS: {
     logo: '✈️',
     desc: 'E-commerce logistics — nationwide',
     color: '#1976D2',
+    hasSandbox: true,
     fields: [
       { key: 'username',     label: 'Username',       placeholder: 'pf_username',          secret: false },
       { key: 'password',     label: 'Password',       placeholder: '••••••••',             secret: true  },
@@ -72,6 +80,7 @@ const COURIERS: {
     logo: '📬',
     desc: 'Regular courier network — BD',
     color: '#7B1FA2',
+    hasSandbox: true,
     fields: [
       { key: 'apiKey',       label: 'API Key',        placeholder: 'ec_api_...',           secret: true  },
       { key: 'apiPassword',  label: 'API Password',   placeholder: '••••••••',             secret: true  },
@@ -84,9 +93,24 @@ const COURIERS: {
     logo: '🌿',
     desc: 'Established courier service — BD',
     color: '#2E7D32',
+    hasSandbox: false,
+    sandboxNote: 'No sandbox environment available',
     fields: [
       { key: 'apiKey',       label: 'API Key',        placeholder: 'scs_api_...',          secret: true  },
       { key: 'branchCode',   label: 'Branch Code',    placeholder: 'DKA',                  secret: false },
+    ],
+  },
+  {
+    key: 'carrybee',
+    name: 'CarryBee',
+    logo: '🐝',
+    desc: 'Fast delivery across Bangladesh',
+    color: '#F59E0B',
+    hasSandbox: true,
+    fields: [
+      { key: 'apiKey',       label: 'API Key',        placeholder: 'cb_api_key_...',       secret: true  },
+      { key: 'apiSecret',    label: 'API Secret',     placeholder: 'cb_secret_...',        secret: true  },
+      { key: 'merchantId',   label: 'Merchant ID',    placeholder: 'CB_MERCHANT_ID',       secret: false },
     ],
   },
 ];
@@ -142,7 +166,7 @@ export default function CourierSetupPage() {
   const setField = (key: string, field: string, value: string | boolean) => {
     setConfigs(c => ({
       ...c,
-      [key]: { enabled: false, ...c[key], [field]: value } as CourierConfig,
+      [key]: { enabled: false, sandbox: true, ...c[key], [field]: value } as CourierConfig,
     }));
   };
 
@@ -171,9 +195,11 @@ export default function CourierSetupPage() {
         {COURIERS.map(c => {
           const cfg = configs[c.key];
           const enabled = cfg?.enabled ?? false;
+          const sandbox = cfg?.sandbox ?? true;
 
           return (
             <div key={c.key} className={`rounded-2xl border p-5 transition-all ${enabled ? 'ring-2 ring-primary/30 border-primary/40' : ''}`}>
+              {/* Card header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
@@ -181,7 +207,15 @@ export default function CourierSetupPage() {
                     {c.logo}
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm">{c.name}</h3>
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-bold text-sm">{c.name}</h3>
+                      {enabled && sandbox && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wide bg-amber-100 text-amber-700">SANDBOX</span>
+                      )}
+                      {enabled && !sandbox && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wide bg-green-100 text-green-700">LIVE</span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground">{c.desc}</p>
                   </div>
                 </div>
@@ -192,6 +226,7 @@ export default function CourierSetupPage() {
                 </button>
               </div>
 
+              {/* Status badge */}
               <div className="mb-4">
                 {enabled ? (
                   <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
@@ -206,6 +241,29 @@ export default function CourierSetupPage() {
 
               {enabled && (
                 <div className="space-y-3">
+                  {/* Sandbox toggle */}
+                  <div className={`flex items-center justify-between rounded-lg px-3 py-2 border ${c.hasSandbox ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200'}`}>
+                    <div className="flex items-center gap-2">
+                      <FlaskConical className={`h-3.5 w-3.5 ${c.hasSandbox ? 'text-amber-600' : 'text-gray-400'}`} />
+                      <div>
+                        <p className="text-xs font-semibold text-amber-800">Sandbox / Test Mode</p>
+                        {c.sandboxNote && (
+                          <p className="text-[10px] text-amber-600 leading-tight">{c.sandboxNote}</p>
+                        )}
+                      </div>
+                    </div>
+                    {c.hasSandbox ? (
+                      <button
+                        onClick={() => setField(c.key, 'sandbox', !sandbox)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors flex-shrink-0 ${sandbox ? 'bg-amber-500' : 'bg-gray-300'}`}>
+                        <span className={`inline-block h-3 w-3 rounded-full bg-white shadow transition-transform ${sandbox ? 'translate-x-5' : 'translate-x-1'}`} />
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-gray-400 italic">N/A</span>
+                    )}
+                  </div>
+
+                  {/* Credential fields */}
                   {c.fields.map(f => (
                     <div key={f.key}>
                       <label className="mb-1 block text-xs font-semibold text-muted-foreground">{f.label}</label>
