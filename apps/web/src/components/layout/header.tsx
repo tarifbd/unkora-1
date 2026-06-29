@@ -1390,9 +1390,10 @@ export function Header() {
     const adminCurated = (apiCategories as ApiCat[]).some(c => c.isFeatured);
     const slugs = MEGA_SLUGS.filter(slug => {
       const apiCat = map.get(slug);
-      if (!apiCat) return true;            // not in DB → static fallback
-      if (!adminCurated) return true;      // admin hasn't curated → show all
-      return apiCat.isFeatured === true;   // curated → only featured
+      if (!apiCat) return true;                   // not in DB → static fallback
+      if (!adminCurated) return true;             // admin hasn't curated → show all
+      if (MAIN_ROW_SLUGS.has(slug)) return true;  // priority row always visible
+      return apiCat.isFeatured === true;           // curated → only featured
     });
     return { apiBySlug: map, visibleSlugs: slugs };
   }, [apiCategories]);

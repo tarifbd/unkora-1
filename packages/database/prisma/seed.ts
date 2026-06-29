@@ -177,7 +177,7 @@ async function main() {
   await upsertCat({ slug: 'agriculture',      name: 'Agriculture',        icon: '🌾', color: 'bg-lime-100 text-lime-700',     sortOrder: 13, isFeatured: false, description: 'কৃষি সামগ্রী ও বীজ' });
   await upsertCat({ slug: 'toys-gaming',      name: 'Toys & Gaming',      icon: '🎮', color: 'bg-violet-100 text-violet-700', sortOrder: 14, isFeatured: false, description: 'খেলনা ও গেমিং' });
   await upsertCat({ slug: 'travel-bags',      name: 'Travel & Bags',      icon: '🧳', color: 'bg-sky-100 text-sky-700',       sortOrder: 15, isFeatured: false, description: 'ট্র্যাভেল ও ব্যাগ' });
-  await upsertCat({ slug: 'eco-friendly',     name: 'Eco Friendly',       icon: '🌱', color: 'bg-teal-100 text-teal-700',     sortOrder: 16, isFeatured: false, description: 'পরিবেশবান্ধব পণ্য' });
+  await upsertCat({ slug: 'eco-friendly',     name: 'Eco Friendly',       icon: '🌱', color: 'bg-teal-100 text-teal-700',     sortOrder: 16, isFeatured: true,  description: 'পরিবেশবান্ধব পণ্য' });
 
   // Sub-categories — Books
   for (const [slug, name, order] of [
