@@ -1383,9 +1383,8 @@ export function Header() {
   //   • API loaded, some       → show featured DB cats + static-only cats
   //     featured                 (those not yet created in the DB).
   const { apiBySlug, visibleSlugs } = useMemo(() => {
-    // While loading: return empty so the category row renders a skeleton instead of
-    // flashing the full static set and then collapsing to the real featured subset.
-    if (navCatsPending) return { apiBySlug: new Map<string, ApiCat>(), visibleSlugs: [] as string[] };
+    // While loading: show static slugs so the mega menu is never empty.
+    if (navCatsPending) return { apiBySlug: new Map<string, ApiCat>(), visibleSlugs: MEGA_SLUGS as readonly string[] };
     const map = new Map((apiCategories as ApiCat[] | undefined ?? []).map(c => [c.slug, c]));
     if (map.size === 0) return { apiBySlug: map, visibleSlugs: MEGA_SLUGS as readonly string[] };
     const adminCurated = (apiCategories as ApiCat[]).some(c => c.isFeatured);
@@ -1752,7 +1751,7 @@ export function Header() {
                 onClick={() => setMegaOpen(o => !o)}
                 className={cn(
                   'h-full flex items-center gap-2 px-4 xl:px-5 font-bold text-[13.5px] cursor-pointer transition-colors whitespace-nowrap',
-                  megaOpen ? 'bg-primary text-white' : 'bg-gray-900 text-white hover:bg-gray-800',
+                  megaOpen ? 'bg-primary text-white' : 'bg-black text-white hover:bg-gray-900',
                 )}
               >
                 <Menu className="w-[18px] h-[18px] flex-shrink-0" />
