@@ -216,6 +216,95 @@ function DonutChart({ slices, size = 100, label }: { slices: { label: string; va
   );
 }
 
+// ─── Weekly bar chart ──────────────────────────────────────────────────────────
+function WeeklyBar({ data }: { data: { label: string; value: number }[] }) {
+  const max = Math.max(...data.map(d => d.value), 1);
+  if (data.length === 0) {
+    return <p className="py-10 text-center text-sm text-slate-400">No data yet</p>;
+  }
+  return (
+    <div className="flex items-end justify-between gap-2" style={{ height: 150 }}>
+      {data.map((d, i) => {
+        const pct = Math.max((d.value / max) * 100, d.value > 0 ? 6 : 2);
+        return (
+          <div key={i} className="flex flex-1 h-full flex-col items-center justify-end gap-1.5">
+            <div className="relative flex w-full flex-1 items-end justify-center">
+              <div
+                className="w-full max-w-[26px] rounded-t-lg transition-all duration-700 hover:opacity-80"
+                style={{ height: `${pct}%`, background: 'linear-gradient(180deg, #a78bfa, #6366f1)' }}
+                title={`${d.label}: ${formatCurrency(d.value)}`}
+              />
+            </div>
+            <span className="text-[10px] font-bold text-slate-500">{d.label}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Relative time helper ──────────────────────────────────────────────────────
+function timeAgo(date: string | Date | undefined | null): string {
+  if (!date) return '';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '';
+  const diffSec = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (diffSec < 5) return 'just now';
+  if (diffSec < 60) return `${diffSec}s ago`;
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  return `${diffDay}d ago`;
+}
+
+// ─── Activity Feed ─────────────────────────────────────────────────────────────
+const ACTIVITY_META: Record<string, { icon: React.ReactNode; color: string; verb: string }> = {
+  PENDING:          { icon: <ShoppingCart className="h-3.5 w-3.5" />, color: '#f59e0b', verb: 'placed' },
+  CONFIRMED:        { icon: <CheckCircle2 className="h-3.5 w-3.5" />, color: '#3b82f6', verb: 'confirmed' },
+  PROCESSING:       { icon: <RefreshCw className="h-3.5 w-3.5" />,    color: '#6366f1', verb: 'is processing' },
+  SHIPPED:          { icon: <Truck className="h-3.5 w-3.5" />,        color: '#8b5cf6', verb: 'shipped' },
+  OUT_FOR_DELIVERY: { icon: <Truck className="h-3.5 w-3.5" />,        color: '#10b981', verb: 'out for delivery' },
+  DELIVERED:        { icon: <CheckCircle2 className="h-3.5 w-3.5" />, color: '#059669', verb: 'delivered' },
+  CANCELLED:        { icon: <XCircle className="h-3.5 w-3.5" />,      color: '#ef4444', verb: 'cancelled' },
+};
+
+function ActivityFeed({ orders }: { orders: any[] }) {
+  if (orders.length === 0) {
+    return <p className="py-8 text-center text-sm text-slate-400">No recent activity</p>;
+  }
+  return (
+    <div className="px-5 py-4">
+      {orders.map((o, i) => {
+        const meta = ACTIVITY_META[o.status] ?? { icon: <Activity className="h-3.5 w-3.5" />, color: '#6b7280', verb: 'updated' };
+        const name = `${o.user?.firstName ?? ''} ${o.user?.lastName ?? ''}`.trim() || o.user?.email || 'A customer';
+        return (
+          <Link key={o.id} href={`/admin/orders/${o.id}`} className="group flex gap-3 pb-4 last:pb-0">
+            <div className="flex flex-col items-center">
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full" style={{ background: meta.color + '18', color: meta.color }}>
+                {meta.icon}
+              </div>
+              {i < orders.length - 1 && <div className="mt-1 w-px flex-1 bg-slate-100" />}
+            </div>
+            <div className="-mt-0.5 min-w-0 flex-1">
+              <p className="text-xs leading-snug text-slate-700">
+                <span className="font-bold text-slate-900">{name}</span>{' '}
+                {meta.verb} order <span className="font-semibold text-indigo-600 group-hover:underline">#{o.orderNumber}</span>
+              </p>
+              <div className="mt-0.5 flex items-center gap-2">
+                <span className="text-[10px] text-slate-400">{timeAgo(o.createdAt)}</span>
+                <span className="text-[10px] text-slate-300">·</span>
+                <span className="text-[10px] font-bold tabular-nums text-slate-600">{formatCurrency(Number(o.total ?? 0))}</span>
+              </div>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Status badge ──────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; color: string; icon: React.ReactNode }> = {
@@ -872,6 +961,13 @@ export default function AdminDashboard() {
   const chartData     = chart?.map(p => ({ label: p.date?.slice(5) ?? '', value: p.revenue ?? 0 })) ?? [];
   const chartSeries   = chartData.map(d => d.value);
   const recentOrders  = stats?.recentOrders?.slice(0, 5) ?? [];
+  const activityOrders = stats?.recentOrders?.slice(0, 8) ?? [];
+  const weeklyBarData = (chart ?? []).slice(-7).map(p => {
+    const d = new Date(p.date);
+    const label = isNaN(d.getTime()) ? (p.date?.slice(5) ?? '') : d.toLocaleDateString(undefined, { weekday: 'short' });
+    return { label, value: p.revenue ?? 0 };
+  });
+  const topProductsMax = Math.max(...(stats?.topProducts ?? []).map(p => Number(p._sum.totalPrice ?? 0)), 1);
   const lowStockCount = stats?.products?.lowStock ?? 0;
   const todayRevenue  = stats?.revenue?.today ?? 0;
   const monthRevenue  = stats?.revenue?.thisMonth ?? 0;
@@ -983,44 +1079,45 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-slate-50/50 space-y-5 pb-10">
 
       {/* ── Header / Command Bar ─────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)] overflow-hidden">
-        <div className="h-0.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-400" />
-        <div className="px-6 py-5">
+      <div className="relative overflow-hidden rounded-2xl shadow-[0_20px_60px_-15px_rgba(76,29,149,0.45)]" style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%)' }}>
+        <div className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-indigo-400/20 blur-3xl" />
+        <div className="relative px-6 py-5">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="relative flex-shrink-0">
-                <div className="h-11 w-11 rounded-xl flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
+                <div className="h-11 w-11 rounded-xl flex items-center justify-center shadow-md bg-white/15 ring-1 ring-white/20 backdrop-blur-sm">
                   <Command className="h-5 w-5 text-white" />
                 </div>
-                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-white animate-pulse" />
+                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-[#1e1b4b] animate-pulse" />
               </div>
               <div>
-                <h1 className="text-xl font-black tracking-tight text-slate-900 flex items-center gap-2.5">
+                <h1 className="text-xl font-black tracking-tight text-white flex items-center gap-2.5">
                   {greeting(now.getHours())}, Admin
-                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" /> LIVE
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-400/15 text-emerald-300 ring-1 ring-emerald-400/30">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" /> LIVE
                   </span>
                 </h1>
-                <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+                <p className="text-xs text-indigo-200/70 mt-0.5 flex items-center gap-2">
                   <span>{now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
-                  <span className="text-slate-300">·</span>
-                  <span className="font-mono tabular-nums text-slate-700">{now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                  {updatedLabel && <><span className="text-slate-300">·</span><span className="text-slate-400">Updated {updatedLabel}</span></>}
+                  <span className="text-indigo-300/30">·</span>
+                  <span className="font-mono tabular-nums text-indigo-100">{now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                  {updatedLabel && <><span className="text-indigo-300/30">·</span><span className="text-indigo-300/60">Updated {updatedLabel}</span></>}
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <button onClick={refreshAll} className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors border border-slate-200">
+              <button onClick={refreshAll} className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 transition-colors border border-white/10 backdrop-blur-sm">
                 <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} /> Refresh
               </button>
-              <button onClick={exportChartCsv} className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors border border-slate-200">
+              <button onClick={exportChartCsv} className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 transition-colors border border-white/10 backdrop-blur-sm">
                 <Download className="h-3.5 w-3.5" /> Export CSV
               </button>
-              <Link href="/admin/reports" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors border border-slate-200">
+              <Link href="/admin/reports" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 transition-colors border border-white/10 backdrop-blur-sm">
                 <FileBarChart className="h-3.5 w-3.5" /> Reports
               </Link>
-              <Link href="/admin/orders?status=PENDING" className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-white shadow-sm hover:shadow-md transition-all" style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
+              <Link href="/admin/orders?status=PENDING" className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-indigo-900 shadow-sm hover:shadow-md transition-all bg-white hover:bg-indigo-50">
                 Process Orders <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
@@ -1140,6 +1237,52 @@ export default function AdminDashboard() {
 
       {/* ── Central Control Toggle Matrix ────────────────────────────── */}
       <ControlMatrix states={controls} loading={controlLoading} onToggle={toggleControl} pulseKey={pulseKey} />
+
+      {/* ── Top Products + Weekly Performance ────────────────────────── */}
+      <div className="grid gap-5 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <SectionCard title="Top Products" subtitle="Best sellers by revenue"
+            action={<Link href="/admin/products" className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors">All products <ArrowRight className="h-3 w-3" /></Link>}>
+            <div className="divide-y divide-slate-50">
+              {!stats?.topProducts || stats.topProducts.length === 0 ? (
+                <p className="py-8 text-center text-sm text-slate-400">No sales data yet</p>
+              ) : (
+                stats.topProducts.map((p, i) => {
+                  const revenue = Number(p._sum.totalPrice ?? 0);
+                  const qty = p._sum.quantity ?? 0;
+                  const pct = Math.max((revenue / topProductsMax) * 100, 4);
+                  const rankColors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+                  const color = rankColors[i % rankColors.length]!;
+                  return (
+                    <div key={p.productId} className="flex items-center gap-3 px-4 py-2.5">
+                      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg text-[10px] font-black text-white" style={{ background: color }}>{i + 1}</div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-xs font-semibold text-slate-900">{p.productName}</p>
+                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0 text-right">
+                        <p className="text-xs font-black tabular-nums text-slate-900">{formatCurrency(revenue)}</p>
+                        <p className="text-[10px] text-slate-400">{qty} sold</p>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </SectionCard>
+        </div>
+
+        <div className="lg:col-span-2">
+          <SectionCard title="Weekly Performance" subtitle="Revenue · last 7 days"
+            action={<Link href="/admin/reports" className="text-[11px] font-semibold text-indigo-600 hover:underline">Full report</Link>}>
+            <div className="px-5 py-4">
+              <WeeklyBar data={weeklyBarData} />
+            </div>
+          </SectionCard>
+        </div>
+      </div>
 
       {/* ── Bottom grid: Recent Orders + Categories + AI ─────────────── */}
       <div className="grid gap-5 lg:grid-cols-3">
@@ -1275,6 +1418,12 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
+
+      {/* ── Activity Feed ─────────────────────────────────────────────── */}
+      <SectionCard title="Activity Feed" subtitle="Live order timeline"
+        action={<Link href="/admin/orders" className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors">View all <ArrowRight className="h-3 w-3" /></Link>}>
+        <ActivityFeed orders={activityOrders} />
+      </SectionCard>
 
       {/* ── OMNI floating user modal (no route change) ──────────────── */}
       {userModal.open && (
