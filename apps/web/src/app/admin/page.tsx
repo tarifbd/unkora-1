@@ -376,6 +376,18 @@ function SectionCard({ title, subtitle, action, children }: {
   );
 }
 
+// ─── Section Label (uppercase divider for grouped sections) ───────────────────
+function SectionLabel({ title, subtitle, icon }: { title: string; subtitle?: string; icon?: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2.5 px-0.5">
+      {icon && <span className="text-indigo-400 flex-shrink-0">{icon}</span>}
+      <h2 className="text-[11px] font-black uppercase tracking-wider text-slate-400 whitespace-nowrap">{title}</h2>
+      <div className="h-px flex-1 bg-slate-200/70" />
+      {subtitle && <span className="text-[10px] font-medium text-slate-400 whitespace-nowrap">{subtitle}</span>}
+    </div>
+  );
+}
+
 // ─── Operational Efficiency Index ─────────────────────────────────────────────
 // Health is computed once at the dashboard level (computeHealth) and shared by
 // the OEI card, the Action Center critical alerts, and the ambient urgency glow.
@@ -1140,12 +1152,15 @@ export default function AdminDashboard() {
       </div>
 
       {/* ── Action Center ────────────────────────────────────────────── */}
+      <SectionLabel title="Action Center" subtitle="Needs your attention" icon={<Inbox className="h-3.5 w-3.5" />} />
       <ActionCenter items={actionItems} alerts={criticalAlerts} />
 
       {/* ── Operational Efficiency Index ─────────────────────────────── */}
+      <SectionLabel title="System Health" subtitle="Operational efficiency index" icon={<Server className="h-3.5 w-3.5" />} />
       <OEIBlock health={health} />
 
       {/* ── Revenue Chart + Order Pipeline ───────────────────────────── */}
+      <SectionLabel title="Analytics & Revenue" subtitle={`Last ${periodDays} days`} icon={<Activity className="h-3.5 w-3.5" />} />
       <div className="grid gap-5 lg:grid-cols-5">
 
         {/* Revenue Area Chart */}
@@ -1236,9 +1251,11 @@ export default function AdminDashboard() {
       </div>
 
       {/* ── Central Control Toggle Matrix ────────────────────────────── */}
+      <SectionLabel title="System Metrics" subtitle="Operational switches" icon={<LayoutGrid className="h-3.5 w-3.5" />} />
       <ControlMatrix states={controls} loading={controlLoading} onToggle={toggleControl} pulseKey={pulseKey} />
 
       {/* ── Top Products + Weekly Performance ────────────────────────── */}
+      <SectionLabel title="Detailed Insights" subtitle="Products, orders & customers" icon={<Layers className="h-3.5 w-3.5" />} />
       <div className="grid gap-5 lg:grid-cols-5">
         <div className="lg:col-span-3">
           <SectionCard title="Top Products" subtitle="Best sellers by revenue"
@@ -1284,8 +1301,9 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ── Bottom grid: Recent Orders + Categories + AI ─────────────── */}
+      {/* ── Bottom grid: Recent Orders + Categories ──────────────────── */}
       <div className="grid gap-5 lg:grid-cols-3">
+        <div className="lg:col-span-2">
         <SectionCard title="Recent Orders" subtitle={orderFilter ? `Filtered · ${orderFilter.replace(/_/g, ' ')}` : 'Last 5 transactions'}
           action={orderFilter
             ? <button type="button" onClick={() => setOrderFilter(null)} className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 border transition-colors" style={{ color: orderFilterColor, background: orderFilterColor + '12', borderColor: orderFilterColor + '33' }}><X className="h-3 w-3" /> Clear</button>
@@ -1316,6 +1334,7 @@ export default function AdminDashboard() {
             }
           </div>
         </SectionCard>
+        </div>
 
         <SectionCard title="Top Categories" subtitle="Revenue by category"
           action={<Link href="/admin/categories" className="text-[11px] font-semibold text-violet-600 hover:underline">View all</Link>}>
@@ -1339,8 +1358,6 @@ export default function AdminDashboard() {
             ) : <p className="py-6 text-center text-sm text-slate-400">No category data yet</p>}
           </div>
         </SectionCard>
-
-        <AiForecastWidget stats={stats} chart={chart} />
       </div>
 
       {/* ── Support row: Customers + Payment + Quick Actions ─────────── */}
@@ -1393,19 +1410,25 @@ export default function AdminDashboard() {
               <p className="text-[11px] text-slate-500">Common admin tasks</p>
             </div>
           </div>
-          <div className="p-4 grid grid-cols-3 gap-2">
+          <div className="p-2.5 space-y-1">
             {[
-              { href: '/admin/products/new',  label: 'Add Product',    icon: <Plus className="h-4 w-4" />,         bg: 'linear-gradient(135deg, #10b981, #059669)' },
-              { href: '/admin/coupons',        label: 'Coupons',        icon: <Tag className="h-4 w-4" />,          bg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' },
-              { href: '/admin/flash-deals',    label: 'Flash Deals',    icon: <Zap className="h-4 w-4" />,          bg: 'linear-gradient(135deg, #f59e0b, #d97706)' },
-              { href: '/admin/reports',        label: 'Reports',        icon: <FileBarChart className="h-4 w-4" />, bg: 'linear-gradient(135deg, #3b82f6, #4f46e5)' },
-              { href: '/admin/inventory',      label: 'Inventory',      icon: <Package className="h-4 w-4" />,      bg: 'linear-gradient(135deg, #ef4444, #dc2626)' },
-              { href: '/admin/control-center', label: 'Control Center', icon: <LayoutGrid className="h-4 w-4" />,   bg: 'linear-gradient(135deg, #06b6d4, #0891b2)' },
+              { href: '/admin/products/new',  label: 'Add Product',    desc: 'Create a new listing',     icon: <Plus className="h-4 w-4" />,         color: '#10b981', bg: '#ecfdf5' },
+              { href: '/admin/coupons',        label: 'Coupons',        desc: 'Manage discount codes',    icon: <Tag className="h-4 w-4" />,          color: '#8b5cf6', bg: '#f5f3ff' },
+              { href: '/admin/flash-deals',    label: 'Flash Deals',    desc: 'Run a timed promotion',    icon: <Zap className="h-4 w-4" />,          color: '#d97706', bg: '#fffbeb' },
+              { href: '/admin/reports',        label: 'Reports',        desc: 'View sales & analytics',   icon: <FileBarChart className="h-4 w-4" />, color: '#2563eb', bg: '#eff6ff' },
+              { href: '/admin/inventory',      label: 'Inventory',      desc: 'Stock levels & restocks',  icon: <Package className="h-4 w-4" />,      color: '#dc2626', bg: '#fef2f2' },
+              { href: '/admin/control-center', label: 'Control Center', desc: 'System-wide operations',   icon: <LayoutGrid className="h-4 w-4" />,   color: '#0891b2', bg: '#ecfeff' },
             ].map(a => (
               <Link key={a.href} href={a.href}
-                className="flex flex-col items-center gap-1.5 rounded-xl p-2.5 text-center text-[10px] font-bold text-white shadow-sm transition-all hover:opacity-90 hover:-translate-y-0.5"
-                style={{ background: a.bg }}>
-                {a.icon}{a.label}
+                className="group flex items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-slate-50">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl" style={{ background: a.bg, color: a.color }}>
+                  {a.icon}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] font-bold text-slate-900 leading-tight">{a.label}</p>
+                  <p className="text-[10px] text-slate-400 leading-tight truncate">{a.desc}</p>
+                </div>
+                <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-slate-300 transition-all group-hover:text-slate-500 group-hover:translate-x-0.5" />
               </Link>
             ))}
           </div>
@@ -1419,11 +1442,19 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ── Activity Feed ─────────────────────────────────────────────── */}
-      <SectionCard title="Activity Feed" subtitle="Live order timeline"
-        action={<Link href="/admin/orders" className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors">View all <ArrowRight className="h-3 w-3" /></Link>}>
-        <ActivityFeed orders={activityOrders} />
-      </SectionCard>
+      {/* ── AI Intelligence: Forecast + Activity Feed ────────────────── */}
+      <SectionLabel title="AI Intelligence" subtitle="Forecasting & live activity" icon={<Bot className="h-3.5 w-3.5" />} />
+      <div className="grid gap-5 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <AiForecastWidget stats={stats} chart={chart} />
+        </div>
+        <div className="lg:col-span-2">
+          <SectionCard title="Activity Feed" subtitle="Live order timeline"
+            action={<Link href="/admin/orders" className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors">View all <ArrowRight className="h-3 w-3" /></Link>}>
+            <ActivityFeed orders={activityOrders} />
+          </SectionCard>
+        </div>
+      </div>
 
       {/* ── OMNI floating user modal (no route change) ──────────────── */}
       {userModal.open && (
