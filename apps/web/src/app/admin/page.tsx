@@ -9,7 +9,7 @@ import {
   CheckCircle2, XCircle, Truck, RefreshCw, Zap, ShoppingCart,
   Layers, CreditCard, Banknote, LayoutGrid, ChevronRight, Sparkles, Bot,
   Download, Minus, Command, Server, Timer, Bell, Sun, Lock, Shield,
-  HelpCircle, Inbox, X, Mail, User, Phone, ShieldCheck,
+  HelpCircle, Inbox, X, Mail, User, Phone, ShieldCheck, Search, Target,
 } from 'lucide-react';
 import { adminApi, refundsApi, questionsApi } from '@/lib/api/admin';
 import { formatCurrency } from '@/lib/utils';
@@ -338,33 +338,33 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-// ─── KPI Card (gradient — pops well on white canvas) ──────────────────────────
-function KpiCard({ label, value, sub, gradient, subColor, labelColor, icon, delta, spark }: {
-  label: string; value: string; sub: string; gradient: string;
-  subColor: string; labelColor: string; icon: React.ReactNode;
+// ─── KPI Card (light glass — single accent color drives icon chip + sparkline) ─
+function KpiCard({ label, value, sub, accent, icon, delta, spark }: {
+  label: string; value: string; sub: string; accent: string;
+  icon: React.ReactNode;
   delta?: number | null; spark?: number[];
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl p-4 text-white shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 group cursor-default" style={{ background: gradient }}>
-      <div className="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-white/10 blur-xl group-hover:scale-150 transition-transform duration-500" />
+    <div className="relative overflow-hidden rounded-2xl p-4 bg-white border border-slate-200/70 shadow-[0_2px_16px_rgba(15,23,42,0.04)] hover:shadow-[0_8px_30px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 group cursor-default">
+      <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full blur-2xl opacity-[0.12] group-hover:opacity-20 transition-opacity" style={{ background: accent }} />
       <div className="relative flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: labelColor }}>{label}</p>
-          <p className="text-xl font-black mt-1 tracking-tight leading-none">{value}</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+          <p className="text-xl font-black mt-1 tracking-tight leading-none text-slate-900">{value}</p>
           <div className="flex items-center gap-1.5 mt-1.5">
-            {delta !== undefined && <TrendPill delta={delta} light />}
-            <p className="text-[11px] font-medium truncate" style={{ color: subColor }}>{sub}</p>
+            {delta !== undefined && <TrendPill delta={delta} />}
+            <p className="text-[11px] font-medium truncate text-slate-500">{sub}</p>
           </div>
         </div>
-        <div className="rounded-xl p-2.5 flex-shrink-0 ml-2" style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(10px)' }}>
+        <div className="rounded-xl p-2.5 flex-shrink-0 ml-2" style={{ background: accent + '14', color: accent }}>
           {icon}
         </div>
       </div>
       {spark && spark.length > 1 && (
-        <div className="relative mt-3 flex items-end gap-px h-6 opacity-60">
+        <div className="relative mt-3 flex items-end gap-px h-6 opacity-70">
           {spark.map((v, i) => {
             const m = Math.max(...spark, 1);
-            return <div key={i} className="flex-1 rounded-t bg-white/50" style={{ height: `${Math.max((v / m) * 100, 4)}%` }} />;
+            return <div key={i} className="flex-1 rounded-t" style={{ height: `${Math.max((v / m) * 100, 4)}%`, background: accent + '55' }} />;
           })}
         </div>
       )}
@@ -558,56 +558,64 @@ function ControlMatrix({ states, loading, onToggle, pulseKey }: {
   );
 }
 
-// ─── AI Sales Forecast Widget ─────────────────────────────────────────────────
+// ─── AI Executive Diagnosis Widget ────────────────────────────────────────────
 function AiForecastWidget({ stats, chart }: { stats: any; chart: any[] | undefined }) {
   const [forecast, setForecast] = useState<string | null>(null);
   const mutation = useMutation({
     mutationFn: async () => {
-      const totalRevenue = stats?.revenue?.total ?? 0;
-      const monthRevenue = stats?.revenue?.thisMonth ?? 0;
-      const todayRevenue = stats?.revenue?.today ?? 0;
-      const totalOrders  = stats?.orders?.total ?? 0;
-      const pendingOrders= stats?.orders?.pending ?? 0;
-      const chartSummary = (chart ?? []).slice(-7).map((d: any) => `${d.date}: ৳${d.revenue}`).join(', ');
-      const prompt = `You are a sales analyst for UNKORA, a Bangladeshi eCommerce store.
-Based on these metrics, provide a concise 2-3 sentence sales forecast and 2 actionable recommendations.
+      const totalRevenue   = stats?.revenue?.total ?? 0;
+      const monthRevenue   = stats?.revenue?.thisMonth ?? 0;
+      const todayRevenue   = stats?.revenue?.today ?? 0;
+      const totalOrders    = stats?.orders?.total ?? 0;
+      const pendingOrders  = stats?.orders?.pending ?? 0;
+      const lowStockCount  = stats?.products?.lowStock ?? 0;
+      const abandonedCarts = stats?.orders?.abandonedCarts ?? 0;
+      const last7 = (chart ?? []).slice(-7);
+      const last7Total = last7.reduce((a: number, d: any) => a + (d.revenue ?? 0), 0);
+      const chartSummary = last7.map((d: any) => `${d.date}: ৳${d.revenue}`).join(', ');
+      const prompt = `You are an executive operations analyst for UNKORA, a Bangladeshi eCommerce store.
+Based on these live metrics, produce an executive diagnosis of the business right now.
 Total revenue: ৳${totalRevenue} | This month: ৳${monthRevenue} | Today: ৳${todayRevenue}
-Total orders: ${totalOrders} | Pending: ${pendingOrders} | Last 7 days: ${chartSummary || 'N/A'}
-Keep it practical. Use ৳. No markdown, plain text only.`;
+Total orders: ${totalOrders} | Pending orders: ${pendingOrders} | Low stock SKUs: ${lowStockCount} | Abandoned carts: ${abandonedCarts}
+Last 7 days revenue: ৳${last7Total} (daily breakdown: ${chartSummary || 'N/A'})
+Output format (strict):
+1) Exactly ONE executive diagnosis sentence summarizing overall store health and the biggest risk or opportunity.
+2) Three short, practical, numbered next-best-actions (one line each) the operator should take today.
+Keep it practical and concrete. Use ৳ for currency. No markdown, no headers, plain text only.`;
       const { data } = await api.post('/admin/ai/generate/custom', { prompt, outputFormat: 'text' });
-      return String(data?.data?.generatedContent ?? data?.data?.content ?? 'Unable to generate forecast.');
+      return String(data?.data?.generatedContent ?? data?.data?.content ?? 'Unable to generate diagnosis.');
     },
     onSuccess: (result) => setForecast(result),
   });
 
   return (
     <div className="rounded-2xl overflow-hidden bg-white border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)]">
-      <div className="flex items-center justify-between px-5 py-3.5" style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }}>
+      <div className="flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-indigo-50 via-white to-white border-b border-slate-100">
         <div className="flex items-center gap-2.5">
-          <div className="rounded-lg p-1.5 bg-white/20"><Bot className="h-4 w-4 text-white" /></div>
+          <div className="rounded-lg p-1.5 bg-indigo-100"><Bot className="h-4 w-4 text-indigo-600" /></div>
           <div>
-            <p className="font-bold text-sm text-white">AI Sales Forecast</p>
-            <p className="text-[11px] text-white/60">Powered by AI analysis</p>
+            <p className="font-bold text-sm text-slate-900">AI Executive Diagnosis</p>
+            <p className="text-[11px] text-slate-500">Powered by AI analysis</p>
           </div>
         </div>
         <button onClick={() => mutation.mutate()} disabled={mutation.isPending}
-          className="flex items-center gap-1.5 rounded-lg bg-white/20 hover:bg-white/30 px-3 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-50">
+          className="flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 px-3 py-1.5 text-xs font-semibold text-white transition-colors disabled:opacity-50 shadow-sm">
           {mutation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
           {mutation.isPending ? 'Analyzing…' : forecast ? 'Refresh' : 'Generate'}
         </button>
       </div>
       <div className="p-4">
         {forecast ? (
-          <p className="text-sm text-slate-700 leading-relaxed">{forecast}</p>
+          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{forecast}</p>
         ) : mutation.isPending ? (
           <div className="flex items-center gap-2 py-2">
             <Loader2 className="h-4 w-4 animate-spin text-indigo-400" />
-            <p className="text-sm text-slate-500">Generating AI-powered forecast…</p>
+            <p className="text-sm text-slate-500">Generating AI-powered diagnosis…</p>
           </div>
         ) : (
           <div className="flex items-center gap-3 py-2">
             <Bot className="h-8 w-8 text-indigo-200 flex-shrink-0" />
-            <p className="text-sm text-slate-500">Click Generate to get an AI-powered sales forecast based on your store data.</p>
+            <p className="text-sm text-slate-500">Click Generate to get an AI-powered executive diagnosis based on your store data.</p>
           </div>
         )}
       </div>
@@ -730,6 +738,47 @@ function ActionCenter({ items, alerts }: { items: ActionItem[]; alerts: Critical
             </Link>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Next Best Actions ─────────────────────────────────────────────────────────
+// Conditional, data-driven recommendation cards computed from already-fetched
+// dashboard data — no extra API calls.
+type NextAction = { key: string; title: string; desc: string; href: string; icon: React.ReactNode; accent: string; priority: 'high' | 'medium' | 'low' };
+
+function NextBestActions({ actions }: { actions: NextAction[] }) {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)] overflow-hidden">
+      <div className="h-0.5 bg-gradient-to-r from-indigo-500 via-sky-400 to-emerald-400" />
+      <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-slate-100">
+        <div className="rounded-lg p-1.5 bg-indigo-50 border border-indigo-100"><Target className="h-4 w-4 text-indigo-600" /></div>
+        <div>
+          <p className="font-bold text-sm text-slate-900">Next Best Actions</p>
+          <p className="text-[11px] text-slate-500">Recommended moves based on today&apos;s data</p>
+        </div>
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 divide-x divide-y sm:divide-y-0 divide-slate-100">
+        {actions.map(a => (
+          <Link key={a.key} href={a.href} className="group flex flex-col gap-2.5 px-4 py-4 hover:bg-slate-50/80 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl flex-shrink-0 transition-transform group-hover:scale-105" style={{ background: a.accent + '14', color: a.accent }}>
+                {a.icon}
+              </div>
+              {a.priority === 'high' && (
+                <span className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[9px] font-black bg-rose-50 text-rose-600">● Priority</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-[12px] font-bold text-slate-900 leading-tight">{a.title}</p>
+              <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{a.desc}</p>
+            </div>
+            <span className="mt-auto inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 group-hover:gap-1.5 transition-all">
+              Take action <ArrowRight className="h-3 w-3" />
+            </span>
+          </Link>
+        ))}
       </div>
     </div>
   );
@@ -893,6 +942,7 @@ export default function AdminDashboard() {
   const [resolvedAlerts, setResolvedAlerts] = useState<Set<string>>(() => new Set());
   const [actingAlert, setActingAlert] = useState<string | null>(null);
   const [flash, setFlash] = useState<{ msg: string; tone: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const flashMsg = useCallback((msg: string, tone = '#6366f1') => {
     setFlash({ msg, tone });
@@ -1091,66 +1141,202 @@ export default function AdminDashboard() {
   const avgDaily     = periodRevenue / (periodDays || 1);
   const todayPct     = avgDaily > 0 ? Math.round((todayRevenue / avgDaily) * 100) : 0;
 
+  // In-page search across already-loaded data only — recent orders, top
+  // products, top customers. No additional API calls are made.
+  const sq = searchQuery.trim().toLowerCase();
+  const searchActive = sq.length > 0;
+  const searchOrderMatches = !searchActive ? [] : recentOrders.filter((o: any) => {
+    const hay = `${o.orderNumber ?? ''} ${o.user?.firstName ?? ''} ${o.user?.lastName ?? ''} ${o.user?.email ?? ''}`.toLowerCase();
+    return hay.includes(sq);
+  });
+  const searchProductMatches = !searchActive ? [] : (stats?.topProducts ?? []).filter((p: any) =>
+    String(p.productName ?? '').toLowerCase().includes(sq));
+  const searchCustomerMatches = !searchActive ? [] : (topCustomers ?? []).filter((c: any) => {
+    const hay = `${c.user?.firstName ?? ''} ${c.user?.lastName ?? ''} ${c.user?.email ?? ''}`.toLowerCase();
+    return hay.includes(sq);
+  });
+  const searchResultCount = searchOrderMatches.length + searchProductMatches.length + searchCustomerMatches.length;
+
+  // Executive summary line — built only from real, already-computed values.
+  const executiveSummary = pendingOrders > 0 || lowStockCount > 0
+    ? `${pendingOrders} order${pendingOrders !== 1 ? 's' : ''} awaiting action and ${lowStockCount} SKU${lowStockCount !== 1 ? 's' : ''} running low on stock — review the Action Center below to stay ahead of fulfillment and inventory risk.`
+    : `Operations are clear — no pending orders or low-stock alerts right now. Revenue is trending ${todayPct >= 100 ? 'above' : 'below'} the ${periodDays}-day daily average.`;
+
+  // Next Best Actions — conditional cards driven by already-computed real data.
+  const nextBestActions: NextAction[] = [
+    ...(pendingOrders >= 5 ? [{
+      key: 'nba-pending',
+      title: 'Clear the pending orders bottleneck',
+      desc: `${pendingOrders} orders are waiting on confirmation — process them now to protect SLA.`,
+      href: '/admin/orders?status=PENDING',
+      icon: <ShoppingCart className="h-4 w-4" />,
+      accent: '#f59e0b',
+      priority: 'high' as const,
+    }] : []),
+    ...(lowStockCount > 0 ? [{
+      key: 'nba-stock',
+      title: 'Protect low-stock SKUs',
+      desc: `${lowStockCount} product${lowStockCount !== 1 ? 's are' : ' is'} running low — restock before you lose sales.`,
+      href: '/admin/inventory',
+      icon: <AlertTriangle className="h-4 w-4" />,
+      accent: '#ef4444',
+      priority: (lowStockCount >= 5 ? 'high' : 'medium') as NextAction['priority'],
+    }] : []),
+    ...(abandonedCarts > 0 ? [{
+      key: 'nba-carts',
+      title: 'Recover abandoned carts',
+      desc: `${abandonedCarts} cart${abandonedCarts !== 1 ? 's' : ''} left without checkout — send a nudge to recapture revenue.`,
+      href: '/admin/orders/incomplete',
+      icon: <Inbox className="h-4 w-4" />,
+      accent: '#0ea5e9',
+      priority: 'medium' as const,
+    }] : []),
+    {
+      key: 'nba-revenue',
+      title: 'Review revenue trend',
+      desc: `${formatCurrency(periodRevenue)} over the last ${periodDays} days · ${revenueDelta === null ? 'not enough history yet' : `${revenueDelta >= 0 ? 'up' : 'down'} ${Math.abs(revenueDelta)}% recently`}.`,
+      href: '/admin/reports',
+      icon: <Activity className="h-4 w-4" />,
+      accent: '#6366f1',
+      priority: 'low' as const,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50/50 space-y-5 pb-10">
 
-      {/* ── Header / Command Bar ─────────────────────────────────────── */}
-      <div className="relative overflow-hidden rounded-2xl shadow-[0_20px_60px_-15px_rgba(76,29,149,0.45)]" style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%)' }}>
-        <div className="pointer-events-none absolute -top-24 -right-16 h-72 w-72 rounded-full bg-fuchsia-500/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-indigo-400/20 blur-3xl" />
-        <div className="relative px-6 py-5">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+      {/* ── Sticky Dashboard Command Bar ─────────────────────────────── */}
+      <div className="sticky top-0 z-30 -mx-4 sm:mx-0 px-4 sm:px-0 pt-2 sm:pt-0 pb-2 sm:pb-0 bg-slate-50/80 backdrop-blur-md sm:backdrop-blur-none sm:bg-transparent">
+        <div className="rounded-2xl bg-white/90 backdrop-blur-xl border border-slate-200/70 shadow-[0_4px_24px_rgba(15,23,42,0.06)] px-4 sm:px-5 py-3">
+          <div className="flex flex-col lg:flex-row lg:items-center gap-3">
+            <div className="flex items-center gap-3 flex-shrink-0">
               <div className="relative flex-shrink-0">
-                <div className="h-11 w-11 rounded-xl flex items-center justify-center shadow-md bg-white/15 ring-1 ring-white/20 backdrop-blur-sm">
-                  <Command className="h-5 w-5 text-white" />
+                <div className="h-10 w-10 rounded-xl flex items-center justify-center bg-indigo-50 border border-indigo-100">
+                  <Command className="h-5 w-5 text-indigo-600" />
                 </div>
-                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-[#1e1b4b] animate-pulse" />
+                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-white animate-pulse" />
               </div>
-              <div>
-                <h1 className="text-xl font-black tracking-tight text-white flex items-center gap-2.5">
+              <div className="min-w-0">
+                <h1 className="text-sm sm:text-base font-black tracking-tight text-slate-900 flex items-center gap-2 whitespace-nowrap">
                   {greeting(now.getHours())}, Admin
-                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-400/15 text-emerald-300 ring-1 ring-emerald-400/30">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse inline-block" /> LIVE
+                  <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse inline-block" /> LIVE
                   </span>
                 </h1>
-                <p className="text-xs text-indigo-200/70 mt-0.5 flex items-center gap-2">
-                  <span>{now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
-                  <span className="text-indigo-300/30">·</span>
-                  <span className="font-mono tabular-nums text-indigo-100">{now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                  {updatedLabel && <><span className="text-indigo-300/30">·</span><span className="text-indigo-300/60">Updated {updatedLabel}</span></>}
+                <p className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5 whitespace-nowrap">
+                  <span className="font-mono tabular-nums text-slate-500">{now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                  {updatedLabel && <><span>·</span><span>Updated {updatedLabel}</span></>}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <button onClick={refreshAll} className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 transition-colors border border-white/10 backdrop-blur-sm">
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search orders, products, customers…"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-xs font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 transition-colors"
+              />
+              {searchActive && (
+                <div className="absolute z-40 mt-1.5 w-full max-w-md rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden">
+                  {searchResultCount === 0 ? (
+                    <p className="px-4 py-3 text-xs text-slate-400">No matches in loaded orders, products, or customers.</p>
+                  ) : (
+                    <div className="max-h-72 overflow-y-auto divide-y divide-slate-50">
+                      {searchOrderMatches.length > 0 && (
+                        <div className="px-3 py-2">
+                          <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 px-1 mb-1">Orders</p>
+                          {searchOrderMatches.slice(0, 4).map((o: any) => (
+                            <Link key={o.id} href={`/admin/orders/${o.id}`} onClick={() => setSearchQuery('')}
+                              className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-50 text-xs">
+                              <span className="font-semibold text-slate-800">#{o.orderNumber}</span>
+                              <span className="text-slate-400 truncate">{o.user?.firstName ?? ''} {o.user?.lastName ?? ''}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                      {searchProductMatches.length > 0 && (
+                        <div className="px-3 py-2">
+                          <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 px-1 mb-1">Products</p>
+                          {searchProductMatches.slice(0, 4).map((p: any) => (
+                            <div key={p.productId} className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-xs">
+                              <span className="font-semibold text-slate-800 truncate">{p.productName}</span>
+                              <span className="text-slate-400 flex-shrink-0">{formatCurrency(Number(p._sum.totalPrice ?? 0))}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {searchCustomerMatches.length > 0 && (
+                        <div className="px-3 py-2">
+                          <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 px-1 mb-1">Customers</p>
+                          {searchCustomerMatches.slice(0, 4).map((c: any, i: number) => (
+                            <div key={c.user?.id ?? i} className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-xs">
+                              <span className="font-semibold text-slate-800 truncate">{c.user?.firstName} {c.user?.lastName}</span>
+                              <span className="text-slate-400 truncate">{c.user?.email}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
+              <button onClick={refreshAll} className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
                 <RefreshCw className={`h-3.5 w-3.5 ${isFetching ? 'animate-spin' : ''}`} /> Refresh
               </button>
-              <button onClick={exportChartCsv} className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 transition-colors border border-white/10 backdrop-blur-sm">
+              <button onClick={exportChartCsv} className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors">
                 <Download className="h-3.5 w-3.5" /> Export CSV
               </button>
-              <Link href="/admin/reports" className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white bg-white/10 hover:bg-white/20 transition-colors border border-white/10 backdrop-blur-sm">
-                <FileBarChart className="h-3.5 w-3.5" /> Reports
-              </Link>
-              <Link href="/admin/orders?status=PENDING" className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-indigo-900 shadow-sm hover:shadow-md transition-all bg-white hover:bg-indigo-50">
+              <Link href="/admin/orders?status=PENDING" className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-white shadow-sm hover:shadow-md transition-all bg-indigo-600 hover:bg-indigo-700">
                 Process Orders <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ── Executive Dashboard Hero ─────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl border border-indigo-100 bg-gradient-to-br from-indigo-50 via-white to-emerald-50/40 shadow-[0_4px_30px_rgba(15,23,42,0.04)]">
+        <div className="pointer-events-none absolute -top-20 -right-10 h-64 w-64 rounded-full bg-indigo-200/30 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-emerald-200/20 blur-3xl" />
+        <div className="relative px-6 py-6 sm:py-7">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="max-w-2xl">
+              <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-700">
+                <Sparkles className="h-3 w-3" /> Operator-grade dashboard
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 mt-3 leading-snug">
+                Run revenue, orders, stock, customers, and risk from one operator-grade dashboard.
+              </h2>
+              <p className="text-sm text-slate-500 mt-2.5 leading-relaxed">{executiveSummary}</p>
+            </div>
+            <div className="flex-shrink-0 rounded-2xl bg-white border border-slate-200/70 shadow-sm px-5 py-4 min-w-[220px]">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Today&apos;s Revenue</p>
+              <p className="text-2xl font-black text-slate-900 mt-1 tabular-nums">{formatCurrency(todayRevenue)}</p>
+              <div className="flex items-center gap-1.5 mt-1.5">
+                <TrendPill delta={todayPct - 100} />
+                <span className="text-[11px] text-slate-500">{todayPct}% of daily average</span>
+              </div>
+            </div>
+          </div>
 
           {/* KPI strip */}
-          <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             <KpiCard label="Revenue Today" value={formatCurrency(todayRevenue)} sub={`${todayPct}% of daily avg`} delta={null}
-              gradient="linear-gradient(135deg, #059669, #10b981)" labelColor="#a7f3d0" subColor="#6ee7b7" icon={<TrendingUp className="w-4 h-4" />} />
+              accent="#10b981" icon={<TrendingUp className="w-4 h-4" />} />
             <KpiCard label="Monthly Revenue" value={formatCurrency(monthRevenue)} sub={`${periodDays}D: ${formatCurrency(periodRevenue)}`} delta={revenueDelta} spark={revSpark}
-              gradient="linear-gradient(135deg, #4f46e5, #6366f1)" labelColor="#c7d2fe" subColor="#a5b4fc" icon={<CreditCard className="w-4 h-4" />} />
+              accent="#6366f1" icon={<CreditCard className="w-4 h-4" />} />
             <KpiCard label="Total Orders" value={String(stats?.orders?.total ?? 0)} sub={`${stats?.orders?.pending ?? 0} pending`}
-              gradient="linear-gradient(135deg, #3b82f6, #2563eb)" labelColor="#bfdbfe" subColor="#93c5fd" icon={<ShoppingBag className="w-4 h-4" />} />
-            <KpiCard label="Pending" value={String(stats?.orders?.pending ?? 0)} sub="Awaiting action"
-              gradient="linear-gradient(135deg, #d97706, #f59e0b)" labelColor="#fef3c7" subColor="#fde68a" icon={<Clock className="w-4 h-4" />} />
+              accent="#2563eb" icon={<ShoppingBag className="w-4 h-4" />} />
+            <KpiCard label="Low Stock" value={String(lowStockCount)} sub={lowStockCount > 0 ? 'Restock soon' : 'All healthy'}
+              accent="#ef4444" icon={<AlertTriangle className="w-4 h-4" />} />
             <KpiCard label="Customers" value={String(stats?.customers?.total ?? 0)} sub={`+${stats?.customers?.newThisMonth ?? 0} this month`}
-              gradient="linear-gradient(135deg, #7c3aed, #8b5cf6)" labelColor="#ede9fe" subColor="#ddd6fe" icon={<Users className="w-4 h-4" />} />
+              accent="#8b5cf6" icon={<Users className="w-4 h-4" />} />
           </div>
         </div>
       </div>
@@ -1162,6 +1348,10 @@ export default function AdminDashboard() {
       {/* ── Operational Efficiency Index ─────────────────────────────── */}
       <SectionLabel title="System Health" subtitle="Operational efficiency index" icon={<Server className="h-3.5 w-3.5" />} />
       <OEIBlock health={health} />
+
+      {/* ── Next Best Actions ─────────────────────────────────────────── */}
+      <SectionLabel title="Next Best Actions" subtitle="Recommended right now" icon={<Target className="h-3.5 w-3.5" />} />
+      <NextBestActions actions={nextBestActions} />
 
       {/* ── Revenue Chart + Order Pipeline ───────────────────────────── */}
       <SectionLabel title="Analytics & Revenue" subtitle={`Last ${periodDays} days`} icon={<Activity className="h-3.5 w-3.5" />} />
