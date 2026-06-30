@@ -423,103 +423,6 @@ function SectionLabel({ title, subtitle, icon }: { title: string; subtitle?: str
   );
 }
 
-// ─── Top Bar (mockup row: search + ⌘K hint, store status, currency, date range, bell, avatar) ─
-function TopBar({ searchQuery, setSearchQuery, searchActive, searchResultCount, searchOrderMatches, searchProductMatches, searchCustomerMatches, periodLabel, onRefresh, refreshing }: {
-  searchQuery: string; setSearchQuery: (v: string) => void;
-  searchActive: boolean; searchResultCount: number;
-  searchOrderMatches: any[]; searchProductMatches: any[]; searchCustomerMatches: any[];
-  periodLabel: string;
-  onRefresh: () => void; refreshing: boolean;
-}) {
-  return (
-    <div className="sticky top-0 z-30 -mx-4 sm:mx-0 px-4 sm:px-0 pt-2 sm:pt-0 pb-2 sm:pb-0 bg-slate-50/80 backdrop-blur-md sm:backdrop-blur-none sm:bg-transparent">
-      <div className="rounded-2xl bg-white border border-slate-200/70 shadow-[0_2px_16px_rgba(15,23,42,0.05)] px-4 py-3 flex flex-col lg:flex-row lg:items-center gap-3">
-        {/* Search */}
-        <div className="relative flex-1 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Search anything... (Orders, Products, Customers)"
-            className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-14 py-2.5 text-xs font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 transition-colors"
-          />
-          <span className="absolute right-2.5 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-bold text-slate-400">⌘K</span>
-          {searchActive && (
-            <div className="absolute z-40 mt-1.5 w-full max-w-md rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden">
-              {searchResultCount === 0 ? (
-                <p className="px-4 py-3 text-xs text-slate-400">No matches in loaded orders, products, or customers.</p>
-              ) : (
-                <div className="max-h-72 overflow-y-auto divide-y divide-slate-50">
-                  {searchOrderMatches.length > 0 && (
-                    <div className="px-3 py-2">
-                      <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 px-1 mb-1">Orders</p>
-                      {searchOrderMatches.slice(0, 4).map((o: any) => (
-                        <Link key={o.id} href={`/admin/orders/${o.id}`} onClick={() => setSearchQuery('')}
-                          className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 hover:bg-slate-50 text-xs">
-                          <span className="font-semibold text-slate-800">#{o.orderNumber}</span>
-                          <span className="text-slate-400 truncate">{o.user?.firstName ?? ''} {o.user?.lastName ?? ''}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                  {searchProductMatches.length > 0 && (
-                    <div className="px-3 py-2">
-                      <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 px-1 mb-1">Products</p>
-                      {searchProductMatches.slice(0, 4).map((p: any) => (
-                        <div key={p.productId} className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-xs">
-                          <span className="font-semibold text-slate-800 truncate">{p.productName}</span>
-                          <span className="text-slate-400 flex-shrink-0">{formatCurrency(Number(p._sum.totalPrice ?? 0))}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {searchCustomerMatches.length > 0 && (
-                    <div className="px-3 py-2">
-                      <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 px-1 mb-1">Customers</p>
-                      {searchCustomerMatches.slice(0, 4).map((c: any, i: number) => (
-                        <div key={c.user?.id ?? i} className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-xs">
-                          <span className="font-semibold text-slate-800 truncate">{c.user?.firstName} {c.user?.lastName}</span>
-                          <span className="text-slate-400 truncate">{c.user?.email}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Right cluster */}
-        <div className="flex flex-wrap items-center gap-2 flex-shrink-0">
-          <span className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Store
-          </span>
-          <span className="hidden sm:inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200">
-            BDT (৳)
-          </span>
-          <span className="hidden md:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200">
-            📅 {periodLabel} <ChevronRight className="h-3 w-3 rotate-90" />
-          </span>
-          <button onClick={onRefresh} className="p-2 rounded-full text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors" aria-label="Refresh dashboard data">
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
-          <button className="relative p-2 rounded-full text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors" aria-label="Notifications">
-            <Bell className="h-4 w-4" />
-            {searchResultCount >= 0 && (
-              <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-rose-500 text-white text-[8px] font-black flex items-center justify-center ring-2 ring-white">•</span>
-            )}
-          </button>
-          <div className="h-8 w-8 rounded-full flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 bg-gradient-to-br from-indigo-500 to-purple-500">
-            AD
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ─── Operational Efficiency Index ─────────────────────────────────────────────
 // Health is computed once at the dashboard level (computeHealth) and shared by
 // the OEI card, the Action Center critical alerts, and the ambient urgency glow.
@@ -1074,7 +977,6 @@ export default function AdminDashboard() {
   const [resolvedAlerts, setResolvedAlerts] = useState<Set<string>>(() => new Set());
   const [actingAlert, setActingAlert] = useState<string | null>(null);
   const [flash, setFlash] = useState<{ msg: string; tone: string } | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   // Anchor the hero AI briefing card's "View Full AI Report" link to the full diagnosis widget below.
   const aiReportRef = useRef<HTMLDivElement>(null);
   const scrollToAiReport = useCallback(() => {
@@ -1270,22 +1172,6 @@ export default function AdminDashboard() {
   const revSpark     = chartSeries.slice(-14);
   const avgDaily     = periodRevenue / (periodDays || 1);
 
-  // In-page search across already-loaded data only — recent orders, top
-  // products, top customers. No additional API calls are made.
-  const sq = searchQuery.trim().toLowerCase();
-  const searchActive = sq.length > 0;
-  const searchOrderMatches = !searchActive ? [] : recentOrders.filter((o: any) => {
-    const hay = `${o.orderNumber ?? ''} ${o.user?.firstName ?? ''} ${o.user?.lastName ?? ''} ${o.user?.email ?? ''}`.toLowerCase();
-    return hay.includes(sq);
-  });
-  const searchProductMatches = !searchActive ? [] : (stats?.topProducts ?? []).filter((p: any) =>
-    String(p.productName ?? '').toLowerCase().includes(sq));
-  const searchCustomerMatches = !searchActive ? [] : (topCustomers ?? []).filter((c: any) => {
-    const hay = `${c.user?.firstName ?? ''} ${c.user?.lastName ?? ''} ${c.user?.email ?? ''}`.toLowerCase();
-    return hay.includes(sq);
-  });
-  const searchResultCount = searchOrderMatches.length + searchProductMatches.length + searchCustomerMatches.length;
-
   // Next Best Actions — conditional cards driven by already-computed real data.
   const nextBestActions: NextAction[] = [
     ...(pendingOrders >= 5 ? [{
@@ -1374,15 +1260,6 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-slate-50/50 space-y-5 pb-10">
 
-      {/* ── Top Bar ───────────────────────────────────────────────────── */}
-      <TopBar
-        searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-        searchActive={searchActive} searchResultCount={searchResultCount}
-        searchOrderMatches={searchOrderMatches} searchProductMatches={searchProductMatches} searchCustomerMatches={searchCustomerMatches}
-        periodLabel={periodRangeLabel}
-        onRefresh={refreshAll} refreshing={isFetching}
-      />
-
       {/* ── Row 1: Hero (greeting + stat strip) + AI Executive Briefing ─── */}
       <div className="grid gap-5 lg:grid-cols-[65fr_35fr]">
         <div className="rounded-3xl bg-white border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)] px-6 py-6">
@@ -1390,9 +1267,15 @@ export default function AdminDashboard() {
             <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
               {greeting(now.getHours())}, <span className="text-indigo-600">Admin</span> <span className="inline-block">👋</span>
             </h2>
-            <div className="text-right">
-              <p className="font-mono text-sm font-bold tabular-nums text-slate-700">{now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>
-              <p className="text-[11px] text-slate-400">{now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+            <div className="flex items-center gap-2">
+              <div className="text-right">
+                <p className="font-mono text-sm font-bold tabular-nums text-slate-700">{now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</p>
+                <p className="text-[11px] text-slate-400">{now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</p>
+              </div>
+              <button onClick={refreshAll} aria-label="Refresh dashboard data"
+                className="p-2 rounded-full text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors flex-shrink-0">
+                <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+              </button>
             </div>
           </div>
           <p className="text-sm text-slate-500 mt-1.5">Here&apos;s what&apos;s happening with your store today.</p>
