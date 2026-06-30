@@ -81,6 +81,32 @@ export class AdminService {
     const byPayment: Record<string, number> = {};
     paymentMethodCounts.forEach(r => { byPayment[r.paymentMethod] = r._count.id; });
 
+    // Enrich top products with live catalogue data (price/stock/status/thumbnail)
+    // so the dashboard can show real numbers instead of sales-aggregate-only fields.
+    const topProductIds = topProducts.map(p => p.productId).filter(Boolean);
+    const topProductDetails = topProductIds.length
+      ? await this.prisma.product.findMany({
+          where: { id: { in: topProductIds } },
+          select: {
+            id: true, basePrice: true, salePrice: true, stockQuantity: true,
+            lowStockAlert: true, isActive: true,
+            images: { take: 1, orderBy: [{ isPrimary: 'desc' }, { sortOrder: 'asc' }], select: { url: true } },
+          },
+        })
+      : [];
+    const productDetailMap = new Map(topProductDetails.map(p => [p.id, p]));
+    const topProductsEnriched = topProducts.map(p => {
+      const d = productDetailMap.get(p.productId);
+      return {
+        ...p,
+        price: d ? Number(d.salePrice ?? d.basePrice) : null,
+        stock: d ? d.stockQuantity : null,
+        lowStockAlert: d ? d.lowStockAlert : null,
+        isActive: d ? d.isActive : null,
+        image: d?.images[0]?.url ?? null,
+      };
+    });
+
     const result = {
       revenue: {
         total: Number(totalRevenue._sum.total ?? 0),
@@ -106,7 +132,7 @@ export class AdminService {
         total: totalCategories,
       },
       recentOrders,
-      topProducts,
+      topProducts: topProductsEnriched,
     };
 
     await this.cacheManager.set(CACHE_KEY, result, 60 * 1000);

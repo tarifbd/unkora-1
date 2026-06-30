@@ -17,6 +17,11 @@ export interface DashboardStats {
     productId: string;
     productName: string;
     _sum: { quantity: number | null; totalPrice: string | null };
+    price: number | null;
+    stock: number | null;
+    lowStockAlert: number | null;
+    isActive: boolean | null;
+    image: string | null;
   }>;
 }
 

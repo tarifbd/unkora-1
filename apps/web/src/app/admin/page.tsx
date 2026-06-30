@@ -222,23 +222,37 @@ function WeeklyBar({ data }: { data: { label: string; value: number }[] }) {
   if (data.length === 0) {
     return <p className="py-10 text-center text-sm text-slate-400">No data yet</p>;
   }
+  const total = data.reduce((a, d) => a + d.value, 0);
+  const avg = total / (data.length || 1);
   return (
-    <div className="flex items-end justify-between gap-2" style={{ height: 150 }}>
-      {data.map((d, i) => {
-        const pct = Math.max((d.value / max) * 100, d.value > 0 ? 6 : 2);
-        return (
-          <div key={i} className="flex flex-1 h-full flex-col items-center justify-end gap-1.5">
-            <div className="relative flex w-full flex-1 items-end justify-center">
-              <div
-                className="w-full max-w-[26px] rounded-t-lg transition-all duration-700 hover:opacity-80"
-                style={{ height: `${pct}%`, background: 'linear-gradient(180deg, #a78bfa, #6366f1)' }}
-                title={`${d.label}: ${formatCurrency(d.value)}`}
-              />
+    <div>
+      <div className="flex items-end justify-between gap-2" style={{ height: 130 }}>
+        {data.map((d, i) => {
+          const pct = Math.max((d.value / max) * 100, d.value > 0 ? 6 : 2);
+          return (
+            <div key={i} className="flex flex-1 h-full flex-col items-center justify-end gap-1.5">
+              <div className="relative flex w-full flex-1 items-end justify-center">
+                <div
+                  className="w-full max-w-[26px] rounded-t-lg transition-all duration-700 hover:opacity-80"
+                  style={{ height: `${pct}%`, background: 'linear-gradient(180deg, #a78bfa, #6366f1)' }}
+                  title={`${d.label}: ${formatCurrency(d.value)}`}
+                />
+              </div>
+              <span className="text-[10px] font-bold text-slate-500">{d.label}</span>
             </div>
-            <span className="text-[10px] font-bold text-slate-500">{d.label}</span>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
+        <div className="text-center">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Total this week</p>
+          <p className="text-sm font-black text-slate-900">{formatCurrency(total)}</p>
+        </div>
+        <div className="text-center">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">Daily average</p>
+          <p className="text-sm font-black text-slate-900">{formatCurrency(avg)}</p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -496,56 +510,46 @@ function ControlMatrix({ states, loading, onToggle, pulseKey }: {
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)] overflow-hidden">
+    <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)] overflow-hidden h-full flex flex-col">
       <div className="h-0.5 bg-gradient-to-r from-rose-500 via-orange-400 to-amber-400" />
-      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
             <Server className="h-4 w-4 text-slate-500" />
           </div>
           <div>
-            <p className="font-bold text-sm text-slate-900">Central Control Matrix</p>
-            <p className="text-xs text-slate-500">System-wide operational switches</p>
+            <p className="font-bold text-sm text-slate-900">Control Matrix</p>
+            <p className="text-[11px] text-slate-500">System-wide switches</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="text-[11px] font-semibold text-emerald-700">All Systems Operational</span>
-        </div>
+        <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 flex-shrink-0">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live
+        </span>
       </div>
-      <div className="p-5 grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="p-2.5 flex-1 space-y-1">
         {controls.map(c => {
           const isOn = states[c.key];
           const isLoading = loading === c.key;
           return (
             <div key={c.key}
               data-control={c.key}
-              className={`rounded-xl p-4 border cursor-pointer select-none transition-all hover:shadow-sm ${pulseKey === c.key ? 'animate-pulse ring-2 ring-offset-1' : ''}`}
-              style={{
-                background: isOn ? c.activeBg : '#f8fafc',
-                borderColor: isOn ? c.activeColor + '40' : '#e2e8f0',
-                ...(pulseKey === c.key ? { ['--tw-ring-color' as any]: c.activeColor } : {}),
-              }}
+              className={`flex items-center gap-3 rounded-xl px-2.5 py-2.5 cursor-pointer select-none transition-colors hover:bg-slate-50 ${pulseKey === c.key ? 'animate-pulse' : ''}`}
               onClick={() => toggle(c.key)}
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isOn ? c.activeColor + '20' : '#e2e8f0' }}>
-                  <span style={{ color: isOn ? c.activeColor : '#94a3b8' }}>{c.icon}</span>
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg" style={{ background: isOn ? c.activeColor + '18' : '#f1f5f9', color: isOn ? c.activeColor : '#94a3b8' }}>
+                {c.icon}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[12px] font-bold text-slate-900 leading-tight truncate">{c.label}</p>
+                <p className="text-[10px] text-slate-400 leading-tight truncate">{c.desc}</p>
+              </div>
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 flex-shrink-0 animate-spin text-slate-400" />
+              ) : (
+                <div className="relative w-9 h-5 rounded-full flex-shrink-0 transition-colors" style={{ background: isOn ? c.activeColor : '#cbd5e1' }}>
+                  <div className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all" style={{ left: isOn ? '18px' : '2px' }} />
                 </div>
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
-                ) : (
-                  <div className="relative w-9 h-5 rounded-full transition-colors flex-shrink-0" style={{ background: isOn ? c.activeColor : '#cbd5e1' }}>
-                    <div className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all" style={{ left: isOn ? '18px' : '2px' }} />
-                  </div>
-                )}
-              </div>
-              <p className="text-[12px] font-bold text-slate-900 leading-tight">{c.label}</p>
-              <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">{c.desc}</p>
-              <div className="mt-2.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold"
-                style={{ background: isOn ? c.activeColor + '15' : '#f1f5f9', color: isOn ? c.activeColor : '#94a3b8' }}>
-                {isOn ? '● ACTIVE' : '○ OFF'}
-              </div>
+              )}
             </div>
           );
         })}
@@ -1185,6 +1189,20 @@ export default function AdminDashboard() {
               </Link>
             </div>
           </div>
+          <div className="grid grid-cols-3 gap-2 px-5 pb-3">
+            <div className="rounded-xl bg-indigo-50/60 px-3 py-2 text-center">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-indigo-400">Total Revenue</p>
+              <p className="text-sm font-black text-indigo-700 tabular-nums">{formatCurrency(periodRevenue)}</p>
+            </div>
+            <div className="rounded-xl bg-emerald-50/60 px-3 py-2 text-center">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-500">Daily Average</p>
+              <p className="text-sm font-black text-emerald-700 tabular-nums">{formatCurrency(avgDaily)}</p>
+            </div>
+            <div className="rounded-xl bg-amber-50/60 px-3 py-2 text-center">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-amber-500">Best Day</p>
+              <p className="text-sm font-black text-amber-700 tabular-nums">{formatCurrency(Math.max(...chartSeries, 0))}</p>
+            </div>
+          </div>
           <div className="px-3 pb-3">
             {chartData.length > 0
               ? <AreaChart data={chartData} height={260} />
@@ -1250,60 +1268,166 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* ── Central Control Toggle Matrix ────────────────────────────── */}
-      <SectionLabel title="System Metrics" subtitle="Operational switches" icon={<LayoutGrid className="h-3.5 w-3.5" />} />
-      <ControlMatrix states={controls} loading={controlLoading} onToggle={toggleControl} pulseKey={pulseKey} />
+      {/* ── System Metrics: Control Matrix + Weekly Performance + Quick Actions ── */}
+      <SectionLabel title="System Metrics" subtitle="Operations at a glance" icon={<LayoutGrid className="h-3.5 w-3.5" />} />
+      <div className="grid gap-5 lg:grid-cols-3 items-stretch">
+        <ControlMatrix states={controls} loading={controlLoading} onToggle={toggleControl} pulseKey={pulseKey} />
 
-      {/* ── Top Products + Weekly Performance ────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)] overflow-hidden">
+          <div className="h-0.5 bg-gradient-to-r from-violet-500 to-indigo-400" />
+          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <p className="font-bold text-sm text-slate-900">Weekly Performance</p>
+              <p className="text-[11px] text-slate-500">Revenue · last 7 days</p>
+            </div>
+            <Link href="/admin/reports" className="text-[11px] font-semibold text-indigo-600 hover:underline flex-shrink-0">Full report</Link>
+          </div>
+          <div className="px-5 py-4">
+            <WeeklyBar data={weeklyBarData} />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)] overflow-hidden flex flex-col">
+          <div className="h-0.5 bg-gradient-to-r from-emerald-400 to-teal-400" />
+          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-slate-100">
+            <div className="rounded-lg p-1.5 bg-emerald-50 border border-emerald-100"><Zap className="h-4 w-4 text-emerald-600" /></div>
+            <div>
+              <p className="font-bold text-sm text-slate-900">Quick Actions</p>
+              <p className="text-[11px] text-slate-500">Common admin tasks</p>
+            </div>
+          </div>
+          <div className="p-2.5 space-y-1 flex-1">
+            {[
+              { href: '/admin/products/new',  label: 'Add Product',    desc: 'Create a new listing',     icon: <Plus className="h-4 w-4" />,         color: '#10b981', bg: '#ecfdf5' },
+              { href: '/admin/coupons',        label: 'Coupons',        desc: 'Manage discount codes',    icon: <Tag className="h-4 w-4" />,          color: '#8b5cf6', bg: '#f5f3ff' },
+              { href: '/admin/flash-deals',    label: 'Flash Deals',    desc: 'Run a timed promotion',    icon: <Zap className="h-4 w-4" />,          color: '#d97706', bg: '#fffbeb' },
+              { href: '/admin/reports',        label: 'Reports',        desc: 'View sales & analytics',   icon: <FileBarChart className="h-4 w-4" />, color: '#2563eb', bg: '#eff6ff' },
+              { href: '/admin/inventory',      label: 'Inventory',      desc: 'Stock levels & restocks',  icon: <Package className="h-4 w-4" />,      color: '#dc2626', bg: '#fef2f2' },
+              { href: '/admin/control-center', label: 'Control Center', desc: 'System-wide operations',   icon: <LayoutGrid className="h-4 w-4" />,   color: '#0891b2', bg: '#ecfeff' },
+            ].map(a => (
+              <Link key={a.href} href={a.href}
+                className="group flex items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-slate-50">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl" style={{ background: a.bg, color: a.color }}>
+                  {a.icon}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[12px] font-bold text-slate-900 leading-tight">{a.label}</p>
+                  <p className="text-[10px] text-slate-400 leading-tight truncate">{a.desc}</p>
+                </div>
+                <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-slate-300 transition-all group-hover:text-slate-500 group-hover:translate-x-0.5" />
+              </Link>
+            ))}
+          </div>
+          {lowStockCount > 0 && (
+            <div className="mx-4 mb-4 rounded-xl p-3 flex items-center gap-2.5 bg-rose-50 border border-rose-200">
+              <AlertTriangle className="h-4 w-4 text-rose-500 flex-shrink-0" />
+              <p className="text-[11px] text-rose-700 flex-1">{lowStockCount} items low on stock</p>
+              <Link href="/admin/inventory" className="text-[10px] font-bold text-rose-600 hover:text-rose-800 flex-shrink-0">Fix →</Link>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Detailed Insights: Top Products + Top Customers ──────────── */}
       <SectionLabel title="Detailed Insights" subtitle="Products, orders & customers" icon={<Layers className="h-3.5 w-3.5" />} />
       <div className="grid gap-5 lg:grid-cols-5">
         <div className="lg:col-span-3">
-          <SectionCard title="Top Products" subtitle="Best sellers by revenue"
+          <SectionCard title="Top Products" subtitle="Best sellers · live price & stock"
             action={<Link href="/admin/products" className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors">All products <ArrowRight className="h-3 w-3" /></Link>}>
-            <div className="divide-y divide-slate-50">
-              {!stats?.topProducts || stats.topProducts.length === 0 ? (
-                <p className="py-8 text-center text-sm text-slate-400">No sales data yet</p>
-              ) : (
-                stats.topProducts.map((p, i) => {
-                  const revenue = Number(p._sum.totalPrice ?? 0);
-                  const qty = p._sum.quantity ?? 0;
-                  const pct = Math.max((revenue / topProductsMax) * 100, 4);
-                  const rankColors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-                  const color = rankColors[i % rankColors.length]!;
-                  return (
-                    <div key={p.productId} className="flex items-center gap-3 px-4 py-2.5">
-                      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg text-[10px] font-black text-white" style={{ background: color }}>{i + 1}</div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-semibold text-slate-900">{p.productName}</p>
-                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: color }} />
-                        </div>
-                      </div>
-                      <div className="flex-shrink-0 text-right">
-                        <p className="text-xs font-black tabular-nums text-slate-900">{formatCurrency(revenue)}</p>
-                        <p className="text-[10px] text-slate-400">{qty} sold</p>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+            {!stats?.topProducts || stats.topProducts.length === 0 ? (
+              <p className="py-8 text-center text-sm text-slate-400">No sales data yet</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-slate-100">
+                      <th className="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Product</th>
+                      <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">Price</th>
+                      <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">Stock</th>
+                      <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {stats.topProducts.map((p, i) => {
+                      const revenue = Number(p._sum.totalPrice ?? 0);
+                      const qty = p._sum.quantity ?? 0;
+                      const rankColors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+                      const color = rankColors[i % rankColors.length]!;
+                      const stockOut = p.stock === 0;
+                      const stockLow = !stockOut && p.stock !== null && p.lowStockAlert !== null && p.stock <= p.lowStockAlert;
+                      return (
+                        <tr key={p.productId} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="px-4 py-2.5">
+                            <div className="flex items-center gap-2.5">
+                              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-[10px] font-black text-white" style={{ background: color }}>{i + 1}</div>
+                              <div className="min-w-0">
+                                <p className="truncate text-xs font-semibold text-slate-900 max-w-[200px]">{p.productName}</p>
+                                <p className="text-[10px] text-slate-400">{qty} sold · {formatCurrency(revenue)} revenue</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2.5 text-right text-xs font-black text-slate-900 tabular-nums whitespace-nowrap">
+                            {p.price !== null ? formatCurrency(p.price) : <span className="text-slate-300">—</span>}
+                          </td>
+                          <td className="px-3 py-2.5 text-right">
+                            {p.stock !== null ? (
+                              <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold whitespace-nowrap"
+                                style={{
+                                  background: stockOut ? '#fee2e2' : stockLow ? '#fef3c7' : '#dcfce7',
+                                  color: stockOut ? '#dc2626' : stockLow ? '#d97706' : '#16a34a',
+                                }}>
+                                {p.stock}
+                              </span>
+                            ) : <span className="text-[10px] text-slate-300">—</span>}
+                          </td>
+                          <td className="px-3 py-2.5 text-right">
+                            {p.isActive !== null ? (
+                              <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold whitespace-nowrap"
+                                style={{ background: p.isActive ? '#dcfce7' : '#f1f5f9', color: p.isActive ? '#16a34a' : '#94a3b8' }}>
+                                {p.isActive ? 'Active' : 'Inactive'}
+                              </span>
+                            ) : <span className="text-[10px] text-slate-300">—</span>}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </SectionCard>
         </div>
 
         <div className="lg:col-span-2">
-          <SectionCard title="Weekly Performance" subtitle="Revenue · last 7 days"
-            action={<Link href="/admin/reports" className="text-[11px] font-semibold text-indigo-600 hover:underline">Full report</Link>}>
-            <div className="px-5 py-4">
-              <WeeklyBar data={weeklyBarData} />
+          <SectionCard title="Top Customers" subtitle="Highest lifetime value"
+            action={<Link href="/admin/users" className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors">All users <ArrowRight className="h-3 w-3" /></Link>}>
+            <div className="divide-y divide-slate-50">
+              {!topCustomers || topCustomers.length === 0
+                ? <p className="px-5 py-8 text-center text-sm text-slate-400">No customer data yet</p>
+                : topCustomers.map((c, i) => {
+                    const rankColors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6'];
+                    const name = c.user ? `${c.user.firstName} ${c.user.lastName}`.trim() || c.user.email : 'Unknown';
+                    return (
+                      <div key={c.user?.id ?? i} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50/80 transition-colors">
+                        <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px] font-black flex-shrink-0" style={{ background: rankColors[i] ?? '#94a3b8' }}>
+                          {name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-xs text-slate-900 truncate">{name}</p>
+                          <p className="text-[10px] text-slate-400">{c.orderCount} order{c.orderCount !== 1 ? 's' : ''}</p>
+                        </div>
+                        <span className="font-black text-xs text-slate-900 flex-shrink-0 tabular-nums">{formatCurrency(c.totalSpent)}</span>
+                      </div>
+                    );
+                  })
+              }
             </div>
           </SectionCard>
         </div>
       </div>
 
-      {/* ── Bottom grid: Recent Orders + Categories ──────────────────── */}
+      {/* ── Recent Orders + Top Categories + Payment Methods ─────────── */}
       <div className="grid gap-5 lg:grid-cols-3">
-        <div className="lg:col-span-2">
         <SectionCard title="Recent Orders" subtitle={orderFilter ? `Filtered · ${orderFilter.replace(/_/g, ' ')}` : 'Last 5 transactions'}
           action={orderFilter
             ? <button type="button" onClick={() => setOrderFilter(null)} className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 border transition-colors" style={{ color: orderFilterColor, background: orderFilterColor + '12', borderColor: orderFilterColor + '33' }}><X className="h-3 w-3" /> Clear</button>
@@ -1334,7 +1458,6 @@ export default function AdminDashboard() {
             }
           </div>
         </SectionCard>
-        </div>
 
         <SectionCard title="Top Categories" subtitle="Revenue by category"
           action={<Link href="/admin/categories" className="text-[11px] font-semibold text-violet-600 hover:underline">View all</Link>}>
@@ -1358,34 +1481,6 @@ export default function AdminDashboard() {
             ) : <p className="py-6 text-center text-sm text-slate-400">No category data yet</p>}
           </div>
         </SectionCard>
-      </div>
-
-      {/* ── Support row: Customers + Payment + Quick Actions ─────────── */}
-      <div className="grid gap-5 lg:grid-cols-3">
-        <SectionCard title="Top Customers" subtitle="Highest lifetime value"
-          action={<Link href="/admin/users" className="flex items-center gap-1 text-[11px] font-semibold rounded-lg px-2.5 py-1.5 text-indigo-600 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 transition-colors">All users <ArrowRight className="h-3 w-3" /></Link>}>
-          <div className="divide-y divide-slate-50">
-            {!topCustomers || topCustomers.length === 0
-              ? <p className="px-5 py-8 text-center text-sm text-slate-400">No customer data yet</p>
-              : topCustomers.map((c, i) => {
-                  const rankColors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6'];
-                  const name = c.user ? `${c.user.firstName} ${c.user.lastName}`.trim() || c.user.email : 'Unknown';
-                  return (
-                    <div key={c.user?.id ?? i} className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50/80 transition-colors">
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px] font-black flex-shrink-0" style={{ background: rankColors[i] ?? '#94a3b8' }}>
-                        {name.slice(0, 2).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-xs text-slate-900 truncate">{name}</p>
-                        <p className="text-[10px] text-slate-400">{c.orderCount} order{c.orderCount !== 1 ? 's' : ''}</p>
-                      </div>
-                      <span className="font-black text-xs text-slate-900 flex-shrink-0 tabular-nums">{formatCurrency(c.totalSpent)}</span>
-                    </div>
-                  );
-                })
-            }
-          </div>
-        </SectionCard>
 
         <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)] overflow-hidden">
           <div className="h-0.5 bg-gradient-to-r from-amber-400 to-orange-400" />
@@ -1399,46 +1494,6 @@ export default function AdminDashboard() {
               : <p className="py-8 text-center text-sm text-slate-400">No order data yet</p>
             }
           </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-[0_4px_30px_rgba(15,23,42,0.04)] overflow-hidden">
-          <div className="h-0.5 bg-gradient-to-r from-emerald-400 to-teal-400" />
-          <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-slate-100">
-            <div className="rounded-lg p-1.5 bg-emerald-50 border border-emerald-100"><Zap className="h-4 w-4 text-emerald-600" /></div>
-            <div>
-              <p className="font-bold text-sm text-slate-900">Quick Actions</p>
-              <p className="text-[11px] text-slate-500">Common admin tasks</p>
-            </div>
-          </div>
-          <div className="p-2.5 space-y-1">
-            {[
-              { href: '/admin/products/new',  label: 'Add Product',    desc: 'Create a new listing',     icon: <Plus className="h-4 w-4" />,         color: '#10b981', bg: '#ecfdf5' },
-              { href: '/admin/coupons',        label: 'Coupons',        desc: 'Manage discount codes',    icon: <Tag className="h-4 w-4" />,          color: '#8b5cf6', bg: '#f5f3ff' },
-              { href: '/admin/flash-deals',    label: 'Flash Deals',    desc: 'Run a timed promotion',    icon: <Zap className="h-4 w-4" />,          color: '#d97706', bg: '#fffbeb' },
-              { href: '/admin/reports',        label: 'Reports',        desc: 'View sales & analytics',   icon: <FileBarChart className="h-4 w-4" />, color: '#2563eb', bg: '#eff6ff' },
-              { href: '/admin/inventory',      label: 'Inventory',      desc: 'Stock levels & restocks',  icon: <Package className="h-4 w-4" />,      color: '#dc2626', bg: '#fef2f2' },
-              { href: '/admin/control-center', label: 'Control Center', desc: 'System-wide operations',   icon: <LayoutGrid className="h-4 w-4" />,   color: '#0891b2', bg: '#ecfeff' },
-            ].map(a => (
-              <Link key={a.href} href={a.href}
-                className="group flex items-center gap-3 rounded-xl px-3 py-2 transition-colors hover:bg-slate-50">
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl" style={{ background: a.bg, color: a.color }}>
-                  {a.icon}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[12px] font-bold text-slate-900 leading-tight">{a.label}</p>
-                  <p className="text-[10px] text-slate-400 leading-tight truncate">{a.desc}</p>
-                </div>
-                <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-slate-300 transition-all group-hover:text-slate-500 group-hover:translate-x-0.5" />
-              </Link>
-            ))}
-          </div>
-          {lowStockCount > 0 && (
-            <div className="mx-4 mb-4 rounded-xl p-3 flex items-center gap-2.5 bg-rose-50 border border-rose-200">
-              <AlertTriangle className="h-4 w-4 text-rose-500 flex-shrink-0" />
-              <p className="text-[11px] text-rose-700 flex-1">{lowStockCount} items low on stock</p>
-              <Link href="/admin/inventory" className="text-[10px] font-bold text-rose-600 hover:text-rose-800 flex-shrink-0">Fix →</Link>
-            </div>
-          )}
         </div>
       </div>
 
